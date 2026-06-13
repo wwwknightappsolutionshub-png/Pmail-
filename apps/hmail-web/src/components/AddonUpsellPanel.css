@@ -1,0 +1,50 @@
+.addon-upsell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+}
+
+.addon-upsell-inner {
+  max-width: 32rem;
+  text-align: center;
+}
+
+.addon-upsell-kicker {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand-accent, #0d9488);
+}
+
+.addon-upsell h2 {
+  margin: 0 0 0.75rem;
+  font-family: "Anek", "Anek Latin", sans-serif;
+  font-size: 1.5rem;
+  color: #0f172a;
+}
+
+.addon-upsell p {
+  margin: 0 0 0.75rem;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.addon-upsell-price {
+  font-size: 0.92rem;
+}
+
+.addon-upsell-cta {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  background: var(--brand-primary, #0d4f6c);
+}

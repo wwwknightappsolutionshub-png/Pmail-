@@ -1,0 +1,15 @@
+[Unit]
+Description=hmail API (Hostnet Panel)
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/hostnet-panel/apps/hmail-api
+EnvironmentFile=/var/www/hostnet-panel/.env
+ExecStart=/usr/bin/node dist/index.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

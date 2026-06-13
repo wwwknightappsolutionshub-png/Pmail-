@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hostnet-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hostnet
+      POSTGRES_PASSWORD: hostnet_dev_password
+      POSTGRES_DB: hostnet_panel
+    ports:
+      - "5433:5432"
+    volumes:
+      - hostnet_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hostnet -d hostnet_panel"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  hostnet_pg_data:

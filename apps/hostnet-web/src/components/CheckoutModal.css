@@ -1,0 +1,38 @@
+.checkout-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 18, 0.75);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.checkout-modal {
+  width: min(440px, 100%);
+  padding: 1.25rem;
+}
+
+.checkout-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.checkout-modal-head h2 {
+  margin: 0;
+}
+
+.checkout-page {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.checkout-page .card {
+  width: min(480px, 100%);
+  padding: 1.5rem;
+  text-align: center;
+}

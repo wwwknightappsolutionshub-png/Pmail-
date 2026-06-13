@@ -1,0 +1,133 @@
+.rte {
+  border: 1px solid var(--compose-border, #dbe3ec);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.rte-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--compose-border, #dbe3ec);
+  background: #f8fafc;
+}
+
+.rte-toolbar-format,
+.rte-toolbar-extra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.rte-toolbar-divider {
+  width: 1px;
+  align-self: stretch;
+  min-height: 1.75rem;
+  background: var(--compose-border, #dbe3ec);
+  margin: 0 0.15rem;
+}
+
+.rte-toolbar-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.rte-toolbar-control-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.rte-toolbar-control select {
+  min-height: 2rem;
+  border: 1px solid var(--compose-border, #dbe3ec);
+  border-radius: 6px;
+  padding: 0.2rem 0.45rem;
+  font-family: "Exo", sans-serif;
+  font-size: 0.78rem;
+  background: #fff;
+  color: #334155;
+}
+
+.rte-toolbar-control--check {
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  border-radius: 6px;
+}
+
+.rte-toolbar-control--check:hover {
+  background: #e2e8f0;
+}
+
+.rte-toolbar-control--check input {
+  margin: 0;
+}
+
+.rte-tool--attach {
+  min-width: auto;
+  padding: 0 0.65rem;
+}
+
+.rte-tool {
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  padding: 0 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #334155;
+  font-family: "Exo", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rte-tool:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.rte-editor {
+  min-height: 180px;
+  max-height: 280px;
+  overflow: auto;
+  padding: 0.9rem 1rem;
+  font-family: "Exo", sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #0f172a;
+  outline: none;
+}
+
+.rte-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.rte-editor ul,
+.rte-editor ol {
+  margin: 0.5rem 0;
+  padding-left: 1.4rem;
+}
+
+.rte-editor a {
+  color: #0d4f6c;
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .rte-editor {
+    min-height: 220px;
+    max-height: 340px;
+  }
+}

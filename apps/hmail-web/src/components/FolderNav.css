@@ -1,0 +1,233 @@
+.folder-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.folder-nav-loading {
+  padding: 0.5rem 0.25rem;
+  font-family: "Exo", sans-serif;
+  font-size: 0.82rem;
+  color: var(--sidebar-muted, #94a3b8);
+}
+
+.folder-nav-heading {
+  margin: 0 0 0.35rem;
+  padding: 0 0.5rem;
+  font-family: "Anek", "Anek Latin", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sidebar-muted, #94a3b8);
+}
+
+.folder-nav-heading--secondary {
+  margin-top: 0.75rem;
+}
+
+.folder-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.folder-nav-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  min-height: 3rem;
+  padding: 0.62rem 0.7rem;
+  background: transparent;
+  color: var(--sidebar-text, #e2e8f0);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.folder-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.folder-nav-item.is-active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 35%, transparent);
+}
+
+.folder-nav-item-accent {
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.folder-nav-item.is-active .folder-nav-item-accent {
+  background: var(--brand-accent, #0d9488);
+}
+
+.folder-nav-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  flex-shrink: 0;
+  color: var(--sidebar-muted, #94a3b8);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.folder-nav-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.folder-nav-item.is-active .folder-nav-icon {
+  color: #fff;
+  background: color-mix(in srgb, var(--brand-primary, #0d4f6c) 55%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 40%, transparent);
+}
+
+.folder-nav-icon--inbox.is-active,
+.folder-nav-item--inbox.is-active .folder-nav-icon {
+  color: #ccfbf1;
+}
+
+.folder-nav-icon--sent.is-active,
+.folder-nav-item--sent.is-active .folder-nav-icon {
+  color: #dbeafe;
+}
+
+.folder-nav-icon--drafts.is-active,
+.folder-nav-item--drafts.is-active .folder-nav-icon {
+  color: #e0e7ff;
+}
+
+.folder-nav-icon--junk.is-active,
+.folder-nav-item--junk.is-active .folder-nav-icon {
+  color: #fef3c7;
+}
+
+.folder-nav-icon--trash.is-active,
+.folder-nav-item--trash.is-active .folder-nav-icon {
+  color: #fecaca;
+}
+
+.folder-nav-label {
+  font-family: "Exo", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.folder-nav-item.is-active .folder-nav-label {
+  color: #fff;
+}
+
+.folder-nav-badge {
+  min-width: 1.35rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-family: "Exo", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  color: #042f2e;
+  background: linear-gradient(
+    120deg,
+    var(--brand-accent, #14b8a6),
+    var(--brand-primary, #0d9488)
+  );
+}
+
+.folder-nav-item--junk .folder-nav-badge {
+  color: #78350f;
+  background: #fde68a;
+}
+
+.folder-nav-item--trash .folder-nav-badge {
+  color: #7f1d1d;
+  background: #fecaca;
+}
+
+.folder-nav-item.is-active .folder-nav-badge {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.folder-nav-group--compose {
+  margin-bottom: 0.35rem;
+}
+
+.folder-nav-item--compose {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 28%, transparent);
+}
+
+.folder-nav-item--compose:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 40%, transparent);
+}
+
+.folder-nav-icon--compose {
+  color: #ccfbf1;
+  background: color-mix(in srgb, var(--brand-primary, #0d4f6c) 70%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 35%, transparent);
+}
+
+.folder-nav-item--compose .folder-nav-label {
+  color: #fff;
+  font-weight: 700;
+}
+
+.folder-nav-icon--scheduled.is-active,
+.folder-nav-item--scheduled.is-active .folder-nav-icon {
+  color: #ddd6fe;
+}
+
+.folder-nav-icon--auto_response.is-active,
+.folder-nav-item--auto_response.is-active .folder-nav-icon {
+  color: #fce7f3;
+}
+
+.folder-nav-item--new_folder:hover .folder-nav-icon {
+  color: #bbf7d0;
+}
+
+.folder-nav-item.is-locked .folder-nav-label {
+  opacity: 0.75;
+}
+
+.folder-nav-lock {
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.folder-nav-item--addons:hover {
+  border-color: color-mix(in srgb, var(--brand-accent, #14b8a6) 35%, transparent);
+}
+
+@media (min-width: 768px) {
+  .folder-nav-item {
+    min-height: 2.75rem;
+  }
+}

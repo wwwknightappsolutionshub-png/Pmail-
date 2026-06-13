@@ -1,0 +1,587 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Multi-tenant organization (church, business, reseller client)
+model Tenant {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branding TenantBranding?
+  mail     TenantMailConfig?
+  users    User[]
+  addonTrials TenantAddonTrial[]
+  addonSubscriptions TenantAddonSubscription[]
+  addonEmailLogs AddonEmailLog[]
+  clients Client[]
+  matters Matter[]
+  immigrationTemplates ImmigrationTemplate[]
+  scheduledMessages ScheduledMessage[]
+  complianceLogs ComplianceAuditLog[]
+  irccClassifications IrccMailClassification[]
+  mailMatterLinks MailMatterLink[]
+  matterDeadlines MatterDeadline[]
+  portalAccesses PortalAccess[]
+  portalDocumentRequests PortalDocumentRequest[]
+  hostingAccounts HostingAccount[]
+  vpsInstances VpsInstance[]
+  paymentCheckouts PaymentCheckout[]
+  hostingPlanSubscriptions HostingPlanSubscription[]
+}
+
+model TenantBranding {
+  id              String  @id @default(uuid())
+  tenantId        String  @unique
+  productName     String  @default("hmail")
+  logoUrl         String?
+  primaryColor    String  @default("#0d9488")
+  accentColor     String  @default("#14b8a6")
+  backgroundColor String  @default("#0f172a")
+  loginTagline    String  @default("Mail built for Canadian immigration professionals")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model TenantMailConfig {
+  id         String  @id @default(uuid())
+  tenantId   String  @unique
+  imapHost   String  @default("imap.hostinger.com")
+  imapPort   Int     @default(993)
+  imapSecure Boolean @default(true)
+  smtpHost   String  @default("smtp.hostinger.com")
+  smtpPort   Int     @default(465)
+  smtpSecure Boolean @default(true)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id          String    @id @default(uuid())
+  tenantId    String
+  email       String
+  displayName String?
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@unique([tenantId, email])
+  @@index([email])
+}
+
+model Session {
+  id                    String   @id @default(uuid())
+  userId                String
+  tokenHash             String   @unique
+  encryptedMailPassword String
+  expiresAt             DateTime
+  createdAt             DateTime @default(now())
+  ipAddress             String?
+  userAgent             String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+model HostingAccount {
+  id           String   @id @default(uuid())
+  tenantId     String
+  planId       String?
+  username     String
+  domain       String
+  homePath     String
+  diskQuotaMb  Int      @default(1024)
+  diskUsedMb   Int      @default(0)
+  bandwidthMb  Int      @default(10240)
+  bandwidthUsedMb Int   @default(0)
+  emailAccounts Int     @default(5)
+  databases    Int      @default(1)
+  passwordHash String
+  isSuspended  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant   Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan     HostingPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  sessions PanelSession[]
+
+  @@unique([tenantId, username])
+  @@unique([username, domain])
+  @@index([domain])
+}
+
+model PanelSession {
+  id               String   @id @default(uuid())
+  hostingAccountId String
+  tokenHash        String   @unique
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+  ipAddress        String?
+  userAgent        String?
+
+  hostingAccount HostingAccount @relation(fields: [hostingAccountId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+model Addon {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  group       String
+  description String
+  features    String
+  priceCents  Int      @default(1000)
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  trials        TenantAddonTrial[]
+  subscriptions TenantAddonSubscription[]
+  marketing     AddonMarketing?
+}
+
+model TenantAddonTrial {
+  id                String   @id @default(uuid())
+  tenantId          String
+  addonId           String
+  startedAt         DateTime @default(now())
+  endsAt            DateTime
+  status            String   @default("active")
+  welcomeEmailSent  Boolean  @default(false)
+  day3EmailSent     Boolean  @default(false)
+  discountEmailSent Boolean  @default(false)
+  expiredEmailSent  Boolean  @default(false)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  addon  Addon  @relation(fields: [addonId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, addonId])
+  @@index([status, endsAt])
+}
+
+model TenantAddonSubscription {
+  id                     String    @id @default(uuid())
+  tenantId               String
+  addonId                String
+  status                 String    @default("active")
+  paymentProvider        String?
+  stripeSubscriptionId   String?
+  paystackSubscriptionCode String?
+  paystackCustomerCode   String?
+  currentPeriodEnd       DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  addon  Addon  @relation(fields: [addonId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, addonId])
+}
+
+model AddonEmailLog {
+  id        String   @id @default(uuid())
+  tenantId  String
+  addonId   String?
+  userEmail String
+  emailType String
+  sentAt    DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, emailType])
+}
+
+model ImmigrationTemplate {
+  id          String   @id @default(uuid())
+  tenantId    String?
+  slug        String
+  name        String
+  subject     String
+  bodyHtml    String
+  description String
+  category    String   @default("general")
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, slug])
+  @@index([category])
+}
+
+model ScheduledMessage {
+  id           String    @id @default(uuid())
+  tenantId     String
+  userId       String
+  to           String
+  cc           String?
+  bcc          String?
+  subject      String
+  text         String?
+  html         String?
+  scheduledFor DateTime
+  status       String    @default("pending")
+  sentAt       DateTime?
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status, scheduledFor])
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  tenantId  String
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  matters Matter[]
+
+  @@index([tenantId, lastName])
+}
+
+model Matter {
+  id        String   @id @default(uuid())
+  tenantId  String
+  clientId  String
+  title     String
+  uci       String?
+  program   String   @default("express_entry")
+  status    String   @default("intake")
+  openedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant          Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client          Client                   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  checklistItems  MatterChecklistItem[]
+  mailLinks       MailMatterLink[]
+  deadlines       MatterDeadline[]
+  portalAccesses  PortalAccess[]
+  portalDocuments PortalDocumentRequest[]
+
+  @@index([tenantId, uci])
+  @@index([tenantId, status])
+}
+
+model MatterChecklistItem {
+  id         String    @id @default(uuid())
+  matterId   String
+  label      String
+  category   String    @default("document")
+  isComplete Boolean   @default(false)
+  dueDate    DateTime?
+  sortOrder  Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  matter Matter @relation(fields: [matterId], references: [id], onDelete: Cascade)
+
+  @@index([matterId, sortOrder])
+}
+
+model ComplianceAuditLog {
+  id         String   @id @default(uuid())
+  tenantId   String
+  userId     String?
+  userEmail  String?
+  action     String
+  entityType String?
+  entityId   String?
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+}
+
+model IrccMailClassification {
+  id             String   @id @default(uuid())
+  tenantId       String
+  folder         String
+  messageUid     Int
+  classification String
+  priority       String   @default("normal")
+  sender         String?
+  subject        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, folder, messageUid])
+  @@index([tenantId, priority])
+}
+
+model MailMatterLink {
+  id         String   @id @default(uuid())
+  tenantId   String
+  matterId   String
+  folder     String
+  messageUid Int
+  subject    String?
+  linkedAt   DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  matter Matter @relation(fields: [matterId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, folder, messageUid])
+  @@index([matterId])
+}
+
+model MatterDeadline {
+  id        String   @id @default(uuid())
+  tenantId  String
+  matterId  String
+  title     String
+  dueAt     DateTime
+  status    String   @default("open")
+  source    String   @default("manual")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  matter Matter @relation(fields: [matterId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, dueAt])
+  @@index([matterId])
+}
+
+model PortalAccess {
+  id        String   @id @default(uuid())
+  tenantId  String
+  matterId  String
+  token     String   @unique
+  expiresAt DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  matter Matter @relation(fields: [matterId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, matterId])
+}
+
+model PortalDocumentRequest {
+  id         String    @id @default(uuid())
+  tenantId   String
+  matterId   String
+  label      String
+  status     String    @default("requested")
+  uploadedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  matter Matter @relation(fields: [matterId], references: [id], onDelete: Cascade)
+
+  @@index([matterId, status])
+}
+
+/// Platform admin (unified backend for landing CMS, hosting, mail)
+model PlatformAdmin {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("admin")
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sessions  AdminSession[]
+  auditLogs AdminAuditLog[]
+}
+
+model AdminAuditLog {
+  id         String   @id @default(uuid())
+  adminId    String?
+  action     String
+  entityType String?
+  entityId   String?
+  metadata   String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  admin PlatformAdmin? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+model VpsInstance {
+  id        String   @id @default(uuid())
+  tenantId  String?
+  label     String
+  hostname  String
+  ipAddress String?
+  region    String   @default("ca-central-1")
+  planSlug  String   @default("vps-s")
+  cpuCores  Int      @default(2)
+  ramMb     Int      @default(4096)
+  diskGb    Int      @default(80)
+  status    String   @default("running")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([status])
+}
+
+model AdminSession {
+  id        String   @id @default(uuid())
+  adminId   String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+
+  admin PlatformAdmin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+model SiteSection {
+  id           String   @id @default(uuid())
+  sectionKey   String   @unique
+  title        String
+  subtitle     String?
+  body         String?
+  bulletPoints String?
+  imageUrl     String?
+  ctaLabel     String?
+  ctaUrl       String?
+  sortOrder    Int      @default(0)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model HostingPlan {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  name          String
+  tagline       String?
+  priceCents    Int
+  billingPeriod String   @default("monthly")
+  diskGb        Int      @default(10)
+  bandwidthGb   Int      @default(100)
+  websites      Int      @default(1)
+  emailAccounts Int      @default(5)
+  databases     Int      @default(1)
+  features      String
+  isFeatured    Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  hostingAccounts HostingAccount[]
+  planSubscriptions HostingPlanSubscription[]
+}
+
+model AddonMarketing {
+  id                String   @id @default(uuid())
+  addonId           String   @unique
+  marketingTitle    String?
+  marketingSubtitle String?
+  longDescription   String?
+  badge             String?
+  displayPriceCents Int      @default(0)
+  trialDays         Int      @default(7)
+  ctaLabel          String   @default("Start free trial")
+  landingFeatured   Boolean  @default(false)
+  sortOrder         Int      @default(0)
+  isPublished       Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  addon Addon @relation(fields: [addonId], references: [id], onDelete: Cascade)
+}
+
+model PaymentCheckout {
+  id                String    @id @default(uuid())
+  tenantId          String
+  provider          String
+  productType       String
+  productId         String
+  productSlug       String
+  productName       String
+  amountCents       Int
+  currency          String    @default("usd")
+  customerEmail     String
+  status            String    @default("pending")
+  externalId        String?
+  externalPaymentId String?
+  successUrl        String
+  cancelUrl         String
+  checkoutUrl       String?
+  metadata          String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  completedAt       DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([externalId])
+  @@index([status])
+  @@index([tenantId])
+}
+
+model PaymentWebhookEvent {
+  id          String   @id @default(uuid())
+  provider    String
+  eventId     String
+  eventType   String
+  payload     String
+  processedAt DateTime @default(now())
+
+  @@unique([provider, eventId])
+}
+
+model HostingPlanSubscription {
+  id                       String    @id @default(uuid())
+  tenantId                 String
+  hostingPlanId            String
+  status                   String    @default("active")
+  paymentProvider          String
+  stripeSubscriptionId     String?
+  paystackSubscriptionCode String?
+  currentPeriodEnd         DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  hostingPlan HostingPlan @relation(fields: [hostingPlanId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, hostingPlanId])
+}

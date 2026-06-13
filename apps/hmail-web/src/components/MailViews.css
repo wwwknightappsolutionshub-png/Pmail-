@@ -1,0 +1,166 @@
+.mail-view-panel {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: auto;
+  padding: 1rem 1.25rem 1.5rem;
+  background: #fff;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mail-view-header {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: none;
+}
+
+.mail-template-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.mail-view-header h2 {
+  margin: 0;
+  font-family: "Anek", "Anek Latin", sans-serif;
+  font-size: 1.35rem;
+}
+
+.mail-view-header p {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.mail-view-empty {
+  color: #64748b;
+  padding: 1rem 0;
+}
+
+.mail-template-card {
+  border: 1px solid #dbe3ec;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #f8fafc;
+}
+
+.mail-template-card h3 {
+  margin: 0 0 0.35rem;
+  font-family: "Anek", "Anek Latin", sans-serif;
+}
+
+.mail-template-desc {
+  margin: 0 0 0.5rem;
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+.mail-template-subject {
+  margin: 0 0 0.65rem;
+  font-size: 0.84rem;
+}
+
+.mail-template-preview {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.mail-scheduled-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.mail-scheduled-card {
+  border: 1px solid #dbe3ec;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  background: #f8fafc;
+}
+
+.mail-scheduled-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.mail-scheduled-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.mail-view-error {
+  color: #b91c1c;
+  padding: 0.5rem 0;
+}
+
+.feature-form,
+.feature-form-grid {
+  display: grid;
+  gap: 0.55rem;
+  margin: 1rem 0;
+}
+
+.feature-form-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.feature-form input,
+.feature-form-grid input,
+.feature-form-grid select {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #dbe3ec;
+  border-radius: 8px;
+}
+
+.feature-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.feature-list-card {
+  border: 1px solid #dbe3ec;
+  border-radius: 10px;
+  padding: 0.8rem 0.9rem;
+  background: #f8fafc;
+}
+
+.feature-id {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.feature-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.feature-checklist label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.feature-portal-url {
+  word-break: break-all;
+  font-size: 0.84rem;
+  color: #0d4f6c;
+}

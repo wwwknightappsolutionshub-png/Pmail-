@@ -1,0 +1,319 @@
+/* Mobile-first compose sheet */
+.compose-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+.compose-modal {
+  --compose-border: #dbe3ec;
+  --compose-text: #0f172a;
+  --compose-muted: #64748b;
+  --compose-primary: #0d4f6c;
+
+  width: 100%;
+  max-height: 96dvh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: none;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+  font-family: "Exo", sans-serif;
+  color: var(--compose-text);
+}
+
+.compose-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  padding-top: max(0.85rem, env(safe-area-inset-top));
+  border-bottom: 1px solid var(--compose-border);
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.compose-title {
+  margin: 0;
+  font-family: "Anek", "Anek Latin", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.compose-subtitle {
+  display: none;
+}
+
+.compose-header-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.compose-icon-btn,
+.compose-secondary-btn,
+.compose-primary-btn {
+  min-height: 2.5rem;
+  font-family: "Exo", sans-serif;
+  cursor: pointer;
+}
+
+.compose-icon-btn {
+  border: 1px solid var(--compose-border);
+  background: #fff;
+  color: #475569;
+  border-radius: 8px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.compose-icon-btn:last-child {
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0.15rem 0.5rem;
+}
+
+.compose-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.compose-form-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.compose-field {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.compose-field--from {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  background: #fafbfc;
+}
+
+.compose-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--compose-muted);
+}
+
+.compose-from-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.compose-field input {
+  width: 100%;
+  min-height: 2.65rem;
+  border: 1px solid var(--compose-border);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  font-size: 1rem;
+  background: #fff;
+}
+
+.compose-field-actions {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.compose-link-btn {
+  border: none;
+  background: transparent;
+  color: var(--compose-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  min-height: 2.25rem;
+  padding: 0.2rem 0.35rem;
+}
+
+.compose-editor-wrap {
+  padding: 0.75rem 1rem 0.35rem;
+}
+
+.compose-attachments {
+  margin: 0 1rem 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--compose-border);
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.compose-attachments-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--compose-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.compose-attachments ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.compose-attachments li {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem;
+  align-items: center;
+  font-size: 0.84rem;
+}
+
+.compose-attachment-name {
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.compose-attachment-size {
+  color: var(--compose-muted);
+  font-size: 0.78rem;
+}
+
+.compose-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--compose-border);
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.compose-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.compose-footer-actions .compose-secondary-btn,
+.compose-footer-actions .compose-primary-btn {
+  flex: 1;
+  min-height: 2.75rem;
+}
+
+.compose-secondary-btn {
+  border: 1px solid var(--compose-border);
+  background: #fff;
+  color: #475569;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.compose-primary-btn {
+  border: none;
+  background: var(--compose-primary);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.62rem 1.15rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.compose-footer-meta {
+  font-size: 0.72rem;
+  color: var(--compose-muted);
+}
+
+.compose-error {
+  margin: 0 1rem 0.5rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.86rem;
+}
+
+/* Tablet+ centered floating modal */
+@media (min-width: 768px) {
+  .compose-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .compose-modal {
+    width: min(760px, calc(100% - 2rem));
+    max-height: min(88vh, 820px);
+    border: 1px solid var(--compose-border);
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  }
+
+  .compose-subtitle {
+    display: block;
+    margin: 0.15rem 0 0;
+    font-size: 0.78rem;
+    color: var(--compose-muted);
+  }
+
+  .compose-title {
+    font-size: 1.35rem;
+  }
+
+  .compose-field {
+    grid-template-columns: 72px 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .compose-field--from {
+    grid-template-columns: 72px 1fr;
+  }
+
+  .compose-field-actions {
+    margin-top: 0;
+    justify-self: end;
+  }
+
+  .compose-attachments li {
+    grid-template-columns: 1fr auto auto;
+  }
+
+  .compose-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .compose-footer-actions {
+    flex: 0 0 auto;
+  }
+
+  .compose-footer-actions .compose-secondary-btn,
+  .compose-footer-actions .compose-primary-btn {
+    flex: 0 0 auto;
+    min-width: 6.5rem;
+  }
+}

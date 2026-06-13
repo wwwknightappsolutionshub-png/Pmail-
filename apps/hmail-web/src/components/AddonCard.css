@@ -1,0 +1,153 @@
+.addon-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.1rem 1.15rem;
+  border: 1px solid #dbe3ec;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.addon-card--active {
+  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 45%, #dbe3ec);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-accent, #0d9488) 18%, transparent);
+}
+
+.addon-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.addon-card-head h3 {
+  margin: 0;
+  font-family: "Anek", "Anek Latin", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.addon-card-status {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.addon-card-status--trial {
+  color: #0d9488;
+}
+
+.addon-card-status--active {
+  color: #15803d;
+}
+
+.addon-card-status--expired {
+  color: #b45309;
+}
+
+.addon-card-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.addon-card-features {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.addon-card-features li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: 0.84rem;
+  color: #334155;
+}
+
+.addon-card-features li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--brand-accent, #0d9488);
+  font-weight: 700;
+}
+
+.addon-card-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.35rem;
+}
+
+.addon-card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  color: #0f172a;
+}
+
+.addon-card-price strong {
+  font-size: 1.15rem;
+}
+
+.addon-card-price span {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.addon-card-cta {
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font-family: "Exo", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand-primary, #0d4f6c);
+  cursor: pointer;
+}
+
+.addon-card-cta:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.addon-card-pill {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #15803d;
+  background: #ecfdf5;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+}
+
+.addon-card-pill--trial {
+  color: #0d9488;
+  background: #f0fdfa;
+}
+
+.addon-card--soon {
+  opacity: 0.62;
+  filter: grayscale(0.35);
+}
+
+.addon-card-status--soon {
+  color: #64748b;
+}
+
+.addon-card-pill--soon {
+  color: #475569;
+  background: #e2e8f0;
+}
+

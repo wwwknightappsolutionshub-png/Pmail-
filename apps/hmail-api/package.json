@@ -1,0 +1,48 @@
+{
+  "name": "hmail-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx dotenv-cli -e ../../.env -- tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:migrate": "npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts migrate deploy",
+    "db:migrate:dev": "npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts migrate dev",
+    "db:seed": "npx dotenv-cli -e ../../.env -- tsx prisma/seed.ts",
+    "db:generate": "npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts generate --schema prisma/schema.sqlite.prisma",
+    "db:sqlite:setup": "npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts generate --schema prisma/schema.sqlite.prisma && npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts db push --schema prisma/schema.sqlite.prisma && npx dotenv-cli -e ../../.env -- tsx prisma/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.3.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "imapflow": "^1.0.171",
+    "mailparser": "^3.7.2",
+    "nodemailer": "^6.10.0",
+    "uuid": "^11.0.5",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/mailparser": "^3.4.5",
+    "@types/node": "^22.13.1",
+    "@types/nodemailer": "^6.4.17",
+    "@types/supertest": "^6.0.2",
+    "@types/uuid": "^10.0.0",
+    "prisma": "^6.3.1",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}
