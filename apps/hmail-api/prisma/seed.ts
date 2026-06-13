@@ -18,14 +18,14 @@ async function main() {
     where: { slug: "demo" },
     create: {
       slug: "demo",
-      name: "Maple Immigration Law",
+      name: "Prohost Cloud",
       branding: {
         create: {
-          productName: "hmail",
+          productName: "PMail+",
           primaryColor: "#0d4f6c",
           accentColor: "#0d9488",
           backgroundColor: "#0f2744",
-          loginTagline: "Mail built for Canadian immigration professionals",
+          loginTagline: "Secure cloud mail powered by Prohost Cloud",
         },
       },
       mail: {
@@ -40,18 +40,19 @@ async function main() {
       },
     },
     update: {
-      name: "Maple Immigration Law",
+      name: "Prohost Cloud",
       branding: {
         upsert: {
           create: {
-            productName: "hmail",
+            productName: "PMail+",
             primaryColor: "#0d4f6c",
             accentColor: "#0d9488",
             backgroundColor: "#0f2744",
-            loginTagline: "Mail built for Canadian immigration professionals",
+            loginTagline: "Secure cloud mail powered by Prohost Cloud",
           },
           update: {
-            loginTagline: "Mail built for Canadian immigration professionals",
+            productName: "PMail+",
+            loginTagline: "Secure cloud mail powered by Prohost Cloud",
           },
         },
       },

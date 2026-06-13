@@ -20,6 +20,9 @@ import { FolderNav, folderDisplayLabel, resolveFolderKind, sortFolders } from ".
 import { HMailLogo } from "../components/HMailLogo";
 import { MailBulkActions } from "../components/MailBulkActions";
 import { MailFilterBar } from "../components/MailFilterBar";
+import { MailOrderBar } from "../components/MailOrderBar";
+import { MailPaginationBar } from "../components/MailPaginationBar";
+import { ContactsPanel } from "../components/ContactsPanel";
 import { MailSearchPanel } from "../components/MailSearchPanel";
 import { NewFolderModal } from "../components/NewFolderModal";
 import { toolAddonSlug } from "../constants/addonTools";
@@ -31,6 +34,7 @@ import {
   VIEW_CASE_LINKED,
   VIEW_CHECKLISTS,
   VIEW_COMPLIANCE,
+  VIEW_CONTACTS,
   VIEW_DEADLINES,
   VIEW_DESK,
   VIEW_IRCC_INTEL,
@@ -39,8 +43,16 @@ import {
   type MailSearchState,
   type MailStatusFilter,
 } from "../constants/mailViews";
-import type { MailFolder, MailMessageDetail, MailMessageSummary } from "../types/mail";
+import type { MailFolder, MailMessageDetail, MailMessageSummary, MailSortField, MailSortOrder } from "../types/mail";
 import "./MailPage.css";
+import "../components/ContactsPanel.css";
+
+const PAGE_SIZE = 30;
+
+function extractEmailFromHeader(value: string): string {
+  const match = value.match(/<([^>]+)>/);
+  return (match?.[1] ?? value).trim().toLowerCase();
+}
 
 type MobilePane = "list" | "read" | "menu";
 
@@ -122,10 +134,20 @@ export function MailPage() {
   const { hasAddon } = useAddons();
   const navigate = useNavigate();
   const branding = user?.tenant.branding;
+  const productName = branding?.productName ?? "PMail+";
+  const tenantName = user?.tenant.name ?? "Prohost Cloud";
 
   const [folders, setFolders] = useState<MailFolder[]>([]);
   const [activeFolder, setActiveFolder] = useState("INBOX");
   const [messages, setMessages] = useState<MailMessageSummary[]>([]);
+  const [messageTotal, setMessageTotal] = useState(0);
+  const [messagePage, setMessagePage] = useState(1);
+  const [sortBy, setSortBy] = useState<MailSortField>("date");
+  const [sortOrder, setSortOrder] = useState<MailSortOrder>("desc");
+  const [contactSuggestions, setContactSuggestions] = useState<string[]>([]);
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<string[]>([]);
+  const [contactsPrefillEmail, setContactsPrefillEmail] = useState<string | undefined>();
+  const [statusMessage, setStatusMessage] = useState("");
   const [selectedUid, setSelectedUid] = useState<number | null>(null);
   const [selectedUids, setSelectedUids] = useState<number[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<MailMessageDetail | null>(null);
@@ -180,14 +202,19 @@ export function MailPage() {
     setLoadingMessages(true);
     setError("");
     try {
-      const { messages: data } = await api.messages(activeFolder, {
+      const result = await api.messages(activeFolder, {
+        page: messagePage,
+        pageSize: PAGE_SIZE,
         searchField: appliedSearch.query ? appliedSearch.field : undefined,
         searchQuery: appliedSearch.query || undefined,
         filter: mailFilter,
+        sortBy,
+        sortOrder,
       });
-      setMessages(data);
-      setSelectedUids((prev) => prev.filter((uid) => data.some((m) => m.uid === uid)));
-      if (selectedUid && !data.some((m) => m.uid === selectedUid)) {
+      setMessages(result.messages);
+      setMessageTotal(result.total);
+      setSelectedUids((prev) => prev.filter((uid) => result.messages.some((m) => m.uid === uid)));
+      if (selectedUid && !result.messages.some((m) => m.uid === selectedUid)) {
         setSelectedUid(null);
         setSelectedMessage(null);
         setMobilePane("list");
@@ -197,7 +224,20 @@ export function MailPage() {
     } finally {
       setLoadingMessages(false);
     }
-  }, [activeFolder, appliedSearch, mailFilter, selectedUid]);
+  }, [activeFolder, appliedSearch, mailFilter, selectedUid, messagePage, sortBy, sortOrder]);
+
+  useEffect(() => {
+    const inboxPath = folders.find((f) => resolveFolderKind(f) === "inbox")?.path;
+    if (isVirtualView(activeFolder) || !inboxPath || activeFolder !== inboxPath || messages.length === 0) {
+      setContactSuggestions([]);
+      return;
+    }
+    const emails = messages.map((m) => extractEmailFromHeader(m.from)).filter(Boolean);
+    api
+      .suggestContacts(emails)
+      .then((res) => setContactSuggestions(res.suggestions))
+      .catch(() => setContactSuggestions([]));
+  }, [messages, activeFolder, folders]);
 
   const loadMessage = useCallback(
     async (uid: number) => {
@@ -233,6 +273,7 @@ export function MailPage() {
     setSelectedMessage(null);
     setSelectedUids([]);
     setMailFilter("all");
+    setMessagePage(1);
     setSearchDraft({ field: "subject", query: "" });
     setAppliedSearch({ field: "subject", query: "" });
     setMobilePane(isVirtualView(path) ? "list" : "list");
@@ -407,20 +448,89 @@ export function MailPage() {
     if (activeFolder === VIEW_PORTAL) {
       return renderGatedView(activeFolder, hasAddon, <ClientPortalPanel />);
     }
+    if (activeFolder === VIEW_CONTACTS) {
+      return (
+        <ContactsPanel
+          initialEmail={contactsPrefillEmail}
+          onMessage={(msg) => setStatusMessage(msg)}
+        />
+      );
+    }
+
+    const visibleSuggestions = contactSuggestions.filter((e) => !dismissedSuggestions.includes(e));
 
     return (
       <>
         <MailSearchPanel
           value={searchDraft}
           onChange={setSearchDraft}
-          onSearch={() => setAppliedSearch(searchDraft)}
+          onSearch={() => {
+            setAppliedSearch(searchDraft);
+            setMessagePage(1);
+          }}
           onClear={() => {
             setSearchDraft({ field: "subject", query: "" });
             setAppliedSearch({ field: "subject", query: "" });
+            setMessagePage(1);
           }}
         />
 
-        <MailFilterBar value={mailFilter} onChange={setMailFilter} />
+        <MailFilterBar
+          value={mailFilter}
+          onChange={(value) => {
+            setMailFilter(value);
+            setMessagePage(1);
+          }}
+        />
+
+        <MailOrderBar
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onChange={(nextSortBy, nextSortOrder) => {
+            setSortBy(nextSortBy);
+            setSortOrder(nextSortOrder);
+            setMessagePage(1);
+          }}
+        />
+
+        {statusMessage ? <div className="pane-status">{statusMessage}</div> : null}
+
+        {visibleSuggestions.length > 0 ? (
+          <div className="contact-suggest-banner">
+            <span>Add new senders to contacts?</span>
+            {visibleSuggestions.slice(0, 3).map((email) => (
+              <span key={email} className="contact-suggest-actions">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await api.createContact({ email });
+                    setDismissedSuggestions((prev) => [...prev, email]);
+                    setStatusMessage(`Added ${email} to contacts`);
+                  }}
+                >
+                  Add {email}
+                </button>
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => {
+                    setContactsPrefillEmail(email);
+                    setActiveFolder(VIEW_CONTACTS);
+                  }}
+                >
+                  Details
+                </button>
+              </span>
+            ))}
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => setDismissedSuggestions((prev) => [...prev, ...visibleSuggestions])}
+            >
+              Dismiss
+            </button>
+          </div>
+        ) : null}
 
         {showBulkBar ? (
           <MailBulkActions
@@ -443,55 +553,59 @@ export function MailPage() {
 
         {error ? <div className="pane-error">{error}</div> : null}
 
-        <div className="message-list">
+        <div className="message-list message-list--table">
           {loadingMessages ? (
             <div className="muted pad">Loading messages…</div>
           ) : messages.length === 0 ? (
             <div className="muted pad">No messages in this folder.</div>
           ) : (
             <>
-              {showBulkBar ? (
-                <label className="message-select-all">
+              <div className="message-table-head">
+                <span>{showBulkBar ? (
                   <input
                     type="checkbox"
                     checked={messages.length > 0 && selectedUids.length === messages.length}
                     onChange={toggleSelectAll}
+                    aria-label="Select all messages"
                   />
-                  <span>Select all</span>
-                </label>
-              ) : null}
+                ) : null}</span>
+                <span>Subject</span>
+                <span>Excerpt</span>
+                <span>Received</span>
+              </div>
               {messages.map((msg) => (
                 <div
                   key={msg.uid}
-                  className={`message-row-wrap ${selectedUid === msg.uid ? "selected" : ""} ${msg.seen ? "" : "unread"}`}
+                  className={`message-table-row ${selectedUid === msg.uid ? "selected" : ""} ${msg.seen ? "" : "unread"}`}
                 >
-                  {showBulkBar ? (
-                    <input
-                      type="checkbox"
-                      className="message-row-check"
-                      checked={selectedUids.includes(msg.uid)}
-                      onChange={() => toggleSelectUid(msg.uid)}
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label={`Select message ${msg.subject}`}
-                    />
-                  ) : null}
-                  <button
-                    type="button"
-                    className="message-row"
-                    onClick={() => selectMessage(msg.uid)}
-                  >
-                    <div className="message-row-top">
-                      <strong>{msg.from || "(Unknown sender)"}</strong>
-                      <span className="message-row-meta">
-                        {msg.flagged ? <span className="message-star" aria-label="Starred">★</span> : null}
-                        <time>{formatDate(msg.date)}</time>
-                      </span>
-                    </div>
-                    <div className="message-row-subject">{msg.subject}</div>
-                    <div className="message-row-snippet">{msg.snippet}</div>
+                  <span className="message-table-cell message-table-cell--check">
+                    {showBulkBar ? (
+                      <input
+                        type="checkbox"
+                        checked={selectedUids.includes(msg.uid)}
+                        onChange={() => toggleSelectUid(msg.uid)}
+                        aria-label={`Select message ${msg.subject}`}
+                      />
+                    ) : null}
+                  </span>
+                  <button type="button" className="message-table-cell message-table-cell--subject" onClick={() => selectMessage(msg.uid)}>
+                    <span className="message-subject-text">{msg.subject || "(No subject)"}</span>
+                    {msg.flagged ? <span className="message-star" aria-label="Starred">★</span> : null}
+                  </button>
+                  <button type="button" className="message-table-cell message-table-cell--snippet" onClick={() => selectMessage(msg.uid)}>
+                    {msg.snippet || msg.from || "—"}
+                  </button>
+                  <button type="button" className="message-table-cell message-table-cell--date" onClick={() => selectMessage(msg.uid)}>
+                    <time>{formatDate(msg.date)}</time>
                   </button>
                 </div>
               ))}
+              <MailPaginationBar
+                page={messagePage}
+                pageSize={PAGE_SIZE}
+                total={messageTotal}
+                onPageChange={setMessagePage}
+              />
             </>
           )}
         </div>
@@ -532,7 +646,7 @@ export function MailPage() {
           )}
         </div>
         <div className="mail-mobile-topbar-title">
-          <span className="mail-mobile-kicker">HMail</span>
+          <span className="mail-mobile-kicker">{productName}</span>
           <strong>
             {mobilePane === "read" && selectedMessage
               ? selectedMessage.subject
@@ -556,7 +670,7 @@ export function MailPage() {
 
         <aside className="mail-sidebar">
           <div className="mail-sidebar-head">
-            <HMailLogo size="sm" showWordmark subtitle={user?.tenant.name} className="mail-brand-logo" />
+            <HMailLogo size="sm" showWordmark subtitle={tenantName} productName={productName} className="mail-brand-logo" />
             <button type="button" className="mail-sidebar-close" onClick={() => setMobilePane("list")}>
               Close
             </button>
@@ -588,13 +702,14 @@ export function MailPage() {
         <section className="mail-list-pane">
           <header className={`list-header ${isVirtual ? "list-header--virtual" : ""}`}>
             <h2>{activeFolderLabel}</h2>
-            <button
-              type="button"
-              className="free-addon-btn"
-              onClick={() => navigate("/addons")}
-            >
-              Free Addon
-            </button>
+            <div className="list-header-actions">
+              <button type="button" className="free-addon-btn" onClick={() => navigate("/addons")}>
+                Free Addon
+              </button>
+              <button type="button" className="signout-btn" onClick={() => logout()}>
+                Sign out
+              </button>
+            </div>
           </header>
           {renderMainContent()}
         </section>
@@ -710,8 +825,10 @@ export function MailPage() {
             setMobilePane("list");
             setLoadingMessages(true);
             try {
-              const { messages: data } = await api.messages(sentPath, { filter: mailFilter });
-              setMessages(data);
+              const result = await api.messages(sentPath, { filter: mailFilter, page: 1, pageSize: PAGE_SIZE, sortBy, sortOrder });
+              setMessages(result.messages);
+              setMessageTotal(result.total);
+              setMessagePage(1);
             } catch (err) {
               setError(err instanceof Error ? err.message : "Failed to load sent messages");
             } finally {

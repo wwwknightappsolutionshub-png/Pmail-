@@ -6,9 +6,10 @@ type HMailLogoSize = "sm" | "md" | "lg" | "xl";
 interface HMailLogoProps {
   size?: HMailLogoSize;
   className?: string;
-  /** Show HMail wordmark beside the icon */
+  /** Show product wordmark beside the icon */
   showWordmark?: boolean;
   subtitle?: string;
+  productName?: string;
 }
 
 export function HMailLogo({
@@ -16,6 +17,7 @@ export function HMailLogo({
   className = "",
   showWordmark = false,
   subtitle,
+  productName = "PMail+",
 }: HMailLogoProps) {
   const uid = useId().replace(/:/g, "");
   const gradientId = `hmail-logo-gradient-${uid}`;
@@ -29,7 +31,7 @@ export function HMailLogo({
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         role="img"
-        aria-label="HMail"
+        aria-label={productName}
       >
         <defs>
           <linearGradient id={gradientId} x1="8" y1="6" x2="40" y2="42" gradientUnits="userSpaceOnUse">
@@ -89,7 +91,7 @@ export function HMailLogo({
 
       {showWordmark ? (
         <div className="hmail-logo-text">
-          <strong className="hmail-wordmark">HMail</strong>
+          <strong className="hmail-wordmark">{productName}</strong>
           {subtitle ? <span>{subtitle}</span> : null}
         </div>
       ) : null}

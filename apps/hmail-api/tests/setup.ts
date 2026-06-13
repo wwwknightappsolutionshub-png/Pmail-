@@ -25,3 +25,8 @@ execSync("npx tsx scripts/prisma-cli.ts db push --schema prisma/schema.sqlite.pr
   env: process.env,
   stdio: "ignore",
 });
+execSync("npx tsx scripts/prisma-cli.ts generate --schema prisma/schema.sqlite.prisma", {
+  cwd: apiRoot,
+  env: process.env,
+  stdio: "ignore",
+});

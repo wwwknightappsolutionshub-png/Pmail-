@@ -79,7 +79,7 @@ export function AddonsPage() {
           <p className="addons-kicker">Immigration practice add-ons</p>
           <h1>Add-ons marketplace</h1>
           <p>
-            Extend HMail with IRCC-focused tools for Canadian immigration professionals. All add-ons are{" "}
+            Extend PMail+ with IRCC-focused tools for Canadian immigration professionals. All add-ons are{" "}
             <strong>free</strong> with a <strong>7-day trial</strong> to activate features. AI tools are coming
             soon.
           </p>

@@ -33,6 +33,16 @@ export interface MailMessageSummary {
   snippet: string;
 }
 
+export type MailMessageSortField = "date" | "subject" | "sender";
+export type MailMessageSortOrder = "asc" | "desc";
+
+export interface MailMessageListResult {
+  messages: MailMessageSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface MailMessageDetail extends MailMessageSummary {
   cc: string;
   bcc: string;
@@ -169,38 +179,47 @@ export async function listMessages(
   options: {
     limit?: number;
     offset?: number;
+    page?: number;
+    pageSize?: number;
     search?: string;
     searchField?: "date" | "sender" | "subject" | "recipient" | "body";
     searchQuery?: string;
     filter?: "all" | "unread" | "read" | "starred";
+    sortBy?: MailMessageSortField;
+    sortOrder?: MailMessageSortOrder;
   } = {},
-): Promise<MailMessageSummary[]> {
-  const { limit = 50, offset = 0, search, searchField, searchQuery, filter = "all" } = options;
+): Promise<MailMessageListResult> {
+  const pageSize = options.pageSize ?? options.limit ?? 30;
+  const page = options.page ?? Math.floor((options.offset ?? 0) / pageSize) + 1;
+  const offset = options.offset ?? (page - 1) * pageSize;
+  const { search, searchField, searchQuery, filter = "all", sortBy = "date", sortOrder = "desc" } =
+    options;
   const queryText = (searchQuery ?? search ?? "").trim();
   const client = buildImapClient(credentials);
 
   try {
     await client.connect();
     const mailbox = await client.mailboxOpen(folder);
-    if (!mailbox.exists) return [];
+    if (!mailbox.exists) {
+      return { messages: [], total: 0, page, pageSize };
+    }
 
     const criteria = buildImapSearchCriteria({ searchField, searchQuery: queryText, filter, legacySearch: search });
     const searchResult = await client.search(criteria, { uid: true });
     const uids = Array.isArray(searchResult) ? searchResult : [];
-    const sortedUids = [...uids].sort((a, b) => b - a).slice(offset, offset + limit);
+    if (uids.length === 0) {
+      return { messages: [], total: 0, page, pageSize };
+    }
 
-    if (sortedUids.length === 0) return [];
-
-    const messages: MailMessageSummary[] = [];
+    const summaries: MailMessageSummary[] = [];
 
     for await (const msg of client.fetch(
-      sortedUids,
+      uids,
       {
         uid: true,
         envelope: true,
         flags: true,
         bodyStructure: true,
-        source: { start: 0, maxLength: 800 },
       },
       { uid: true },
     )) {
@@ -213,17 +232,7 @@ export async function listMessages(
         : "";
       const to = toAddr?.address ?? "";
 
-      let snippet = "";
-      if (msg.source) {
-        try {
-          const parsed = await simpleParser(msg.source);
-          snippet = bodyPreview(parsed).slice(0, 160).replace(/\s+/g, " ").trim();
-        } catch {
-          snippet = "";
-        }
-      }
-
-      messages.push({
+      summaries.push({
         uid: msg.uid,
         folder,
         subject,
@@ -233,14 +242,58 @@ export async function listMessages(
         seen: msg.flags?.has("\\Seen") ?? false,
         flagged: msg.flags?.has("\\Flagged") ?? false,
         hasAttachments: hasAttachments(msg.bodyStructure),
-        snippet,
+        snippet: "",
       });
     }
 
-    return messages.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const sorted = sortMessageSummaries(summaries, sortBy, sortOrder);
+    const total = sorted.length;
+    const pageItems = sorted.slice(offset, offset + pageSize);
+
+    if (pageItems.length > 0) {
+      const snippetByUid = new Map<number, string>();
+      for await (const msg of client.fetch(
+        pageItems.map((m) => m.uid),
+        { uid: true, source: { start: 0, maxLength: 800 } },
+        { uid: true },
+      )) {
+        if (!msg.source) continue;
+        try {
+          const parsed = await simpleParser(msg.source);
+          snippetByUid.set(
+            msg.uid,
+            bodyPreview(parsed).slice(0, 160).replace(/\s+/g, " ").trim(),
+          );
+        } catch {
+          snippetByUid.set(msg.uid, "");
+        }
+      }
+      for (const item of pageItems) {
+        item.snippet = snippetByUid.get(item.uid) ?? "";
+      }
+    }
+
+    return { messages: pageItems, total, page, pageSize };
   } finally {
     await client.logout().catch(() => undefined);
   }
+}
+
+function sortMessageSummaries(
+  messages: MailMessageSummary[],
+  sortBy: MailMessageSortField,
+  sortOrder: MailMessageSortOrder,
+): MailMessageSummary[] {
+  const dir = sortOrder === "asc" ? 1 : -1;
+  return [...messages].sort((a, b) => {
+    if (sortBy === "date") {
+      return (new Date(a.date).getTime() - new Date(b.date).getTime()) * dir;
+    }
+    if (sortBy === "subject") {
+      return a.subject.localeCompare(b.subject, undefined, { sensitivity: "base" }) * dir;
+    }
+    return a.from.localeCompare(b.from, undefined, { sensitivity: "base" }) * dir;
+  });
 }
 
 function buildImapSearchCriteria(options: {

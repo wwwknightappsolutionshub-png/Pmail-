@@ -59,8 +59,9 @@ mailRouter.post("/folders", async (req, res, next) => {
 mailRouter.get("/messages", async (req, res, next) => {
   try {
     const folder = String(req.query.folder ?? "INBOX");
-    const limit = Number(req.query.limit ?? 50);
-    const offset = Number(req.query.offset ?? 0);
+    const page = Number(req.query.page ?? 1);
+    const pageSize = Number(req.query.pageSize ?? req.query.limit ?? 30);
+    const offset = Number(req.query.offset ?? (page - 1) * pageSize);
     const search = req.query.search ? String(req.query.search) : undefined;
     const searchField = req.query.searchField
       ? (String(req.query.searchField) as "date" | "sender" | "subject" | "recipient" | "body")
@@ -69,16 +70,25 @@ mailRouter.get("/messages", async (req, res, next) => {
     const filter = req.query.filter
       ? (String(req.query.filter) as "all" | "unread" | "read" | "starred")
       : undefined;
+    const sortBy = req.query.sortBy
+      ? (String(req.query.sortBy) as "date" | "subject" | "sender")
+      : "date";
+    const sortOrder = req.query.sortOrder
+      ? (String(req.query.sortOrder) as "asc" | "desc")
+      : "desc";
 
-    const messages = await listMessages(mailCredentials(req), folder, {
-      limit,
+    const result = await listMessages(mailCredentials(req), folder, {
+      page,
+      pageSize,
       offset,
       search,
       searchField,
       searchQuery,
       filter,
+      sortBy,
+      sortOrder,
     });
-    res.json({ messages });
+    res.json(result);
   } catch (err) {
     next(err);
   }

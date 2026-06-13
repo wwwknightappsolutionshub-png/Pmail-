@@ -1,5 +1,6 @@
 import type { MailFolder } from "../types/mail";
 import { PHASE_1_NAV, PHASE_2_NAV, toolAddonSlug } from "../constants/addonTools";
+import { VIEW_CONTACTS } from "../constants/mailViews";
 import "./FolderNav.css";
 
 export type FolderKind =
@@ -8,6 +9,7 @@ export type FolderKind =
   | "drafts"
   | "sent"
   | "trash"
+  | "contacts"
   | "junk"
   | "scheduled"
   | "auto_response"
@@ -43,6 +45,7 @@ export function folderDisplayLabel(folder: MailFolder): string {
     drafts: "Drafts",
     sent: "Sent",
     trash: "Trash",
+    contacts: "Contacts",
     junk: "Spam",
     scheduled: "Scheduled",
     auto_response: "Immigration templates",
@@ -194,7 +197,10 @@ export function FolderNav({
       </div>
 
       <p className="folder-nav-heading">Mailboxes</p>
-      <div className="folder-nav-group">{primary.map(renderItem)}</div>
+      <div className="folder-nav-group">
+        {primary.map(renderItem)}
+        {renderSpecialItem("contacts", "Contacts", VIEW_CONTACTS, activeFolder, onSelect)}
+      </div>
 
       <p className="folder-nav-heading folder-nav-heading--secondary">Practice tools</p>
       <div className="folder-nav-group">

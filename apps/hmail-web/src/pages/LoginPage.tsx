@@ -7,12 +7,12 @@ import { HMailLogo } from "../components/HMailLogo";
 import "./LoginPage.css";
 
 const defaultBranding: TenantBranding = {
-  productName: "hmail",
+  productName: "PMail+",
   logoUrl: null,
   primaryColor: "#0d4f6c",
   accentColor: "#0d9488",
   backgroundColor: "#0f2744",
-  loginTagline: "Mail built for Canadian immigration professionals",
+  loginTagline: "Secure cloud mail powered by Prohost Cloud",
 };
 
 export function LoginPage() {
@@ -58,6 +58,7 @@ export function LoginPage() {
     setSubmitting(true);
     try {
       const result = await api.login({ tenantSlug, email, password });
+      sessionStorage.setItem("pmail_tenant_slug", tenantSlug);
       setUser(result.user);
       navigate("/");
     } catch (err) {
@@ -82,7 +83,8 @@ export function LoginPage() {
         <HMailLogo
           size="sm"
           showWordmark
-          subtitle="For Canadian immigration professionals"
+          productName={branding.productName}
+          subtitle="Prohost Cloud"
           className="login-topbar-logo"
         />
       </header>
@@ -90,10 +92,10 @@ export function LoginPage() {
       <main className="login-layout">
         <section className="login-brand-panel">
           <div className="login-brand-inner">
-            <HMailLogo size="xl" className="login-brand-logo" />
-            <h1 className="login-headline hmail-wordmark">HMail</h1>
+            <HMailLogo size="xl" className="login-brand-logo" productName={branding.productName} />
+            <h1 className="login-headline hmail-wordmark">{branding.productName}</h1>
             <p className="login-tagline">
-              {branding.loginTagline || "Mail built for Canadian immigration professionals"}
+              {branding.loginTagline || "Secure cloud mail powered by Prohost Cloud"}
             </p>
 
             <ul className="login-features">
@@ -107,7 +109,7 @@ export function LoginPage() {
                 <span className="login-feature-icon" aria-hidden="true">
                   ✓
                 </span>
-                Secure Hostinger IMAP &amp; SMTP connectivity
+                Secure IMAP &amp; SMTP connectivity
               </li>
               <li>
                 <span className="login-feature-icon" aria-hidden="true">

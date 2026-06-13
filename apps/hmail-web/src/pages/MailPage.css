@@ -8,7 +8,7 @@
   display: flex;
   flex-direction: column;
   background: var(--bg);
-  font-family: "Exo", system-ui, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: var(--text);
 }
 
@@ -45,7 +45,7 @@
 }
 
 .mail-mobile-kicker {
-  font-family: "Anek", "Anek Latin", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -54,7 +54,7 @@
 }
 
 .mail-mobile-topbar-title strong {
-  font-family: "Anek", "Anek Latin", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   white-space: nowrap;
@@ -137,7 +137,7 @@
 
 .mail-brand-logo .hmail-wordmark,
 .mail-brand-logo .hmail-logo-text strong {
-  font-family: "Anek", "Anek Latin", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-weight: 600;
   color: var(--sidebar-text);
 }
@@ -204,7 +204,7 @@
   border: none;
   border-radius: 999px;
   padding: 0.5rem 0.95rem;
-  font-family: "Exo", sans-serif;
+  font-family: inherit;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -228,7 +228,7 @@
 
 .list-header h2 {
   margin: 0;
-  font-family: "Anek", "Anek Latin", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
 }
@@ -241,6 +241,120 @@
   border-radius: 10px;
   background: #fff;
   color: #0f172a;
+}
+
+.list-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.signout-btn {
+  flex-shrink: 0;
+  border: 1px solid #dbe3ec;
+  border-radius: 999px;
+  padding: 0.5rem 0.95rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  background: #fff;
+  cursor: pointer;
+}
+
+.message-list--table {
+  display: flex;
+  flex-direction: column;
+}
+
+.message-table-head,
+.message-table-row {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(10rem, 1.1fr) minmax(12rem, 1.6fr) 8.5rem;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+}
+
+.message-table-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f1f5f9;
+  border-bottom: 1px solid #dbe3ec;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.message-table-row {
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.message-table-row.selected {
+  background: #ecfeff;
+}
+
+.message-table-row.unread .message-subject-text {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.message-table-cell {
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.88rem;
+}
+
+.message-table-cell--subject,
+.message-table-cell--snippet,
+.message-table-cell--date {
+  cursor: pointer;
+  min-width: 0;
+}
+
+.message-subject-text {
+  display: inline;
+  word-break: break-word;
+}
+
+.message-table-cell--snippet {
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-table-cell--date time {
+  color: #64748b;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.pane-status {
+  margin: 0.75rem 1rem 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 0.84rem;
+}
+
+@media (max-width: 900px) {
+  .message-table-head,
+  .message-table-row {
+    grid-template-columns: 2.25rem minmax(8rem, 1fr) minmax(7rem, 1.2fr) 6.5rem;
+    gap: 0.5rem;
+    padding: 0.75rem 0.85rem;
+  }
 }
 
 .message-list {
@@ -357,7 +471,7 @@
 
 .read-header h2 {
   margin: 0 0 0.35rem;
-  font-family: "Anek", "Anek Latin", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 1.15rem;
   line-height: 1.35;
   word-break: break-word;
@@ -372,7 +486,7 @@
   padding: 0.4rem 0.7rem;
   background: #f8fafc;
   color: #475569;
-  font-family: "Exo", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -479,7 +593,7 @@
   color: #64748b;
   border-radius: 10px;
   min-height: 2.75rem;
-  font-family: "Exo", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 0.78rem;
   font-weight: 600;
 }

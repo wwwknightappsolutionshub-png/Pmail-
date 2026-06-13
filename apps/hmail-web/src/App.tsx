@@ -6,7 +6,7 @@ import { AddonsPage } from "./pages/AddonsPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="app-loading">Loading hmail…</div>;
+  if (loading) return <div className="app-loading">Loading PMail+…</div>;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }

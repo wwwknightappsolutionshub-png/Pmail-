@@ -36,8 +36,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser,
       refresh,
       logout: async () => {
-        await api.logout();
-        setUser(null);
+        const slug =
+          sessionStorage.getItem("pmail_tenant_slug") ?? user?.tenant.slug ?? "demo";
+        try {
+          await api.logout();
+        } finally {
+          setUser(null);
+          window.location.assign(`/login/${slug}`);
+        }
       },
     }),
     [user, loading],

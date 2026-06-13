@@ -132,8 +132,13 @@
   color: #fecaca;
 }
 
+.folder-nav-icon--contacts.is-active,
+.folder-nav-item--contacts.is-active .folder-nav-icon {
+  color: #bfdbfe;
+}
+
 .folder-nav-label {
-  font-family: "Exo", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 0.88rem;
   font-weight: 600;
   letter-spacing: 0.01em;

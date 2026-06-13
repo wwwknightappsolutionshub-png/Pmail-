@@ -1,4 +1,5 @@
-import type { AuthUser, MailFolder, MailMessageDetail, MailMessageSummary, TenantBranding } from "../types/mail";
+import type { AuthUser, MailFolder, MailListResult, MailMessageDetail, MailSortField, MailSortOrder, TenantBranding } from "../types/mail";
+import type { MailContact, MailContactCollection } from "../types/contact";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -54,18 +55,26 @@ export const api = {
   messages: (
     folder: string,
     options?: {
+      page?: number;
+      pageSize?: number;
       search?: string;
       searchField?: "date" | "sender" | "subject" | "recipient" | "body";
       searchQuery?: string;
       filter?: "all" | "unread" | "read" | "starred";
+      sortBy?: MailSortField;
+      sortOrder?: MailSortOrder;
     },
   ) => {
     const params = new URLSearchParams({ folder });
+    if (options?.page) params.set("page", String(options.page));
+    if (options?.pageSize) params.set("pageSize", String(options.pageSize));
     if (options?.search) params.set("search", options.search);
     if (options?.searchField) params.set("searchField", options.searchField);
     if (options?.searchQuery) params.set("searchQuery", options.searchQuery);
     if (options?.filter) params.set("filter", options.filter);
-    return request<{ messages: MailMessageSummary[] }>(`/api/mail/messages?${params}`);
+    if (options?.sortBy) params.set("sortBy", options.sortBy);
+    if (options?.sortOrder) params.set("sortOrder", options.sortOrder);
+    return request<MailListResult>(`/api/mail/messages?${params}`);
   },
   message: (folder: string, uid: number) =>
     request<{ message: MailMessageDetail }>(`/api/mail/messages/${uid}?folder=${encodeURIComponent(folder)}`),
@@ -177,4 +186,52 @@ export const api = {
     }),
   attachmentUrl: (folder: string, uid: number, partId: string) =>
     `${API_BASE}/api/mail/messages/${uid}/attachments/${partId}?folder=${encodeURIComponent(folder)}`,
+  contacts: () => request<{ contacts: MailContact[] }>("/api/contacts"),
+  createContact: (body: {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    company?: string;
+    notes?: string;
+  }) => request<{ contact: MailContact }>("/api/contacts", { method: "POST", body: JSON.stringify(body) }),
+  updateContact: (
+    id: string,
+    body: Partial<{
+      email: string;
+      firstName: string | null;
+      lastName: string | null;
+      phone: string | null;
+      company: string | null;
+      notes: string | null;
+    }>,
+  ) => request<{ contact: MailContact }>(`/api/contacts/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  deleteContact: (id: string) => request<void>(`/api/contacts/${id}`, { method: "DELETE" }),
+  suggestContacts: (emails: string[]) =>
+    request<{ suggestions: string[] }>("/api/contacts/suggest", {
+      method: "POST",
+      body: JSON.stringify({ emails }),
+    }),
+  contactLists: () => request<{ lists: MailContactCollection[] }>("/api/contacts/lists"),
+  createContactList: (body: { name: string; description?: string | null }) =>
+    request<{ list: MailContactCollection }>("/api/contacts/lists", { method: "POST", body: JSON.stringify(body) }),
+  updateContactList: (id: string, body: Partial<{ name: string; description: string | null }>) =>
+    request<{ list: MailContactCollection }>(`/api/contacts/lists/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  deleteContactList: (id: string) => request<void>(`/api/contacts/lists/${id}`, { method: "DELETE" }),
+  addContactToList: (listId: string, contactId: string) =>
+    request<{ ok: boolean }>(`/api/contacts/lists/${listId}/members`, {
+      method: "POST",
+      body: JSON.stringify({ contactId }),
+    }),
+  contactGroups: () => request<{ groups: MailContactCollection[] }>("/api/contacts/groups"),
+  createContactGroup: (body: { name: string; description?: string | null }) =>
+    request<{ group: MailContactCollection }>("/api/contacts/groups", { method: "POST", body: JSON.stringify(body) }),
+  updateContactGroup: (id: string, body: Partial<{ name: string; description: string | null }>) =>
+    request<{ group: MailContactCollection }>(`/api/contacts/groups/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  deleteContactGroup: (id: string) => request<void>(`/api/contacts/groups/${id}`, { method: "DELETE" }),
+  addContactToGroup: (groupId: string, contactId: string) =>
+    request<{ ok: boolean }>(`/api/contacts/groups/${groupId}/members`, {
+      method: "POST",
+      body: JSON.stringify({ contactId }),
+    }),
 };

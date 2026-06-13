@@ -12,6 +12,7 @@ import { publicRouter } from "./routes/public.routes.js";
 import { adminRouter } from "./routes/admin.routes.js";
 import { panelRouter } from "./routes/panel.routes.js";
 import { paymentRouter, paystackWebhookHandler, stripeWebhookHandler } from "./routes/payment.routes.js";
+import { contactRouter } from "./routes/contact.routes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 function parseCorsOrigins(origin: string): string | string[] {
@@ -74,6 +75,7 @@ export function createApp() {
   app.use("/api/panel", panelRouter);
   app.use("/api/auth", authRouter);
   app.use("/api/mail", mailRouter);
+  app.use("/api/contacts", contactRouter);
   app.use("/api/addons", addonRouter);
   app.use("/api/features", featuresRouter);
 

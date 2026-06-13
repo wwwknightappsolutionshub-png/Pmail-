@@ -1,0 +1,196 @@
+.contacts-panel {
+  padding: 1rem;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.contacts-tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.contacts-tabs button {
+  border: 1px solid #dbe3ec;
+  background: #fff;
+  color: #475569;
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.contacts-tabs button.is-active {
+  background: var(--brand-primary, #0d4f6c);
+  border-color: var(--brand-primary, #0d4f6c);
+  color: #fff;
+}
+
+.contacts-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.contacts-form,
+.contacts-member-box {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fff;
+}
+
+.contacts-form h3,
+.contacts-member-box h4 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.contacts-form-grid {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.contacts-form-grid input,
+.contacts-form-grid textarea,
+.contacts-member-box select {
+  min-height: 2.5rem;
+  border: 1px solid #dbe3ec;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font-family: inherit;
+  font-size: 0.88rem;
+}
+
+.contacts-form-grid textarea {
+  min-height: 4.5rem;
+  resize: vertical;
+}
+
+.contacts-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.contacts-form-actions button,
+.contacts-member-box button {
+  min-height: 2.5rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--brand-primary, #0d4f6c);
+  color: #fff;
+  padding: 0.45rem 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.contacts-form-actions button.ghost {
+  background: #f8fafc;
+  border: 1px solid #dbe3ec;
+  color: #475569;
+}
+
+.contacts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.contacts-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+  background: #fff;
+}
+
+.contacts-list li div:first-child {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.contacts-list li span {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.contacts-row-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.contacts-row-actions button {
+  border: 1px solid #dbe3ec;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.contacts-row-actions button.danger {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.contacts-member-box {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.contacts-error {
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  margin-bottom: 0.75rem;
+}
+
+.contacts-muted {
+  color: #64748b;
+}
+
+.contact-suggest-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.contact-suggest-banner {
+  margin: 0.75rem 1rem 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1e3a8a;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.84rem;
+}
+
+.contact-suggest-banner button {
+  border: none;
+  border-radius: 8px;
+  background: var(--brand-primary, #0d4f6c);
+  color: #fff;
+  padding: 0.4rem 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.contact-suggest-banner button.ghost {
+  background: transparent;
+  border: 1px solid #93c5fd;
+  color: #1d4ed8;
+}

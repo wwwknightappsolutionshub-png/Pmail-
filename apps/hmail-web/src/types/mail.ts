@@ -49,6 +49,16 @@ export interface MailMessageSummary {
   snippet: string;
 }
 
+export type MailSortField = "date" | "subject" | "sender";
+export type MailSortOrder = "asc" | "desc";
+
+export interface MailListResult {
+  messages: MailMessageSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface MailMessageDetail extends MailMessageSummary {
   cc: string;
   bcc: string;

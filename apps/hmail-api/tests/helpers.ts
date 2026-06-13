@@ -38,6 +38,11 @@ export async function resetTestDatabase(): Promise<void> {
   await prisma.siteSection.deleteMany();
   await prisma.hostingPlan.deleteMany();
   await prisma.session.deleteMany();
+  await prisma.mailContactListMember.deleteMany();
+  await prisma.mailContactGroupMember.deleteMany();
+  await prisma.mailContactList.deleteMany();
+  await prisma.mailContactGroup.deleteMany();
+  await prisma.mailContact.deleteMany();
   await prisma.user.deleteMany();
   await prisma.tenantBranding.deleteMany();
   await prisma.tenantMailConfig.deleteMany();

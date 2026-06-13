@@ -1,3 +1,4 @@
+export const VIEW_CONTACTS = "__view__:contacts";
 export const VIEW_SCHEDULED = "__view__:scheduled";
 export const VIEW_AUTO_RESPONSE = "__view__:auto_response";
 export const VIEW_DESK = "__view__:immigration_desk";
@@ -9,6 +10,7 @@ export const VIEW_DEADLINES = "__view__:deadline_guard";
 export const VIEW_PORTAL = "__view__:client_portal";
 
 export const ALL_VIRTUAL_VIEWS = [
+  VIEW_CONTACTS,
   VIEW_SCHEDULED,
   VIEW_AUTO_RESPONSE,
   VIEW_DESK,
@@ -43,6 +45,7 @@ export function folderSupportsFilters(_folderKind: string): boolean {
 
 export function virtualViewTitle(path: string): string {
   const titles: Record<string, string> = {
+    [VIEW_CONTACTS]: "Contacts",
     [VIEW_SCHEDULED]: "Scheduled",
     [VIEW_AUTO_RESPONSE]: "Immigration templates",
     [VIEW_DESK]: "Immigration Desk",

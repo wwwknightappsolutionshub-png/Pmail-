@@ -41,7 +41,7 @@ model Tenant {
 model TenantBranding {
   id             String  @id @default(uuid())
   tenantId       String  @unique
-  productName    String  @default("hmail")
+  productName    String  @default("PMail+")
   logoUrl        String?
   primaryColor   String  @default("#0d9488")
   accentColor    String  @default("#14b8a6")
@@ -75,11 +75,89 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  sessions Session[]
+  tenant         Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions       Session[]
+  mailContacts   MailContact[]
+  contactLists   MailContactList[]
+  contactGroups  MailContactGroup[]
 
   @@unique([tenantId, email])
   @@index([email])
+}
+
+/// Personal address book entry for a mailbox user
+model MailContact {
+  id        String   @id @default(uuid())
+  userId    String
+  email     String
+  firstName String?
+  lastName  String?
+  phone     String?
+  company   String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listMembers  MailContactListMember[]
+  groupMembers MailContactGroupMember[]
+
+  @@unique([userId, email])
+  @@index([userId])
+}
+
+model MailContactList {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members MailContactListMember[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model MailContactListMember {
+  id        String   @id @default(uuid())
+  listId    String
+  contactId String
+  createdAt DateTime @default(now())
+
+  list    MailContactList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  contact MailContact     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, contactId])
+}
+
+model MailContactGroup {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members MailContactGroupMember[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model MailContactGroupMember {
+  id        String   @id @default(uuid())
+  groupId   String
+  contactId String
+  createdAt DateTime @default(now())
+
+  group   MailContactGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  contact MailContact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, contactId])
 }
 
 /// Server-side session after successful IMAP authentication
