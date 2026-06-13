@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { MailFolder } from "../types/mail";
 import { PHASE_1_NAV, PHASE_2_NAV, toolAddonSlug } from "../constants/addonTools";
 import { VIEW_CONTACTS } from "../constants/mailViews";
@@ -102,6 +103,46 @@ interface FolderNavProps {
   hasAddon: (slug: string) => boolean;
 }
 
+function isMobileViewport(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
+}
+
+function CollapsibleNavSection({
+  id,
+  title,
+  open,
+  onToggle,
+  children,
+}: {
+  id: string;
+  title: string;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`folder-nav-section ${open ? "is-open" : "is-collapsed"}`}>
+      <button
+        type="button"
+        className="folder-nav-section-toggle"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={`folder-nav-section-${id}`}
+      >
+        <span className="folder-nav-heading folder-nav-heading--secondary">{title}</span>
+        <span className="folder-nav-section-chevron" aria-hidden="true">
+          {open ? "▾" : "▸"}
+        </span>
+      </button>
+      {open ? (
+        <div id={`folder-nav-section-${id}`} className="folder-nav-section-body">
+          {children}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function renderSpecialItem(
   kind: FolderKind,
   label: string,
@@ -149,6 +190,23 @@ export function FolderNav({
   const sorted = sortFolders(folders);
   const primary = sorted.filter((f) => resolveFolderKind(f) !== "other");
   const other = sorted.filter((f) => resolveFolderKind(f) === "other");
+
+  const phase1Views = useMemo(() => new Set(PHASE_1_NAV.map((item) => item.view)), []);
+  const phase2Views = useMemo(() => new Set(PHASE_2_NAV.map((item) => item.view)), []);
+
+  const [practiceOpen, setPracticeOpen] = useState(() => {
+    if (phase1Views.has(activeFolder)) return true;
+    return !isMobileViewport();
+  });
+  const [irccOpen, setIrccOpen] = useState(() => {
+    if (phase2Views.has(activeFolder)) return true;
+    return !isMobileViewport();
+  });
+
+  useEffect(() => {
+    if (phase1Views.has(activeFolder)) setPracticeOpen(true);
+    if (phase2Views.has(activeFolder)) setIrccOpen(true);
+  }, [activeFolder, phase1Views, phase2Views]);
 
   if (loading) {
     return <div className="folder-nav-loading">Loading folders…</div>;
@@ -202,26 +260,38 @@ export function FolderNav({
         {renderSpecialItem("contacts", "Contacts", VIEW_CONTACTS, activeFolder, onSelect)}
       </div>
 
-      <p className="folder-nav-heading folder-nav-heading--secondary">Practice tools</p>
-      <div className="folder-nav-group">
-        {PHASE_1_NAV.map((item) => renderTool(item.view, item.label, item.kind))}
-      </div>
+      <CollapsibleNavSection
+        id="practice"
+        title="Practice tools"
+        open={practiceOpen}
+        onToggle={() => setPracticeOpen((prev) => !prev)}
+      >
+        <div className="folder-nav-group">
+          {PHASE_1_NAV.map((item) => renderTool(item.view, item.label, item.kind))}
+        </div>
+      </CollapsibleNavSection>
 
-      <p className="folder-nav-heading folder-nav-heading--secondary">IRCC tools</p>
-      <div className="folder-nav-group">
-        {PHASE_2_NAV.map((item) => renderTool(item.view, item.label, item.kind))}
-        <button
-          type="button"
-          className="folder-nav-item folder-nav-item--new_folder"
-          onClick={onNewFolder}
-        >
-          <span className="folder-nav-item-accent" aria-hidden="true" />
-          <span className="folder-nav-icon folder-nav-icon--new_folder">
-            <FolderIcon kind="new_folder" />
-          </span>
-          <span className="folder-nav-label">New folder</span>
-        </button>
-      </div>
+      <CollapsibleNavSection
+        id="ircc"
+        title="IRCC tools"
+        open={irccOpen}
+        onToggle={() => setIrccOpen((prev) => !prev)}
+      >
+        <div className="folder-nav-group">
+          {PHASE_2_NAV.map((item) => renderTool(item.view, item.label, item.kind))}
+          <button
+            type="button"
+            className="folder-nav-item folder-nav-item--new_folder"
+            onClick={onNewFolder}
+          >
+            <span className="folder-nav-item-accent" aria-hidden="true" />
+            <span className="folder-nav-icon folder-nav-icon--new_folder">
+              <FolderIcon kind="new_folder" />
+            </span>
+            <span className="folder-nav-label">New folder</span>
+          </button>
+        </div>
+      </CollapsibleNavSection>
 
       <p className="folder-nav-heading folder-nav-heading--secondary">Marketplace</p>
       <div className="folder-nav-group">

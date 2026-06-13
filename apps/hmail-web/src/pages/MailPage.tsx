@@ -689,7 +689,7 @@ export function MailPage() {
             }
           />
 
-          <div className="sidebar-footer sidebar-footer--desktop">
+          <div className="sidebar-footer">
             <div className="user-chip">
               <span>{user?.email}</span>
             </div>
