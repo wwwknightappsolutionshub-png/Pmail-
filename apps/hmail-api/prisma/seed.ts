@@ -13,52 +13,60 @@ resolveDatabaseUrl();
 
 const prisma = new PrismaClient();
 
-async function main() {
-  const tenant = await prisma.tenant.upsert({
-    where: { slug: "demo" },
+const prohostTenantData = {
+  name: "Prohost Cloud",
+  branding: {
     create: {
-      slug: "demo",
-      name: "Prohost Cloud",
-      branding: {
-        create: {
-          productName: "PMail+",
-          primaryColor: "#0d4f6c",
-          accentColor: "#0d9488",
-          backgroundColor: "#0f2744",
-          loginTagline: "Secure cloud mail powered by Prohost Cloud",
-        },
+      productName: "PMail+",
+      primaryColor: "#0d4f6c",
+      accentColor: "#0d9488",
+      backgroundColor: "#0f2744",
+      loginTagline: "Secure cloud mail powered by Prohost Cloud",
+    },
+  },
+  mail: {
+    create: {
+      imapHost: "imap.hostinger.com",
+      imapPort: 993,
+      imapSecure: true,
+      smtpHost: "smtp.hostinger.com",
+      smtpPort: 465,
+      smtpSecure: true,
+    },
+  },
+};
+
+const prohostTenantUpdate = {
+  name: "Prohost Cloud",
+  branding: {
+    upsert: {
+      create: {
+        productName: "PMail+",
+        primaryColor: "#0d4f6c",
+        accentColor: "#0d9488",
+        backgroundColor: "#0f2744",
+        loginTagline: "Secure cloud mail powered by Prohost Cloud",
       },
-      mail: {
-        create: {
-          imapHost: "imap.hostinger.com",
-          imapPort: 993,
-          imapSecure: true,
-          smtpHost: "smtp.hostinger.com",
-          smtpPort: 465,
-          smtpSecure: true,
-        },
+      update: {
+        productName: "PMail+",
+        loginTagline: "Secure cloud mail powered by Prohost Cloud",
       },
     },
-    update: {
-      name: "Prohost Cloud",
-      branding: {
-        upsert: {
-          create: {
-            productName: "PMail+",
-            primaryColor: "#0d4f6c",
-            accentColor: "#0d9488",
-            backgroundColor: "#0f2744",
-            loginTagline: "Secure cloud mail powered by Prohost Cloud",
-          },
-          update: {
-            productName: "PMail+",
-            loginTagline: "Secure cloud mail powered by Prohost Cloud",
-          },
-        },
-      },
-    },
+  },
+};
+
+async function seedTenant(slug: string) {
+  return prisma.tenant.upsert({
+    where: { slug },
+    create: { slug, ...prohostTenantData },
+    update: prohostTenantUpdate,
     include: { branding: true, mail: true },
   });
+}
+
+async function main() {
+  const prohost = await seedTenant("prohost");
+  const demo = await seedTenant("demo");
 
   await seedAddonCatalog();
   await seedImmigrationTemplates();
@@ -68,10 +76,11 @@ async function main() {
   await seedAddonMarketing();
 
   const businessPlan = await prisma.hostingPlan.findFirst({ where: { slug: "business" } });
-  await seedDemoHostingAccount(tenant.id, businessPlan?.id);
-  await seedDemoVps(tenant.id);
+  await seedDemoHostingAccount(demo.id, businessPlan?.id);
+  await seedDemoVps(demo.id);
 
-  console.log("Seeded tenant:", tenant.slug);
+  console.log("Seeded tenants:", prohost.slug, demo.slug);
+  console.log("PMail+ login URL: /login (tenant: prohost)");
   console.log("Seeded add-on catalog, landing CMS, platform admin, demo VPS, and demo panel account (demo@hostnet.local / panel123)");
   console.log("Platform admins: admin@hostnet.local / changeme123 (super_admin), ops@hostnet.local / ops-admin-pass12 (admin, dev only)");
 }

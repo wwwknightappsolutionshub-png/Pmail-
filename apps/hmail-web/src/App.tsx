@@ -14,6 +14,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export function App() {
   return (
     <Routes>
+      <Route path="/login/prohost" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/login/:tenantSlug" element={<LoginPage />} />
       <Route

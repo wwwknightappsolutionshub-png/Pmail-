@@ -3,6 +3,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import type { TenantBranding } from "../types/mail";
+import { DEFAULT_TENANT_SLUG } from "../constants/tenant";
 import { HMailLogo } from "../components/HMailLogo";
 import "./LoginPage.css";
 
@@ -17,7 +18,7 @@ const defaultBranding: TenantBranding = {
 
 export function LoginPage() {
   const { tenantSlug: paramSlug } = useParams();
-  const tenantSlug = paramSlug ?? "demo";
+  const tenantSlug = paramSlug ?? DEFAULT_TENANT_SLUG;
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
 
@@ -39,13 +40,11 @@ export function LoginPage() {
         if (err instanceof ApiError) {
           setLoadError(
             err.status === 404
-              ? `${err.message} — run npm run db:sqlite:setup from the project root, then use /login/demo.`
+              ? `${err.message} — contact your administrator or run npm run db:seed on the server.`
               : err.message,
           );
         } else {
-          setLoadError(
-            "Cannot reach the mail service. Start the API with npm run dev and use /login/demo.",
-          );
+          setLoadError("Cannot reach the mail service. Check that the API is running.");
         }
       });
   }, [tenantSlug]);
