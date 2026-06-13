@@ -95,7 +95,9 @@
   --sidebar-muted: #94a3b8;
 
   position: fixed;
-  inset: 0 auto 0 0;
+  top: 0;
+  bottom: var(--mail-bottom-nav-h);
+  left: 0;
   z-index: 40;
   width: var(--sidebar-width);
   max-width: 100%;
@@ -151,6 +153,17 @@
   margin-top: auto;
   display: grid;
   gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .sidebar-footer--desktop {
+    display: none;
+  }
+
+  .list-header .signout-btn {
+    display: none;
+  }
 }
 
 .user-chip {
@@ -578,10 +591,10 @@
   bottom: 0;
   z-index: 25;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.25rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.2rem;
   min-height: var(--mail-bottom-nav-h);
-  padding: 0.35rem 0.5rem;
+  padding: 0.35rem 0.4rem;
   padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
   background: #fff;
   border-top: 1px solid #dbe3ec;
@@ -592,10 +605,21 @@
   background: transparent;
   color: #64748b;
   border-radius: 10px;
-  min-height: 2.75rem;
+  min-height: 2.85rem;
+  padding: 0.25rem 0.15rem;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
+  line-height: 1.2;
+}
+
+.mail-bottom-nav button span {
+  display: block;
+}
+
+.mail-bottom-nav-signout {
+  color: #b91c1c !important;
+  background: #fef2f2 !important;
 }
 
 .mail-bottom-nav button.is-active {
@@ -627,6 +651,8 @@
 
   .mail-sidebar {
     position: static;
+    top: auto;
+    bottom: auto;
     transform: none;
     width: auto;
     min-height: 0;

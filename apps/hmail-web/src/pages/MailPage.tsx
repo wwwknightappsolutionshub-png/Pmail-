@@ -689,7 +689,7 @@ export function MailPage() {
             }
           />
 
-          <div className="sidebar-footer">
+          <div className="sidebar-footer sidebar-footer--desktop">
             <div className="user-chip">
               <span>{user?.email}</span>
             </div>
@@ -803,6 +803,9 @@ export function MailPage() {
         </button>
         <button type="button" onClick={() => openCompose({ mode: "new" })}>
           <span>New mail</span>
+        </button>
+        <button type="button" className="mail-bottom-nav-signout" onClick={() => logout()}>
+          <span>Sign out</span>
         </button>
       </nav>
 
