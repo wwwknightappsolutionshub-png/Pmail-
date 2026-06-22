@@ -1,289 +1,716 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { Link } from "react-router-dom";
-import { api, formatPrice } from "../api/client";
-import { CheckoutModal, type CheckoutProduct } from "../components/CheckoutModal";
+
+import { api } from "../api/client";
+
 import { HeroStatsPanel } from "../components/HeroStatsPanel";
-import type { AddonMarketing, PublicSitePayload, SiteSection } from "../types/site";
+
+import {
+
+  CapabilitiesArt,
+
+  HeroMeshArt,
+
+  PlatformOrbitArt,
+
+  PmailTeaserArt,
+
+  SecurityShieldArt,
+
+  SolutionsFabricArt,
+
+} from "../components/landing/LandingArt";
+
+import { LandingArtFrame } from "../components/landing/LandingArtFrame";
+
+import { SectionRichText } from "../components/SectionRichText";
+
+import { MarketingHeader } from "../components/MarketingHeader";
+
+import { MarketingFooter } from "../components/MarketingFooter";
+
+import { RegisterPricingForm } from "../components/RegisterPricingForm";
+
+import { TestimonialsSection } from "../components/TestimonialsSection";
+
+import {
+
+  bulletsOrFallback,
+
+  heroMetricsFromSection,
+
+  LANDING_FALLBACKS,
+
+  parseBulletCard,
+
+  sectionByKey,
+
+} from "../lib/landingContent";
+
+import {
+
+  landingSectionEyebrow,
+
+  landingSectionFeaturesCopy,
+
+  landingSectionPlatformCopy,
+
+} from "../lib/landingSectionUi";
+
+import type { PublicSitePayload } from "../types/site";
+
 import "./LandingPage.css";
 
-const HMAIL_URL = import.meta.env.VITE_HMAIL_URL ?? "http://localhost:5173/login/demo";
 
-function sectionByKey(sections: SiteSection[], key: string): SiteSection | undefined {
-  return sections.find((s) => s.sectionKey === key);
-}
-
-const TICKER_ITEMS = [
-  "NVMe storage",
-  "Free SSL",
-  "99.9% uptime",
-  "One-click backups",
-  "MySQL & MariaDB",
-  "PHP 8.4",
-  "Node.js ready",
-  "Panel API",
-];
 
 export function LandingPage() {
+
   const [data, setData] = useState<PublicSitePayload | null>(null);
+
   const [error, setError] = useState<string | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [checkoutProduct, setCheckoutProduct] = useState<CheckoutProduct | null>(null);
+
+
 
   useEffect(() => {
+
     api.publicSite().then(setData).catch((err: Error) => setError(err.message));
+
   }, []);
 
-  const hero = useMemo(() => (data ? sectionByKey(data.sections, "hero") : undefined), [data]);
-  const hostingIntro = useMemo(() => (data ? sectionByKey(data.sections, "hosting_intro") : undefined), [data]);
-  const features = useMemo(() => (data ? sectionByKey(data.sections, "features") : undefined), [data]);
-  const hmailSection = useMemo(() => (data ? sectionByKey(data.sections, "hmail_addons") : undefined), [data]);
-  const ctaFooter = useMemo(() => (data ? sectionByKey(data.sections, "cta_footer") : undefined), [data]);
 
-  const addonTickets = useMemo(() => data?.addonMarketing ?? [], [data]);
+
+  const sections = data?.sections ?? [];
+
+
+
+  const hero = useMemo(() => sectionByKey(sections, "hero"), [sections]);
+
+  const enterprise = useMemo(() => sectionByKey(sections, "enterprise"), [sections]);
+
+  const solutions = useMemo(() => sectionByKey(sections, "solutions"), [sections]);
+
+  const platform = useMemo(() => sectionByKey(sections, "platform"), [sections]);
+
+  const growthCta = useMemo(() => sectionByKey(sections, "growth_cta"), [sections]);
+
+  const trust = useMemo(() => sectionByKey(sections, "trust"), [sections]);
+
+  const bespokeMail = useMemo(() => sectionByKey(sections, "hmail_addons"), [sections]);
+
+  const features = useMemo(() => sectionByKey(sections, "features"), [sections]);
+
+  const testimonials = useMemo(() => sectionByKey(sections, "testimonials"), [sections]);
+
+  const contact = useMemo(() => sectionByKey(sections, "contact"), [sections]);
+
+
+
+  const heroMetrics = useMemo(() => heroMetricsFromSection(hero), [hero]);
+
+  const enterpriseCards = useMemo(
+
+    () => bulletsOrFallback(enterprise, [...LANDING_FALLBACKS.enterprise]),
+
+    [enterprise],
+
+  );
+
+  const solutionCards = useMemo(
+
+    () => bulletsOrFallback(solutions, [...LANDING_FALLBACKS.solutions]),
+
+    [solutions],
+
+  );
+
+  const platformCards = useMemo(
+
+    () => bulletsOrFallback(platform, [...LANDING_FALLBACKS.platform]),
+
+    [platform],
+
+  );
+
+  const capabilityItems = useMemo(
+
+    () => bulletsOrFallback(features, [...LANDING_FALLBACKS.capabilities]),
+
+    [features],
+
+  );
+
+  const trustItems = useMemo(() => bulletsOrFallback(trust, [...LANDING_FALLBACKS.trustStrip]), [trust]);
+
+
+
+  const bespokeTitle = bespokeMail?.title ?? LANDING_FALLBACKS.bespokeMail.title;
+
+  const bespokeBody = bespokeMail?.body ?? LANDING_FALLBACKS.bespokeMail.body;
+
+  const bespokeCtaLabel = bespokeMail?.ctaLabel ?? LANDING_FALLBACKS.bespokeMail.ctaLabel;
+
+  const bespokeCtaUrl = bespokeMail?.ctaUrl ?? LANDING_FALLBACKS.bespokeMail.ctaUrl;
+
+  const heroCtaLabel = hero?.ctaLabel ?? "Register & get custom pricing";
+
+  const heroCtaUrl = hero?.ctaUrl ?? "#register";
+
+  const growthCtaLabel = growthCta?.ctaLabel ?? LANDING_FALLBACKS.growthCta.ctaLabel;
+
+  const growthCtaUrl = growthCta?.ctaUrl ?? LANDING_FALLBACKS.growthCta.ctaUrl;
+
+  const growthBullets = useMemo(
+    () => growthCta?.bulletPoints?.length ? growthCta.bulletPoints : [],
+    [growthCta],
+  );
+
+
 
   if (error) {
+
     return (
+
       <div className="container" style={{ padding: "3rem 0" }}>
+
         <div className="error-banner">Could not load site content: {error}</div>
+
       </div>
+
     );
+
   }
+
+
 
   if (!data) {
-    return <div className="loading-state container">Loading HostNet…</div>;
+
+    return <div className="loading-state container">Loading Prohost Cloud…</div>;
+
   }
 
-  const tickerDoubled = [...TICKER_ITEMS, ...TICKER_ITEMS];
+
 
   return (
+
     <div className="landing">
-      <header className="landing-top">
-        <div className="landing-brand">
-          Host<span>Net</span>
-        </div>
-        <button
-          type="button"
-          className="landing-menu-btn"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          {menuOpen ? "✕" : "☰"}
-        </button>
-        <nav className={`landing-nav${menuOpen ? " landing-nav--open" : ""}`}>
-          <a href="#features" onClick={() => setMenuOpen(false)}>
-            Features
-          </a>
-          <a href="#plans" onClick={() => setMenuOpen(false)}>
-            Plans
-          </a>
-          <a href="#hmail-addons" onClick={() => setMenuOpen(false)}>
-            hmail
-          </a>
-          <div className="landing-nav-actions">
-            <Link to="/panel/login" className="btn btn-secondary" onClick={() => setMenuOpen(false)}>
-              Panel login
-            </Link>
-            <a href="#plans" className="btn btn-primary" onClick={() => setMenuOpen(false)}>
-              Get hosting
-            </a>
-          </div>
-        </nav>
-      </header>
 
-      <section className="hero-split">
-        <div className="hero-left">
-          <p className="hero-kicker">Multi-purpose hosting panel</p>
-          <h1>
-            {hero?.title ?? "Your sites."} <em>One panel.</em>
-          </h1>
-          <p className="hero-body">{hero?.body ?? hero?.subtitle}</p>
-          <div className="hero-cta-row">
-            <a href={hero?.ctaUrl ?? "#plans"} className="btn btn-primary">
-              {hero?.ctaLabel ?? "Explore plans"}
-            </a>
-            <Link to="/panel/login" className="btn btn-secondary">
-              Sign in to panel
-            </Link>
+      <MarketingHeader />
+
+
+
+      <section className="hero-prohost">
+
+        <div className="hero-prohost-bg" aria-hidden />
+
+        <div className="container hero-prohost-grid">
+
+          <div className="hero-prohost-copy">
+
+            <p className="hero-kicker">{landingSectionEyebrow("hero", hero?.subtitle)}</p>
+
+            <h1>
+
+              {hero?.title ?? "Enterprise infrastructure for modern teams"}
+
+              {hero?.subtitle ? <span>{hero.subtitle}</span> : null}
+
+            </h1>
+
+            {hero?.body ? <SectionRichText html={hero.body} className="hero-body" /> : null}
+
+            <div className="hero-cta-row">
+
+              <a href={heroCtaUrl} className="btn btn-primary">
+
+                {heroCtaLabel}
+
+              </a>
+
+              <Link to={growthCtaUrl} className="btn btn-secondary">
+
+                {growthCtaLabel}
+
+              </Link>
+
+            </div>
+
+            <dl className="hero-metrics">
+
+              {heroMetrics.map((metric) => (
+
+                <div key={metric.label} className="hero-metric">
+
+                  <dt>{metric.value}</dt>
+
+                  <dd>{metric.label}</dd>
+
+                </div>
+
+              ))}
+
+            </dl>
+
           </div>
-          <div className="hero-stats">
-            {(hero?.bulletPoints ?? ["NVMe storage", "Free SSL", "Real-time metrics"]).map((item) => (
-              <div key={item} className="hero-stat">
-                <strong>✓</strong>
-                <span>{item}</span>
-              </div>
-            ))}
+
+          <div className="hero-prohost-visual">
+
+            <LandingArtFrame variant="hero">
+
+              <HeroMeshArt />
+
+            </LandingArtFrame>
+
+            <div className="hero-prohost-panel">
+
+              <HeroStatsPanel preview={data.panelPreview} />
+
+            </div>
+
           </div>
+
         </div>
 
-        <div className="hero-right">
-          <HeroStatsPanel preview={data.panelPreview} />
-        </div>
       </section>
 
-      <div className="ticker" aria-hidden>
-        <div className="ticker-track">
-          {tickerDoubled.map((item, i) => (
-            <span key={`${item}-${i}`}>
-              {item} <span>◆</span>
-            </span>
-          ))}
+
+
+      <div className="trust-strip" aria-label="Platform guarantees">
+
+        <div className="trust-strip-viewport">
+
+          <div className="trust-strip-track">
+
+            {[...trustItems, ...trustItems].map((item, index) => (
+
+              <span key={`${item}-${index}`}>{parseBulletCard(item).title}</span>
+
+            ))}
+
+          </div>
+
         </div>
+
       </div>
 
-      <section id="features" className="section-pad container">
-        <div className="section-head">
-          <h2>{features?.title ?? "Built for builders"}</h2>
-          <p>{features?.body ?? features?.subtitle}</p>
+
+
+      <section id="platform" className="section-pad section-offset">
+
+        <div className="container split-section split-section--art-right">
+
+          <div className="split-section-copy">
+
+            <p className="section-eyebrow">{landingSectionEyebrow("enterprise", enterprise?.subtitle)}</p>
+
+            <h2 className="landing-section-title">{enterprise?.title ?? "Enterprise-grade hosting platform"}</h2>
+
+            {enterprise?.subtitle ? <p className="section-lead">{enterprise.subtitle}</p> : null}
+
+            {enterprise?.body ? <SectionRichText html={enterprise.body} className="muted" /> : null}
+
+            <div className="stack-cards">
+
+              {enterpriseCards.map((item) => {
+
+                const card = parseBulletCard(item);
+
+                return (
+
+                  <article key={item} className="stack-card">
+
+                    <h3>{card.title}</h3>
+
+                    {card.description ? <p>{card.description}</p> : null}
+
+                  </article>
+
+                );
+
+              })}
+
+            </div>
+
+          </div>
+
+          <div className="split-section-art">
+
+            <LandingArtFrame variant="orbit">
+
+              <PlatformOrbitArt />
+
+            </LandingArtFrame>
+
+          </div>
+
         </div>
-        <div className="bento">
-          <article className="bento-item bento-a">
-            <div className="bento-num">01</div>
-            <h3>cPanel-style dashboard</h3>
-            <p>Files, databases, domains, and email — one login, zero clutter.</p>
-          </article>
-          <article className="bento-item bento-b">
-            <div className="bento-num">02</div>
-            <h3>Live usage metrics</h3>
-            <p>Disk and bandwidth meters update as your sites grow.</p>
-          </article>
-          {(features?.bulletPoints ?? []).map((item, idx) => (
-            <article key={item} className={`bento-item bento-${["c", "d", "e"][idx] ?? "c"}`}>
-              <h3>{item}</h3>
-              <p>Included on every HostNet hosting account.</p>
-            </article>
-          ))}
-        </div>
+
       </section>
 
-      <section id="plans" className="section-pad container">
-        <div className="section-head">
-          <h2>{hostingIntro?.title ?? "Hosting plans"}</h2>
-          <p>{hostingIntro?.subtitle}</p>
+
+
+      <section id="solutions" className="section-pad section-pad--alt">
+
+        <div className="container split-section split-section--art-left">
+
+          <div className="split-section-art">
+
+            <LandingArtFrame variant="fabric" delay={80}>
+
+              <SolutionsFabricArt />
+
+            </LandingArtFrame>
+
+          </div>
+
+          <div className="split-section-copy">
+
+            <p className="section-eyebrow">{landingSectionEyebrow("solutions", solutions?.subtitle)}</p>
+
+            <h2 className="landing-section-title">{solutions?.title ?? "Built for how your organization operates"}</h2>
+
+            {solutions?.subtitle ? <p className="section-lead">{solutions.subtitle}</p> : null}
+
+            {solutions?.body ? <SectionRichText html={solutions.body} className="muted" /> : null}
+
+            <div className="solutions-rail">
+
+              {solutionCards.map((item, idx) => {
+
+                const card = parseBulletCard(item);
+
+                return (
+
+                  <article key={item} className="solutions-rail-item">
+
+                    <span className="solutions-rail-num">{String(idx + 1).padStart(2, "0")}</span>
+
+                    <div>
+
+                      <h3>{card.title}</h3>
+
+                      {card.description ? <p>{card.description}</p> : null}
+
+                    </div>
+
+                  </article>
+
+                );
+
+              })}
+
+            </div>
+
+          </div>
+
         </div>
-        <div className="pricing-stage">
-          {data.hostingPlans.map((plan) => (
-            <article key={plan.id} className="plan-tilt">
-              {plan.isFeatured && <span className="badge">Popular</span>}
-              <h3 className="plan-name">{plan.name}</h3>
-              <p className="muted">{plan.tagline}</p>
-              <div className="plan-price">
-                {formatPrice(plan.priceCents, plan.billingPeriod)}
-                <small> / {plan.billingPeriod === "yearly" ? "year" : "month"}</small>
-              </div>
-              <div className="plan-specs">
-                <span>{plan.diskGb} GB SSD</span>
-                <span>{plan.websites} site{plan.websites === 1 ? "" : "s"}</span>
-                <span>{plan.emailAccounts} mail</span>
-              </div>
-              <ul>
-                {plan.features.map((f) => (
-                  <li key={f}>{f}</li>
+
+      </section>
+
+
+
+      <section id="product-suite" className="section-pad product-suite-band">
+
+        <div className="container">
+
+          <div className="section-head section-head--center product-suite-head">
+
+            <p className="section-eyebrow">{landingSectionEyebrow("platform", platform?.subtitle)}</p>
+
+            <h2 className="landing-section-title">{platform?.title ?? "One platform. Four integrated products."}</h2>
+
+            {(() => {
+              const copy = landingSectionPlatformCopy(platform?.subtitle ?? "", platform?.body ?? "");
+              if (copy.mutedHtml) return <p className="muted">{copy.mutedHtml}</p>;
+              if (copy.useBody && platform?.body) return <SectionRichText html={platform.body} className="muted" />;
+              return null;
+            })()}
+
+          </div>
+
+          <div className="product-suite-grid">
+
+            {platformCards.map((item, idx) => {
+
+              const card = parseBulletCard(item);
+
+              const icons = ["◈", "⬡", "◆", "✦"];
+
+              return (
+
+                <article
+
+                  key={item}
+
+                  className={`product-suite-card${idx === 1 ? " product-suite-card--featured" : ""}`}
+
+                >
+
+                  <div className="product-suite-card-top">
+
+                    <span className="product-suite-icon" aria-hidden>
+
+                      {icons[idx] ?? "◈"}
+
+                    </span>
+
+                    <span className="product-suite-step">{String(idx + 1).padStart(2, "0")}</span>
+
+                  </div>
+
+                  <h3>{card.title}</h3>
+
+                  {card.description ? <p>{card.description}</p> : null}
+
+                </article>
+
+              );
+
+            })}
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <section id="growth" className="section-pad growth-cta-band">
+
+        <div className="container split-section split-section--art-right">
+
+          <div className="split-section-copy">
+
+            <p className="section-eyebrow">{growthCta?.subtitle ?? LANDING_FALLBACKS.growthCta.subtitle}</p>
+
+            <h2 className="landing-section-title">{growthCta?.title ?? LANDING_FALLBACKS.growthCta.title}</h2>
+
+            {growthCta?.body ? (
+              <SectionRichText html={growthCta.body} className="muted" />
+            ) : (
+              <p className="muted">{LANDING_FALLBACKS.growthCta.body}</p>
+            )}
+
+            {growthBullets.length > 0 ? (
+              <ul className="capabilities-columns">
+                {growthBullets.map((item) => (
+                  <li key={item}>{parseBulletCard(item).title}</li>
                 ))}
               </ul>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() =>
-                  setCheckoutProduct({
-                    productType: "hosting_plan",
-                    productSlug: plan.slug,
-                    productName: plan.name,
-                    amountCents: plan.priceCents,
-                  })
-                }
-              >
-                Get {plan.name}
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
+            ) : null}
 
-      <section id="hmail-addons" className="hmail-advert container">
-        <div className="hmail-advert-head">
-          <div>
-            <span className="badge badge-warm">Partner product</span>
-            <h2>{hmailSection?.title ?? "hmail add-ons"}</h2>
-            <p>{hmailSection?.body ?? hmailSection?.subtitle}</p>
+            <p style={{ marginTop: "1.25rem" }}>
+              <Link to={growthCtaUrl} className="btn btn-primary">
+                {growthCtaLabel}
+              </Link>
+            </p>
+
           </div>
-          <a href={HMAIL_URL} className="btn btn-secondary">
-            Open hmail webmail →
-          </a>
+
+          <div className="split-section-art">
+
+            <LandingArtFrame variant="capabilities" delay={80}>
+
+              <PlatformOrbitArt />
+
+            </LandingArtFrame>
+
+          </div>
+
         </div>
-        <div className="hmail-scroll">
-          {addonTickets.map((addon) => (
-            <AddonTicket key={addon.id} addon={addon} onSubscribe={setCheckoutProduct} />
-          ))}
-        </div>
+
       </section>
 
-      <section className="cta-band">
-        <div>
-          <h2>{ctaFooter?.title}</h2>
-          <p className="muted" style={{ margin: "0.5rem 0 0" }}>
-            {ctaFooter?.subtitle}
-          </p>
+
+
+      <section id="features" className="section-pad section-pad--alt">
+
+        <div className="container split-section split-section--art-right">
+
+          <div className="split-section-copy">
+
+            <p className="section-eyebrow">{landingSectionEyebrow("features", features?.subtitle)}</p>
+
+            <h2 className="landing-section-title">{features?.title ?? "Built like infrastructure, feels like software"}</h2>
+
+            {(() => {
+              const copy = landingSectionFeaturesCopy(features?.subtitle ?? "", features?.body ?? "");
+              if (copy.leadHtml && !copy.useSubtitle) return <SectionRichText html={copy.leadHtml} className="muted" />;
+              if (copy.leadHtml && copy.useSubtitle) return <p className="muted">{copy.leadHtml}</p>;
+              return null;
+            })()}
+
+            <ul className="capabilities-columns">
+
+              {capabilityItems.map((item) => (
+
+                <li key={item}>{parseBulletCard(item).title}</li>
+
+              ))}
+
+            </ul>
+
+          </div>
+
+          <div className="split-section-art">
+
+            <LandingArtFrame variant="capabilities" delay={120}>
+
+              <CapabilitiesArt />
+
+            </LandingArtFrame>
+
+          </div>
+
         </div>
-        <div className="hero-cta-row">
-          <Link to={ctaFooter?.ctaUrl?.startsWith("/") ? ctaFooter.ctaUrl : "/panel/login"} className="btn btn-primary">
-            {ctaFooter?.ctaLabel ?? "Open panel"}
-          </Link>
-          <a href="#plans" className="btn btn-ghost">
-            Compare plans
-          </a>
-        </div>
+
       </section>
 
-      <footer className="landing-foot">
-        <span>HostNet Panel — web hosting & control panel</span>
-        <span>
-          <Link to="/admin/login">Admin</Link> · <Link to="/panel/login">Panel</Link>
-        </span>
-      </footer>
 
-      <CheckoutModal product={checkoutProduct} onClose={() => setCheckoutProduct(null)} />
+
+      <section id="security" className="section-pad">
+
+        <div className="container split-section split-section--art-left">
+
+          <div className="split-section-art split-section-art--narrow">
+
+            <LandingArtFrame variant="shield" delay={60}>
+
+              <SecurityShieldArt />
+
+            </LandingArtFrame>
+
+          </div>
+
+          <div className="split-section-copy">
+
+            <p className="section-eyebrow">{landingSectionEyebrow("trust", trust?.subtitle)}</p>
+
+            <h2 className="landing-section-title">{trust?.title ?? "Security and reliability you can stand behind"}</h2>
+
+            {trust?.subtitle ? <p className="section-lead">{trust.subtitle}</p> : null}
+
+            {trust?.body ? <SectionRichText html={trust.body} className="muted" /> : null}
+
+            <div className="security-list">
+
+              {trustItems.map((item) => (
+
+                <div key={item} className="security-list-item">
+
+                  <span className="security-dot" aria-hidden />
+
+                  {parseBulletCard(item).title}
+
+                </div>
+
+              ))}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <section id="pmail" className="section-pad section-pad--alt pmail-teaser">
+
+        <div className="container split-section split-section--art-right">
+
+          <div className="split-section-copy">
+
+            <p className="section-eyebrow">{landingSectionEyebrow("hmail_addons", bespokeMail?.subtitle)}</p>
+
+            <h2 className="landing-section-title">{bespokeTitle}</h2>
+
+            {bespokeBody ? <SectionRichText html={bespokeBody} className="muted" /> : null}
+
+            {bespokeCtaLabel ? (
+
+              bespokeCtaUrl.startsWith("/") ? (
+
+                <Link to={bespokeCtaUrl} className="btn btn-secondary">
+
+                  {bespokeCtaLabel}
+
+                </Link>
+
+              ) : (
+
+                <a href={bespokeCtaUrl} className="btn btn-secondary">
+
+                  {bespokeCtaLabel}
+
+                </a>
+
+              )
+
+            ) : null}
+
+          </div>
+
+          <div className="split-section-art">
+
+            <LandingArtFrame variant="pmail" delay={100}>
+
+              <PmailTeaserArt />
+
+            </LandingArtFrame>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+
+      <TestimonialsSection
+
+        title={testimonials?.title}
+
+        subtitle={testimonials?.subtitle}
+
+        description={testimonials?.body}
+
+      />
+
+
+
+      <section id="register" className="section-pad suite-band register-band">
+
+        <div className="container">
+
+          <div className="section-head section-head--center">
+
+            <p className="section-eyebrow">{landingSectionEyebrow("contact", contact?.subtitle)}</p>
+
+            <h2 className="landing-section-title">{contact?.title ?? "Register for a tailored quote"}</h2>
+
+            {contact?.subtitle ? <p className="muted">{contact.subtitle}</p> : null}
+
+            {contact?.body ? <SectionRichText html={contact.body} className="muted register-intro" /> : null}
+
+          </div>
+
+          <RegisterPricingForm heroImageUrl={contact?.imageUrl} />
+
+        </div>
+
+      </section>
+
+
+
+      <MarketingFooter />
+
     </div>
+
   );
+
 }
 
-function AddonTicket({
-  addon,
-  onSubscribe,
-}: {
-  addon: AddonMarketing;
-  onSubscribe: (product: CheckoutProduct) => void;
-}) {
-  const isSoon = addon.badge === "Coming soon";
-  const isFree = addon.displayPriceCents === 0;
-  return (
-    <article className="addon-ticket">
-      {addon.badge && <span className={isSoon ? "badge badge-soon" : "badge badge-warm"}>{addon.badge}</span>}
-      <h3>{addon.marketingTitle}</h3>
-      <p>{addon.longDescription}</p>
-      <div className="addon-ticket-foot">
-        <span className="muted">{formatPrice(addon.displayPriceCents)}</span>
-        {isSoon || isFree ? (
-          <a href={import.meta.env.VITE_HMAIL_URL ?? "http://localhost:5173/login/demo"} className="btn btn-ghost">
-            {addon.ctaLabel}
-          </a>
-        ) : (
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() =>
-              onSubscribe({
-                productType: "addon",
-                productSlug: addon.slug,
-                productName: addon.marketingTitle,
-                amountCents: addon.displayPriceCents,
-              })
-            }
-          >
-            Subscribe
-          </button>
-        )}
-      </div>
-    </article>
-  );
-}
+

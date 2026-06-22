@@ -20,7 +20,7 @@ export function HeroStatsPanel({ preview }: Props) {
           <i />
           <i />
           <i />
-          <span className="panel-preview-title">HostNet Panel</span>
+          <span className="panel-preview-title">Prohost Cloud Panel</span>
         </div>
 
         <div className="panel-preview-body">
@@ -85,12 +85,14 @@ export function HeroStatsPanel({ preview }: Props) {
             <span className={preview.sslActive ? "preview-pill preview-pill--ok" : "preview-pill"}>
               SSL {preview.sslActive ? "Active" : "Off"}
             </span>
-            <span className="preview-pill">Backups enabled</span>
+            <span className={preview.backupsEnabled ? "preview-pill preview-pill--ok" : "preview-pill"}>
+              Backups {preview.backupsEnabled ? "enabled" : "off"}
+            </span>
             <span className="preview-pill">Live from API</span>
           </div>
 
           <Link to="/panel/login" className="btn btn-primary preview-cta">
-            Open your panel →
+            Sign in to panel
           </Link>
         </div>
       </div>

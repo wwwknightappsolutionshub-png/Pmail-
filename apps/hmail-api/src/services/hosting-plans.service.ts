@@ -133,7 +133,7 @@ export const DEFAULT_HOSTING_PLANS: HostingPlanInput[] = [
     websites: 3,
     emailAccounts: 25,
     databases: 5,
-    features: ["50 GB SSD", "Priority support", "25 mailboxes", "Daily backups", "hmail included"],
+    features: ["50 GB SSD", "Priority support", "25 mailboxes", "Daily backups", "PMail+ included"],
     isFeatured: true,
     sortOrder: 20,
   },
@@ -147,7 +147,7 @@ export const DEFAULT_HOSTING_PLANS: HostingPlanInput[] = [
     websites: 10,
     emailAccounts: 100,
     databases: 10,
-    features: ["100 GB SSD", "Dedicated IP option", "100 mailboxes", "Staging sites", "All hmail add-ons eligible"],
+    features: ["100 GB SSD", "Dedicated IP option", "100 mailboxes", "Staging sites", "All PMail+ add-ons eligible"],
     sortOrder: 30,
   },
 ];

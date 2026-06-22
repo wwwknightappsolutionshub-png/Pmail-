@@ -1,10 +1,18 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import type { TenantBranding } from "../types/mail";
-import { DEFAULT_TENANT_SLUG } from "../constants/tenant";
+import { DEFAULT_TENANT_SLUG, PMAIL_TESTER_TENANT_SLUG } from "../constants/tenant";
+import {
+  defaultMailConfig,
+  resolveMailConfigFromPreset,
+  type MailConfigValues,
+  type MailProviderPresetKey,
+} from "../constants/mailProviders";
+import { ProviderPresetPicker } from "../components/ProviderPresetPicker";
 import { HMailLogo } from "../components/HMailLogo";
+import "../components/ProviderPresetPicker.css";
 import "./LoginPage.css";
 
 const defaultBranding: TenantBranding = {
@@ -16,15 +24,27 @@ const defaultBranding: TenantBranding = {
   loginTagline: "Secure cloud mail powered by Prohost Cloud",
 };
 
+const createAccountUrl = `${import.meta.env.VITE_HOSTNET_WEB_URL ?? "http://localhost:5174"}#register`;
+
+const REFERRAL_REF_STORAGE_KEY = "pmail_referral_ref";
+
 export function LoginPage() {
-  const { tenantSlug: paramSlug } = useParams();
-  const tenantSlug = paramSlug ?? DEFAULT_TENANT_SLUG;
+  const { tenantSlug: tenantSlugParam } = useParams();
+  const [searchParams] = useSearchParams();
+  const tenantSlug = tenantSlugParam?.trim().toLowerCase() || DEFAULT_TENANT_SLUG;
+  const isTesterRoute = tenantSlug === PMAIL_TESTER_TENANT_SLUG;
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
 
   const [branding, setBranding] = useState<TenantBranding>(defaultBranding);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(isTesterRoute ? "pmailtester@gmail.com" : "");
   const [password, setPassword] = useState("");
+  const [mailConfig, setMailConfig] = useState<MailConfigValues>(defaultMailConfig);
+  const [needsProviderSetup, setNeedsProviderSetup] = useState<boolean | null>(isTesterRoute ? false : null);
+  const [testerBypass, setTesterBypass] = useState(isTesterRoute);
+  const [suggestedTenantSlug, setSuggestedTenantSlug] = useState<string | null>(null);
+  const [greetingName, setGreetingName] = useState<string | null>(isTesterRoute ? "PMail Tester" : null);
+  const [preflightLoading, setPreflightLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [loginError, setLoginError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -49,15 +69,88 @@ export function LoginPage() {
       });
   }, [tenantSlug]);
 
+  useEffect(() => {
+    const ref = searchParams.get("ref")?.trim();
+    if (ref?.includes("@")) {
+      sessionStorage.setItem(REFERRAL_REF_STORAGE_KEY, ref);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const normalized = email.trim().toLowerCase();
+    if (isTesterRoute) {
+      setNeedsProviderSetup(false);
+      setTesterBypass(true);
+      setSuggestedTenantSlug(null);
+      return;
+    }
+
+    if (!normalized.includes("@")) {
+      setNeedsProviderSetup(null);
+      setTesterBypass(false);
+      setSuggestedTenantSlug(null);
+      setGreetingName(null);
+      return;
+    }
+
+    let cancelled = false;
+    setPreflightLoading(true);
+    api
+      .loginPreflight(tenantSlug, normalized)
+      .then((result) => {
+        if (!cancelled) {
+          setNeedsProviderSetup(result.needsProviderSetup);
+          setTesterBypass(Boolean(result.testerBypass));
+          setSuggestedTenantSlug(result.suggestedTenantSlug ?? null);
+          setGreetingName(result.displayName);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setNeedsProviderSetup(true);
+          setTesterBypass(false);
+          setSuggestedTenantSlug(null);
+          setGreetingName(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setPreflightLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [email, tenantSlug, isTesterRoute]);
+
   if (user) return <Navigate to="/" replace />;
+
+  const applyPreset = (key: MailProviderPresetKey) => {
+    setMailConfig((current) =>
+      resolveMailConfigFromPreset(key, key === "custom" ? current : undefined),
+    );
+  };
+
+  const showProviderSetup = !isTesterRoute && !testerBypass && needsProviderSetup !== false;
+  const showCustomFields = mailConfig.providerPreset === "custom";
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoginError("");
     setSubmitting(true);
     try {
-      const result = await api.login({ tenantSlug, email, password });
-      sessionStorage.setItem("pmail_tenant_slug", tenantSlug);
+      const referrerEmail =
+        sessionStorage.getItem(REFERRAL_REF_STORAGE_KEY) ?? searchParams.get("ref") ?? undefined;
+      const result = isTesterRoute
+        ? await api.testerLogin({ email, password })
+        : await api.login({
+            tenantSlug,
+            email,
+            password,
+            ...(showProviderSetup ? mailConfig : {}),
+            ...(referrerEmail?.includes("@") ? { referrerEmail } : {}),
+          });
+      sessionStorage.setItem("pmail_tenant_slug", isTesterRoute ? PMAIL_TESTER_TENANT_SLUG : tenantSlug);
+      if (referrerEmail) sessionStorage.removeItem(REFERRAL_REF_STORAGE_KEY);
       setUser(result.user);
       navigate("/");
     } catch (err) {
@@ -102,7 +195,7 @@ export function LoginPage() {
                 <span className="login-feature-icon" aria-hidden="true">
                   ✓
                 </span>
-                IRCC-focused inbox tools and add-ons marketplace
+                Professional cloud mail that unifies your inbox, workspace, and business tools
               </li>
               <li>
                 <span className="login-feature-icon" aria-hidden="true">
@@ -114,12 +207,12 @@ export function LoginPage() {
                 <span className="login-feature-icon" aria-hidden="true">
                   ✓
                 </span>
-                Case-linked mail, templates, and client workflows
+                Templates, tracked correspondence, and client-ready workflows
               </li>
             </ul>
 
             <div className="login-trust-note">
-              <strong>Built for RCICs &amp; immigration counsel</strong>
+              <strong>Built for teams that need secure, accountable mail</strong>
               <p>Authorized personnel only. Sessions are encrypted and activity is auditable.</p>
             </div>
           </div>
@@ -128,11 +221,93 @@ export function LoginPage() {
         <section className="login-form-panel">
           <div className="login-form-card">
             <div className="login-form-header">
+              <p className="login-welcome">Welcome {greetingName ?? "Guest"}</p>
               <h2 className="login-signin-title">Sign in</h2>
-              <p>Access your firm mailbox and immigration add-ons</p>
+              <p>
+                {isTesterRoute
+                  ? "Demo workspace login — no mail provider setup required. Use the seeded tester credentials to explore all paid add-ons."
+                  : showProviderSetup
+                  ? "Because this is your first time here, you will need to select your current mail provider, then the sytem will auto fill their server config, then you will login with your email ID and Password from the mail provider to enjoy here special addon's that promotes productivity."
+                  : "Access your firm mailbox and immigration add-ons"}
+              </p>
             </div>
 
             <form onSubmit={onSubmit} className="login-form">
+              {suggestedTenantSlug ? (
+                <div className="login-error" role="status">
+                  This is the PMail+ tester account.{" "}
+                  <Link to={`/login/${suggestedTenantSlug}`}>Sign in on the tester workspace</Link> instead.
+                </div>
+              ) : null}
+              {showProviderSetup ? (
+                <div className="login-provider-section">
+                  <span className="login-provider-label">Mail provider</span>
+                  <ProviderPresetPicker
+                    value={mailConfig.providerPreset}
+                    onChange={applyPreset}
+                    idPrefix="login-provider"
+                  />
+                  {preflightLoading ? (
+                    <p className="login-provider-hint">Checking mailbox setup…</p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {showProviderSetup && showCustomFields ? (
+                <div className="mail-onboarding-custom-grid">
+                  <label>
+                    IMAP host
+                    <input
+                      value={mailConfig.imapHost}
+                      onChange={(e) => setMailConfig({ ...mailConfig, imapHost: e.target.value })}
+                      required
+                    />
+                  </label>
+                  <label>
+                    IMAP port
+                    <input
+                      type="number"
+                      value={mailConfig.imapPort}
+                      onChange={(e) => setMailConfig({ ...mailConfig, imapPort: Number(e.target.value) })}
+                      required
+                    />
+                  </label>
+                  <label>
+                    SMTP host
+                    <input
+                      value={mailConfig.smtpHost}
+                      onChange={(e) => setMailConfig({ ...mailConfig, smtpHost: e.target.value })}
+                      required
+                    />
+                  </label>
+                  <label>
+                    SMTP port
+                    <input
+                      type="number"
+                      value={mailConfig.smtpPort}
+                      onChange={(e) => setMailConfig({ ...mailConfig, smtpPort: Number(e.target.value) })}
+                      required
+                    />
+                  </label>
+                  <label className="login-check-row">
+                    <input
+                      type="checkbox"
+                      checked={mailConfig.imapSecure}
+                      onChange={(e) => setMailConfig({ ...mailConfig, imapSecure: e.target.checked })}
+                    />
+                    IMAP SSL/TLS
+                  </label>
+                  <label className="login-check-row">
+                    <input
+                      type="checkbox"
+                      checked={mailConfig.smtpSecure}
+                      onChange={(e) => setMailConfig({ ...mailConfig, smtpSecure: e.target.checked })}
+                    />
+                    SMTP SSL/TLS
+                  </label>
+                </div>
+              ) : null}
+
               <label>
                 Work email
                 <input
@@ -157,13 +332,21 @@ export function LoginPage() {
                 />
               </label>
 
-              {(loadError || loginError) ? (
+              {showProviderSetup ? (
+                <p className="login-provider-hint">Use an app password if your provider requires it.</p>
+              ) : null}
+
+              {loadError || loginError ? (
                 <div className="login-error">{loginError || loadError}</div>
               ) : null}
 
-              <button type="submit" disabled={submitting} className="login-submit">
-                {submitting ? "Authenticating…" : "Sign in to mailbox"}
+              <button type="submit" disabled={submitting || preflightLoading} className="login-submit">
+                {submitting ? "Authenticating…" : isTesterRoute ? "Sign in to tester workspace" : "Sign in to mailbox"}
               </button>
+
+              <a className="login-create-account" href={createAccountUrl}>
+                New Here - Create Account
+              </a>
             </form>
           </div>
         </section>

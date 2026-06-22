@@ -47,6 +47,24 @@ const envSchema = z.object({
   PAYMENT_SUCCESS_URL: z.string().default("http://localhost:5174/checkout/success"),
   PAYMENT_CANCEL_URL: z.string().default("http://localhost:5174/checkout/cancel"),
   HOSTNET_WEB_URL: z.string().default("http://localhost:5174"),
+  PUBLIC_API_URL: z.string().optional(),
+  WHATSAPP_PROVIDER: z.enum(["twilio", "meta"]).optional(),
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_WHATSAPP_FROM: z.string().optional(),
+  WHATSAPP_CLOUD_ACCESS_TOKEN: z.string().optional(),
+  WHATSAPP_CLOUD_PHONE_NUMBER_ID: z.string().optional(),
+  PMAIL_TESTER_BYPASS_AUTH: z
+    .string()
+    .optional()
+    .transform((v) => {
+      if (v === "true") return true;
+      if (v === "false") return false;
+      return ["development", "test"].includes(process.env.NODE_ENV ?? "development");
+    }),
+  PMAIL_TESTER_EMAIL: z.string().email().default("pmailtester@gmail.com"),
+  PMAIL_TESTER_PASSWORD: z.string().min(8).default("mailtester1234"),
+  PMAIL_TESTER_TENANT_SLUG: z.string().default("pmail-tester"),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -64,10 +64,9 @@ export function AdminVpsPanel({
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ marginTop: 0 }}>VPS instances</h2>
+      <div className="admin-page-header-actions" style={{ marginBottom: "1rem", justifyContent: "flex-end", display: "flex" }}>
         <button type="button" className="btn btn-secondary" onClick={() => setShowNew((v) => !v)}>
-          {showNew ? "Cancel" : "Add VPS"}
+          {showNew ? "Cancel" : "Provision VPS"}
         </button>
       </div>
 
@@ -187,13 +186,17 @@ function VpsRow({
       <td>{vps.label}</td>
       <td className="muted">{vps.hostname}</td>
       <td>{vps.ipAddress ?? "—"}</td>
-      <td>{vps.status}</td>
+      <td>
+        <span className={`badge ${vps.status === "running" ? "badge-status-active" : vps.status === "suspended" ? "badge-status-suspended" : "badge-status-new"}`}>
+          {vps.status}
+        </span>
+      </td>
       <td>{vps.tenant?.name ?? "—"}</td>
       <td>
-        <button type="button" className="btn btn-secondary" onClick={() => setEditing(true)}>
+        <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditing(true)}>
           Edit
         </button>{" "}
-        <button type="button" className="btn btn-danger" onClick={onDelete}>
+        <button type="button" className="btn btn-danger btn-sm" onClick={onDelete}>
           Delete
         </button>
       </td>

@@ -19,14 +19,27 @@ process.env.CORS_ORIGIN ??= "http://localhost:5173,http://localhost:5174";
 process.env.COOKIE_SECURE ??= "false";
 process.env.ADMIN_DEFAULT_EMAIL ??= "admin@test.local";
 process.env.ADMIN_DEFAULT_PASSWORD ??= "test-admin-pass";
+process.env.PMAIL_TESTER_BYPASS_AUTH ??= "true";
 
 execSync("npx tsx scripts/prisma-cli.ts db push --schema prisma/schema.sqlite.prisma --skip-generate", {
   cwd: apiRoot,
   env: process.env,
   stdio: "ignore",
 });
-execSync("npx tsx scripts/prisma-cli.ts generate --schema prisma/schema.sqlite.prisma", {
-  cwd: apiRoot,
-  env: process.env,
-  stdio: "ignore",
-});
+
+try {
+  execSync("npx tsx scripts/prisma-cli.ts generate --schema prisma/schema.sqlite.prisma", {
+    cwd: apiRoot,
+    env: process.env,
+    stdio: "pipe",
+  });
+} catch (err) {
+  const output =
+    err && typeof err === "object" && "stderr" in err
+      ? `${String((err as { stderr?: Buffer }).stderr ?? "")}${String((err as { stdout?: Buffer }).stdout ?? "")}`
+      : err instanceof Error
+        ? err.message
+        : String(err);
+  if (!output.includes("EPERM")) throw err;
+  console.warn("[test setup] Prisma generate skipped (EPERM); using existing client.");
+}

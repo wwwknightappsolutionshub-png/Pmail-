@@ -1,0 +1,241 @@
+.register-pricing-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+  max-width: 960px;
+  margin-inline: auto;
+}
+
+.register-pricing-art {
+  position: relative;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(145deg, var(--accent-soft), var(--bg-card));
+  padding: 1.75rem 1.5rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.register-pricing-hero-img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  display: block;
+}
+
+.register-pricing-art--contact {
+  background: linear-gradient(145deg, rgba(45, 212, 191, 0.1), var(--bg-card));
+}
+
+.register-pricing-art-glow {
+  position: absolute;
+  inset: auto -20% -30% auto;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.35), transparent 70%);
+  pointer-events: none;
+}
+
+.register-pricing-art-icon {
+  font-size: 2rem;
+  color: var(--accent-light);
+  line-height: 1;
+}
+
+.register-pricing-art h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.register-pricing-art p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.register-pricing-art ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.register-pricing-form {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.register-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.register-pricing-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.register-pricing-form input,
+.register-pricing-form select,
+.register-pricing-form textarea {
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+.register-branded-select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--accent-light) 50%),
+    linear-gradient(135deg, var(--accent-light) 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 2rem !important;
+  border-color: rgba(20, 184, 166, 0.35) !important;
+  background-color: rgba(13, 148, 136, 0.08) !important;
+}
+
+.register-branded-select:focus {
+  outline: 2px solid rgba(20, 184, 166, 0.45);
+  outline-offset: 1px;
+  border-color: var(--accent) !important;
+}
+
+.register-branded-select option {
+  background: var(--bg-card);
+  color: var(--text);
+}
+
+.register-pricing-form textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.register-pricing-submit {
+  width: 100%;
+  min-height: 48px;
+}
+
+.register-pricing-note {
+  margin: 0;
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.register-pricing-error {
+  color: #c0392b;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.register-pricing-success {
+  padding: 1.5rem;
+  border: 1px solid rgba(20, 184, 166, 0.35);
+  border-radius: var(--radius);
+  background: rgba(20, 184, 166, 0.06);
+  text-align: center;
+}
+
+.register-pricing-success h3 {
+  margin: 0 0 0.5rem;
+}
+
+.register-pricing-success p {
+  margin: 0 0 1rem;
+}
+
+@media (max-width: 900px) {
+  .register-pricing-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .register-pricing-art {
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 700px) {
+  .register-pricing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.register-mode-switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.25rem;
+  margin-bottom: 0.5rem;
+  border-radius: 999px;
+  background: rgba(13, 148, 136, 0.12);
+  border: 1px solid rgba(13, 148, 136, 0.25);
+}
+
+.register-mode-switch button {
+  position: relative;
+  z-index: 1;
+  border: none;
+  background: transparent;
+  padding: 0.65rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.register-mode-switch button.active {
+  color: var(--text);
+}
+
+.register-mode-slider {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  width: calc(50% - 0.25rem);
+  height: calc(100% - 0.5rem);
+  border-radius: 999px;
+  background: var(--bg-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+
+.register-mode-slider.right {
+  transform: translateX(100%);
+}
+
+.register-form-desc {
+  margin: 0;
+}
+
+.register-field-full {
+  grid-column: 1 / -1;
+}
+
+.register-recaptcha {
+  min-height: 78px;
+}
+
+.register-pricing-consent {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: 0.85rem;
+}

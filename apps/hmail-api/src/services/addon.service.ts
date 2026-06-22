@@ -1,16 +1,28 @@
 import { prisma } from "../lib/prisma.js";
+import { getEnv } from "../config/env.js";
 import {
   ADDON_CATALOG,
   TRIAL_DAYS,
   getCatalogEntry,
+  PLATFORM_SPECIFIC_PAID_ADDON_SLUGS,
+  resolveAddonIsPaid,
+  resolveAddonKind,
+  resolveAddonMinTenantSeats,
+  resolveAddonTenantSeatPriceCents,
+  resolveAddonUserPriceCents,
   type AddonCatalogEntry,
   type AddonReleasePhase,
 } from "../data/addon-catalog.js";
 
 export type AddonAccessStatus = "none" | "trial" | "active" | "expired";
+export type AddonSubscriptionScope = "user" | "tenant";
 
 export interface AddonWithAccess extends AddonCatalogEntry {
   id: string;
+  addonKind: string;
+  isPaid: boolean;
+  tenantPriceCents: number;
+  minTenantSeats: number;
   accessStatus: AddonAccessStatus;
   trialEndsAt?: string;
   trialDaysLeft?: number;
@@ -21,25 +33,45 @@ export interface AddonWithAccess extends AddonCatalogEntry {
 
 export async function seedAddonCatalog(): Promise<void> {
   for (const entry of ADDON_CATALOG) {
+    const addonKind = resolveAddonKind(entry);
+    const priceCents = resolveAddonUserPriceCents(entry);
+    const tenantPriceCents = resolveAddonTenantSeatPriceCents(entry);
+    const minTenantSeats = resolveAddonMinTenantSeats(entry);
+    const isPaid = resolveAddonIsPaid(entry);
     await prisma.addon.upsert({
       where: { slug: entry.slug },
       create: {
         slug: entry.slug,
         name: entry.name,
         group: entry.group,
+        vertical: entry.vertical,
+        addonKind,
         description: entry.description,
         features: JSON.stringify(entry.features),
-        priceCents: entry.priceCents,
+        priceCents,
+        tenantPriceCents,
+        minTenantSeats,
+        isPaid,
+        releasePhase: entry.releasePhase,
+        comingSoon: entry.comingSoon ?? false,
         sortOrder: entry.sortOrder,
       },
       update: {
         name: entry.name,
         group: entry.group,
+        vertical: entry.vertical,
+        addonKind,
         description: entry.description,
         features: JSON.stringify(entry.features),
-        priceCents: entry.priceCents,
+        priceCents,
+        tenantPriceCents,
+        minTenantSeats,
+        isPaid,
+        releasePhase: entry.releasePhase,
+        comingSoon: entry.comingSoon ?? false,
         sortOrder: entry.sortOrder,
         isActive: true,
+        deletedAt: null,
       },
     });
   }
@@ -71,20 +103,48 @@ function resolveAccess(
   return { status: "none" };
 }
 
-export async function listAddonsForTenant(tenantId: string): Promise<AddonWithAccess[]> {
-  const [addons, trials, subscriptions] = await Promise.all([
-    prisma.addon.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
+function isActiveSub(sub: { status: string; currentPeriodEnd?: Date | null } | null | undefined): boolean {
+  if (!sub || sub.status !== "active") return false;
+  return !sub.currentPeriodEnd || sub.currentPeriodEnd.getTime() > Date.now();
+}
+
+export async function listAddonsForTenant(tenantId: string, userId?: string): Promise<AddonWithAccess[]> {
+  const [addons, trials, subscriptions, userSubscriptions, user] = await Promise.all([
+    prisma.addon.findMany({ where: { isActive: true, deletedAt: null }, orderBy: { sortOrder: "asc" } }),
     prisma.tenantAddonTrial.findMany({ where: { tenantId } }),
     prisma.tenantAddonSubscription.findMany({ where: { tenantId } }),
+    userId ? prisma.userAddonSubscription.findMany({ where: { tenantId, userId } }) : Promise.resolve([]),
+    userId ? prisma.user.findUnique({ where: { id: userId }, select: { email: true } }) : Promise.resolve(null),
   ]);
 
+  const testerUnlocked = user?.email.toLowerCase() === getEnv().PMAIL_TESTER_EMAIL.toLowerCase();
   const trialByAddon = new Map(trials.map((t) => [t.addonId, t]));
   const subByAddon = new Map(subscriptions.map((s) => [s.addonId, s]));
+  const userSubByAddon = new Map(userSubscriptions.map((s) => [s.addonId, s]));
+  const activeVerticals = new Set<string>();
+  const activePlatformBundle = PLATFORM_SPECIFIC_PAID_ADDON_SLUGS.some((slug) => {
+    const addon = addons.find((entry) => entry.slug === slug);
+    if (!addon) return false;
+    return isActiveSub(subByAddon.get(addon.id)) || (userId ? isActiveSub(userSubByAddon.get(addon.id)) : false);
+  });
+
+  for (const addon of addons) {
+    if (addon.addonKind !== "vertical") continue;
+    if (isActiveSub(subByAddon.get(addon.id)) || isActiveSub(userSubByAddon.get(addon.id))) {
+      activeVerticals.add(addon.vertical);
+    }
+  }
 
   return addons.map((addon) => {
     const trial = trialByAddon.get(addon.id) ?? null;
-    const subscription = subByAddon.get(addon.id) ?? null;
-    const access = resolveAccess(trial, subscription);
+    const subscription = subByAddon.get(addon.id) ?? userSubByAddon.get(addon.id) ?? null;
+    const directAccess = resolveAccess(trial, subscription);
+    const verticalBundleAccess = addon.addonKind === "vertical" && activeVerticals.has(addon.vertical);
+    const platformBundleAccess = addon.addonKind === "platform" && activePlatformBundle;
+    const access =
+      testerUnlocked || verticalBundleAccess || platformBundleAccess
+        ? { status: "active" as const }
+        : directAccess;
     const hadTrial = Boolean(trial);
     const catalog = getCatalogEntry(addon.slug);
     const comingSoon = catalog?.comingSoon ?? false;
@@ -94,12 +154,17 @@ export async function listAddonsForTenant(tenantId: string): Promise<AddonWithAc
       slug: addon.slug,
       name: addon.name,
       group: addon.group as AddonCatalogEntry["group"],
+      vertical: (addon.vertical as AddonCatalogEntry["vertical"]) ?? catalog?.vertical ?? "platform",
+      addonKind: addon.addonKind,
       description: addon.description,
       features: JSON.parse(addon.features) as string[],
       sortOrder: addon.sortOrder,
       priceCents: addon.priceCents,
-      releasePhase: catalog?.releasePhase ?? 1,
-      comingSoon,
+      tenantPriceCents: addon.tenantPriceCents,
+      minTenantSeats: addon.minTenantSeats,
+      isPaid: addon.isPaid,
+      releasePhase: (addon.releasePhase as AddonReleasePhase) ?? catalog?.releasePhase ?? 1,
+      comingSoon: addon.comingSoon || comingSoon,
       accessStatus: access.status,
       trialEndsAt: access.trialEndsAt,
       trialDaysLeft: access.trialDaysLeft,
@@ -108,16 +173,93 @@ export async function listAddonsForTenant(tenantId: string): Promise<AddonWithAc
   });
 }
 
-export async function getActiveAddonSlugs(tenantId: string): Promise<string[]> {
-  const addons = await listAddonsForTenant(tenantId);
+export async function getActiveAddonSlugs(tenantId: string, userId?: string): Promise<string[]> {
+  const addons = await listAddonsForTenant(tenantId, userId);
   return addons
     .filter((a) => a.accessStatus === "trial" || a.accessStatus === "active")
     .map((a) => a.slug);
 }
 
-export async function tenantHasAddonAccess(tenantId: string, slug: string): Promise<boolean> {
-  const slugs = await getActiveAddonSlugs(tenantId);
+export async function tenantHasAddonAccess(tenantId: string, slug: string, userId?: string): Promise<boolean> {
+  const slugs = await getActiveAddonSlugs(tenantId, userId);
   return slugs.includes(slug);
+}
+
+function nextMonthlyPeriodEnd(): Date {
+  const date = new Date();
+  date.setMonth(date.getMonth() + 1);
+  return date;
+}
+
+export async function startAddonSubscription(
+  tenantId: string,
+  userId: string,
+  slug: string,
+  scope: AddonSubscriptionScope,
+  requestedSeats?: number,
+): Promise<AddonWithAccess> {
+  const addon = await prisma.addon.findFirst({ where: { slug, isActive: true, deletedAt: null } });
+  if (!addon) throw new Error("Add-on not found");
+  if (addon.comingSoon) throw new Error("This add-on is coming soon");
+  if (!addon.isPaid) throw new Error("This add-on is included and does not require checkout");
+
+  const currentPeriodEnd = nextMonthlyPeriodEnd();
+  if (scope === "tenant") {
+    const seats = Math.max(addon.minTenantSeats, requestedSeats ?? addon.minTenantSeats);
+    await prisma.tenantAddonSubscription.upsert({
+      where: { tenantId_addonId: { tenantId, addonId: addon.id } },
+      create: {
+        tenantId,
+        addonId: addon.id,
+        scope: "tenant",
+        seats,
+        priceCentsPerSeat: addon.tenantPriceCents,
+        status: "active",
+        paymentProvider: "local_checkout",
+        currentPeriodEnd,
+      },
+      update: {
+        scope: "tenant",
+        seats,
+        priceCentsPerSeat: addon.tenantPriceCents,
+        status: "active",
+        canceledAt: null,
+        currentPeriodEnd,
+      },
+    });
+  } else {
+    await prisma.userAddonSubscription.upsert({
+      where: { userId_addonId: { userId, addonId: addon.id } },
+      create: {
+        tenantId,
+        userId,
+        addonId: addon.id,
+        scope: "user",
+        priceCents: addon.priceCents,
+        status: "active",
+        currentPeriodEnd,
+      },
+      update: {
+        scope: "user",
+        priceCents: addon.priceCents,
+        status: "active",
+        canceledAt: null,
+        currentPeriodEnd,
+      },
+    });
+  }
+
+  if (addon.addonKind === "vertical") {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { businessVertical: addon.vertical },
+    });
+  }
+
+  const list = await listAddonsForTenant(tenantId, userId);
+  const result = list.find((a) => a.slug === slug);
+  if (!result) throw new Error("Failed to load add-on");
+  return result;
 }
 
 export async function startAddonTrial(
@@ -218,6 +360,7 @@ export async function expireEndedTrials(): Promise<number> {
 export async function processTrialNurtureEmails(): Promise<void> {
   const now = new Date();
   const day3Threshold = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+  const day6Threshold = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
 
   const activeTrials = await prisma.tenantAddonTrial.findMany({
     where: { status: "active", endsAt: { gt: now } },
@@ -242,6 +385,25 @@ export async function processTrialNurtureEmails(): Promise<void> {
       await prisma.tenantAddonTrial.update({
         where: { id: trial.id },
         data: { day3EmailSent: true },
+      });
+    }
+
+    if (
+      trial.trialSource === "referral_reward" &&
+      !trial.discountEmailSent &&
+      trial.startedAt <= day6Threshold
+    ) {
+      await sendAddonTrialEmail({
+        tenantId: trial.tenantId,
+        addonId: trial.addonId,
+        addonName: "PMail+ Platform tools",
+        userEmail,
+        emailType: "day6",
+        trialEndsAt: trial.endsAt,
+      });
+      await prisma.tenantAddonTrial.update({
+        where: { id: trial.id },
+        data: { discountEmailSent: true },
       });
     }
   }

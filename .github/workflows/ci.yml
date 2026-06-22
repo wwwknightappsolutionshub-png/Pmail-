@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main, "feat/**"]
+  pull_request:
+
+jobs:
+  lint-test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client (SQLite test schema)
+        run: npm run db:generate -w hmail-api
+
+      - name: Lint
+        run: npm run lint
+
+      - name: API tests (Tier A/B/D + core)
+        run: npm run test -w hmail-api -- tests/tier-a.test.ts tests/tier-b.test.ts tests/tier-d.test.ts tests/payments.test.ts tests/api.test.ts
+
+      - name: Build
+        run: npm run build -w hmail-api && npm run build -w hmail-web && npm run build -w hostnet-web

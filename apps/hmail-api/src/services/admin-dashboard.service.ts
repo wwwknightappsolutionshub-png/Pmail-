@@ -1,4 +1,6 @@
 import { prisma } from "../lib/prisma.js";
+import { getReadiness } from "./health.service.js";
+import { getMarketingLeadStats } from "./marketing-leads.service.js";
 
 export async function getAdminDashboard() {
   const now = new Date();
@@ -23,6 +25,8 @@ export async function getAdminDashboard() {
     recentAuditLogs,
     tenantsCreatedThisWeek,
     hostingCreatedThisWeek,
+    leadStats,
+    readiness,
   ] = await Promise.all([
     prisma.tenant.count(),
     prisma.tenant.count({ where: { isActive: true } }),
@@ -61,6 +65,8 @@ export async function getAdminDashboard() {
     }),
     prisma.tenant.count({ where: { createdAt: { gte: weekAgo } } }),
     prisma.hostingAccount.count({ where: { createdAt: { gte: weekAgo } } }),
+    getMarketingLeadStats(),
+    getReadiness(),
   ]);
 
   return {
@@ -80,7 +86,33 @@ export async function getAdminDashboard() {
       },
       vps: { total: vpsCount, running: runningVpsCount },
       platformAdmins: platformAdminCount,
+      leads: {
+        total: leadStats.total,
+        newThisWeek: leadStats.newThisWeek,
+        qualifiedUnconverted: leadStats.qualifiedUnconverted,
+        conversionRate: leadStats.conversionRate,
+        funnel: leadStats.funnel,
+      },
     },
+    health: {
+      status: readiness.status,
+      uptimeSeconds: readiness.uptimeSeconds,
+      databaseOk: readiness.checks.database?.ok ?? false,
+    },
+    alerts: [
+      ...(leadStats.funnel.new > 0
+        ? [{ level: "info" as const, message: `${leadStats.funnel.new} new lead(s) awaiting contact` }]
+        : []),
+      ...(leadStats.qualifiedUnconverted > 0
+        ? [{ level: "warning" as const, message: `${leadStats.qualifiedUnconverted} qualified lead(s) ready to convert` }]
+        : []),
+      ...(suspendedHostingCount > 0
+        ? [{ level: "warning" as const, message: `${suspendedHostingCount} hosting account(s) suspended` }]
+        : []),
+      ...(readiness.status !== "ready"
+        ? [{ level: "error" as const, message: "Platform readiness degraded — review system status" }]
+        : []),
+    ],
     recentTenants: recentTenants.map((t) => ({
       ...t,
       createdAt: t.createdAt.toISOString(),

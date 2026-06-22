@@ -1,0 +1,239 @@
+.use-case-page {
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow-x: hidden;
+}
+
+.marketing-nav-link {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.marketing-nav-link:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.marketing-nav-link--active {
+  color: var(--accent-2);
+}
+
+.use-case-hero {
+  padding-top: calc(5.5rem + env(safe-area-inset-top));
+}
+
+.use-case-hero-title {
+  font-size: clamp(1.85rem, 5vw, 3rem);
+  max-width: 18ch;
+  margin: 0 0 1rem;
+  line-height: 1.1;
+}
+
+.use-case-hero-lead {
+  max-width: 62ch;
+  margin: 0;
+  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  line-height: 1.6;
+}
+
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1rem, 3vw, 1.25rem);
+}
+
+.use-case-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.25rem, 4vw, 1.75rem);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: linear-gradient(165deg, rgba(16, 28, 48, 0.95), rgba(10, 18, 32, 0.98));
+  min-height: 100%;
+  min-width: 0;
+}
+
+.use-case-card--2,
+.use-case-card--4,
+.use-case-card--6 {
+  border-color: rgba(20, 184, 166, 0.35);
+}
+
+.use-case-card-num {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--accent-2);
+}
+
+.use-case-card-title {
+  font-size: clamp(1.2rem, 3.5vw, 1.65rem);
+  margin: 0 0 0.65rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.use-case-card-summary {
+  margin: 0 0 1.25rem;
+  font-size: clamp(0.88rem, 2.4vw, 0.94rem);
+  line-height: 1.55;
+}
+
+.use-case-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: auto;
+}
+
+.use-case-card-actions .btn {
+  width: 100%;
+  min-height: 44px;
+  padding-inline: 0.85rem;
+}
+
+.use-case-feature-groups {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+
+.use-case-feature-group {
+  min-width: 0;
+}
+
+.use-case-feature-group-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+
+.use-case-feature-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.use-case-feature-list li {
+  position: relative;
+  padding-left: 1.15rem;
+  color: var(--text);
+  font-size: clamp(0.84rem, 2.3vw, 0.9rem);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.use-case-feature-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-light);
+}
+
+.use-case-cta-band {
+  background: linear-gradient(135deg, rgba(15, 41, 38, 0.55), rgba(10, 18, 32, 0.9));
+  border-top: 1px solid rgba(20, 184, 166, 0.22);
+}
+
+.use-case-cta-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: clamp(1.25rem, 4vw, 2rem);
+  align-items: center;
+}
+
+.use-case-cta-inner h2 {
+  font-size: clamp(1.45rem, 4vw, 2.2rem);
+  margin: 0 0 0.75rem;
+  line-height: 1.15;
+}
+
+.use-case-cta-inner p {
+  margin: 0;
+  max-width: 48ch;
+  font-size: clamp(0.92rem, 2.4vw, 1rem);
+  line-height: 1.55;
+}
+
+.use-case-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
+.use-case-cta-actions .btn {
+  min-height: 44px;
+}
+
+@media (max-width: 900px) {
+  .use-case-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .use-case-cta-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .use-case-cta-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .use-case-hero {
+    padding-top: calc(4.75rem + env(safe-area-inset-top));
+  }
+
+  .use-case-hero-title {
+    max-width: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .use-case-card-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .use-case-cta-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .use-case-cta-actions .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .use-case-card-actions .btn {
+    font-size: 0.86rem;
+    padding-inline: 0.65rem;
+  }
+}
+
+.use-case-demo-referral-note {
+  margin: 0;
+  padding: 0.65rem 1rem;
+  text-align: center;
+  font-size: 0.86rem;
+  color: #0f766e;
+  background: rgba(204, 251, 241, 0.85);
+  border-bottom: 1px solid rgba(13, 148, 136, 0.25);
+}

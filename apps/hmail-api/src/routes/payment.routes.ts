@@ -11,15 +11,25 @@ import {
 } from "../services/payment.service.js";
 import { isPaymentMockMode } from "../config/env.js";
 
-const checkoutSchema = z.object({
-  provider: z.enum(["stripe", "paystack", "mock"]),
-  productType: z.enum(["hosting_plan", "addon"]),
-  productSlug: z.string().min(1),
-  tenantSlug: z.string().min(1),
-  customerEmail: z.string().email(),
-  successUrl: z.string().url().optional(),
-  cancelUrl: z.string().url().optional(),
-});
+const checkoutSchema = z
+  .object({
+    provider: z.enum(["stripe", "paystack", "mock"]),
+    productType: z.enum(["hosting_plan", "addon"]),
+    productSlug: z.string().min(1),
+    tenantSlug: z.string().min(1).optional(),
+    customerEmail: z.string().email(),
+    successUrl: z.string().url().optional(),
+    cancelUrl: z.string().url().optional(),
+    provision: z
+      .object({
+        orgName: z.string().min(1),
+        domain: z.string().min(1).optional(),
+      })
+      .optional(),
+  })
+  .refine((body) => Boolean(body.tenantSlug?.trim() || body.provision?.orgName?.trim()), {
+    message: "tenantSlug or provision.orgName is required",
+  });
 
 export const paymentRouter = Router();
 

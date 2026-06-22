@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
+import { startAddonCheckout, startMarketplaceCheckout } from "../utils/addonCheckout";
 import { useAuth } from "./AuthContext";
-import type { AddonItem } from "../types/addon";
+import type { AddonItem, MarketplaceBrowseVertical, MarketplaceLicenseScope } from "../types/addon";
 
 interface AddonContextValue {
   addons: AddonItem[];
@@ -11,6 +12,47 @@ interface AddonContextValue {
   hasAddon: (slug: string) => boolean;
   refresh: () => Promise<void>;
   startTrial: (slug: string) => Promise<AddonItem>;
+  startSubscription: (slug: string, scope: "user" | "tenant", seats?: number) => Promise<AddonItem | undefined>;
+  quoteSubscription: (slug: string, scope: "user" | "tenant", seats?: number) => Promise<{
+    scope: "user" | "tenant";
+    seats: number;
+    unitPriceCents: number;
+    amountCents: number;
+    tenantMemberCount: number;
+    minTenantSeats: number;
+    label: string;
+  }>;
+  quoteMarketplace: (input: {
+    vertical: MarketplaceBrowseVertical;
+    scope: MarketplaceLicenseScope;
+    includePlatformBundle: boolean;
+    includeVerticalBundle: boolean;
+    seats?: number;
+  }) => Promise<{
+    vertical: MarketplaceBrowseVertical;
+    scope: MarketplaceLicenseScope;
+    seats: number;
+    tenantMemberCount: number;
+    minTenantSeats: number;
+    amountCents: number;
+    label: string;
+    lines: Array<{
+      bundle: "platform" | "vertical";
+      label: string;
+      addonSlugs: string[];
+      anchorSlug: string;
+      unitPriceCents: number;
+      amountCents: number;
+      isFree: boolean;
+    }>;
+  }>;
+  startMarketplaceCheckout: (input: {
+    vertical: MarketplaceBrowseVertical;
+    scope: MarketplaceLicenseScope;
+    includePlatformBundle: boolean;
+    includeVerticalBundle: boolean;
+    seats?: number;
+  }) => Promise<{ mode: "checkout" | "activated" }>;
 }
 
 const AddonContext = createContext<AddonContextValue | null>(null);
@@ -55,14 +97,86 @@ export function AddonProvider({ children }: { children: React.ReactNode }) {
     [refresh],
   );
 
+  const startSubscription = useCallback(
+    async (slug: string, scope: "user" | "tenant", seats?: number) => {
+      const result = await startAddonCheckout({ slug, scope, seats, returnPath: "/addons" });
+      if (result.addon) {
+        await refresh();
+        return result.addon;
+      }
+      return undefined;
+    },
+    [refresh],
+  );
+
+  const quoteSubscription = useCallback(async (slug: string, scope: "user" | "tenant", seats?: number) => {
+    const { quote } = await api.addonPricingQuote(slug, scope, seats);
+    return quote;
+  }, []);
+
   const hasAddon = useCallback(
     (slug: string) => entitledSlugs.includes(slug),
     [entitledSlugs],
   );
 
+  const quoteMarketplace = useCallback(
+    async (input: {
+      vertical: MarketplaceBrowseVertical;
+      scope: MarketplaceLicenseScope;
+      includePlatformBundle: boolean;
+      includeVerticalBundle: boolean;
+      seats?: number;
+    }) => {
+      const { quote } = await api.marketplaceQuote(input);
+      return quote;
+    },
+    [],
+  );
+
+  const startMarketplaceCheckoutFn = useCallback(
+    async (input: {
+      vertical: MarketplaceBrowseVertical;
+      scope: MarketplaceLicenseScope;
+      includePlatformBundle: boolean;
+      includeVerticalBundle: boolean;
+      seats?: number;
+    }) => {
+      const result = await startMarketplaceCheckout({ ...input, returnPath: "/addons" });
+      if (result.mode === "activated") {
+        await refresh();
+      }
+      return { mode: result.mode };
+    },
+    [refresh],
+  );
+
   const value = useMemo(
-    () => ({ addons, entitledSlugs, loading, error, hasAddon, refresh, startTrial }),
-    [addons, entitledSlugs, loading, error, hasAddon, refresh, startTrial],
+    () => ({
+      addons,
+      entitledSlugs,
+      loading,
+      error,
+      hasAddon,
+      refresh,
+      startTrial,
+      startSubscription,
+      quoteSubscription,
+      quoteMarketplace,
+      startMarketplaceCheckout: startMarketplaceCheckoutFn,
+    }),
+    [
+      addons,
+      entitledSlugs,
+      loading,
+      error,
+      hasAddon,
+      refresh,
+      startTrial,
+      startSubscription,
+      quoteSubscription,
+      quoteMarketplace,
+      startMarketplaceCheckoutFn,
+    ],
   );
 
   return <AddonContext.Provider value={value}>{children}</AddonContext.Provider>;

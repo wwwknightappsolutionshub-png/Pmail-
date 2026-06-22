@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useAddons } from "../context/AddonContext";
 import { htmlToPlainText, RichTextEditor } from "./RichTextEditor";
 import "./ComposeModal.css";
 
@@ -68,6 +69,7 @@ function modeTitle(mode: ComposeMode) {
 
 export function ComposeModal({ open, onClose, onSent, initial }: ComposeModalProps) {
   const { user } = useAuth();
+  const { hasAddon } = useAddons();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<ComposeMode>("new");
@@ -81,6 +83,13 @@ export function ComposeModal({ open, onClose, onSent, initial }: ComposeModalPro
   const [attachments, setAttachments] = useState<ComposeAttachment[]>([]);
   const [priority, setPriority] = useState<"normal" | "high">("normal");
   const [requestReadReceipt, setRequestReadReceipt] = useState(false);
+  const [trackingEnabled, setTrackingEnabled] = useState(false);
+  const [fromDisplayName, setFromDisplayName] = useState<string | null>(null);
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("09:00");
+  const [minimized, setMinimized] = useState(false);
+  const [maximized, setMaximized] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [discardConfirm, setDiscardConfirm] = useState(false);
@@ -96,13 +105,35 @@ export function ComposeModal({ open, onClose, onSent, initial }: ComposeModalPro
     setShowCc(Boolean(initial?.cc));
     setShowBcc(Boolean(initial?.bcc));
     setSubject(initial?.subject ?? "");
-    setBodyHtml(initial?.html ?? (initial?.text ? `<p>${initial.text.replace(/\n/g, "<br>")}</p>` : ""));
+    const initialHtml = initial?.html ?? (initial?.text ? `<p>${initial.text.replace(/\n/g, "<br>")}</p>` : "");
     setAttachments([]);
     setPriority("normal");
     setRequestReadReceipt(false);
+    setTrackingEnabled(hasAddon("open-tracking"));
+    setShowSchedule(false);
+    setScheduleDate("");
+    setScheduleTime("09:00");
+    setMinimized(false);
+    setMaximized(false);
     setError("");
     setDiscardConfirm(false);
-  }, [open, initial]);
+
+    void api
+      .composeSettings()
+      .then(({ settings }) => {
+        setFromDisplayName(settings.displayName);
+        if (nextMode === "new") {
+          const activeSig = settings.signatures.find((s) => s.id === settings.activeSignatureId);
+          if (activeSig?.body) {
+            const sigBlock = activeSig.body.trim();
+            setBodyHtml(initialHtml ? `${initialHtml}<br><br>${sigBlock}` : sigBlock);
+            return;
+          }
+        }
+        setBodyHtml(initialHtml);
+      })
+      .catch(() => setBodyHtml(initialHtml));
+  }, [open, initial, hasAddon]);
 
   if (!open) return null;
 
@@ -151,6 +182,36 @@ export function ComposeModal({ open, onClose, onSent, initial }: ComposeModalPro
     onClose();
   };
 
+  const handleScheduleSend = async () => {
+    setSending(true);
+    setError("");
+
+    const plain = htmlToPlainText(bodyHtml);
+    if (!to.trim() || !subject.trim() || !plain || !scheduleDate || !scheduleTime) {
+      setError("To, subject, body, schedule date, and schedule time are required.");
+      setSending(false);
+      return;
+    }
+
+    try {
+      await api.createScheduled({
+        to,
+        cc: cc || undefined,
+        bcc: bcc || undefined,
+        subject,
+        text: plain,
+        html: bodyHtml,
+        scheduledFor: new Date(`${scheduleDate}T${scheduleTime}:00`).toISOString(),
+      });
+      onSent(undefined);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to schedule message");
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSending(true);
@@ -183,6 +244,7 @@ export function ComposeModal({ open, onClose, onSent, initial }: ComposeModalPro
         references: initial?.references,
         priority,
         requestReadReceipt,
+        trackingEnabled: hasAddon("open-tracking") ? trackingEnabled : undefined,
         attachments: encodedAttachments.length ? encodedAttachments : undefined,
       });
 
@@ -195,15 +257,39 @@ export function ComposeModal({ open, onClose, onSent, initial }: ComposeModalPro
     }
   };
 
+  if (minimized) {
+    return (
+      <div className="compose-minimized">
+        <button type="button" className="compose-minimized-title" onClick={() => setMinimized(false)}>
+          {subject.trim() || modeTitle(mode)}
+        </button>
+        <button type="button" className="compose-minimized-close" onClick={handleDiscard} aria-label="Discard">
+          ×
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="compose-overlay" onClick={onClose}>
-      <div className="compose-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        className={`compose-modal${maximized ? " compose-modal--maximized" : ""}`}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+      >
         <header className="compose-header">
           <div>
             <h3 className="compose-title">{modeTitle(mode)}</h3>
             <p className="compose-subtitle">Enterprise mail composer</p>
           </div>
           <div className="compose-header-actions">
+            <button type="button" className="compose-icon-btn" onClick={() => setMinimized(true)} title="Minimize">
+              Minimize
+            </button>
+            <button type="button" className="compose-icon-btn" onClick={() => setMaximized((value) => !value)} title="Maximize">
+              {maximized ? "Restore" : "Maximize"}
+            </button>
             <button type="button" className="compose-icon-btn" onClick={handleDiscard} title="Discard">
               {discardConfirm ? "Confirm discard" : "Discard"}
             </button>
@@ -217,7 +303,9 @@ export function ComposeModal({ open, onClose, onSent, initial }: ComposeModalPro
           <div className="compose-form-body">
           <div className="compose-field compose-field--from">
             <span className="compose-label">From</span>
-            <span className="compose-from-value">{user?.email}</span>
+            <span className="compose-from-value">
+              {fromDisplayName ? `${fromDisplayName} <${user?.email}>` : user?.email}
+            </span>
           </div>
 
           <div className="compose-field">
@@ -302,6 +390,16 @@ export function ComposeModal({ open, onClose, onSent, initial }: ComposeModalPro
                     />
                     <span>Read receipt</span>
                   </label>
+                  {hasAddon("open-tracking") ? (
+                    <label className="rte-toolbar-control rte-toolbar-control--check">
+                      <input
+                        type="checkbox"
+                        checked={trackingEnabled}
+                        onChange={(e) => setTrackingEnabled(e.target.checked)}
+                      />
+                      <span>Open tracking</span>
+                    </label>
+                  ) : null}
                   <button
                     type="button"
                     className="rte-tool rte-tool--attach"
@@ -331,6 +429,27 @@ export function ComposeModal({ open, onClose, onSent, initial }: ComposeModalPro
             </div>
           ) : null}
 
+          {showSchedule ? (
+            <div className="compose-schedule-panel">
+              <label>
+                <span>Date</span>
+                <input type="date" value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)} />
+              </label>
+              <label>
+                <span>Time</span>
+                <input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} />
+              </label>
+              <button
+                type="button"
+                className="compose-secondary-btn"
+                disabled={sending || !hasAddon("scheduled-send")}
+                onClick={() => void handleScheduleSend()}
+              >
+                Schedule send
+              </button>
+            </div>
+          ) : null}
+
           {error ? <div className="compose-error">{error}</div> : null}
           </div>
 
@@ -343,6 +462,15 @@ export function ComposeModal({ open, onClose, onSent, initial }: ComposeModalPro
             <div className="compose-footer-actions">
               <button type="button" className="compose-secondary-btn" onClick={onClose}>
                 Cancel
+              </button>
+              <button
+                type="button"
+                className="compose-secondary-btn"
+                disabled={!hasAddon("scheduled-send")}
+                onClick={() => setShowSchedule((value) => !value)}
+                title={hasAddon("scheduled-send") ? "Schedule this message" : "Scheduled Send addon required"}
+              >
+                Schedule
               </button>
               <button type="submit" className="compose-primary-btn" disabled={sending}>
                 {sending ? "Sending…" : "Send"}

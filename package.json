@@ -2,7 +2,7 @@
   "name": "hostnet-panel",
   "version": "1.0.0",
   "private": true,
-  "description": "HostNet hosting panel and hmail branded webmail — standalone project",
+  "description": "Prohost Cloud hosting panel and PMail+ branded webmail — standalone project",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -12,9 +12,11 @@
     "dev:concurrent": "concurrently -n api,hmail,hostnet -c blue,green,magenta \"npm run dev -w hmail-api\" \"npm run dev -w hmail-web\" \"npm run dev -w hostnet-web\"",
     "build": "npm run db:generate -w hmail-api && npm run build -w hmail-api && npm run build -w hmail-web && npm run build -w hostnet-web",
     "test": "npm run test -w hmail-api",
+    "test:ci": "npm run test -w hmail-api -- tests/tier-a.test.ts tests/tier-b.test.ts tests/tier-d.test.ts tests/payments.test.ts tests/api.test.ts",
     "setup:sqlite": "powershell -Command \"Copy-Item .env.sqlite.example .env -Force\" && npm run db:sqlite:setup -w hmail-api",
     "setup:postgres": "npm run db:migrate -w hmail-api && npm run db:seed -w hmail-api",
     "backup:local": "powershell -ExecutionPolicy Bypass -File scripts/backup-local.ps1",
+    "backup:db": "powershell -ExecutionPolicy Bypass -File scripts/backup-database.ps1",
     "db:migrate": "npm run db:migrate -w hmail-api",
     "db:seed": "npm run db:seed -w hmail-api",
     "lint": "npm run lint -w hmail-api && npm run lint -w hmail-web && npm run lint -w hostnet-web"

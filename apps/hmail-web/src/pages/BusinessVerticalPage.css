@@ -1,0 +1,150 @@
+.business-vertical-page {
+  --brand-primary: #0d4f6c;
+  --brand-accent: #0d9488;
+  --brand-bg: #0f2744;
+
+  min-height: 100dvh;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--brand-accent) 28%, transparent), transparent 32rem),
+    linear-gradient(135deg, var(--brand-bg), #08111f 68%);
+  color: #e2e8f0;
+}
+
+.business-vertical-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.business-vertical-topbar button {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  font-weight: 700;
+}
+
+.business-vertical-hero {
+  max-width: 760px;
+  margin: 4.5rem auto 2rem;
+  text-align: center;
+}
+
+.business-vertical-kicker {
+  margin: 0 0 0.55rem;
+  color: #99f6e4;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.business-vertical-hero h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1;
+}
+
+.business-vertical-hero p {
+  margin: 1rem auto 0;
+  max-width: 660px;
+  color: #cbd5e1;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.business-vertical-error {
+  max-width: 720px;
+  margin: 0 auto 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.business-vertical-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  max-width: 1180px;
+  margin: 0 auto 3rem;
+}
+
+.business-vertical-card {
+  min-height: 17rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 22px;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 20px 60px rgba(2, 8, 23, 0.22);
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+.business-vertical-card:hover:not(:disabled) {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--brand-accent) 65%, white 5%);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.business-vertical-card:disabled {
+  cursor: wait;
+  opacity: 0.78;
+}
+
+.business-vertical-card-icon {
+  width: 2.4rem;
+  height: 2.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: #042f2e;
+  background: linear-gradient(135deg, #99f6e4, var(--brand-accent));
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.business-vertical-card strong {
+  display: block;
+  margin-top: 1rem;
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.business-vertical-card span:not(.business-vertical-card-icon) {
+  display: block;
+  margin-top: 0.55rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.business-vertical-card ul {
+  margin: 1rem 0 0;
+  padding-left: 1.1rem;
+  color: #dbeafe;
+  line-height: 1.7;
+}
+
+@media (min-width: 760px) {
+  .business-vertical-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .business-vertical-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

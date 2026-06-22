@@ -3,8 +3,8 @@
   min-height: 0;
   width: 100%;
   overflow: auto;
-  padding: 1rem 1.25rem 1.5rem;
-  background: #fff;
+  padding: 1.75rem 2rem;
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -12,6 +12,11 @@
   flex-shrink: 0;
   width: 100%;
   max-width: none;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
 }
 
 .mail-template-grid {
@@ -23,8 +28,9 @@
 
 .mail-view-header h2 {
   margin: 0;
-  font-family: "Anek", "Anek Latin", sans-serif;
-  font-size: 1.35rem;
+  font-family: inherit;
+  font-size: 1.45rem;
+  letter-spacing: -0.025em;
 }
 
 .mail-view-header p {
@@ -39,15 +45,16 @@
 }
 
 .mail-template-card {
-  border: 1px solid #dbe3ec;
-  border-radius: 12px;
-  padding: 1rem;
-  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 16px;
+  padding: 1.25rem 1.35rem;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
 }
 
 .mail-template-card h3 {
   margin: 0 0 0.35rem;
-  font-family: "Anek", "Anek Latin", sans-serif;
+  font-family: inherit;
 }
 
 .mail-template-desc {
@@ -111,33 +118,372 @@
 .feature-form,
 .feature-form-grid {
   display: grid;
-  gap: 0.55rem;
-  margin: 1rem 0;
+  gap: 1rem;
+  margin: 1.25rem 0;
+  padding: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .feature-form-grid {
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
 .feature-form input,
+.feature-form textarea,
 .feature-form-grid input,
 .feature-form-grid select {
-  min-height: 2.5rem;
-  padding: 0.5rem 0.65rem;
+  min-height: 2.75rem;
+  padding: 0.75rem 1rem;
   border: 1px solid #dbe3ec;
-  border-radius: 8px;
+  border-radius: 12px;
+  background: #fff;
+  color: #0f172a;
+  line-height: 1.4;
+  accent-color: #0d9488;
+}
+
+.feature-form select,
+.feature-form-grid select {
+  accent-color: #0d9488;
+}
+
+.feature-form select:focus,
+.feature-form-grid select:focus {
+  outline: none;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.feature-form option,
+.feature-form-grid option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+.feature-form option:checked,
+.feature-form-grid option:checked,
+.feature-form option:hover,
+.feature-form-grid option:hover {
+  background-color: #ecf8f6;
+  color: #0f766e;
+}
+
+/* Accounting & industry tool panels — brand dropdown lists (not only .feature-form-grid) */
+.mail-view-panel select,
+.accounting-tool-shell select,
+.accounting-command-panel select,
+.accounting-record-panel select,
+.accounting-record-card select,
+.accounting-inline-grid select,
+.healthcare-tool-shell select,
+.healthcare-intake-panel select,
+.healthcare-record-panel select,
+.healthcare-chart-card select,
+.healthcare-encounter-card select,
+.healthcare-referral-card select,
+.healthcare-audit-card select,
+.healthcare-field-grid select,
+.industry-ws-tool-shell select,
+.industry-ws-intake-panel select,
+.industry-ws-record-panel select,
+.industry-ws-board-card select,
+.industry-ws-timeline-card select,
+.industry-ws-stream-event select,
+.industry-ws-field-grid select,
+.feature-list-card select,
+.workspace-detail select {
+  accent-color: #0d9488;
+  cursor: pointer;
+}
+
+.mail-view-panel select:focus,
+.accounting-tool-shell select:focus,
+.accounting-command-panel select:focus,
+.accounting-record-panel select:focus,
+.accounting-record-card select:focus,
+.accounting-inline-grid select:focus,
+.healthcare-tool-shell select:focus,
+.healthcare-intake-panel select:focus,
+.healthcare-record-panel select:focus,
+.healthcare-chart-card select:focus,
+.healthcare-encounter-card select:focus,
+.healthcare-referral-card select:focus,
+.healthcare-audit-card select:focus,
+.healthcare-field-grid select:focus,
+.industry-ws-tool-shell select:focus,
+.industry-ws-intake-panel select:focus,
+.industry-ws-record-panel select:focus,
+.industry-ws-board-card select:focus,
+.industry-ws-timeline-card select:focus,
+.industry-ws-field-grid select:focus,
+.feature-list-card select:focus,
+.workspace-detail select:focus {
+  outline: none;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.mail-view-panel option,
+.accounting-tool-shell option,
+.accounting-command-panel option,
+.accounting-record-panel option,
+.accounting-record-card option,
+.accounting-inline-grid option,
+.healthcare-tool-shell option,
+.healthcare-intake-panel option,
+.healthcare-record-panel option,
+.healthcare-chart-card option,
+.healthcare-encounter-card option,
+.healthcare-referral-card option,
+.healthcare-audit-card option,
+.healthcare-field-grid option,
+.industry-ws-tool-shell option,
+.industry-ws-intake-panel option,
+.industry-ws-record-panel option,
+.industry-ws-board-card option,
+.industry-ws-timeline-card option,
+.industry-ws-field-grid option,
+.feature-list-card option,
+.workspace-detail option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+.mail-view-panel option:checked,
+.accounting-tool-shell option:checked,
+.accounting-command-panel option:checked,
+.accounting-record-panel option:checked,
+.accounting-record-card option:checked,
+.accounting-inline-grid option:checked,
+.healthcare-tool-shell option:checked,
+.healthcare-intake-panel option:checked,
+.healthcare-record-panel option:checked,
+.healthcare-chart-card option:checked,
+.healthcare-encounter-card option:checked,
+.healthcare-referral-card option:checked,
+.healthcare-audit-card option:checked,
+.healthcare-field-grid option:checked,
+.industry-ws-tool-shell option:checked,
+.industry-ws-intake-panel option:checked,
+.industry-ws-record-panel option:checked,
+.industry-ws-board-card option:checked,
+.industry-ws-timeline-card option:checked,
+.industry-ws-field-grid option:checked,
+.feature-list-card option:checked,
+.workspace-detail option:checked,
+.mail-view-panel option:hover,
+.accounting-tool-shell option:hover,
+.accounting-command-panel option:hover,
+.accounting-record-panel option:hover,
+.accounting-record-card option:hover,
+.accounting-inline-grid option:hover,
+.healthcare-tool-shell option:hover,
+.healthcare-intake-panel option:hover,
+.healthcare-record-panel option:hover,
+.healthcare-chart-card option:hover,
+.healthcare-encounter-card option:hover,
+.healthcare-referral-card option:hover,
+.healthcare-audit-card option:hover,
+.healthcare-field-grid option:hover,
+.industry-ws-tool-shell option:hover,
+.industry-ws-intake-panel option:hover,
+.industry-ws-record-panel option:hover,
+.industry-ws-board-card option:hover,
+.industry-ws-timeline-card option:hover,
+.industry-ws-field-grid option:hover,
+.feature-list-card option:hover,
+.workspace-detail option:hover,
+.mail-view-panel option:focus,
+.accounting-tool-shell option:focus,
+.accounting-command-panel option:focus,
+.accounting-record-panel option:focus,
+.accounting-record-card option:focus,
+.accounting-inline-grid option:focus,
+.healthcare-tool-shell option:focus,
+.healthcare-intake-panel option:focus,
+.healthcare-record-panel option:focus,
+.healthcare-chart-card option:focus,
+.healthcare-encounter-card option:focus,
+.healthcare-referral-card option:focus,
+.healthcare-audit-card option:focus,
+.healthcare-field-grid option:focus,
+.industry-ws-tool-shell option:focus,
+.industry-ws-intake-panel option:focus,
+.industry-ws-record-panel option:focus,
+.industry-ws-board-card option:focus,
+.industry-ws-timeline-card option:focus,
+.industry-ws-field-grid option:focus,
+.feature-list-card option:focus,
+.workspace-detail option:focus {
+  background-color: #ecf8f6;
+  color: #0f766e;
+}
+
+.accounting-command-panel input,
+.accounting-command-panel select,
+.accounting-record-panel input,
+.accounting-record-panel select,
+.accounting-record-card select,
+.accounting-inline-grid input,
+.accounting-inline-grid select,
+.healthcare-intake-panel input,
+.healthcare-intake-panel select,
+.healthcare-intake-panel textarea,
+.healthcare-record-panel input,
+.healthcare-record-panel select,
+.healthcare-record-panel textarea,
+.healthcare-chart-card select,
+.healthcare-encounter-card select,
+.healthcare-referral-card select,
+.healthcare-audit-card select,
+.healthcare-note-compose textarea,
+.healthcare-field-grid input,
+.healthcare-field-grid select,
+.industry-ws-intake-panel input,
+.industry-ws-intake-panel select,
+.industry-ws-intake-panel textarea,
+.industry-ws-record-panel input,
+.industry-ws-record-panel select,
+.industry-ws-record-panel textarea,
+.industry-ws-board-card select,
+.industry-ws-timeline-card select,
+.industry-ws-note-compose textarea,
+.industry-ws-field-grid input,
+.industry-ws-field-grid select {
+  min-height: 2.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #dbe3ec;
+  border-radius: 12px;
+  background: #fff;
+  color: #0f172a;
+  line-height: 1.4;
+  font: inherit;
+}
+
+.feature-form textarea {
+  min-height: 9rem;
+  resize: vertical;
+}
+
+.feature-form-hint {
+  margin: -0.15rem 0 0.15rem;
+  color: #64748b;
+  font-size: 0.9rem;
 }
 
 .feature-list {
   display: grid;
-  gap: 0.65rem;
+  gap: 1rem;
 }
 
 .feature-list-card {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 16px;
+  padding: 1.25rem 1.35rem;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.signature-designer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.7fr);
+  gap: 1rem;
+}
+
+.signature-designer-form,
+.signature-preview-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.signature-designer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.signature-preview-card {
   border: 1px solid #dbe3ec;
-  border-radius: 10px;
-  padding: 0.8rem 0.9rem;
-  background: #f8fafc;
+  border-radius: 16px;
+  padding: 1rem;
+  background: rgba(248, 250, 252, 0.86);
+}
+
+.auto-reply-preview-card {
+  display: grid;
+  gap: 0.4rem;
+  border: 1px solid #dbe3ec;
+  border-radius: 16px;
+  padding: 1rem;
+  background: rgba(248, 250, 252, 0.86);
+}
+
+.auto-reply-preview-card span {
+  color: #64748b;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auto-reply-preview-card p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.signature-preview-card > span {
+  color: #64748b;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.signature-preview,
+.signature-mini-preview {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.signature-preview img,
+.signature-mini-preview img {
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid #dbe3ec;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.signature-preview-avatar {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: 999px;
+  background: #0d4f6c;
+  color: #fff;
+  font-weight: 800;
+}
+
+.signature-preview iframe,
+.signature-mini-preview iframe {
+  width: 100%;
+  min-height: 5rem;
+  border: 1px solid #dbe3ec;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.signature-mini-preview {
+  margin-top: 0.75rem;
+}
+
+.signature-mini-preview iframe {
+  min-height: 4rem;
 }
 
 .feature-id {
@@ -163,4 +509,42 @@
   word-break: break-all;
   font-size: 0.84rem;
   color: #0d4f6c;
+}
+
+.workspace-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.8fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.workspace-detail {
+  padding: 1.5rem;
+  align-self: start;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.feature-list-card--active {
+  border-color: var(--accent, #0d9488);
+  background: var(--accent-soft, rgba(13, 148, 136, 0.08));
+}
+
+.feature-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mail-toolbar-btn--active {
+  background: #0d4f6c;
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .workspace-split {
+    grid-template-columns: 1fr;
+  }
 }

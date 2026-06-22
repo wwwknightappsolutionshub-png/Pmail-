@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
 import { hashPassword, hashToken } from "../src/lib/crypto.js";
+import { ADDON_CATALOG } from "../src/data/addon-catalog.js";
 import { seedAddonCatalog } from "../src/services/addon.service.js";
 import { seedAddonMarketing } from "../src/services/addon-marketing.service.js";
 import { seedSiteSections } from "../src/services/cms.service.js";
@@ -214,5 +215,31 @@ describe("admin phase 2 unified ops", () => {
 
     const remaining = await testPrisma.hostingPlan.findUnique({ where: { id: plan!.id } });
     expect(remaining).toBeNull();
+  });
+
+  it("lists every catalog add-on for super-admin management", async () => {
+    const { agent } = await createSuperAdminAgent();
+    const res = await agent.get("/api/admin/addons");
+    expect(res.status).toBe(200);
+    expect(res.body.addons).toHaveLength(ADDON_CATALOG.length);
+    expect(res.body.addons.every((a: { hasMarketing: boolean }) => a.hasMarketing)).toBe(true);
+    expect(res.body.addons.map((a: { slug: string }) => a.slug).sort()).toEqual(
+      ADDON_CATALOG.map((a) => a.slug).sort(),
+    );
+  });
+
+  it("syncs add-on catalog and toggles isActive via admin API", async () => {
+    const { agent } = await createSuperAdminAgent();
+    const syncRes = await agent.post("/api/admin/addons/sync-catalog");
+    expect(syncRes.status).toBe(200);
+    expect(syncRes.body.addonCount).toBe(ADDON_CATALOG.length);
+    expect(syncRes.body.marketingCount).toBe(ADDON_CATALOG.length);
+
+    const addon = syncRes.body.addons.find((a: { slug: string }) => a.slug === "scheduled-send");
+    expect(addon).toBeTruthy();
+
+    const patchRes = await agent.patch(`/api/admin/addons/${addon.id}`).send({ isActive: false });
+    expect(patchRes.status).toBe(200);
+    expect(patchRes.body.addon.isActive).toBe(false);
   });
 });

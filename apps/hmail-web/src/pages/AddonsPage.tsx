@@ -1,51 +1,222 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { ApiError } from "../api/client";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { api, ApiError } from "../api/client";
 import { AddonCard } from "../components/AddonCard";
 import { HMailLogo } from "../components/HMailLogo";
 import { useAddons } from "../context/AddonContext";
 import { useAuth } from "../context/AuthContext";
-import { ADDON_GROUP_LABELS, ADDON_GROUP_ORDER, type AddonGroup } from "../types/addon";
+import {
+  formatMarketplaceBundlePrice,
+  isPlatformWorkspaceAddon,
+  isVerticalWorkspaceAddon,
+  MARKETPLACE_VERTICAL_LABELS,
+  MARKETPLACE_VERTICAL_ORDER,
+  type MarketplaceBrowseVertical,
+  type MarketplaceLicenseScope,
+  type WorkspaceVertical,
+} from "../types/addon";
+import { MARKETPLACE_VERTICAL_ICONS, WORKSPACE_VERTICAL_ICONS } from "../data/workspaceVerticalIcons";
 import "./AddonsPage.css";
 
+type MarketplaceStep = 1 | 2 | 3 | 4;
+
+const PLATFORM_ADDON_SLUG_ORDER = [
+  "whatsapp-functionality",
+  "mail2pdf-functionality",
+  "full-calendar-functionality",
+  "scheduled-send",
+  "open-tracking",
+  "auto-reply-functionality",
+  "bespoke-workspace",
+] as const;
+
+const VERTICAL_COPY: Record<MarketplaceBrowseVertical, string> = {
+  legal: "Matter, compliance, client portal, and IRCC-focused tools for regulated practices.",
+  accounting: "Document intake, filing calendar, secure exchange, and entity-ledger tools.",
+  "real-estate": "Listing, showing, quick reply, and deal-room tools for property teams.",
+  recruitment: "Role pipeline, interview desk, outreach, and talent search tools.",
+  "b2b-services": "Client workspace, project tracker, proposal desk, and SLA monitoring tools.",
+  healthcare: "Patient registry, appointment, referral, and access-audit tools.",
+};
+
+function resolveInitialWorkspace(businessVertical: WorkspaceVertical): MarketplaceBrowseVertical | null {
+  if (businessVertical === "free-basic" || businessVertical === "platform" || businessVertical === "standard") {
+    return null;
+  }
+  return businessVertical;
+}
+
+function sortPlatformAddons<T extends { slug: string; sortOrder: number }>(addons: T[]): T[] {
+  const order = new Map(PLATFORM_ADDON_SLUG_ORDER.map((slug, index) => [slug, index]));
+  return [...addons].sort((a, b) => {
+    const aOrder = order.get(a.slug as (typeof PLATFORM_ADDON_SLUG_ORDER)[number]) ?? 999;
+    const bOrder = order.get(b.slug as (typeof PLATFORM_ADDON_SLUG_ORDER)[number]) ?? 999;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return a.sortOrder - b.sortOrder;
+  });
+}
+
+function sortVerticalAddons<T extends { sortOrder: number }>(addons: T[]): T[] {
+  return [...addons].sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+function formatTotal(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}/month`;
+}
+
 export function AddonsPage() {
-  const { user, logout } = useAuth();
-  const { addons, loading, error, startTrial, refresh } = useAddons();
-  const [startingSlug, setStartingSlug] = useState<string | null>(null);
-  const [trialError, setTrialError] = useState("");
+  const navigate = useNavigate();
+  const { user, logout, setUser } = useAuth();
+  const { addons, loading, error, quoteMarketplace, startMarketplaceCheckout, refresh } = useAddons();
+  const [checkoutError, setCheckoutError] = useState("");
+  const [paying, setPaying] = useState(false);
+  const [activatingStandard, setActivatingStandard] = useState(false);
   const [searchParams] = useSearchParams();
   const highlight = searchParams.get("highlight");
+  const subscribed = searchParams.get("subscribed");
+  const cancelled = searchParams.get("cancelled");
+
+  const businessVertical = (user?.businessVertical ?? "free-basic") as WorkspaceVertical;
+  const initialWorkspace = resolveInitialWorkspace(businessVertical);
+
+  const [selectedWorkspace, setSelectedWorkspace] = useState<MarketplaceBrowseVertical | null>(initialWorkspace);
+  const [licenseScope, setLicenseScope] = useState<MarketplaceLicenseScope | null>(null);
+  const [marketplaceStep, setMarketplaceStep] = useState<MarketplaceStep>(initialWorkspace ? 2 : 1);
+  const [includePlatformBundle, setIncludePlatformBundle] = useState(true);
+  const [includeVerticalBundle, setIncludeVerticalBundle] = useState(true);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [checkoutQuote, setCheckoutQuote] = useState<Awaited<ReturnType<typeof quoteMarketplace>> | null>(null);
 
   useEffect(() => {
     if (!highlight) return;
     const el = document.getElementById(`addon-${highlight}`);
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [highlight, addons.length]);
-
-  const branding = user?.tenant.branding;
-
-  const grouped = useMemo(() => {
-    const map = new Map<AddonGroup, typeof addons>();
-    for (const group of ADDON_GROUP_ORDER) {
-      map.set(
-        group,
-        addons.filter((a) => a.group === group),
-      );
+    if (marketplaceStep < 3) {
+      setMarketplaceStep(3);
     }
-    return map;
-  }, [addons]);
+  }, [highlight, addons.length, marketplaceStep]);
 
-  const onStartTrial = async (slug: string) => {
-    setTrialError("");
-    setStartingSlug(slug);
+  useEffect(() => {
+    if (subscribed) {
+      void refresh();
+    }
+  }, [subscribed, refresh]);
+
+  useEffect(() => {
+    if (marketplaceStep !== 4 || !selectedWorkspace || !licenseScope) {
+      setCheckoutQuote(null);
+      return;
+    }
+    if (!includePlatformBundle && !includeVerticalBundle) {
+      setCheckoutQuote(null);
+      return;
+    }
+
+    let cancelled = false;
+    setQuoteLoading(true);
+    void (async () => {
+      try {
+        const quote = await quoteMarketplace({
+          vertical: selectedWorkspace,
+          scope: licenseScope,
+          includePlatformBundle,
+          includeVerticalBundle,
+        });
+        if (!cancelled) setCheckoutQuote(quote);
+      } catch (err) {
+        if (!cancelled) {
+          setCheckoutError(err instanceof ApiError ? err.message : "Could not load pricing quote");
+        }
+      } finally {
+        if (!cancelled) setQuoteLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    marketplaceStep,
+    selectedWorkspace,
+    licenseScope,
+    includePlatformBundle,
+    includeVerticalBundle,
+    quoteMarketplace,
+  ]);
+
+  const platformAddons = useMemo(
+    () => sortPlatformAddons(addons.filter((addon) => isPlatformWorkspaceAddon(addon))),
+    [addons],
+  );
+
+  const verticalAddons = useMemo(() => {
+    if (!selectedWorkspace) return [];
+    return sortVerticalAddons(addons.filter((addon) => isVerticalWorkspaceAddon(addon, selectedWorkspace)));
+  }, [addons, selectedWorkspace]);
+
+  const activeCount = useMemo(() => {
+    const relevant = [...platformAddons, ...verticalAddons];
+    return relevant.filter((addon) => addon.accessStatus === "active" || addon.accessStatus === "trial").length;
+  }, [platformAddons, verticalAddons]);
+
+  const chooseWorkspace = (vertical: MarketplaceBrowseVertical) => {
+    setSelectedWorkspace(vertical);
+    setLicenseScope(null);
+    setMarketplaceStep(2);
+  };
+
+  const chooseStandardWorkspace = async () => {
+    setCheckoutError("");
+    setActivatingStandard(true);
     try {
-      await startTrial(slug);
+      const result = await api.selectBusinessVertical("standard");
+      setUser(result.user);
+      navigate("/");
     } catch (err) {
-      setTrialError(err instanceof ApiError ? err.message : "Could not start trial");
+      setCheckoutError(err instanceof ApiError ? err.message : "Could not activate Standard workspace");
     } finally {
-      setStartingSlug(null);
+      setActivatingStandard(false);
     }
   };
+
+  const chooseLicense = (scope: MarketplaceLicenseScope) => {
+    setLicenseScope(scope);
+    setMarketplaceStep(3);
+  };
+
+  const onPay = async () => {
+    if (!selectedWorkspace || !licenseScope) return;
+    if (!includePlatformBundle && !includeVerticalBundle) {
+      setCheckoutError("Select at least one bundle to continue.");
+      return;
+    }
+
+    setCheckoutError("");
+    setPaying(true);
+    try {
+      await startMarketplaceCheckout({
+        vertical: selectedWorkspace,
+        scope: licenseScope,
+        includePlatformBundle,
+        includeVerticalBundle,
+        seats: checkoutQuote?.seats,
+      });
+    } catch (err) {
+      setCheckoutError(err instanceof ApiError ? err.message : "Could not start checkout");
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const branding = user?.tenant.branding;
+  const workspaceLabel =
+    user?.businessVertical === "standard"
+      ? "Standard"
+      : selectedWorkspace
+        ? MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]
+        : "Choose a workspace";
+  const licenseLabel =
+    licenseScope === "user" ? "Individual license" : licenseScope === "tenant" ? "Tenant license" : "Choose license";
 
   return (
     <div
@@ -76,53 +247,353 @@ export function AddonsPage() {
 
       <main className="addons-main">
         <section className="addons-hero">
-          <p className="addons-kicker">Immigration practice add-ons</p>
-          <h1>Add-ons marketplace</h1>
-          <p>
-            Extend PMail+ with IRCC-focused tools for Canadian immigration professionals. All add-ons are{" "}
-            <strong>free</strong> with a <strong>7-day trial</strong> to activate features. AI tools are coming
-            soon.
-          </p>
-          <button type="button" className="addons-refresh" onClick={() => void refresh()} disabled={loading}>
-            {loading ? "Refreshing…" : "Refresh status"}
-          </button>
+          <div className="addons-hero-copy">
+            <p className="addons-kicker">Addon Marketplace</p>
+            <h1>Build your workspace with bundled add-ons</h1>
+            <p>
+              Choose your business vertical and license type, browse the platform and vertical tool bundles, then
+              confirm your final selection and complete payment.
+            </p>
+          </div>
+          <aside className="addons-workspace-card" aria-label="Marketplace selection summary">
+            <span className="addons-workspace-label">Your selection</span>
+            <strong>{workspaceLabel}</strong>
+            <p>{licenseLabel}</p>
+            {marketplaceStep >= 3 ? (
+              <p className="addons-workspace-meta">
+                {activeCount} active tools across platform and vertical bundles.
+              </p>
+            ) : null}
+            <button type="button" className="addons-refresh" onClick={() => void refresh()} disabled={loading}>
+              {loading ? "Refreshing…" : "Refresh status"}
+            </button>
+          </aside>
         </section>
 
-        {(error || trialError) ? (
+        <nav className="addons-stepper addons-stepper--four" aria-label="Marketplace steps">
+          <button
+            type="button"
+            className={`addons-step ${marketplaceStep === 1 ? "addons-step--active" : ""} ${selectedWorkspace ? "addons-step--done" : ""}`}
+            onClick={() => setMarketplaceStep(1)}
+          >
+            <span className="addons-step-index">1</span>
+            <span className="addons-step-copy">
+              <strong>Workspace</strong>
+              <small>Standard or industry</small>
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`addons-step ${marketplaceStep === 2 ? "addons-step--active" : ""} ${licenseScope ? "addons-step--done" : ""}`}
+            disabled={!selectedWorkspace}
+            onClick={() => selectedWorkspace && setMarketplaceStep(2)}
+          >
+            <span className="addons-step-index">2</span>
+            <span className="addons-step-copy">
+              <strong>License</strong>
+              <small>Individual or tenant</small>
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`addons-step ${marketplaceStep === 3 ? "addons-step--active" : ""}`}
+            disabled={!selectedWorkspace || !licenseScope}
+            onClick={() => selectedWorkspace && licenseScope && setMarketplaceStep(3)}
+          >
+            <span className="addons-step-index">3</span>
+            <span className="addons-step-copy">
+              <strong>Browse</strong>
+              <small>Platform and vertical tools</small>
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`addons-step ${marketplaceStep === 4 ? "addons-step--active" : ""}`}
+            disabled={!selectedWorkspace || !licenseScope}
+            onClick={() => selectedWorkspace && licenseScope && setMarketplaceStep(4)}
+          >
+            <span className="addons-step-index">4</span>
+            <span className="addons-step-copy">
+              <strong>Payment</strong>
+              <small>Final selection</small>
+            </span>
+          </button>
+        </nav>
+
+        {(error || checkoutError) ? (
           <div className="addons-error" role="alert">
-            {trialError || error}
+            {checkoutError || error}
+          </div>
+        ) : null}
+
+        {subscribed ? (
+          <div className="addons-success" role="status">
+            {subscribed === "marketplace" ? (
+              <>Marketplace checkout completed. Refresh if entitlements are not updated yet.</>
+            ) : (
+              <>
+                Subscription checkout completed for <strong>{subscribed}</strong>. Refresh if entitlements are not
+                updated yet.
+              </>
+            )}
+          </div>
+        ) : null}
+
+        {cancelled ? (
+          <div className="addons-error" role="status">
+            Checkout cancelled{cancelled === "marketplace" ? "" : <> for <strong>{cancelled}</strong></>}.
           </div>
         ) : null}
 
         {loading && addons.length === 0 ? (
           <p className="addons-loading">Loading add-ons…</p>
-        ) : (
-          ADDON_GROUP_ORDER.map((group) => {
-            const items = grouped.get(group) ?? [];
-            if (items.length === 0) return null;
+        ) : marketplaceStep === 1 ? (
+          <section className="addons-panel">
+            <header className="addons-panel-head">
+              <h2>Choose your preferred workspace</h2>
+              <p>
+                Pick Standard to explore regular mail in a unique workspace, or select an industry workspace to
+                continue through license, browse, and payment.
+              </p>
+            </header>
 
-            return (
-              <section key={group} className="addons-section">
-                <h2>{ADDON_GROUP_LABELS[group]}</h2>
-                <div className="addons-grid">
-                  {items.map((addon) => (
-                    <div
-                      key={addon.slug}
-                      id={`addon-${addon.slug}`}
-                      className={highlight === addon.slug ? "addons-highlight" : undefined}
-                    >
-                      <AddonCard
-                        addon={addon}
-                        starting={startingSlug === addon.slug}
-                        onStartTrial={onStartTrial}
-                      />
-                    </div>
-                  ))}
+            <button
+              type="button"
+              className={`addons-standard-card ${user?.businessVertical === "standard" ? "addons-standard-card--selected" : ""}`}
+              onClick={() => void chooseStandardWorkspace()}
+              disabled={activatingStandard}
+            >
+              <span className="addons-workspace-icon" aria-hidden="true">
+                {WORKSPACE_VERTICAL_ICONS.standard}
+              </span>
+              <strong>Standard</strong>
+              <p>
+                Explore regular mailing in a unique workspace. All platform tools are available in your environment,
+                upgrade at anytime to use them.
+              </p>
+              <span className="addons-standard-note">
+                {activatingStandard ? "Opening mailbox…" : "Instant access — no license, browse, or payment steps"}
+              </span>
+            </button>
+
+            <div className="addons-panel-divider">
+              <span>Or choose a paid industry workspace</span>
+            </div>
+
+            <div className="addons-vertical-grid">
+              {MARKETPLACE_VERTICAL_ORDER.map((vertical) => (
+                <button
+                  key={vertical}
+                  type="button"
+                  className={`addons-vertical-card ${selectedWorkspace === vertical ? "addons-vertical-card--selected" : ""}`}
+                  onClick={() => chooseWorkspace(vertical)}
+                >
+                  <span className="addons-workspace-icon" aria-hidden="true">
+                    {MARKETPLACE_VERTICAL_ICONS[vertical]}
+                  </span>
+                  <strong>{MARKETPLACE_VERTICAL_LABELS[vertical]}</strong>
+                  <p>{VERTICAL_COPY[vertical]}</p>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : marketplaceStep === 2 && selectedWorkspace ? (
+          <section className="addons-panel">
+            <header className="addons-panel-head">
+              <h2>Choose your license type</h2>
+              <p>Bundled pricing applies to the full platform and vertical workspace tool sets.</p>
+            </header>
+            <div className="addons-license-grid">
+              <button
+                type="button"
+                className={`addons-license-card ${licenseScope === "user" ? "addons-license-card--selected" : ""}`}
+                onClick={() => chooseLicense("user")}
+              >
+                <span className="addons-license-kicker">Individual license</span>
+                <strong>Per user</strong>
+                <p>Best for solo operators subscribing on their own account.</p>
+                <ul>
+                  <li>Platform bundle (6 tools): $15.00/mo</li>
+                  <li>Vertical bundle (4 tools): $30.00/mo</li>
+                </ul>
+              </button>
+              <button
+                type="button"
+                className={`addons-license-card ${licenseScope === "tenant" ? "addons-license-card--selected" : ""}`}
+                onClick={() => chooseLicense("tenant")}
+              >
+                <span className="addons-license-kicker">Tenant license</span>
+                <strong>Per seat</strong>
+                <p>Best for firms rolling out bundles across a team with centralized billing.</p>
+                <ul>
+                  <li>Platform bundle (6 tools): Free</li>
+                  <li>Vertical bundle (4 tools): $20.00/mo per seat (minimum 5 seats)</li>
+                </ul>
+              </button>
+            </div>
+            <div className="addons-panel-actions">
+              <button type="button" className="addons-panel-back" onClick={() => setMarketplaceStep(1)}>
+                ← Change workspace
+              </button>
+            </div>
+          </section>
+        ) : marketplaceStep === 3 && selectedWorkspace && licenseScope ? (
+          <>
+            <section className="addons-category">
+              <header className="addons-category-head">
+                <div>
+                  <p className="addons-category-kicker">Platform workspace tools</p>
+                  <h2>All 6 tools in one bundle</h2>
+                  <p>
+                    WhatsApp, Mail2PDF, Full Calendar, Scheduled Send, Open Tracking, and Auto Reply — plus the
+                    included Bespoke Workspace shell.
+                  </p>
                 </div>
-              </section>
-            );
-          })
-        )}
+                <aside className="addons-pricing-band" aria-label="Platform bundle pricing">
+                  <span>Bundle pricing ({licenseScope === "user" ? "individual" : "tenant"})</span>
+                  <strong>{formatMarketplaceBundlePrice(licenseScope, "platform")}</strong>
+                  <small>One price unlocks all six platform workspace tools.</small>
+                </aside>
+              </header>
+              <div className="addons-grid">
+                {platformAddons.map((addon) => (
+                  <div
+                    key={addon.slug}
+                    id={`addon-${addon.slug}`}
+                    className={highlight === addon.slug ? "addons-highlight" : undefined}
+                  >
+                    <AddonCard addon={addon} starting={false} onStartTrial={() => {}} browseMode />
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="addons-category">
+              <header className="addons-category-head">
+                <div>
+                  <p className="addons-category-kicker">
+                    {MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]} vertical workspace tools
+                  </p>
+                  <h2>All 4 industry tools in one bundle</h2>
+                  <p>{VERTICAL_COPY[selectedWorkspace]}</p>
+                </div>
+                <aside className="addons-pricing-band" aria-label="Vertical bundle pricing">
+                  <span>Bundle pricing ({licenseScope === "user" ? "individual" : "tenant"})</span>
+                  <strong>{formatMarketplaceBundlePrice(licenseScope, "vertical", checkoutQuote?.seats ?? 5)}</strong>
+                  <small>One price unlocks all four {MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]} tools.</small>
+                </aside>
+              </header>
+              <div className="addons-grid">
+                {verticalAddons.map((addon) => (
+                  <div
+                    key={addon.slug}
+                    id={`addon-${addon.slug}`}
+                    className={highlight === addon.slug ? "addons-highlight" : undefined}
+                  >
+                    <AddonCard addon={addon} starting={false} onStartTrial={() => {}} browseMode />
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <div className="addons-panel-actions addons-panel-actions--browse">
+              <button type="button" className="addons-panel-back" onClick={() => setMarketplaceStep(2)}>
+                ← Change license type
+              </button>
+              <button type="button" className="addons-panel-continue" onClick={() => setMarketplaceStep(4)}>
+                Continue to final selection →
+              </button>
+            </div>
+          </>
+        ) : marketplaceStep === 4 && selectedWorkspace && licenseScope ? (
+          <section className="addons-panel addons-checkout-panel">
+            <header className="addons-panel-head">
+              <h2>Final selection and payment</h2>
+              <p>
+                Confirm which workspace bundles you want for {MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]} under your{" "}
+                {licenseScope === "user" ? "individual" : "tenant"} license.
+              </p>
+            </header>
+
+            <div className="addons-checkout-options">
+              <label className={`addons-checkout-option ${includePlatformBundle ? "addons-checkout-option--selected" : ""}`}>
+                <input
+                  type="checkbox"
+                  checked={includePlatformBundle}
+                  onChange={(event) => setIncludePlatformBundle(event.target.checked)}
+                />
+                <div>
+                  <strong>Platform workspace bundle</strong>
+                  <p>WhatsApp, Mail2PDF, Full Calendar, Scheduled Send, Open Tracking, Auto Reply</p>
+                  <span>{formatMarketplaceBundlePrice(licenseScope, "platform")}</span>
+                </div>
+              </label>
+
+              <label className={`addons-checkout-option ${includeVerticalBundle ? "addons-checkout-option--selected" : ""}`}>
+                <input
+                  type="checkbox"
+                  checked={includeVerticalBundle}
+                  onChange={(event) => setIncludeVerticalBundle(event.target.checked)}
+                />
+                <div>
+                  <strong>{MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]} vertical bundle</strong>
+                  <p>All four industry workspace tools for this vertical</p>
+                  <span>{formatMarketplaceBundlePrice(licenseScope, "vertical", checkoutQuote?.seats ?? 5)}</span>
+                </div>
+              </label>
+            </div>
+
+            <aside className="addons-checkout-summary" aria-label="Payment summary">
+              {quoteLoading ? (
+                <p className="addons-loading">Calculating total…</p>
+              ) : checkoutQuote ? (
+                <>
+                  <span>Monthly total</span>
+                  <strong>{formatTotal(checkoutQuote.amountCents)}</strong>
+                  <ul>
+                    {checkoutQuote.lines.map((line) => (
+                      <li key={line.bundle}>
+                        {line.label}
+                        {line.isFree ? " — Free" : ` — ${formatTotal(line.amountCents)}`}
+                      </li>
+                    ))}
+                  </ul>
+                  {licenseScope === "tenant" && checkoutQuote.lines.some((line) => line.bundle === "vertical") ? (
+                    <small>
+                      Tenant vertical billing uses {checkoutQuote.seats} seats (minimum{" "}
+                      {checkoutQuote.minTenantSeats}).
+                    </small>
+                  ) : null}
+                </>
+              ) : (
+                <p className="addons-empty">Select at least one bundle to see your total.</p>
+              )}
+            </aside>
+
+            <div className="addons-panel-actions addons-panel-actions--checkout">
+              <button type="button" className="addons-panel-back" onClick={() => setMarketplaceStep(3)}>
+                ← Back to browse
+              </button>
+              <button
+                type="button"
+                className="addons-panel-pay"
+                disabled={
+                  paying ||
+                  quoteLoading ||
+                  !checkoutQuote ||
+                  (!includePlatformBundle && !includeVerticalBundle)
+                }
+                onClick={() => void onPay()}
+              >
+                {paying
+                  ? "Processing…"
+                  : checkoutQuote?.amountCents === 0
+                    ? "Activate free bundles"
+                    : `Pay ${checkoutQuote ? formatTotal(checkoutQuote.amountCents) : ""}`}
+              </button>
+            </div>
+          </section>
+        ) : null}
       </main>
     </div>
   );

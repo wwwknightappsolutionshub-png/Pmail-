@@ -1,0 +1,56 @@
+.prohost-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.prohost-logo-mark {
+  flex-shrink: 0;
+}
+
+.prohost-logo--sm .prohost-logo-mark {
+  width: 28px;
+  height: 28px;
+}
+
+.prohost-logo--md .prohost-logo-mark {
+  width: 36px;
+  height: 36px;
+}
+
+.prohost-logo--lg .prohost-logo-mark {
+  width: 48px;
+  height: 48px;
+}
+
+.prohost-logo-wordmark {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.prohost-logo-wordmark strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.prohost-logo-wordmark span {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-light);
+  margin-top: 0.15rem;
+}
+
+.prohost-logo--lg .prohost-logo-wordmark strong {
+  font-size: 1.35rem;
+}
+
+.prohost-logo--lg .prohost-logo-wordmark span {
+  font-size: 0.72rem;
+}

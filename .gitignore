@@ -13,3 +13,4 @@ apps/hmail-api/prisma/*.db-journal
 apps/hmail-api/prisma/dev.db
 apps/hmail-api/prisma/test.db
 apps/hmail-api/prisma/prisma/
+apps/hmail-api/uploads/

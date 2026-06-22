@@ -48,7 +48,10 @@
 }
 
 .login-brand-panel {
-  background: var(--login-navy);
+  background:
+    linear-gradient(135deg, rgba(15, 39, 68, 0.9), rgba(15, 39, 68, 0.72)),
+    url("/images/pmail-login-bg.png") center / cover;
+  background-color: var(--login-navy);
   color: #f8fafc;
   padding: 1.5rem 1.25rem 1.75rem;
   position: relative;
@@ -125,6 +128,13 @@
   font-weight: 700;
 }
 
+.login-form-header .login-welcome {
+  margin: 0 0 0.35rem;
+  color: var(--brand-primary, #0d4f6c);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .login-form-header p {
   margin: 0.4rem 0 0;
   font-size: 0.9rem;
@@ -187,6 +197,54 @@
 .login-submit:disabled {
   opacity: 0.65;
   cursor: not-allowed;
+}
+
+.login-create-account {
+  justify-self: center;
+  color: var(--brand-primary, #0d4f6c);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-create-account:hover {
+  text-decoration: underline;
+}
+
+.login-provider-section {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.login-provider-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.login-provider-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--login-muted, #64748b);
+}
+
+.login-check-row {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-form .mail-onboarding-custom-grid label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+}
+
+.login-form .mail-onboarding-custom-grid input {
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--login-border, #dbe3ec);
+  background: #fff;
+  color: inherit;
 }
 
 /* Tablet+ two-column layout */
@@ -258,7 +316,7 @@
 /* Desktop */
 @media (min-width: 1100px) {
   .login-layout {
-    grid-template-columns: 1.05fr 0.95fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .login-brand-panel {

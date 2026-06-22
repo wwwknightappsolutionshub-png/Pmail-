@@ -35,11 +35,11 @@ export async function seedPlatformAdmin(): Promise<void> {
     create: {
       email,
       passwordHash,
-      name: "HostNet Admin",
+      name: "Prohost Cloud Admin",
       role: "super_admin",
     },
     update: {
-      name: "HostNet Admin",
+      name: "Prohost Cloud Admin",
       role: "super_admin",
     },
   });

@@ -1,27 +1,41 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { ProhostLogo } from "../../components/ProhostLogo";
 import { api, ApiError } from "../../api/client";
-import type { AddonMarketing, HostingAccountAdmin, HostingPlan, PlatformAdmin, SiteSection, TenantAdmin } from "../../types/site";
+import type { HostingAccountAdmin, HostingPlan, PlatformAdmin, SiteSection, TenantAdmin } from "../../types/site";
+import { ADMIN_NAV, ADMIN_TAB_META, type AdminTab } from "./adminNav";
+import { AdminAddonsPanel } from "./AdminAddonsPanel";
+import { AdminSectionsPanel } from "./AdminSectionsPanel";
 import { AdminDashboardHome } from "./AdminDashboardHome";
+import { AdminSalesPipelinePage } from "./AdminSalesPipelinePage";
+import { AdminEmailTemplatesPanel } from "./AdminEmailTemplatesPanel";
+import { AdminTestimonialsPanel } from "./AdminTestimonialsPanel";
+import { AdminMarketingPanel } from "./AdminMarketingPanel";
+import { AdminPageHeader } from "./AdminPageHeader";
 import { AdminPlatformAdminsPanel } from "./AdminPlatformAdminsPanel";
 import { AdminTenantOpsPanel } from "./AdminTenantOpsPanel";
+import { AdminBillingPanel } from "./AdminBillingPanel";
+import { AdminCommandPalette, useCommandPaletteShortcut } from "./AdminCommandPalette";
+import { AdminSystemStatusPanel } from "./AdminSystemStatusPanel";
 import { AdminVpsPanel } from "./AdminVpsPanel";
+import { useAdminPoll } from "./useAdminPoll";
 import "./AdminDashboard.css";
-
-type Tab = "dashboard" | "sections" | "hosting" | "addons" | "tenants" | "accounts" | "vps" | "admins";
 
 export function AdminDashboardPage() {
   const [admin, setAdmin] = useState<PlatformAdmin | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<Tab>("dashboard");
+  const [tab, setTab] = useState<AdminTab>("dashboard");
   const [sections, setSections] = useState<SiteSection[]>([]);
   const [plans, setPlans] = useState<HostingPlan[]>([]);
-  const [addons, setAddons] = useState<AddonMarketing[]>([]);
   const [tenants, setTenants] = useState<TenantAdmin[]>([]);
   const [accounts, setAccounts] = useState<HostingAccountAdmin[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tenantOpsId, setTenantOpsId] = useState<string | null>(null);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const { snapshot: poll } = useAdminPoll(Boolean(admin));
+
+  useCommandPaletteShortcut(() => setCommandOpen(true));
 
   useEffect(() => {
     api
@@ -31,15 +45,13 @@ export function AdminDashboardPage() {
         return Promise.all([
           api.adminSections(),
           api.adminHostingPlans(),
-          api.adminAddonMarketing(),
           api.adminTenants(),
           api.adminHostingAccounts(),
         ]);
       })
-      .then(([sectionsRes, plansRes, addonsRes, tenantsRes, accountsRes]) => {
+      .then(([sectionsRes, plansRes, tenantsRes, accountsRes]) => {
         setSections(sectionsRes.sections);
         setPlans(plansRes.hostingPlans);
-        setAddons(addonsRes.addonMarketing);
         setTenants(tenantsRes.tenants);
         setAccounts(accountsRes.hostingAccounts);
       })
@@ -52,66 +64,107 @@ export function AdminDashboardPage() {
     setAdmin(null);
   }
 
-  if (loading) return <div className="loading-state container">Loading admin…</div>;
+  if (loading) return <div className="admin-shell loading-state">Loading console…</div>;
   if (!admin) return <Navigate to="/admin/login" replace />;
+
+  const tabMeta = ADMIN_TAB_META[tab];
+  const initials = admin.name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const salesPipelinePending = poll?.salesPipeline?.pendingCount ?? poll?.leads.newCount ?? 0;
+  const healthStatus = poll?.health.status ?? "ready";
 
   return (
     <div className="admin-shell">
-      <header className="admin-topbar">
-        <div>
-          <strong>HostNet Platform Admin</strong>
-          <span className="muted" style={{ marginLeft: "0.75rem" }}>
-            {admin.name} ({admin.email}) · {admin.role}
-          </span>
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-brand">
+          <ProhostLogo size="sm" showWordmark={false} />
+          <div className="admin-sidebar-brand-text">
+            <strong>Prohost Cloud</strong>
+            <span>Admin Console</span>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <Link to="/" className="btn btn-secondary">
-            View site
-          </Link>
-          <button type="button" className="btn btn-secondary" onClick={logout}>
-            Logout
-          </button>
-        </div>
-      </header>
 
-      <div className="admin-layout">
-        <aside className="admin-sidebar">
-          <button type="button" className={tab === "dashboard" ? "active" : ""} onClick={() => setTab("dashboard")}>
-            Dashboard
-          </button>
-          <button type="button" className={tab === "sections" ? "active" : ""} onClick={() => setTab("sections")}>
-            Landing sections
-          </button>
-          <button type="button" className={tab === "hosting" ? "active" : ""} onClick={() => setTab("hosting")}>
-            Hosting plans
-          </button>
-          <button type="button" className={tab === "addons" ? "active" : ""} onClick={() => setTab("addons")}>
-            hmail add-ons
-          </button>
-          <button type="button" className={tab === "tenants" ? "active" : ""} onClick={() => setTab("tenants")}>
-            Tenants
-          </button>
-          <button type="button" className={tab === "accounts" ? "active" : ""} onClick={() => setTab("accounts")}>
-            Panel accounts
-          </button>
-          <button type="button" className={tab === "vps" ? "active" : ""} onClick={() => setTab("vps")}>
-            VPS
-          </button>
-          {admin.role === "super_admin" && (
-            <button type="button" className={tab === "admins" ? "active" : ""} onClick={() => setTab("admins")}>
-              Platform admins
+        <nav className="admin-sidebar-nav" aria-label="Admin navigation">
+          {ADMIN_NAV.map((group) => (
+            <div key={group.label} className="admin-nav-group">
+              <span className="admin-nav-group-label">{group.label}</span>
+              {group.items
+                .filter((item) => !item.superAdminOnly || admin.role === "super_admin")
+                .map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`admin-nav-item${tab === item.id ? " active" : ""}`}
+                    onClick={() => setTab(item.id)}
+                  >
+                    {item.icon}
+                    {item.label}
+                    {item.id === "sales-pipeline" && salesPipelinePending > 0 ? (
+                      <span className="admin-nav-badge" aria-label={`${salesPipelinePending} pending in pipeline`}>
+                        {salesPipelinePending}
+                      </span>
+                    ) : null}
+                  </button>
+                ))}
+            </div>
+          ))}
+        </nav>
+
+        <div className="admin-sidebar-footer">
+          <div className="admin-user-card">
+            <div className="admin-user-avatar" aria-hidden="true">
+              {initials}
+            </div>
+            <div className="admin-user-meta">
+              <strong>{admin.name}</strong>
+              <span>{admin.email}</span>
+            </div>
+          </div>
+          <div className="admin-sidebar-actions">
+            <Link to="/" className="btn btn-ghost-sidebar">
+              View public site
+            </Link>
+            <button type="button" className="btn btn-ghost-sidebar" onClick={logout}>
+              Sign out
             </button>
-          )}
-        </aside>
+          </div>
+        </div>
+      </aside>
 
-        <main className="admin-content">
-          {message && <p className="badge" style={{ marginBottom: "1rem" }}>{message}</p>}
-          {error && <div className="error-banner" style={{ marginBottom: "1rem" }}>{error}</div>}
+      <div className="admin-main">
+        <header className="admin-topbar">
+          <div className="admin-topbar-breadcrumb">
+            <span>Admin</span>
+            <span aria-hidden="true">/</span>
+            <strong>{tabMeta.title}</strong>
+          </div>
+          <div className="admin-topbar-actions">
+            <button type="button" className="btn btn-secondary btn-sm admin-command-trigger" onClick={() => setCommandOpen(true)}>
+              Search <kbd>⌘K</kbd>
+            </button>
+            <span className={`admin-health-pill compact ${healthStatus}`} title="Live health (30s poll)">
+              <span className="admin-health-dot" />
+              {healthStatus}
+            </span>
+            <span className="admin-env-badge">Development</span>
+          </div>
+        </header>
 
-          {tab === "dashboard" && <AdminDashboardHome />}
+        <main className={`admin-content${tab === "sections" || tab === "email-templates" ? " admin-content--editor-workspace" : ""}`}>
+          {tab !== "dashboard" && <AdminPageHeader title={tabMeta.title} description={tabMeta.description} />}
+
+          {message && <div className="admin-alert admin-alert-success">{message}</div>}
+          {error && <div className="admin-alert admin-alert-error">{error}</div>}
+
+          {tab === "dashboard" && <AdminDashboardHome onNavigate={setTab} poll={poll} />}
 
           {tab === "sections" && (
-            <SectionsPanel
+            <AdminSectionsPanel
               sections={sections}
               onSaved={(section) => {
                 setSections((prev) => prev.map((s) => (s.id === section.id ? section : s)));
@@ -123,9 +176,29 @@ export function AdminDashboardPage() {
                 setMessage("Section deleted");
                 setError(null);
               }}
+              onReordered={(next) => {
+                setSections(next);
+              }}
               onError={(err) => {
                 setError(err);
                 setMessage(null);
+              }}
+              onMessage={(msg) => {
+                setMessage(msg);
+                setError(null);
+              }}
+            />
+          )}
+
+          {tab === "testimonials" && (
+            <AdminTestimonialsPanel
+              onError={(err) => {
+                setError(err);
+                setMessage(null);
+              }}
+              onMessage={(msg) => {
+                setMessage(msg);
+                setError(null);
               }}
             />
           )}
@@ -156,21 +229,14 @@ export function AdminDashboardPage() {
           )}
 
           {tab === "addons" && (
-            <AddonsPanel
-              addons={addons}
-              onSaved={(item) => {
-                setAddons((prev) => prev.map((a) => (a.id === item.id ? item : a)));
-                setMessage("Add-on marketing saved");
-                setError(null);
-              }}
-              onDeleted={(id) => {
-                setAddons((prev) => prev.filter((a) => a.id !== id));
-                setMessage("Add-on marketing deleted");
-                setError(null);
-              }}
+            <AdminAddonsPanel
               onError={(err) => {
                 setError(err);
                 setMessage(null);
+              }}
+              onMessage={(msg) => {
+                setMessage(msg);
+                setError(null);
               }}
             />
           )}
@@ -235,6 +301,51 @@ export function AdminDashboardPage() {
             />
           )}
 
+          {tab === "sales-pipeline" && (
+            <AdminSalesPipelinePage
+              pollKey={poll?.polledAt}
+              isSuperAdmin={admin?.role === "super_admin"}
+              onError={(err) => {
+                setError(err);
+                setMessage(null);
+              }}
+              onMessage={(msg) => {
+                setMessage(msg);
+                setError(null);
+              }}
+            />
+          )}
+
+          {tab === "email-templates" && (
+            <AdminEmailTemplatesPanel
+              onError={(err) => {
+                setError(err);
+                setMessage(null);
+              }}
+              onMessage={(msg) => {
+                setMessage(msg);
+                setError(null);
+              }}
+            />
+          )}
+
+          {tab === "marketing" && (
+            <AdminMarketingPanel
+              onError={(err) => {
+                setError(err);
+                setMessage(null);
+              }}
+              onMessage={(msg) => {
+                setMessage(msg);
+                setError(null);
+              }}
+            />
+          )}
+
+          {tab === "billing" && <AdminBillingPanel />}
+
+          {tab === "system" && <AdminSystemStatusPanel poll={poll} />}
+
           {tab === "vps" && (
             <AdminVpsPanel
               tenants={tenants}
@@ -263,118 +374,14 @@ export function AdminDashboardPage() {
           )}
         </main>
       </div>
+
+      <AdminCommandPalette
+        open={commandOpen}
+        onClose={() => setCommandOpen(false)}
+        onNavigate={setTab}
+        tenants={tenants}
+      />
     </div>
-  );
-}
-
-function SectionsPanel({
-  sections,
-  onSaved,
-  onDeleted,
-  onError,
-}: {
-  sections: SiteSection[];
-  onSaved: (section: SiteSection) => void;
-  onDeleted: (id: string) => void;
-  onError: (msg: string) => void;
-}) {
-  return (
-    <div>
-      <h2 style={{ marginTop: 0 }}>Landing page sections</h2>
-      {sections.map((section) => (
-        <SectionEditor key={section.id} section={section} onSaved={onSaved} onDeleted={onDeleted} onError={onError} />
-      ))}
-    </div>
-  );
-}
-
-function SectionEditor({
-  section,
-  onSaved,
-  onDeleted,
-  onError,
-}: {
-  section: SiteSection;
-  onSaved: (section: SiteSection) => void;
-  onDeleted: (id: string) => void;
-  onError: (msg: string) => void;
-}) {
-  const [title, setTitle] = useState(section.title);
-  const [subtitle, setSubtitle] = useState(section.subtitle ?? "");
-  const [body, setBody] = useState(section.body ?? "");
-  const [ctaLabel, setCtaLabel] = useState(section.ctaLabel ?? "");
-  const [ctaUrl, setCtaUrl] = useState(section.ctaUrl ?? "");
-  const [isPublished, setIsPublished] = useState(section.isPublished);
-  const [saving, setSaving] = useState(false);
-
-  async function save(e: FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const res = await api.updateSection(section.id, {
-        title,
-        subtitle: subtitle || null,
-        body: body || null,
-        ctaLabel: ctaLabel || null,
-        ctaUrl: ctaUrl || null,
-        isPublished,
-      });
-      onSaved(res.section);
-    } catch (err) {
-      onError(err instanceof ApiError ? err.message : "Save failed");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function remove() {
-    if (!window.confirm(`Delete section "${section.sectionKey}"?`)) return;
-    try {
-      await api.deleteSection(section.id);
-      onDeleted(section.id);
-    } catch (err) {
-      onError(err instanceof ApiError ? err.message : "Delete failed");
-    }
-  }
-
-  return (
-    <form className="card editor-card form-grid" onSubmit={save}>
-      <strong>
-        {section.sectionKey} {isPublished ? "" : "(hidden)"}
-      </strong>
-      <label>
-        Title
-        <input value={title} onChange={(e) => setTitle(e.target.value)} required />
-      </label>
-      <label>
-        Subtitle
-        <input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
-      </label>
-      <label>
-        Body
-        <textarea value={body} onChange={(e) => setBody(e.target.value)} />
-      </label>
-      <label>
-        CTA label
-        <input value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} />
-      </label>
-      <label>
-        CTA URL
-        <input value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} />
-      </label>
-      <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
-        Published
-      </label>
-      <div className="editor-actions">
-        <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? "Saving…" : "Save section"}
-        </button>
-        <button type="button" className="btn btn-danger" onClick={remove}>
-          Delete
-        </button>
-      </div>
-    </form>
   );
 }
 
@@ -414,16 +421,16 @@ function HostingPanel({
   }
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ marginTop: 0 }}>Hosting plans</h2>
+    <div className="admin-hosting-panel">
+      <div className="admin-page-header-actions admin-hosting-toolbar">
         <button type="button" className="btn btn-secondary" onClick={() => setShowNew((v) => !v)}>
           {showNew ? "Cancel" : "Add plan"}
         </button>
       </div>
 
       {showNew && (
-        <form className="card editor-card form-grid" onSubmit={createPlan}>
+        <form className="card editor-card form-grid admin-hosting-create" onSubmit={createPlan}>
+          <h3>New hosting plan</h3>
           <label>
             Slug
             <input value={slug} onChange={(e) => setSlug(e.target.value)} required />
@@ -442,9 +449,13 @@ function HostingPanel({
         </form>
       )}
 
-      {plans.map((plan) => (
-        <PlanEditor key={plan.id} plan={plan} onSaved={onSaved} onDeleted={onDeleted} onError={onError} />
-      ))}
+      <div className="admin-hosting-grid">
+        {plans.map((plan) => (
+          <PlanEditor key={plan.id} plan={plan} onSaved={onSaved} onDeleted={onDeleted} onError={onError} />
+        ))}
+      </div>
+
+      {plans.length === 0 && !showNew ? <p className="muted">No hosting plans yet. Add your first plan above.</p> : null}
     </div>
   );
 }
@@ -497,10 +508,16 @@ function PlanEditor({
   }
 
   return (
-    <form className="card editor-card form-grid" onSubmit={save}>
-      <strong>
-        {plan.slug} {isActive ? "" : "(inactive)"}
-      </strong>
+    <form className="card editor-card admin-hosting-card form-grid" onSubmit={save}>
+      <div className="admin-hosting-card-head">
+        <strong>{plan.slug}</strong>
+        {isActive ? (
+          <span className="badge badge-status-active">Active</span>
+        ) : (
+          <span className="badge badge-status-inactive">Inactive</span>
+        )}
+        {isFeatured ? <span className="badge badge-status-qualified">Featured</span> : null}
+      </div>
       <label>
         Name
         <input value={name} onChange={(e) => setName(e.target.value)} required />
@@ -530,159 +547,6 @@ function PlanEditor({
         </button>
       </div>
     </form>
-  );
-}
-
-function AddonsPanel({
-  addons,
-  onSaved,
-  onDeleted,
-  onError,
-}: {
-  addons: AddonMarketing[];
-  onSaved: (item: AddonMarketing) => void;
-  onDeleted: (id: string) => void;
-  onError: (msg: string) => void;
-}) {
-  return (
-    <div>
-      <h2 style={{ marginTop: 0 }}>hmail immigration add-on marketing</h2>
-      <p className="muted">Edit landing copy, badges, and featured flags for paid immigration add-ons.</p>
-      <div className="table-wrap">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Add-on</th>
-              <th>Marketing</th>
-              <th>Price</th>
-              <th>Featured</th>
-              <th>Published</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {addons.map((addon) => (
-              <AddonRow key={addon.id} addon={addon} onSaved={onSaved} onDeleted={onDeleted} onError={onError} />
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function AddonRow({
-  addon,
-  onSaved,
-  onDeleted,
-  onError,
-}: {
-  addon: AddonMarketing;
-  onSaved: (item: AddonMarketing) => void;
-  onDeleted: (id: string) => void;
-  onError: (msg: string) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [marketingTitle, setMarketingTitle] = useState(addon.marketingTitle);
-  const [badge, setBadge] = useState(addon.badge ?? "");
-  const [displayPriceCents, setDisplayPriceCents] = useState(addon.displayPriceCents);
-  const [landingFeatured, setLandingFeatured] = useState(addon.landingFeatured);
-  const [isPublished, setIsPublished] = useState(addon.isPublished);
-  const [saving, setSaving] = useState(false);
-
-  async function save() {
-    setSaving(true);
-    try {
-      const res = await api.updateAddonMarketing(addon.id, {
-        marketingTitle,
-        badge: badge || null,
-        displayPriceCents,
-        landingFeatured,
-        isPublished,
-      });
-      onSaved(res.item);
-      setEditing(false);
-    } catch (err) {
-      onError(err instanceof ApiError ? err.message : "Save failed");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (editing) {
-    return (
-      <tr>
-        <td colSpan={6}>
-          <div className="form-grid" style={{ maxWidth: 640 }}>
-            <label>
-              Marketing title
-              <input value={marketingTitle} onChange={(e) => setMarketingTitle(e.target.value)} />
-            </label>
-            <label>
-              Badge
-              <input value={badge} onChange={(e) => setBadge(e.target.value)} placeholder="Free addon / Coming soon" />
-            </label>
-            <label>
-              Display price (cents)
-              <input
-                type="number"
-                value={displayPriceCents}
-                onChange={(e) => setDisplayPriceCents(Number(e.target.value))}
-              />
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <input type="checkbox" checked={landingFeatured} onChange={(e) => setLandingFeatured(e.target.checked)} />
-              Featured on landing
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
-              Published
-            </label>
-            <div className="editor-actions">
-              <button type="button" className="btn btn-primary" onClick={save} disabled={saving}>
-                Save
-              </button>
-              <button type="button" className="btn btn-secondary" onClick={() => setEditing(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </td>
-      </tr>
-    );
-  }
-
-  return (
-    <tr>
-      <td>
-        <strong>{addon.name}</strong>
-        <div className="muted">{addon.slug}</div>
-      </td>
-      <td>{addon.marketingTitle}</td>
-      <td>{addon.displayPriceCents === 0 ? "Free" : `$${(addon.displayPriceCents / 100).toFixed(2)}`}</td>
-      <td>{addon.landingFeatured ? "Yes" : "No"}</td>
-      <td>{addon.isPublished ? "Yes" : "No"}</td>
-      <td>
-        <button type="button" className="btn btn-secondary" onClick={() => setEditing(true)}>
-          Edit
-        </button>{" "}
-        <button
-          type="button"
-          className="btn btn-danger"
-          onClick={async () => {
-            if (!window.confirm(`Delete marketing for "${addon.name}"?`)) return;
-            try {
-              await api.deleteAddonMarketing(addon.id);
-              onDeleted(addon.id);
-            } catch (err) {
-              onError(err instanceof ApiError ? err.message : "Delete failed");
-            }
-          }}
-        >
-          Delete
-        </button>
-      </td>
-    </tr>
   );
 }
 
@@ -730,8 +594,7 @@ function TenantsPanel({
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ marginTop: 0 }}>Tenants</h2>
+      <div className="admin-page-header-actions" style={{ marginBottom: "1rem", justifyContent: "flex-end", display: "flex" }}>
         <button type="button" className="btn btn-secondary" onClick={() => setShowNew((v) => !v)}>
           {showNew ? "Cancel" : "Add tenant"}
         </button>
@@ -853,17 +716,17 @@ function TenantRow({
       <td className="muted">{tenant.slug}</td>
       <td>{tenant.hostingAccountCount}</td>
       <td>{tenant.userCount}</td>
-      <td>{tenant.isActive ? "Yes" : "No"}</td>
+      <td>{tenant.isActive ? <span className="badge badge-status-active">Active</span> : <span className="badge badge-status-inactive">Inactive</span>}</td>
       <td>
-        <button type="button" className="btn btn-primary" onClick={onManage}>
+        <button type="button" className="btn btn-primary btn-sm" onClick={onManage}>
           Manage
         </button>{" "}
-        <button type="button" className="btn btn-secondary" onClick={() => setEditing(true)}>
+        <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditing(true)}>
           Edit
         </button>{" "}
         <button
           type="button"
-          className="btn btn-danger"
+          className="btn btn-danger btn-sm"
           onClick={async () => {
             if (!window.confirm(`Delete tenant "${tenant.name}" and all related data?`)) return;
             try {
@@ -921,8 +784,7 @@ function AccountsPanel({
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ marginTop: 0 }}>Panel hosting accounts</h2>
+      <div className="admin-page-header-actions" style={{ marginBottom: "1rem", justifyContent: "flex-end", display: "flex" }}>
         <button type="button" className="btn btn-secondary" onClick={() => setShowNew((v) => !v)}>
           {showNew ? "Cancel" : "Add account"}
         </button>
@@ -1058,13 +920,17 @@ function AccountRow({
         {account.diskUsedMb}/{account.diskQuotaMb} MB
       </td>
       <td>
-        {account.isSuspended ? "Suspended" : "Active"}{" "}
-        <button type="button" className="btn btn-secondary" onClick={() => setEditing(true)}>
+        {account.isSuspended ? (
+          <span className="badge badge-status-suspended">Suspended</span>
+        ) : (
+          <span className="badge badge-status-active">Active</span>
+        )}{" "}
+        <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditing(true)}>
           Edit
         </button>{" "}
         <button
           type="button"
-          className="btn btn-danger"
+          className="btn btn-danger btn-sm"
           onClick={async () => {
             if (!window.confirm(`Delete hosting account ${account.loginId}?`)) return;
             try {

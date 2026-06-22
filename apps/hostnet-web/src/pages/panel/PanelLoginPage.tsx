@@ -1,10 +1,12 @@
 import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
 import "./Panel.css";
 
 export function PanelLoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get("return") ?? "/panel";
   const [username, setUsername] = useState("demo");
   const [domain, setDomain] = useState("hostnet.local");
   const [password, setPassword] = useState("panel123");
@@ -17,7 +19,7 @@ export function PanelLoginPage() {
     setError(null);
     try {
       await api.panelLogin({ username, domain, password });
-      navigate("/panel");
+      navigate(returnTo.startsWith("/") ? returnTo : "/panel");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Login failed");
     } finally {
@@ -28,7 +30,7 @@ export function PanelLoginPage() {
   return (
     <div className="panel-login-wrap">
       <div className="card panel-login-card">
-        <h1>HostNet Panel</h1>
+        <h1>Prohost Cloud Panel</h1>
         <p className="muted">Sign in with your hosting account credentials.</p>
         {error && <div className="error-banner" style={{ marginBottom: "1rem" }}>{error}</div>}
         <form className="form-grid" onSubmit={onSubmit}>
@@ -52,7 +54,7 @@ export function PanelLoginPage() {
           Demo: <code>demo</code> @ <code>hostnet.local</code> / <code>panel123</code>
         </div>
         <p style={{ marginTop: "1rem" }}>
-          <Link to="/">← Back to HostNet</Link>
+          <Link to="/">← Back to Prohost Cloud</Link>
         </p>
       </div>
     </div>

@@ -3,7 +3,10 @@ import { z } from "zod";
 import { auditAdminMutation } from "../lib/admin-audit-helper.js";
 import { requireSuperAdmin } from "../middleware/requireSuperAdmin.js";
 import { getAdminDashboard } from "../services/admin-dashboard.service.js";
+import { getAdminTrends, getBillingRevenueDashboard } from "../services/admin-analytics.service.js";
+import { getAdminPollSnapshot } from "../services/admin-poll.service.js";
 import { listRecentAuditLogs } from "../services/admin-audit.service.js";
+import { getAdminSystemStatus } from "../services/ops-status.service.js";
 import {
   createPlatformAdmin,
   deletePlatformAdmin,
@@ -29,6 +32,12 @@ import {
   updateTenantMailConfig,
   updateTenantMailUser,
 } from "../services/tenant-ops.service.js";
+import {
+  adminSetTenantGrowthPlanTier,
+  grantTenantAddonSubscription,
+  GrowthAdminOpsError,
+  revokeTenantAddonSubscription,
+} from "../services/growth-admin-ops.service.js";
 
 const brandingSchema = z.object({
   productName: z.string().optional(),
@@ -61,6 +70,16 @@ const mailUserUpdateSchema = z.object({
 const trialGrantSchema = z.object({
   addonSlug: z.string().min(1),
   trialDays: z.number().int().min(1).max(90).optional(),
+});
+
+const subscriptionGrantSchema = z.object({
+  addonSlug: z.string().min(1),
+  periodDays: z.number().int().min(1).max(365).optional(),
+});
+
+const growthPlanTierSchema = z.object({
+  planSlug: z.enum(["starter", "pro", "agency"]),
+  planTierOverride: z.boolean().optional(),
 });
 
 const vpsSchema = z.object({
@@ -227,6 +246,55 @@ adminOpsRouter.delete("/tenants/:id/addon-trials/:trialId", async (req, res, nex
   }
 });
 
+adminOpsRouter.post("/tenants/:id/addon-subscriptions", async (req, res, next) => {
+  try {
+    const body = subscriptionGrantSchema.parse(req.body);
+    const subscription = await grantTenantAddonSubscription(paramId(req.params.id), body);
+    await auditAdminMutation(req, "tenant.addon_subscription.grant", "subscription", subscription.id, {
+      addonSlug: subscription.addonSlug,
+    });
+    res.status(201).json({ subscription });
+  } catch (err) {
+    if (err instanceof GrowthAdminOpsError || err instanceof TenantOpsError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+adminOpsRouter.delete("/tenants/:id/addon-subscriptions/:subscriptionId", async (req, res, next) => {
+  try {
+    await revokeTenantAddonSubscription(paramId(req.params.id), paramId(req.params.subscriptionId));
+    await auditAdminMutation(req, "tenant.addon_subscription.revoke", "subscription", paramId(req.params.subscriptionId));
+    res.status(204).send();
+  } catch (err) {
+    if (err instanceof GrowthAdminOpsError) {
+      res.status(404).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+adminOpsRouter.patch("/tenants/:id/growth-plan", async (req, res, next) => {
+  try {
+    const body = growthPlanTierSchema.parse(req.body);
+    const growth = await adminSetTenantGrowthPlanTier(paramId(req.params.id), body);
+    await auditAdminMutation(req, "tenant.growth_plan.set", "growth_workspace_settings", growth.workspaceId, {
+      planSlug: growth.planSlug,
+      planTierOverride: growth.planTierOverride,
+    });
+    res.json({ growth });
+  } catch (err) {
+    if (err instanceof GrowthAdminOpsError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
 adminOpsRouter.get("/vps", async (_req, res, next) => {
   try {
     const vpsInstances = await listVpsInstances();
@@ -332,6 +400,43 @@ adminOpsRouter.delete("/platform-admins/:id", requireSuperAdmin, async (req, res
       res.status(400).json({ error: err.message });
       return;
     }
+    next(err);
+  }
+});
+
+adminOpsRouter.get("/system-status", async (_req, res, next) => {
+  try {
+    const status = await getAdminSystemStatus();
+    res.json(status);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.get("/poll", async (_req, res, next) => {
+  try {
+    const snapshot = await getAdminPollSnapshot();
+    res.json(snapshot);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.get("/analytics/trends", async (req, res, next) => {
+  try {
+    const days = typeof req.query.days === "string" ? Math.min(90, Math.max(7, Number(req.query.days))) : 30;
+    const trends = await getAdminTrends(days);
+    res.json({ trends });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.get("/billing/revenue", async (_req, res, next) => {
+  try {
+    const revenue = await getBillingRevenueDashboard();
+    res.json({ revenue });
+  } catch (err) {
     next(err);
   }
 });

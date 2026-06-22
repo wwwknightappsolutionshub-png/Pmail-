@@ -1,6 +1,7 @@
 import { TRIAL_DAYS } from "../data/addon-catalog.js";
 import { prisma } from "../lib/prisma.js";
 import { listAddonsForTenant } from "./addon.service.js";
+import { getTenantGrowthOps } from "./growth-admin-ops.service.js";
 
 export class TenantOpsError extends Error {
   constructor(message: string) {
@@ -93,7 +94,9 @@ export async function getTenantOperations(tenantId: string) {
   const subscriptions = await prisma.tenantAddonSubscription.findMany({
     where: { tenantId },
     include: { addon: { select: { slug: true, name: true } } },
+    orderBy: { createdAt: "desc" },
   });
+  const growth = await getTenantGrowthOps(tenantId);
 
   return {
     tenant: {
@@ -132,6 +135,7 @@ export async function getTenantOperations(tenantId: string) {
       status: s.status,
       currentPeriodEnd: s.currentPeriodEnd?.toISOString() ?? null,
     })),
+    growth,
   };
 }
 
@@ -140,7 +144,7 @@ export async function updateTenantBranding(tenantId: string, input: BrandingInpu
     where: { tenantId },
     create: {
       tenantId,
-      productName: input.productName ?? "hmail",
+      productName: input.productName ?? "PMail+",
       logoUrl: input.logoUrl ?? null,
       primaryColor: input.primaryColor ?? "#0d9488",
       accentColor: input.accentColor ?? "#14b8a6",

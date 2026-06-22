@@ -1,1 +1,1 @@
-# Hostnet Panel apps placeholder for shared types (Phase 2).
+# Prohost Cloud — shared types placeholder (Phase 2).

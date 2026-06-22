@@ -1,5 +1,6 @@
 import { Router, type Request } from "express";
 import { z } from "zod";
+import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
 import {
   appendToSentFolder,
@@ -14,12 +15,33 @@ import {
   setMessageFlags,
 } from "../services/imap.service.js";
 import { sendMail } from "../services/smtp.service.js";
+import { tenantHasAddonAccess } from "../services/addon.service.js";
+import {
+  createAutoReply,
+  createSignature,
+  deleteAutoReply,
+  deleteSignature,
+  getComposeSettings,
+  getComposeSettingsByUserId,
+  updateAutoReply,
+  updateComposeSettings,
+  updateSignature,
+} from "../services/compose-settings.service.js";
+import {
+  buildTrackingPixelUrl,
+  createSentTracking,
+  getTrackingById,
+  injectTrackingPixel,
+  listSentTracking,
+} from "../services/tracking.service.js";
+import { getPublicApiBaseUrl } from "../lib/public-url.js";
+import { resolveAuthMailConfig } from "../services/auth.service.js";
 
 function mailCredentials(req: Request) {
   const auth = req.auth!;
-  const mailConfig = auth.user.tenant.mail;
+  const mailConfig = resolveAuthMailConfig(auth.user);
   if (!mailConfig) {
-    throw new Error("Tenant mail configuration missing");
+    throw new Error("Mail provider configuration missing");
   }
   return {
     email: auth.user.email,
@@ -127,6 +149,7 @@ const sendSchema = z.object({
   references: z.string().optional(),
   priority: z.enum(["normal", "high"]).optional(),
   requestReadReceipt: z.boolean().optional(),
+  trackingEnabled: z.boolean().optional(),
   attachments: z
     .array(
       z.object({
@@ -142,9 +165,9 @@ mailRouter.post("/send", async (req, res, next) => {
   try {
     const body = sendSchema.parse(req.body);
     const auth = req.auth!;
-    const mailConfig = auth.user.tenant.mail;
+    const mailConfig = resolveAuthMailConfig(auth.user);
     if (!mailConfig) {
-      res.status(500).json({ error: "Tenant mail configuration missing" });
+      res.status(500).json({ error: "Mail provider configuration missing" });
       return;
     }
 
@@ -153,16 +176,39 @@ mailRouter.post("/send", async (req, res, next) => {
       return;
     }
 
+    const composeSettings = await getComposeSettingsByUserId(auth.user.id);
+    const displayName = composeSettings.displayName?.trim();
+    let htmlBody = body.html;
+    let trackingRecord: Awaited<ReturnType<typeof createSentTracking>> | null = null;
+
+    const wantsTracking = Boolean(body.trackingEnabled);
+    if (wantsTracking) {
+      const entitled = await tenantHasAddonAccess(auth.user.tenant.id, "open-tracking");
+      if (!entitled) {
+        res.status(403).json({ error: "Open tracking addon required" });
+        return;
+      }
+      trackingRecord = await createSentTracking(auth.user.id, {
+        toEmail: body.to,
+        subject: body.subject,
+      });
+      const pixelUrl = buildTrackingPixelUrl(trackingRecord.trackingToken, getPublicApiBaseUrl(req));
+      if (htmlBody) {
+        htmlBody = injectTrackingPixel(htmlBody, pixelUrl);
+      }
+    }
+
     const mailInput = {
       email: auth.user.email,
       password: auth.mailPassword,
       mailConfig,
+      fromName: displayName || undefined,
       to: body.to,
       cc: body.cc,
       bcc: body.bcc,
       subject: body.subject,
       text: body.text,
-      html: body.html,
+      html: htmlBody,
       replyTo: body.replyTo,
       inReplyTo: body.inReplyTo,
       references: body.references,
@@ -176,6 +222,13 @@ mailRouter.post("/send", async (req, res, next) => {
     };
 
     const result = await sendMail(mailInput);
+
+    if (trackingRecord && result.messageId) {
+      await prisma.sentMessageTracking.update({
+        where: { id: trackingRecord.id },
+        data: { smtpMessageId: result.messageId },
+      });
+    }
 
     let sentFolder: string | null = null;
     try {
@@ -192,7 +245,11 @@ mailRouter.post("/send", async (req, res, next) => {
       console.warn("Sent folder append failed:", appendErr);
     }
 
-    res.status(201).json({ ...result, sentFolder: sentFolder ?? undefined });
+    res.status(201).json({
+      ...result,
+      sentFolder: sentFolder ?? undefined,
+      trackingId: trackingRecord?.id,
+    });
   } catch (err) {
     next(err);
   }
@@ -278,6 +335,169 @@ mailRouter.get("/messages/:uid/attachments/:partId", async (req, res, next) => {
     res.setHeader("Content-Type", file.contentType);
     res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
     res.send(file.content);
+  } catch (err) {
+    next(err);
+  }
+});
+
+mailRouter.get("/compose-settings", async (req, res, next) => {
+  try {
+    const auth = req.auth!;
+    const settings = await getComposeSettings(auth.user.id, auth.user.tenant.id, auth.user.businessVertical);
+    res.json({ settings });
+  } catch (err) {
+    next(err);
+  }
+});
+
+mailRouter.patch("/compose-settings", async (req, res, next) => {
+  try {
+    const auth = req.auth!;
+    await updateComposeSettings(auth.user.id, auth.user.tenant.id, {
+      displayName: req.body?.displayName ? String(req.body.displayName) : undefined,
+      autoReplyEnabled: typeof req.body?.autoReplyEnabled === "boolean" ? req.body.autoReplyEnabled : undefined,
+      activeSignatureId: req.body?.activeSignatureId ? String(req.body.activeSignatureId) : undefined,
+      activeAutoReplyId: req.body?.activeAutoReplyId ? String(req.body.activeAutoReplyId) : undefined,
+    });
+    const settings = await getComposeSettings(auth.user.id, auth.user.tenant.id, auth.user.businessVertical);
+    res.json({ settings });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+mailRouter.post("/signatures", async (req, res, next) => {
+  try {
+    const signature = await createSignature(req.auth!.user.id, {
+      name: String(req.body?.name ?? ""),
+      body: String(req.body?.body ?? ""),
+      avatarUrl: req.body?.avatarUrl ? String(req.body.avatarUrl) : undefined,
+      isDefault: Boolean(req.body?.isDefault),
+    });
+    res.status(201).json({ signature });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+mailRouter.patch("/signatures/:id", async (req, res, next) => {
+  try {
+    const signature = await updateSignature(req.auth!.user.id, String(req.params.id), {
+      name: req.body?.name ? String(req.body.name) : undefined,
+      body: req.body?.body ? String(req.body.body) : undefined,
+      avatarUrl: req.body?.avatarUrl ? String(req.body.avatarUrl) : undefined,
+      isDefault: typeof req.body?.isDefault === "boolean" ? req.body.isDefault : undefined,
+    });
+    res.json({ signature });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+mailRouter.delete("/signatures/:id", async (req, res, next) => {
+  try {
+    await deleteSignature(req.auth!.user.id, String(req.params.id));
+    res.status(204).send();
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+mailRouter.post("/auto-replies", async (req, res, next) => {
+  try {
+    const auth = req.auth!;
+    const autoReply = await createAutoReply(auth.user.id, auth.user.tenant.id, {
+      name: String(req.body?.name ?? ""),
+      subject: String(req.body?.subject ?? ""),
+      body: String(req.body?.body ?? ""),
+      enabled: Boolean(req.body?.enabled),
+    });
+    res.status(201).json({ autoReply });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+mailRouter.patch("/auto-replies/:id", async (req, res, next) => {
+  try {
+    const auth = req.auth!;
+    const autoReply = await updateAutoReply(auth.user.id, auth.user.tenant.id, String(req.params.id), {
+      name: req.body?.name ? String(req.body.name) : undefined,
+      subject: req.body?.subject ? String(req.body.subject) : undefined,
+      body: req.body?.body ? String(req.body.body) : undefined,
+      enabled: typeof req.body?.enabled === "boolean" ? req.body.enabled : undefined,
+    });
+    res.json({ autoReply });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+mailRouter.delete("/auto-replies/:id", async (req, res, next) => {
+  try {
+    const auth = req.auth!;
+    await deleteAutoReply(auth.user.id, auth.user.tenant.id, String(req.params.id));
+    res.status(204).send();
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+mailRouter.get("/tracking", async (req, res, next) => {
+  try {
+    const entitled = await tenantHasAddonAccess(req.auth!.user.tenant.id, "open-tracking");
+    if (!entitled) {
+      res.status(403).json({ error: "Open tracking addon required" });
+      return;
+    }
+    const tracking = await listSentTracking(req.auth!.user.id);
+    res.json({ tracking });
+  } catch (err) {
+    next(err);
+  }
+});
+
+mailRouter.get("/tracking/:id", async (req, res, next) => {
+  try {
+    const entitled = await tenantHasAddonAccess(req.auth!.user.tenant.id, "open-tracking");
+    if (!entitled) {
+      res.status(403).json({ error: "Open tracking addon required" });
+      return;
+    }
+    const row = await getTrackingById(req.auth!.user.id, String(req.params.id));
+    if (!row) {
+      res.status(404).json({ error: "Tracking record not found" });
+      return;
+    }
+    res.json({ tracking: row });
   } catch (err) {
     next(err);
   }

@@ -60,23 +60,17 @@ export function AdminPlatformAdminsPanel({
 
   if (loading) return <p className="muted">Loading admins…</p>;
   if (forbidden) {
-    return (
-      <div>
-        <h2 style={{ marginTop: 0 }}>Platform admins</h2>
-        <p className="muted">Super admin access is required to manage platform operators.</p>
-      </div>
-    );
+    return <p className="muted">Super admin access is required to manage platform operators.</p>;
   }
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ marginTop: 0 }}>Platform admins</h2>
+      <div className="admin-page-header-actions" style={{ marginBottom: "1rem", justifyContent: "flex-end", display: "flex" }}>
         <button type="button" className="btn btn-secondary" onClick={() => setShowNew((v) => !v)}>
-          {showNew ? "Cancel" : "Add admin"}
+          {showNew ? "Cancel" : "Add administrator"}
         </button>
       </div>
-      <p className="muted">Multiple operators with role-based access. Super admins can manage other admins.</p>
+      <p className="muted" style={{ marginTop: 0 }}>Multiple operators with role-based access. Super admins can manage other admins.</p>
 
       {showNew && (
         <form className="card editor-card form-grid" onSubmit={create}>
@@ -114,10 +108,18 @@ export function AdminPlatformAdminsPanel({
               <tr key={a.id}>
                 <td>{a.name}</td>
                 <td>{a.email}</td>
-                <td>{a.role}</td>
-                <td>{a.isActive ? "Yes" : "No"}</td>
                 <td>
-                  <button type="button" className="btn btn-danger" onClick={() => remove(a.id, a.email)}>
+                  <span className={`badge ${a.role === "super_admin" ? "badge-role" : ""}`}>{a.role}</span>
+                </td>
+                <td>
+                  {a.isActive ? (
+                    <span className="badge badge-status-active">Active</span>
+                  ) : (
+                    <span className="badge badge-status-inactive">Inactive</span>
+                  )}
+                </td>
+                <td>
+                  <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(a.id, a.email)}>
                     Delete
                   </button>
                 </td>

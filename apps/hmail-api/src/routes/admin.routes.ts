@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { requireAdmin } from "../middleware/requireAdmin.js";
+import { requireSuperAdmin } from "../middleware/requireSuperAdmin.js";
 import {
   AdminAuthError,
   getAdminContext,
@@ -12,6 +13,7 @@ import {
   createSection,
   deleteSection,
   listAllSections,
+  reorderSections,
   updateSection,
 } from "../services/cms.service.js";
 import {
@@ -21,11 +23,24 @@ import {
   updateHostingPlan,
 } from "../services/hosting-plans.service.js";
 import {
+  createAddonRecord,
   createAddonMarketing,
   deleteAddonMarketing,
   listAllAddonMarketing,
+  listAllAddonsForAdmin,
+  softDeleteAddonRecord,
+  syncAddonCatalogAdmin,
   updateAddonMarketing,
+  updateAddonRecord,
 } from "../services/addon-marketing.service.js";
+import {
+  createTestimonial,
+  deleteTestimonial,
+  listAllTestimonialsAdmin,
+  approveTestimonial,
+  rejectTestimonial,
+  updateTestimonial,
+} from "../services/testimonial.service.js";
 import {
   createHostingAccount,
   deleteHostingAccount,
@@ -41,6 +56,11 @@ import {
 import { getEnv } from "../config/env.js";
 import { auditAdminMutation } from "../lib/admin-audit-helper.js";
 import { adminOpsRouter } from "./admin-ops.routes.js";
+import { adminSalesRouter } from "./admin-sales.routes.js";
+import { adminMarketingRouter } from "./admin-marketing.routes.js";
+import { listMarketingLeads, updateMarketingLead, getMarketingLeadStats } from "../services/marketing-leads.service.js";
+import { getPmailReferralLeadStats, listPmailReferralLeads } from "../services/referral-lead.service.js";
+import { provisionTenantFromLead, ProvisioningError } from "../services/provisioning.service.js";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -90,6 +110,33 @@ const addonMarketingSchema = z.object({
   landingFeatured: z.boolean().optional(),
   sortOrder: z.number().int().optional(),
   isPublished: z.boolean().optional(),
+});
+
+const addonAdminSchema = z.object({
+  slug: z.string().min(1).optional(),
+  name: z.string().min(1).optional(),
+  group: z.string().min(1).optional(),
+  vertical: z.enum(["legal", "real-estate", "accounting", "recruitment", "b2b-services", "healthcare", "platform"]).optional(),
+  addonKind: z.enum(["vertical", "platform", "system"]).optional(),
+  description: z.string().min(1).optional(),
+  features: z.array(z.string()).optional(),
+  isActive: z.boolean().optional(),
+  isPaid: z.boolean().optional(),
+  tenantPriceCents: z.number().int().min(0).optional(),
+  minTenantSeats: z.number().int().min(1).optional(),
+  releasePhase: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
+  comingSoon: z.boolean().optional(),
+  priceCents: z.number().int().min(0).optional(),
+  sortOrder: z.number().int().optional(),
+});
+
+const addonAdminCreateSchema = addonAdminSchema.extend({
+  slug: z.string().min(1),
+  name: z.string().min(1),
+  group: z.string().min(1),
+  vertical: z.enum(["legal", "real-estate", "accounting", "recruitment", "b2b-services", "healthcare", "platform"]),
+  description: z.string().min(1),
+  features: z.array(z.string()).default([]),
 });
 
 const tenantSchema = z.object({
@@ -214,6 +261,20 @@ adminRouter.delete("/sections/:id", async (req, res, next) => {
   }
 });
 
+const sectionReorderSchema = z.object({
+  order: z.array(z.object({ id: z.string().uuid(), sortOrder: z.number().int() })).min(1),
+});
+
+adminRouter.post("/sections/reorder", async (req, res, next) => {
+  try {
+    const body = sectionReorderSchema.parse(req.body);
+    const sections = await reorderSections(body.order);
+    res.json({ sections });
+  } catch (err) {
+    next(err);
+  }
+});
+
 adminRouter.get("/hosting-plans", async (_req, res, next) => {
   try {
     const hostingPlans = await listAllHostingPlans();
@@ -261,6 +322,57 @@ adminRouter.get("/addon-marketing", async (_req, res, next) => {
   }
 });
 
+adminRouter.get("/addons", async (_req, res, next) => {
+  try {
+    const addons = await listAllAddonsForAdmin();
+    res.json({ addons });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post("/addons", async (req, res, next) => {
+  try {
+    const body = addonAdminCreateSchema.parse(req.body);
+    const addon = await createAddonRecord(body);
+    await auditAdminMutation(req, "addon.create", "addon", addon.id, { slug: addon.slug });
+    res.status(201).json({ addon });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post("/addons/sync-catalog", async (_req, res, next) => {
+  try {
+    const counts = await syncAddonCatalogAdmin();
+    const addons = await listAllAddonsForAdmin();
+    res.json({ ...counts, addons });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch("/addons/:id", async (req, res, next) => {
+  try {
+    const body = addonAdminSchema.parse(req.body);
+    const addon = await updateAddonRecord(req.params.id, body);
+    await auditAdminMutation(req, "addon.update", "addon", req.params.id);
+    res.json({ addon });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete("/addons/:id", async (req, res, next) => {
+  try {
+    await softDeleteAddonRecord(req.params.id);
+    await auditAdminMutation(req, "addon.soft_delete", "addon", req.params.id);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
 adminRouter.post("/addon-marketing", async (req, res, next) => {
   try {
     const body = addonMarketingSchema.parse(req.body);
@@ -284,6 +396,73 @@ adminRouter.patch("/addon-marketing/:id", async (req, res, next) => {
 adminRouter.delete("/addon-marketing/:id", async (req, res, next) => {
   try {
     await deleteAddonMarketing(req.params.id);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
+const testimonialSchema = z.object({
+  authorName: z.string().min(1).max(120),
+  authorRole: z.string().max(120).optional().nullable(),
+  company: z.string().max(160).optional().nullable(),
+  body: z.string().min(10).max(2000),
+  rating: z.number().int().min(1).max(5).optional(),
+  sortOrder: z.number().int().optional(),
+  isPublished: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+});
+
+adminRouter.get("/testimonials", async (_req, res, next) => {
+  try {
+    const testimonials = await listAllTestimonialsAdmin();
+    res.json({ testimonials });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post("/testimonials", async (req, res, next) => {
+  try {
+    const body = testimonialSchema.parse(req.body);
+    const testimonial = await createTestimonial(body);
+    res.status(201).json({ testimonial });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch("/testimonials/:id", async (req, res, next) => {
+  try {
+    const body = testimonialSchema.partial().parse(req.body);
+    const testimonial = await updateTestimonial(req.params.id, body);
+    res.json({ testimonial });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch("/testimonials/:id/approve", async (req, res, next) => {
+  try {
+    const testimonial = await approveTestimonial(req.params.id);
+    res.json({ testimonial });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch("/testimonials/:id/reject", async (req, res, next) => {
+  try {
+    const testimonial = await rejectTestimonial(req.params.id);
+    res.json({ testimonial });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete("/testimonials/:id", async (req, res, next) => {
+  try {
+    await deleteTestimonial(req.params.id);
     res.status(204).send();
   } catch (err) {
     next(err);
@@ -367,4 +546,87 @@ adminRouter.delete("/hosting-accounts/:id", async (req, res, next) => {
   }
 });
 
+adminRouter.get("/leads/stats", async (_req, res, next) => {
+  try {
+    const stats = await getMarketingLeadStats();
+    res.json({ stats });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.get("/leads", async (req, res, next) => {
+  try {
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    const q = typeof req.query.q === "string" ? req.query.q : undefined;
+    const limit = typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
+    const leads = await listMarketingLeads({
+      status: status as import("../services/marketing-leads.service.js").LeadStatus | undefined,
+      q,
+      limit,
+    });
+    res.json({ leads });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const leadUpdateSchema = z.object({
+  status: z.enum(["new", "contacted", "qualified", "converted", "closed"]).optional(),
+  notes: z.string().nullable().optional(),
+});
+
+adminRouter.patch("/leads/:id", async (req, res, next) => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const body = leadUpdateSchema.parse(req.body);
+    const lead = await updateMarketingLead(id, body);
+    await auditAdminMutation(req, "lead.update", "marketing_lead", id);
+    res.json({ lead });
+  } catch (err) {
+    if (err instanceof Error && err.message === "Invalid lead status") {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+adminRouter.post("/leads/:id/convert", async (req, res, next) => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const result = await provisionTenantFromLead(id);
+    await auditAdminMutation(req, "lead.convert", "marketing_lead", id);
+    res.json(result);
+  } catch (err) {
+    if (err instanceof ProvisioningError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+adminRouter.get("/referral-leads/stats", requireSuperAdmin, async (_req, res, next) => {
+  try {
+    const stats = await getPmailReferralLeadStats();
+    res.json({ stats });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.get("/referral-leads", requireSuperAdmin, async (req, res, next) => {
+  try {
+    const emailStatus = typeof req.query.emailStatus === "string" ? req.query.emailStatus : undefined;
+    const q = typeof req.query.q === "string" ? req.query.q : undefined;
+    const leads = await listPmailReferralLeads({ emailStatus, q });
+    res.json({ leads });
+  } catch (err) {
+    next(err);
+  }
+});
+
 adminRouter.use(adminOpsRouter);
+adminRouter.use("/sales", adminSalesRouter);
+adminRouter.use("/marketing", adminMarketingRouter);

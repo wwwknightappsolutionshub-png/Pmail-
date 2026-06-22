@@ -94,7 +94,7 @@ Optional: static UI on shared hosting + API on temp Node host
         ↓
 Ubuntu VPS (full stack: Nginx + Node API + PostgreSQL)
         ↓
-Phase 2: HostNet panel on same VPS
+Phase 2: Prohost Cloud panel on same VPS
 ```
 
 ---

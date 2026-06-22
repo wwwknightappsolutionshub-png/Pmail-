@@ -1,0 +1,2904 @@
+.pmail-demo-shell {
+  --pmail-search-layer: 9000;
+  --scrollbar-track: rgba(8, 14, 26, 0.72);
+  --scrollbar-thumb: rgba(139, 163, 199, 0.28);
+  --scrollbar-thumb-hover: rgba(139, 163, 199, 0.42);
+  --bg: #050a12;
+  --bg-canvas: #050a12;
+  --bg-2: #0b1424;
+  --bg-card: #101c30;
+  --bg-panel: #0d1628;
+  --surface-overlay: rgba(2, 6, 23, 0.88);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 22px 60px rgba(0, 0, 0, 0.26);
+  --shadow-lg: 0 28px 90px rgba(0, 0, 0, 0.45);
+  --surface-chrome: rgba(5, 10, 18, 0.92);
+  --surface-tabs: rgba(8, 14, 26, 0.9);
+  --surface-toolbar: rgba(10, 18, 32, 0.88);
+  --surface-sidebar: rgba(10, 18, 32, 0.85);
+  --surface-list: rgba(8, 14, 26, 0.72);
+  --surface-detail: rgba(5, 10, 18, 0.55);
+  --surface-panel: rgba(10, 18, 32, 0.88);
+  --surface-card: rgba(16, 28, 48, 0.65);
+  --surface-card-alt: rgba(16, 28, 48, 0.55);
+  --surface-card-active: rgba(15, 41, 38, 0.75);
+  --surface-hover: rgba(16, 28, 48, 0.65);
+  --surface-active: rgba(15, 41, 38, 0.75);
+  --surface-inset: rgba(5, 10, 18, 0.45);
+  --surface-inset-deep: rgba(5, 10, 18, 0.55);
+  --surface-filter: rgba(5, 10, 18, 0.38);
+  --surface-input: rgba(8, 14, 26, 0.78);
+  --surface-icon-btn: rgba(8, 14, 26, 0.65);
+  --surface-compose: #1a2438;
+  --surface-compose-bar: #243352;
+  --surface-compose-muted: rgba(5, 10, 18, 0.35);
+  --surface-compose-footer: rgba(5, 10, 18, 0.4);
+  --surface-dropdown: rgba(10, 18, 32, 0.98);
+  --surface-table-head: rgba(10, 18, 32, 0.98);
+  --surface-tracking: rgba(8, 18, 28, 0.72);
+  --surface-chip: rgba(16, 28, 48, 0.58);
+  --surface-sender: rgba(10, 18, 32, 0.55);
+  --surface-sender-active: rgba(15, 41, 38, 0.55);
+  --surface-day: rgba(16, 28, 48, 0.48);
+  --surface-enterprise: rgba(5, 10, 18, 0.46);
+  --surface-form: rgba(5, 10, 18, 0.65);
+  --surface-form-alt: rgba(5, 10, 18, 0.48);
+  --surface-notice: rgba(8, 14, 26, 0.8);
+  --text: #e8eef8;
+  --muted: #8ba3c7;
+  --accent: #14b8a6;
+  --accent-dark: #0d9488;
+  --accent-light: #2dd4bf;
+  --accent-2: #2dd4bf;
+  --accent-soft: rgba(20, 184, 166, 0.15);
+  --warm: #ffb020;
+  --border: rgba(139, 163, 199, 0.18);
+  --accent-border: rgba(45, 212, 191, 0.38);
+  --font-body: var(--font-app);
+  --font-display: var(--font-app);
+  --radius: 14px;
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --space-section: 1.75rem;
+  --space-card: 1.5rem;
+  --space-field: 1rem;
+  --input-min-h: 2.75rem;
+  accent-color: var(--accent);
+
+  min-height: 100dvh;
+  max-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-app);
+}
+
+.pmail-demo-shell > .bespoke-demo {
+  flex: 1;
+  min-height: 0;
+}
+
+.pmail-demo-shell--light {
+  --surface-search-advanced: var(--surface-card);
+  --surface-search-advanced-input: var(--surface-input);
+  --scrollbar-track: #eef1f6;
+  --scrollbar-thumb: #c5d0de;
+  --scrollbar-thumb-hover: #94a3b8;
+  --bg: #e4e9f0;
+  --bg-canvas: #e4e9f0;
+  --bg-sidebar: #eef1f6;
+  --bg-list: #ffffff;
+  --bg-detail: #f5f7fa;
+  --bg-2: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-panel: #ffffff;
+  --bg-inset: #f8fafc;
+  --surface-chrome: #ffffff;
+  --surface-tabs: #ffffff;
+  --surface-toolbar: #f8fafc;
+  --surface-sidebar: #eef1f6;
+  --surface-list: #ffffff;
+  --surface-detail: #f5f7fa;
+  --surface-panel: #f8fafc;
+  --surface-card: #ffffff;
+  --surface-card-alt: #f8fafc;
+  --surface-card-active: #ecf8f6;
+  --surface-hover: #f1f5f9;
+  --surface-active: #ecf8f6;
+  --surface-inset: #f8fafc;
+  --surface-inset-deep: #f1f5f9;
+  --surface-filter: #f1f5f9;
+  --surface-input: #f8fafc;
+  --surface-icon-btn: #f8fafc;
+  --surface-compose: #ffffff;
+  --surface-compose-bar: #f1f5f9;
+  --surface-compose-muted: #f8fafc;
+  --surface-compose-footer: #f8fafc;
+  --surface-dropdown: #ffffff;
+  --surface-table-head: #f1f5f9;
+  --surface-tracking: #f8fafc;
+  --surface-chip: #ffffff;
+  --surface-sender: #f8fafc;
+  --surface-sender-active: #ecf8f6;
+  --surface-day: #ffffff;
+  --surface-enterprise: #f8fafc;
+  --surface-form: #ffffff;
+  --surface-form-alt: #f8fafc;
+  --surface-notice: #f8fafc;
+  --surface-overlay: rgba(228, 233, 240, 0.88);
+  --text: #152033;
+  --text-secondary: #334155;
+  --muted: #64748b;
+  --accent: #0d9488;
+  --accent-dark: #0f766e;
+  --accent-light: #14b8a6;
+  --accent-2: #0d9488;
+  --accent-soft: #ecf8f6;
+  --accent-border: rgba(13, 148, 136, 0.38);
+  --warm: #b45309;
+  --border: #c8d1dc;
+  --border-subtle: #e2e8f0;
+  --border-strong: #aeb9c8;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.07);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.1);
+  background: var(--bg-canvas);
+  color-scheme: light;
+}
+
+.pmail-demo-shell--light .bespoke-demo {
+  background: var(--bg-canvas);
+}
+
+.pmail-demo-shell--light .btn-secondary,
+.pmail-demo-shell--light .btn-ghost {
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell--light .btn-primary {
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.22);
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell {
+  background: var(--bg-canvas);
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell .mail-view-header,
+.pmail-demo-shell--light .bespoke-demo-industry-shell .feature-form,
+.pmail-demo-shell--light .bespoke-demo-industry-shell .feature-form-grid,
+.pmail-demo-shell--light .bespoke-demo-industry-shell .feature-list-card,
+.pmail-demo-shell--light .bespoke-demo-industry-shell .mail-template-card,
+.pmail-demo-shell--light .bespoke-demo-industry-shell .workspace-detail {
+  background: var(--bg-card);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell .feature-list-card--active {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px rgba(13, 148, 136, 0.12);
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell input,
+.pmail-demo-shell--light .bespoke-demo-industry-shell select,
+.pmail-demo-shell--light .bespoke-demo-industry-shell textarea {
+  min-height: var(--input-min-h);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-control);
+  background-color: var(--bg-inset);
+  border-color: var(--border);
+  color: var(--text);
+  color-scheme: light;
+  accent-color: var(--accent);
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell input:focus,
+.pmail-demo-shell--light .bespoke-demo-industry-shell select:focus,
+.pmail-demo-shell--light .bespoke-demo-industry-shell textarea:focus {
+  background-color: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.14);
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell .feature-list-card p,
+.pmail-demo-shell--light .bespoke-demo-industry-shell .workspace-detail p,
+.pmail-demo-shell--light .bespoke-demo-industry-shell .mail-template-card p {
+  color: var(--muted);
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell .mail-view-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell .mail-view-success {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell .mail-toolbar-btn {
+  background: var(--bg-inset);
+  border-color: var(--border);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell .mail-toolbar-btn:hover,
+.pmail-demo-shell--light .bespoke-demo-industry-shell .mail-toolbar-btn--active {
+  background: var(--accent);
+  border-color: var(--accent-dark);
+  color: #ffffff;
+}
+
+.pmail-demo-shell .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.pmail-demo-shell .btn:hover {
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.pmail-demo-shell .btn-primary {
+  background: linear-gradient(135deg, var(--accent-light), var(--accent-dark));
+  color: #042f2e;
+  box-shadow: 0 8px 24px rgba(20, 184, 166, 0.25);
+}
+
+.pmail-demo-shell .btn-secondary {
+  border-color: var(--border);
+  background: var(--surface-inset);
+}
+
+.pmail-demo-shell .btn-ghost {
+  border-color: var(--border);
+  background: transparent;
+}
+
+.pmail-demo-shell .btn-block {
+  width: 100%;
+}
+
+.pmail-demo-shell--missing {
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell {
+  background:
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.1), transparent 28rem),
+    var(--bg-canvas);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-view-panel {
+  display: grid;
+  gap: var(--space-section);
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  color: var(--text);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-view-header,
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-form,
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-form-grid,
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-list-card,
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-template-card,
+.pmail-demo-shell .bespoke-demo-industry-shell .workspace-detail {
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-view-header {
+  padding: var(--space-card) 1.75rem;
+  border-radius: var(--radius-card);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-view-header h2 {
+  color: var(--text);
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-view-header p,
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-view-empty,
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-template-desc,
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-form-hint,
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-id,
+.pmail-demo-shell .bespoke-demo-industry-shell small {
+  color: var(--muted);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell h3,
+.pmail-demo-shell .bespoke-demo-industry-shell strong,
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-template-subject {
+  color: var(--text);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-form,
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-form-grid {
+  gap: var(--space-field);
+  padding: var(--space-card);
+  border-radius: var(--radius-card);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: start;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-form-grid section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell input,
+.pmail-demo-shell .bespoke-demo-industry-shell select,
+.pmail-demo-shell .bespoke-demo-industry-shell textarea {
+  min-height: var(--input-min-h);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+  background: var(--surface-input);
+  color: var(--text);
+  outline: none;
+  font: inherit;
+  accent-color: var(--accent);
+  color-scheme: dark;
+  line-height: 1.4;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell textarea {
+  min-height: 9rem;
+  padding-top: 0.85rem;
+  resize: vertical;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell input::placeholder,
+.pmail-demo-shell .bespoke-demo-industry-shell textarea::placeholder {
+  color: rgba(139, 163, 199, 0.7);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell input:focus,
+.pmail-demo-shell .bespoke-demo-industry-shell select:focus,
+.pmail-demo-shell .bespoke-demo-industry-shell textarea:focus {
+  border-color: rgba(45, 212, 191, 0.62);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell option {
+  background-color: var(--surface-dropdown);
+  color: var(--text);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell option:checked,
+.pmail-demo-shell .bespoke-demo-industry-shell option:hover,
+.pmail-demo-shell .bespoke-demo-industry-shell option:focus,
+.pmail-demo-shell .bespoke-demo-industry-shell option:active {
+  background-color: var(--accent-soft);
+  color: var(--text);
+}
+
+/* Dropdown lists — override system blue with brand accent */
+.pmail-demo-shell .bespoke-demo-field select,
+.pmail-demo-shell .bespoke-demo select,
+.pmail-demo-shell .bespoke-demo-industry-shell select,
+.pmail-demo-shell .mail-view-panel select,
+.pmail-demo-shell .accounting-tool-shell select,
+.pmail-demo-shell .accounting-command-panel select,
+.pmail-demo-shell .accounting-record-panel select,
+.pmail-demo-shell .accounting-record-card select,
+.pmail-demo-shell .accounting-inline-grid select,
+.pmail-demo-shell .healthcare-tool-shell select,
+.pmail-demo-shell .healthcare-intake-panel select,
+.pmail-demo-shell .healthcare-record-panel select,
+.pmail-demo-shell .healthcare-chart-card select,
+.pmail-demo-shell .healthcare-encounter-card select,
+.pmail-demo-shell .healthcare-referral-card select,
+.pmail-demo-shell .healthcare-audit-card select,
+.pmail-demo-shell .healthcare-field-grid select,
+.pmail-demo-shell .industry-ws-tool-shell select,
+.pmail-demo-shell .industry-ws-intake-panel select,
+.pmail-demo-shell .industry-ws-record-panel select,
+.pmail-demo-shell .industry-ws-board-card select,
+.pmail-demo-shell .industry-ws-timeline-card select,
+.pmail-demo-shell .industry-ws-field-grid select,
+.pmail-demo-shell .feature-form select,
+.pmail-demo-shell .feature-form-grid select,
+.pmail-demo-shell .feature-list-card select,
+.pmail-demo-shell .workspace-detail select,
+.pmail-demo-shell .bespoke-demo-calendar-view-select,
+.pmail-demo-shell .gmail-compose__select {
+  accent-color: var(--accent);
+}
+
+.pmail-demo-shell .bespoke-demo select:focus,
+.pmail-demo-shell .bespoke-demo-industry-shell select:focus,
+.pmail-demo-shell .accounting-command-panel select:focus,
+.pmail-demo-shell .accounting-record-panel select:focus,
+.pmail-demo-shell .feature-form select:focus,
+.pmail-demo-shell .feature-form-grid select:focus,
+.pmail-demo-shell .bespoke-demo-calendar-view-select:focus,
+.pmail-demo-shell .gmail-compose__select:focus {
+  outline: none;
+}
+
+.pmail-demo-shell .bespoke-demo-field option,
+.pmail-demo-shell .bespoke-demo option,
+.pmail-demo-shell .mail-view-panel option,
+.pmail-demo-shell .accounting-command-panel option,
+.pmail-demo-shell .accounting-record-panel option,
+.pmail-demo-shell .accounting-record-card option,
+.pmail-demo-shell .accounting-inline-grid option,
+.pmail-demo-shell .healthcare-intake-panel option,
+.pmail-demo-shell .healthcare-record-panel option,
+.pmail-demo-shell .healthcare-chart-card option,
+.pmail-demo-shell .healthcare-encounter-card option,
+.pmail-demo-shell .healthcare-referral-card option,
+.pmail-demo-shell .healthcare-audit-card option,
+.pmail-demo-shell .healthcare-field-grid option,
+.pmail-demo-shell .feature-form option,
+.pmail-demo-shell .feature-form-grid option,
+.pmail-demo-shell .feature-list-card option,
+.pmail-demo-shell .workspace-detail option {
+  background-color: var(--surface-dropdown);
+  color: var(--text);
+}
+
+.pmail-demo-shell .bespoke-demo-field option:checked,
+.pmail-demo-shell .bespoke-demo-field option:hover,
+.pmail-demo-shell .bespoke-demo-field option:focus,
+.pmail-demo-shell .bespoke-demo-field option:active,
+.pmail-demo-shell .bespoke-demo option:checked,
+.pmail-demo-shell .bespoke-demo option:hover,
+.pmail-demo-shell .bespoke-demo option:focus,
+.pmail-demo-shell .bespoke-demo option:active,
+.pmail-demo-shell .accounting-command-panel option:checked,
+.pmail-demo-shell .accounting-record-panel option:checked,
+.pmail-demo-shell .accounting-record-card option:checked,
+.pmail-demo-shell .accounting-inline-grid option:checked,
+.pmail-demo-shell .healthcare-intake-panel option:checked,
+.pmail-demo-shell .healthcare-record-panel option:checked,
+.pmail-demo-shell .healthcare-chart-card option:checked,
+.pmail-demo-shell .healthcare-encounter-card option:checked,
+.pmail-demo-shell .healthcare-referral-card option:checked,
+.pmail-demo-shell .healthcare-audit-card option:checked,
+.pmail-demo-shell .healthcare-field-grid option:checked,
+.pmail-demo-shell .accounting-command-panel option:hover,
+.pmail-demo-shell .accounting-record-panel option:hover,
+.pmail-demo-shell .accounting-record-card option:hover,
+.pmail-demo-shell .accounting-inline-grid option:hover,
+.pmail-demo-shell .healthcare-intake-panel option:hover,
+.pmail-demo-shell .healthcare-record-panel option:hover,
+.pmail-demo-shell .healthcare-chart-card option:hover,
+.pmail-demo-shell .healthcare-encounter-card option:hover,
+.pmail-demo-shell .healthcare-referral-card option:hover,
+.pmail-demo-shell .healthcare-audit-card option:hover,
+.pmail-demo-shell .healthcare-field-grid option:hover,
+.pmail-demo-shell .accounting-command-panel option:focus,
+.pmail-demo-shell .accounting-record-panel option:focus,
+.pmail-demo-shell .accounting-record-card option:focus,
+.pmail-demo-shell .accounting-inline-grid option:focus,
+.pmail-demo-shell .healthcare-intake-panel option:focus,
+.pmail-demo-shell .healthcare-record-panel option:focus,
+.pmail-demo-shell .healthcare-chart-card option:focus,
+.pmail-demo-shell .healthcare-encounter-card option:focus,
+.pmail-demo-shell .healthcare-referral-card option:focus,
+.pmail-demo-shell .healthcare-audit-card option:focus,
+.pmail-demo-shell .healthcare-field-grid option:focus,
+.pmail-demo-shell .accounting-command-panel option:active,
+.pmail-demo-shell .accounting-record-panel option:active,
+.pmail-demo-shell .accounting-record-card option:active,
+.pmail-demo-shell .accounting-inline-grid option:active,
+.pmail-demo-shell .healthcare-intake-panel option:active,
+.pmail-demo-shell .healthcare-record-panel option:active,
+.pmail-demo-shell .healthcare-chart-card option:active,
+.pmail-demo-shell .healthcare-encounter-card option:active,
+.pmail-demo-shell .healthcare-referral-card option:active,
+.pmail-demo-shell .healthcare-audit-card option:active,
+.pmail-demo-shell .healthcare-field-grid option:active,
+.pmail-demo-shell .feature-form option:checked,
+.pmail-demo-shell .feature-form-grid option:checked {
+  background-color: var(--accent-soft);
+  color: var(--text);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-list,
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-template-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-list-card,
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-template-card,
+.pmail-demo-shell .bespoke-demo-industry-shell .workspace-detail {
+  border-radius: var(--radius-card);
+  padding: 1.25rem 1.35rem;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .workspace-split {
+  align-items: start;
+  gap: var(--space-section);
+  margin-top: var(--space-section);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .workspace-detail {
+  padding: var(--space-card);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--input-min-h);
+  padding: 0.7rem 1.35rem;
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-list-card p,
+.pmail-demo-shell .bespoke-demo-industry-shell .workspace-detail p,
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-template-card p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-list-card--active {
+  border-color: rgba(45, 212, 191, 0.58);
+  background: var(--surface-card-active);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-toolbar-btn:hover,
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-toolbar-btn--active {
+  background: linear-gradient(135deg, var(--accent-light), var(--accent-dark));
+  border-color: var(--accent-dark);
+  color: #042f2e;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-view-error {
+  padding: 0.85rem 1.1rem;
+  border: 1px solid rgba(248, 113, 113, 0.28);
+  border-radius: var(--radius-control);
+  background: rgba(127, 29, 29, 0.18);
+  color: #fecaca;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-view-success {
+  padding: 0.85rem 1.1rem;
+  border: 1px solid rgba(45, 212, 191, 0.32);
+  border-radius: var(--radius-control);
+  background: rgba(20, 184, 166, 0.13);
+  color: var(--accent-2);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-view-panel > h3,
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-form h3,
+.pmail-demo-shell .bespoke-demo-industry-shell .feature-form-grid h3 {
+  margin: 0;
+  color: var(--accent-2);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell .mail-view-panel > h3 {
+  padding: 0.15rem 0 0;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell input[type="date"],
+.pmail-demo-shell .bespoke-demo-industry-shell input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell input[type="date"]::-webkit-calendar-picker-indicator,
+.pmail-demo-shell .bespoke-demo-industry-shell input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(78%) sepia(66%) saturate(487%) hue-rotate(121deg) brightness(92%) contrast(91%);
+}
+
+.pmail-demo-shell .bespoke-demo-industry-shell input[type="checkbox"],
+.pmail-demo-shell .bespoke-demo-industry-shell input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+.pmail-demo-shell .accounting-tool-shell {
+  gap: var(--space-section);
+}
+
+.pmail-demo-shell .accounting-tool-hero,
+.pmail-demo-shell .accounting-command-panel,
+.pmail-demo-shell .accounting-record-panel,
+.pmail-demo-shell .accounting-empty-state,
+.pmail-demo-shell .accounting-record-card,
+.pmail-demo-shell .accounting-timeline-card {
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell .accounting-tool-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.8fr);
+  gap: var(--space-section);
+  align-items: stretch;
+  padding: 1.75rem;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  position: relative;
+}
+
+.pmail-demo-shell .accounting-tool-hero::before {
+  content: "";
+  position: absolute;
+  inset: -35% auto auto 12%;
+  width: 28rem;
+  height: 28rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.18), transparent 65%);
+  pointer-events: none;
+}
+
+.pmail-demo-shell .accounting-tool-hero > * {
+  position: relative;
+}
+
+.pmail-demo-shell .accounting-tool-eyebrow {
+  display: inline-flex;
+  margin-bottom: 0.55rem;
+  color: var(--accent-2);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .accounting-tool-hero h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.45rem, 2.2vw, 2.25rem);
+  letter-spacing: -0.04em;
+}
+
+.pmail-demo-shell .accounting-tool-hero p {
+  max-width: 52rem;
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.pmail-demo-shell .accounting-tool-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .accounting-tool-stat {
+  display: grid;
+  align-content: center;
+  min-height: 6.75rem;
+  padding: 1.1rem 1.15rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface-inset);
+}
+
+.pmail-demo-shell .accounting-tool-stat strong {
+  color: var(--text);
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.pmail-demo-shell .accounting-tool-stat span {
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .accounting-tool-stat--accent {
+  border-color: rgba(45, 212, 191, 0.38);
+  background: rgba(20, 184, 166, 0.1);
+}
+
+.pmail-demo-shell .accounting-tool-stat--warn {
+  border-color: rgba(251, 191, 36, 0.42);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.pmail-demo-shell .accounting-tool-stat--ok {
+  border-color: rgba(34, 197, 94, 0.34);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.pmail-demo-shell .accounting-tool-layout {
+  display: grid;
+  gap: var(--space-section);
+}
+
+.pmail-demo-shell .accounting-tool-layout--split,
+.pmail-demo-shell .accounting-tool-layout--calendar,
+.pmail-demo-shell .accounting-tool-layout--registry {
+  grid-template-columns: minmax(22rem, 0.82fr) minmax(0, 1.18fr);
+  align-items: start;
+  gap: var(--space-section);
+}
+
+.pmail-demo-shell .accounting-command-panel,
+.pmail-demo-shell .accounting-record-panel {
+  display: grid;
+  gap: var(--space-field);
+  padding: var(--space-card);
+  border-radius: var(--radius-card);
+}
+
+.pmail-demo-shell .accounting-command-panel input,
+.pmail-demo-shell .accounting-command-panel select,
+.pmail-demo-shell .accounting-command-panel textarea,
+.pmail-demo-shell .accounting-record-panel input,
+.pmail-demo-shell .accounting-record-panel select,
+.pmail-demo-shell .accounting-record-panel textarea,
+.pmail-demo-shell .accounting-record-card select,
+.pmail-demo-shell .accounting-inline-grid select {
+  min-height: var(--input-min-h);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+  background: var(--surface-input);
+  color: var(--text);
+  outline: none;
+  font: inherit;
+  accent-color: var(--accent);
+  line-height: 1.4;
+}
+
+.pmail-demo-shell .accounting-command-panel select:focus,
+.pmail-demo-shell .accounting-record-panel select:focus,
+.pmail-demo-shell .accounting-record-card select:focus,
+.pmail-demo-shell .accounting-inline-grid select:focus {
+  border-color: rgba(45, 212, 191, 0.62);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+}
+
+.pmail-demo-shell .accounting-command-panel--primary {
+  border-color: rgba(45, 212, 191, 0.25);
+}
+
+.pmail-demo-shell .accounting-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.pmail-demo-shell .accounting-section-head > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .accounting-section-head h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.pmail-demo-shell .accounting-section-head p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.pmail-demo-shell .accounting-inline-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .accounting-record-grid,
+.pmail-demo-shell .accounting-template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .accounting-record-grid--compact {
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.pmail-demo-shell .accounting-record-card,
+.pmail-demo-shell .accounting-timeline-card,
+.pmail-demo-shell .accounting-empty-state {
+  border-radius: var(--radius-card);
+  padding: 1.15rem 1.25rem;
+}
+
+.pmail-demo-shell .accounting-record-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pmail-demo-shell .accounting-record-card--active {
+  border-color: rgba(45, 212, 191, 0.62);
+  background: var(--surface-card-active);
+}
+
+.pmail-demo-shell .accounting-record-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pmail-demo-shell .accounting-record-top span {
+  flex-shrink: 0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.12);
+  color: var(--accent-2);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.pmail-demo-shell .accounting-record-card p,
+.pmail-demo-shell .accounting-timeline-card p,
+.pmail-demo-shell .accounting-empty-state p,
+.pmail-demo-shell .accounting-note-list p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pmail-demo-shell .accounting-timeline-list,
+.pmail-demo-shell .accounting-note-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pmail-demo-shell .accounting-timeline-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(11rem, 0.36fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.pmail-demo-shell .accounting-empty-state {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 8rem;
+  align-content: center;
+  text-align: center;
+}
+
+.pmail-demo-shell .accounting-note-list li {
+  padding: 0.9rem;
+  border: 1px solid var(--border-subtle, var(--border));
+  border-radius: 16px;
+  background: var(--surface-inset);
+}
+
+@media (max-width: 980px) {
+  .pmail-demo-shell .accounting-tool-hero,
+  .pmail-demo-shell .accounting-tool-layout--split,
+  .pmail-demo-shell .accounting-tool-layout--calendar,
+  .pmail-demo-shell .accounting-tool-layout--registry,
+  .pmail-demo-shell .accounting-timeline-card {
+    grid-template-columns: 1fr;
+  }
+
+  .pmail-demo-shell .accounting-tool-stats,
+  .pmail-demo-shell .accounting-inline-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Healthcare clinical tool panels ─── */
+
+.pmail-demo-shell .healthcare-tool-shell {
+  gap: var(--space-section);
+}
+
+.pmail-demo-shell .healthcare-tool-shell--registry {
+  --hc-lane: #38bdf8;
+  --hc-lane-soft: rgba(56, 189, 248, 0.14);
+  --hc-lane-border: rgba(56, 189, 248, 0.34);
+}
+
+.pmail-demo-shell .healthcare-tool-shell--scheduling {
+  --hc-lane: #2dd4bf;
+  --hc-lane-soft: rgba(45, 212, 191, 0.14);
+  --hc-lane-border: rgba(45, 212, 191, 0.34);
+}
+
+.pmail-demo-shell .healthcare-tool-shell--referrals {
+  --hc-lane: #fbbf24;
+  --hc-lane-soft: rgba(251, 191, 36, 0.14);
+  --hc-lane-border: rgba(251, 191, 36, 0.34);
+}
+
+.pmail-demo-shell .healthcare-tool-shell--compliance {
+  --hc-lane: #a78bfa;
+  --hc-lane-soft: rgba(167, 139, 250, 0.14);
+  --hc-lane-border: rgba(167, 139, 250, 0.34);
+}
+
+.pmail-demo-shell .healthcare-clinical-hero,
+.pmail-demo-shell .healthcare-intake-panel,
+.pmail-demo-shell .healthcare-record-panel,
+.pmail-demo-shell .healthcare-empty-state,
+.pmail-demo-shell .healthcare-chart-card,
+.pmail-demo-shell .healthcare-encounter-card,
+.pmail-demo-shell .healthcare-referral-card,
+.pmail-demo-shell .healthcare-audit-card,
+.pmail-demo-shell .healthcare-access-event,
+.pmail-demo-shell .healthcare-template-card {
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell .healthcare-clinical-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+  gap: var(--space-section);
+  align-items: stretch;
+  padding: 1.75rem;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  position: relative;
+  border-color: var(--hc-lane-border, var(--border));
+}
+
+.pmail-demo-shell .healthcare-clinical-hero::before {
+  content: "";
+  position: absolute;
+  inset: -40% auto auto 8%;
+  width: 26rem;
+  height: 26rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--hc-lane-soft, rgba(56, 189, 248, 0.14)), transparent 68%);
+  pointer-events: none;
+}
+
+.pmail-demo-shell .healthcare-clinical-hero > * {
+  position: relative;
+}
+
+.pmail-demo-shell .healthcare-clinical-eyebrow {
+  display: inline-flex;
+  margin-bottom: 0.55rem;
+  color: var(--hc-lane, var(--accent-2));
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .healthcare-clinical-hero h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.45rem, 2.2vw, 2.2rem);
+  letter-spacing: -0.04em;
+}
+
+.pmail-demo-shell .healthcare-clinical-hero p {
+  max-width: 52rem;
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.pmail-demo-shell .healthcare-vitals-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .healthcare-vital-chip {
+  display: grid;
+  align-content: center;
+  min-height: 6.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface-inset);
+  border-left: 4px solid var(--hc-lane, var(--accent));
+}
+
+.pmail-demo-shell .healthcare-vital-chip strong {
+  color: var(--text);
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.pmail-demo-shell .healthcare-vital-chip span {
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .healthcare-vital-chip--accent {
+  border-color: var(--hc-lane-border, rgba(45, 212, 191, 0.38));
+  background: var(--hc-lane-soft, rgba(20, 184, 166, 0.1));
+}
+
+.pmail-demo-shell .healthcare-vital-chip--warn {
+  border-color: rgba(251, 191, 36, 0.42);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.pmail-demo-shell .healthcare-vital-chip--ok {
+  border-color: rgba(34, 197, 94, 0.34);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.pmail-demo-shell .healthcare-vital-chip--alert {
+  border-color: rgba(248, 113, 113, 0.42);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.pmail-demo-shell .healthcare-tool-layout {
+  display: grid;
+  gap: var(--space-section);
+}
+
+.pmail-demo-shell .healthcare-tool-layout--split,
+.pmail-demo-shell .healthcare-tool-layout--schedule,
+.pmail-demo-shell .healthcare-tool-layout--audit {
+  grid-template-columns: minmax(22rem, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+}
+
+.pmail-demo-shell .healthcare-intake-panel,
+.pmail-demo-shell .healthcare-record-panel {
+  display: grid;
+  gap: var(--space-field);
+  padding: var(--space-card);
+  border-radius: var(--radius-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.pmail-demo-shell .healthcare-intake-panel::before,
+.pmail-demo-shell .healthcare-record-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--hc-lane, var(--accent));
+  opacity: 0.75;
+}
+
+.pmail-demo-shell .healthcare-intake-panel--primary {
+  border-color: var(--hc-lane-border, rgba(45, 212, 191, 0.25));
+}
+
+.pmail-demo-shell .healthcare-intake-panel input,
+.pmail-demo-shell .healthcare-intake-panel select,
+.pmail-demo-shell .healthcare-intake-panel textarea,
+.pmail-demo-shell .healthcare-record-panel input,
+.pmail-demo-shell .healthcare-record-panel select,
+.pmail-demo-shell .healthcare-record-panel textarea,
+.pmail-demo-shell .healthcare-chart-card select,
+.pmail-demo-shell .healthcare-encounter-card select,
+.pmail-demo-shell .healthcare-referral-card select,
+.pmail-demo-shell .healthcare-audit-card select,
+.pmail-demo-shell .healthcare-note-compose textarea,
+.pmail-demo-shell .healthcare-field-grid input,
+.pmail-demo-shell .healthcare-field-grid select {
+  min-height: var(--input-min-h);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+  background: var(--surface-input);
+  color: var(--text);
+  outline: none;
+  font: inherit;
+  accent-color: var(--accent);
+  line-height: 1.4;
+}
+
+.pmail-demo-shell .healthcare-intake-panel select:focus,
+.pmail-demo-shell .healthcare-record-panel select:focus,
+.pmail-demo-shell .healthcare-chart-card select:focus,
+.pmail-demo-shell .healthcare-encounter-card select:focus,
+.pmail-demo-shell .healthcare-referral-card select:focus,
+.pmail-demo-shell .healthcare-audit-card select:focus,
+.pmail-demo-shell .healthcare-note-compose textarea:focus {
+  border-color: var(--hc-lane-border, rgba(45, 212, 191, 0.62));
+  box-shadow: 0 0 0 3px var(--hc-lane-soft, rgba(20, 184, 166, 0.12));
+}
+
+.pmail-demo-shell .healthcare-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.pmail-demo-shell .healthcare-section-head > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--hc-lane-border, var(--accent-border));
+  border-radius: var(--radius-control);
+  background: var(--hc-lane-soft, var(--accent-soft));
+  color: var(--hc-lane, var(--accent-2));
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .healthcare-section-head h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.pmail-demo-shell .healthcare-section-head p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.pmail-demo-shell .healthcare-field-grid {
+  display: grid;
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .healthcare-field-grid--duo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pmail-demo-shell .healthcare-check-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.pmail-demo-shell .healthcare-action-btn {
+  justify-self: start;
+}
+
+.pmail-demo-shell .healthcare-chart-grid,
+.pmail-demo-shell .healthcare-referral-grid,
+.pmail-demo-shell .healthcare-audit-grid,
+.pmail-demo-shell .healthcare-template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .healthcare-chart-card,
+.pmail-demo-shell .healthcare-referral-card,
+.pmail-demo-shell .healthcare-audit-card,
+.pmail-demo-shell .healthcare-template-card,
+.pmail-demo-shell .healthcare-empty-state {
+  border-radius: var(--radius-card);
+  padding: 1.15rem 1.25rem;
+}
+
+.pmail-demo-shell .healthcare-chart-card,
+.pmail-demo-shell .healthcare-referral-card,
+.pmail-demo-shell .healthcare-audit-card,
+.pmail-demo-shell .healthcare-template-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pmail-demo-shell .healthcare-chart-card--callback,
+.pmail-demo-shell .healthcare-audit-card--active {
+  border-color: var(--hc-lane-border, rgba(45, 212, 191, 0.62));
+  background: var(--surface-card-active, var(--surface-card));
+}
+
+.pmail-demo-shell .healthcare-chart-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pmail-demo-shell .healthcare-chart-id {
+  display: block;
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.pmail-demo-shell .healthcare-chart-patient {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.pmail-demo-shell .healthcare-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.pmail-demo-shell .healthcare-status-pill {
+  flex-shrink: 0;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: var(--hc-lane-soft, rgba(20, 184, 166, 0.12));
+  color: var(--hc-lane, var(--accent-2));
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.pmail-demo-shell .healthcare-status-pill--warn {
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+}
+
+.pmail-demo-shell .healthcare-status-pill--ok {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+}
+
+.pmail-demo-shell .healthcare-status-pill--alert {
+  background: rgba(248, 113, 113, 0.14);
+  color: #f87171;
+}
+
+.pmail-demo-shell .healthcare-status-pill--accent {
+  background: var(--hc-lane-soft, rgba(20, 184, 166, 0.12));
+  color: var(--hc-lane, var(--accent-2));
+}
+
+.pmail-demo-shell .healthcare-chart-card p,
+.pmail-demo-shell .healthcare-referral-card p,
+.pmail-demo-shell .healthcare-audit-card p,
+.pmail-demo-shell .healthcare-template-card p,
+.pmail-demo-shell .healthcare-empty-state p,
+.pmail-demo-shell .healthcare-access-event p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pmail-demo-shell .healthcare-encounter-timeline {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pmail-demo-shell .healthcare-encounter-card {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-card);
+}
+
+.pmail-demo-shell .healthcare-encounter-card--today {
+  border-color: var(--hc-lane-border, rgba(45, 212, 191, 0.45));
+  box-shadow: inset 0 0 0 1px var(--hc-lane-soft, rgba(20, 184, 166, 0.1));
+}
+
+.pmail-demo-shell .healthcare-encounter-time {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 12px;
+  background: var(--hc-lane-soft, var(--surface-inset));
+  text-align: center;
+}
+
+.pmail-demo-shell .healthcare-encounter-time strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.pmail-demo-shell .healthcare-encounter-time span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .healthcare-encounter-body {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.pmail-demo-shell .healthcare-referral-card--stat {
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.pmail-demo-shell .healthcare-referral-card--urgent {
+  border-color: rgba(251, 191, 36, 0.42);
+}
+
+.pmail-demo-shell .healthcare-access-stream {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.pmail-demo-shell .healthcare-access-event {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: start;
+  padding: 0.95rem 1rem;
+  border-radius: var(--radius-card);
+}
+
+.pmail-demo-shell .healthcare-access-event-marker {
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.45rem;
+  border-radius: 50%;
+  background: var(--hc-lane, var(--accent));
+  box-shadow: 0 0 0 4px var(--hc-lane-soft, rgba(20, 184, 166, 0.12));
+}
+
+.pmail-demo-shell .healthcare-access-meta {
+  font-size: 0.8rem;
+}
+
+.pmail-demo-shell .healthcare-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.pmail-demo-shell .healthcare-note-compose {
+  display: grid;
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .healthcare-note-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pmail-demo-shell .healthcare-note-list li {
+  padding: 0.9rem;
+  border: 1px solid var(--border-subtle, var(--border));
+  border-radius: 16px;
+  background: var(--surface-inset);
+}
+
+.pmail-demo-shell .healthcare-template-subject {
+  font-size: 0.84rem;
+}
+
+.pmail-demo-shell .healthcare-empty-state {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 8rem;
+  align-content: center;
+  text-align: center;
+}
+
+.pmail-demo-shell .healthcare-tool-shell select,
+.pmail-demo-shell .healthcare-intake-panel select,
+.pmail-demo-shell .healthcare-record-panel select,
+.pmail-demo-shell .healthcare-chart-card select,
+.pmail-demo-shell .healthcare-encounter-card select,
+.pmail-demo-shell .healthcare-referral-card select,
+.pmail-demo-shell .healthcare-audit-card select,
+.pmail-demo-shell .healthcare-field-grid select {
+  color-scheme: dark;
+}
+
+@media (max-width: 980px) {
+  .pmail-demo-shell .healthcare-clinical-hero,
+  .pmail-demo-shell .healthcare-tool-layout--split,
+  .pmail-demo-shell .healthcare-tool-layout--schedule,
+  .pmail-demo-shell .healthcare-tool-layout--audit {
+    grid-template-columns: 1fr;
+  }
+
+  .pmail-demo-shell .healthcare-vitals-strip,
+  .pmail-demo-shell .healthcare-field-grid--duo {
+    grid-template-columns: 1fr;
+  }
+
+  .pmail-demo-shell .healthcare-encounter-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Industry workstation tool panels (real estate) ─── */
+
+.pmail-demo-shell .industry-ws-tool-shell {
+  gap: var(--space-section);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--listings {
+  --ws-lane: #0ea5e9;
+  --ws-lane-soft: rgba(14, 165, 233, 0.14);
+  --ws-lane-border: rgba(14, 165, 233, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--showings {
+  --ws-lane: #10b981;
+  --ws-lane-soft: rgba(16, 185, 129, 0.14);
+  --ws-lane-border: rgba(16, 185, 129, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--templates {
+  --ws-lane: #f59e0b;
+  --ws-lane-soft: rgba(245, 158, 11, 0.14);
+  --ws-lane-border: rgba(245, 158, 11, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--deals {
+  --ws-lane: #8b5cf6;
+  --ws-lane-soft: rgba(139, 92, 246, 0.14);
+  --ws-lane-border: rgba(139, 92, 246, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--pipeline {
+  --ws-lane: #6366f1;
+  --ws-lane-soft: rgba(99, 102, 241, 0.14);
+  --ws-lane-border: rgba(99, 102, 241, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--schedule {
+  --ws-lane: #14b8a6;
+  --ws-lane-soft: rgba(20, 184, 166, 0.14);
+  --ws-lane-border: rgba(20, 184, 166, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--outreach {
+  --ws-lane: #f97316;
+  --ws-lane-soft: rgba(249, 115, 22, 0.14);
+  --ws-lane-border: rgba(249, 115, 22, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--search {
+  --ws-lane: #a855f7;
+  --ws-lane-soft: rgba(168, 85, 247, 0.14);
+  --ws-lane-border: rgba(168, 85, 247, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--workspaces {
+  --ws-lane: #0ea5e9;
+  --ws-lane-soft: rgba(14, 165, 233, 0.14);
+  --ws-lane-border: rgba(14, 165, 233, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--projects {
+  --ws-lane: #14b8a6;
+  --ws-lane-soft: rgba(20, 184, 166, 0.14);
+  --ws-lane-border: rgba(20, 184, 166, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--proposals {
+  --ws-lane: #f59e0b;
+  --ws-lane-soft: rgba(245, 158, 11, 0.14);
+  --ws-lane-border: rgba(245, 158, 11, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--sla {
+  --ws-lane: #ef4444;
+  --ws-lane-soft: rgba(239, 68, 68, 0.14);
+  --ws-lane-border: rgba(239, 68, 68, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--intake {
+  --ws-lane: #14b8a6;
+  --ws-lane-soft: rgba(20, 184, 166, 0.14);
+  --ws-lane-border: rgba(20, 184, 166, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--deadlines {
+  --ws-lane: #f59e0b;
+  --ws-lane-soft: rgba(245, 158, 11, 0.14);
+  --ws-lane-border: rgba(245, 158, 11, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--secure {
+  --ws-lane: #8b5cf6;
+  --ws-lane-soft: rgba(139, 92, 246, 0.14);
+  --ws-lane-border: rgba(139, 92, 246, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-tool-shell--clients {
+  --ws-lane: #6366f1;
+  --ws-lane-soft: rgba(99, 102, 241, 0.14);
+  --ws-lane-border: rgba(99, 102, 241, 0.34);
+}
+
+.pmail-demo-shell .industry-ws-hero,
+.pmail-demo-shell .industry-ws-intake-panel,
+.pmail-demo-shell .industry-ws-record-panel,
+.pmail-demo-shell .industry-ws-empty-state,
+.pmail-demo-shell .industry-ws-board-card,
+.pmail-demo-shell .industry-ws-timeline-card,
+.pmail-demo-shell .industry-ws-stream-event,
+.pmail-demo-shell .industry-ws-template-card {
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell .industry-ws-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+  gap: var(--space-section);
+  align-items: stretch;
+  padding: 1.75rem;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  position: relative;
+  border-color: var(--ws-lane-border, var(--border));
+}
+
+.pmail-demo-shell .industry-ws-hero::before {
+  content: "";
+  position: absolute;
+  inset: -40% auto auto 8%;
+  width: 26rem;
+  height: 26rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--ws-lane-soft, rgba(14, 165, 233, 0.14)), transparent 68%);
+  pointer-events: none;
+}
+
+.pmail-demo-shell .industry-ws-hero > * {
+  position: relative;
+}
+
+.pmail-demo-shell .industry-ws-eyebrow {
+  display: inline-flex;
+  margin-bottom: 0.55rem;
+  color: var(--ws-lane, var(--accent-2));
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .industry-ws-hero h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.45rem, 2.2vw, 2.2rem);
+  letter-spacing: -0.04em;
+}
+
+.pmail-demo-shell .industry-ws-hero p {
+  max-width: 52rem;
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.pmail-demo-shell .industry-ws-vitals-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .industry-ws-vital-chip {
+  display: grid;
+  align-content: center;
+  min-height: 6.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface-inset);
+  border-left: 4px solid var(--ws-lane, var(--accent));
+}
+
+.pmail-demo-shell .industry-ws-vital-chip strong {
+  color: var(--text);
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.pmail-demo-shell .industry-ws-vital-chip span {
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .industry-ws-vital-chip--accent {
+  border-color: var(--ws-lane-border, rgba(16, 185, 129, 0.38));
+  background: var(--ws-lane-soft, rgba(16, 185, 129, 0.1));
+}
+
+.pmail-demo-shell .industry-ws-vital-chip--warn {
+  border-color: rgba(251, 191, 36, 0.42);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.pmail-demo-shell .industry-ws-vital-chip--ok {
+  border-color: rgba(34, 197, 94, 0.34);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.pmail-demo-shell .industry-ws-vital-chip--alert {
+  border-color: rgba(248, 113, 113, 0.42);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.pmail-demo-shell .industry-ws-tool-layout {
+  display: grid;
+  gap: var(--space-section);
+}
+
+.pmail-demo-shell .industry-ws-tool-layout--split,
+.pmail-demo-shell .industry-ws-tool-layout--schedule,
+.pmail-demo-shell .industry-ws-tool-layout--audit {
+  grid-template-columns: minmax(22rem, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+}
+
+.pmail-demo-shell .industry-ws-intake-panel,
+.pmail-demo-shell .industry-ws-record-panel {
+  display: grid;
+  gap: var(--space-field);
+  padding: var(--space-card);
+  border-radius: var(--radius-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.pmail-demo-shell .industry-ws-intake-panel::before,
+.pmail-demo-shell .industry-ws-record-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--ws-lane, var(--accent));
+  opacity: 0.75;
+}
+
+.pmail-demo-shell .industry-ws-intake-panel--primary {
+  border-color: var(--ws-lane-border, rgba(16, 185, 129, 0.25));
+}
+
+.pmail-demo-shell .industry-ws-intake-panel input,
+.pmail-demo-shell .industry-ws-intake-panel select,
+.pmail-demo-shell .industry-ws-intake-panel textarea,
+.pmail-demo-shell .industry-ws-record-panel input,
+.pmail-demo-shell .industry-ws-record-panel select,
+.pmail-demo-shell .industry-ws-record-panel textarea,
+.pmail-demo-shell .industry-ws-board-card select,
+.pmail-demo-shell .industry-ws-timeline-card select,
+.pmail-demo-shell .industry-ws-stream-event select,
+.pmail-demo-shell .industry-ws-note-compose textarea,
+.pmail-demo-shell .industry-ws-field-grid input,
+.pmail-demo-shell .industry-ws-field-grid select {
+  min-height: var(--input-min-h);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+  background: var(--surface-input);
+  color: var(--text);
+  outline: none;
+  font: inherit;
+  accent-color: var(--accent);
+  line-height: 1.4;
+}
+
+.pmail-demo-shell .industry-ws-intake-panel select:focus,
+.pmail-demo-shell .industry-ws-record-panel select:focus,
+.pmail-demo-shell .industry-ws-board-card select:focus,
+.pmail-demo-shell .industry-ws-timeline-card select:focus,
+.pmail-demo-shell .industry-ws-stream-event select:focus,
+.pmail-demo-shell .industry-ws-note-compose textarea:focus {
+  border-color: var(--ws-lane-border, rgba(16, 185, 129, 0.62));
+  box-shadow: 0 0 0 3px var(--ws-lane-soft, rgba(16, 185, 129, 0.12));
+}
+
+.pmail-demo-shell .industry-ws-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.pmail-demo-shell .industry-ws-section-head > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--ws-lane-border, var(--accent-border));
+  border-radius: var(--radius-control);
+  background: var(--ws-lane-soft, var(--accent-soft));
+  color: var(--ws-lane, var(--accent-2));
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .industry-ws-section-head h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.pmail-demo-shell .industry-ws-section-head p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.pmail-demo-shell .industry-ws-field-grid {
+  display: grid;
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .industry-ws-field-grid--duo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pmail-demo-shell .industry-ws-action-btn {
+  justify-self: start;
+}
+
+.pmail-demo-shell .industry-ws-board-grid,
+.pmail-demo-shell .industry-ws-template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .industry-ws-board-card,
+.pmail-demo-shell .industry-ws-template-card,
+.pmail-demo-shell .industry-ws-empty-state {
+  border-radius: var(--radius-card);
+  padding: 1.15rem 1.25rem;
+}
+
+.pmail-demo-shell .industry-ws-board-card,
+.pmail-demo-shell .industry-ws-template-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pmail-demo-shell .industry-ws-board-card--highlight,
+.pmail-demo-shell .industry-ws-board-card--active {
+  border-color: var(--ws-lane-border, rgba(16, 185, 129, 0.62));
+  background: var(--surface-card-active, var(--surface-card));
+}
+
+.pmail-demo-shell .industry-ws-board-card--urgent {
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.pmail-demo-shell .industry-ws-board-card--high {
+  border-color: rgba(251, 191, 36, 0.42);
+}
+
+.pmail-demo-shell .industry-ws-board-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pmail-demo-shell .industry-ws-board-id {
+  display: block;
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.pmail-demo-shell .industry-ws-board-subtitle {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.pmail-demo-shell .industry-ws-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.pmail-demo-shell .industry-ws-status-pill {
+  flex-shrink: 0;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: var(--ws-lane-soft, rgba(16, 185, 129, 0.12));
+  color: var(--ws-lane, var(--accent-2));
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.pmail-demo-shell .industry-ws-status-pill--warn {
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
+}
+
+.pmail-demo-shell .industry-ws-status-pill--ok {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+}
+
+.pmail-demo-shell .industry-ws-status-pill--alert {
+  background: rgba(248, 113, 113, 0.14);
+  color: #f87171;
+}
+
+.pmail-demo-shell .industry-ws-status-pill--accent {
+  background: var(--ws-lane-soft, rgba(16, 185, 129, 0.12));
+  color: var(--ws-lane, var(--accent-2));
+}
+
+.pmail-demo-shell .industry-ws-board-card p,
+.pmail-demo-shell .industry-ws-template-card p,
+.pmail-demo-shell .industry-ws-empty-state p,
+.pmail-demo-shell .industry-ws-stream-event p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pmail-demo-shell .industry-ws-timeline {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pmail-demo-shell .industry-ws-timeline-card {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-card);
+}
+
+.pmail-demo-shell .industry-ws-timeline-card--today {
+  border-color: var(--ws-lane-border, rgba(16, 185, 129, 0.45));
+  box-shadow: inset 0 0 0 1px var(--ws-lane-soft, rgba(16, 185, 129, 0.1));
+}
+
+.pmail-demo-shell .industry-ws-timeline-time {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 12px;
+  background: var(--ws-lane-soft, var(--surface-inset));
+  text-align: center;
+}
+
+.pmail-demo-shell .industry-ws-timeline-time strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.pmail-demo-shell .industry-ws-timeline-time span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pmail-demo-shell .industry-ws-timeline-body {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.pmail-demo-shell .industry-ws-stream {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.pmail-demo-shell .industry-ws-stream-event {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: start;
+  padding: 0.95rem 1rem;
+  border-radius: var(--radius-card);
+}
+
+.pmail-demo-shell .industry-ws-stream-marker {
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.45rem;
+  border-radius: 50%;
+  background: var(--ws-lane, var(--accent));
+  box-shadow: 0 0 0 4px var(--ws-lane-soft, rgba(16, 185, 129, 0.12));
+}
+
+.pmail-demo-shell .industry-ws-stream-meta {
+  font-size: 0.8rem;
+}
+
+.pmail-demo-shell .industry-ws-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.pmail-demo-shell .industry-ws-note-compose {
+  display: grid;
+  gap: var(--space-field);
+}
+
+.pmail-demo-shell .industry-ws-note-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pmail-demo-shell .industry-ws-note-list li {
+  padding: 0.9rem;
+  border: 1px solid var(--border-subtle, var(--border));
+  border-radius: 16px;
+  background: var(--surface-inset);
+}
+
+.pmail-demo-shell .industry-ws-template-subject {
+  font-size: 0.84rem;
+}
+
+.pmail-demo-shell .industry-ws-empty-state {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 8rem;
+  align-content: center;
+  text-align: center;
+}
+
+.pmail-demo-shell .industry-ws-tool-shell select,
+.pmail-demo-shell .industry-ws-intake-panel select,
+.pmail-demo-shell .industry-ws-record-panel select,
+.pmail-demo-shell .industry-ws-board-card select,
+.pmail-demo-shell .industry-ws-timeline-card select,
+.pmail-demo-shell .industry-ws-field-grid select {
+  color-scheme: dark;
+}
+
+@media (max-width: 980px) {
+  .pmail-demo-shell .industry-ws-hero,
+  .pmail-demo-shell .industry-ws-tool-layout--split,
+  .pmail-demo-shell .industry-ws-tool-layout--schedule,
+  .pmail-demo-shell .industry-ws-tool-layout--audit {
+    grid-template-columns: 1fr;
+  }
+
+  .pmail-demo-shell .industry-ws-vitals-strip,
+  .pmail-demo-shell .industry-ws-field-grid--duo {
+    grid-template-columns: 1fr;
+  }
+
+  .pmail-demo-shell .industry-ws-timeline-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Light theme: enterprise surface hierarchy ─── */
+
+/* Chrome layer — white header + tabs */
+.pmail-demo-shell--light .bespoke-demo-topbar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell--light .bespoke-demo-topbar-btn {
+  color: #64748b;
+  border-color: #dbe3ec;
+  background: #ffffff;
+}
+
+.pmail-demo-shell--light .bespoke-demo-topbar-btn:hover {
+  color: #0f172a;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.pmail-demo-shell--light .bespoke-demo-workspace-tabs {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-workspace-toolbar {
+  background: var(--bg-inset);
+  border-bottom: 1px solid var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-workspace-toolbar .bespoke-demo-toolbar-block {
+  border-right-color: var(--border-subtle);
+}
+
+/* Three-column mail shell — distinct surfaces */
+.pmail-demo-shell--light .bespoke-demo-sidebar {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-strong);
+}
+
+.pmail-demo-shell--light .bespoke-demo-list-pane {
+  background: var(--bg-list);
+  border-right: 1px solid var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-list-head {
+  background: var(--bg-inset);
+  border-bottom: 1px solid var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-detail-pane {
+  background: var(--bg-detail);
+}
+
+.pmail-demo-shell--light .bespoke-demo-detail-head {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-detail-icon-btn {
+  background: var(--bg-inset);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.pmail-demo-shell--light .bespoke-demo-detail-icon-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent-dark);
+}
+
+/* Full-width workspace panels share canvas + card pattern */
+.pmail-demo-shell--light .bespoke-demo-industry-shell,
+.pmail-demo-shell--light .bespoke-demo-settings-shell,
+.pmail-demo-shell--light .bespoke-demo-compose-pane,
+.pmail-demo-shell--light .bespoke-demo-calendar-pane,
+.pmail-demo-shell--light .bespoke-demo-messaging-pane,
+.pmail-demo-shell--light .bespoke-demo-settings-pane,
+.pmail-demo-shell--light .bespoke-demo-crm-pane,
+.pmail-demo-shell--light .bespoke-demo-contacts-pane,
+.pmail-demo-shell--light .bespoke-demo-reminders-pane {
+  background: var(--bg-canvas);
+}
+
+/* Message list rows */
+.pmail-demo-shell--light .bespoke-demo-message {
+  border-bottom-color: var(--border-subtle);
+}
+
+.pmail-demo-shell--light .bespoke-demo-message:hover {
+  background: var(--bg-inset);
+}
+
+.pmail-demo-shell--light .bespoke-demo-message--active {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.pmail-demo-shell--light .bespoke-demo-message--unread strong {
+  color: var(--text);
+}
+
+/* Elevated cards — flat white on gray canvas */
+.pmail-demo-shell--light .bespoke-demo-contact-card,
+.pmail-demo-shell--light .bespoke-demo-reminder-card,
+.pmail-demo-shell--light .bespoke-demo-calendar-event,
+.pmail-demo-shell--light .bespoke-demo-thread-card,
+.pmail-demo-shell--light .bespoke-demo-detail-card,
+.pmail-demo-shell--light .bespoke-demo-compose-card,
+.pmail-demo-shell--light .bespoke-demo-signature-card,
+.pmail-demo-shell--light .bespoke-demo-settings-card,
+.pmail-demo-shell--light .bespoke-demo-crm-row,
+.pmail-demo-shell--light .bespoke-demo-paid-addon-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell--light .bespoke-demo-contact-card:hover,
+.pmail-demo-shell--light .bespoke-demo-thread-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+/* Navigation & industry tool segment */
+.pmail-demo-shell--light .bespoke-demo-tool,
+.pmail-demo-shell--light .bespoke-demo-folder,
+.pmail-demo-shell--light .bespoke-demo-folder-chip,
+.pmail-demo-shell--light .bespoke-demo-sidebar-toggle {
+  color: var(--text-secondary);
+  border-color: var(--border);
+  background: var(--bg-card);
+}
+
+.pmail-demo-shell--light .bespoke-demo-tools-segment {
+  background: var(--bg-inset);
+  border-color: var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-tool-tab {
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
+}
+
+.pmail-demo-shell--light .bespoke-demo-sidebar-filter-list {
+  background: var(--bg-inset);
+  border-color: var(--border-subtle);
+}
+
+.pmail-demo-shell--light .bespoke-demo-tool:hover,
+.pmail-demo-shell--light .bespoke-demo-folder:hover,
+.pmail-demo-shell--light .bespoke-demo-tool-tab:hover,
+.pmail-demo-shell--light .bespoke-demo-folder-chip:hover,
+.pmail-demo-shell--light .bespoke-demo-workspace-tab:hover {
+  color: var(--text);
+  background: #ffffff;
+  border-color: var(--border-strong);
+}
+
+.pmail-demo-shell--light .bespoke-demo-workspace-tab {
+  color: var(--muted);
+}
+
+.pmail-demo-shell--light .bespoke-demo-workspace-tab--active,
+.pmail-demo-shell--light .bespoke-demo-tool--active,
+.pmail-demo-shell--light .bespoke-demo-folder--active,
+.pmail-demo-shell--light .bespoke-demo-tool-tab--active,
+.pmail-demo-shell--light .bespoke-demo-folder-chip--active {
+  color: var(--accent-dark);
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px rgba(13, 148, 136, 0.1);
+}
+
+.pmail-demo-shell--light .bespoke-demo-tool-tab--active {
+  background: #ffffff;
+  box-shadow: var(--shadow-sm), inset 0 -3px 0 var(--accent);
+}
+
+/* Healthcare clinical care pathway — light theme */
+.pmail-demo-shell--light .bespoke-demo-clinical-deck-sub {
+  color: var(--text-secondary);
+}
+
+.pmail-demo-shell--light .bespoke-demo-clinical-deck-live {
+  color: #047857;
+  border-color: rgba(5, 150, 105, 0.28);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.pmail-demo-shell--light .bespoke-demo-clinical-deck-live-dot {
+  background: #10b981;
+}
+
+.pmail-demo-shell--light .bespoke-demo-clinical-pathway {
+  border-color: rgba(14, 165, 233, 0.22);
+  background:
+    radial-gradient(circle at 10% 12%, rgba(14, 165, 233, 0.1), transparent 44%),
+    radial-gradient(circle at 92% 88%, rgba(13, 148, 136, 0.1), transparent 40%),
+    linear-gradient(135deg, #f8fafc, #ecfeff 58%, #f0fdfa);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.pmail-demo-shell--light .bespoke-demo-clinical-station {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .bespoke-demo-clinical-station:hover {
+  background: #ffffff;
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.pmail-demo-shell--light .bespoke-demo-clinical-station--active {
+  background: linear-gradient(160deg, #ffffff, #f0fdfa);
+  border-color: color-mix(in srgb, var(--clinical-lane) 45%, var(--border));
+  box-shadow:
+    var(--shadow-md),
+    inset 0 0 0 1px color-mix(in srgb, var(--clinical-lane) 22%, transparent);
+}
+
+.pmail-demo-shell--light .bespoke-demo-clinical-station-metric strong {
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .bespoke-demo-clinical-pathway-bridge {
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.08), rgba(100, 116, 139, 0.35), rgba(148, 163, 184, 0.08));
+}
+
+.pmail-demo-shell--light .bespoke-demo-tab-count {
+  background: rgba(13, 148, 136, 0.14);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .bespoke-demo-pill {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  border: 1px solid var(--accent-border);
+}
+
+/* Form controls */
+.pmail-demo-shell--light .bespoke-demo input,
+.pmail-demo-shell--light .bespoke-demo select,
+.pmail-demo-shell--light .bespoke-demo textarea {
+  min-height: var(--input-min-h);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-control);
+  border-color: var(--border);
+  background: var(--bg-inset);
+  color: var(--text);
+  color-scheme: light;
+  accent-color: var(--accent);
+}
+
+.pmail-demo-shell--light .bespoke-demo input:focus,
+.pmail-demo-shell--light .bespoke-demo select:focus,
+.pmail-demo-shell--light .bespoke-demo textarea:focus {
+  background: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.pmail-demo-shell--light .bespoke-demo option {
+  background-color: var(--bg-card);
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .bespoke-demo option:checked,
+.pmail-demo-shell--light .bespoke-demo option:hover,
+.pmail-demo-shell--light .bespoke-demo option:focus,
+.pmail-demo-shell--light .bespoke-demo option:active,
+.pmail-demo-shell--light .bespoke-demo-industry-shell option:checked,
+.pmail-demo-shell--light .bespoke-demo-industry-shell option:hover,
+.pmail-demo-shell--light .bespoke-demo-industry-shell option:focus,
+.pmail-demo-shell--light .bespoke-demo-industry-shell option:active,
+.pmail-demo-shell--light .accounting-command-panel option:checked,
+.pmail-demo-shell--light .accounting-record-panel option:checked,
+.pmail-demo-shell--light .accounting-record-card option:checked,
+.pmail-demo-shell--light .accounting-inline-grid option:checked,
+.pmail-demo-shell--light .accounting-command-panel option:hover,
+.pmail-demo-shell--light .accounting-record-panel option:hover,
+.pmail-demo-shell--light .accounting-record-card option:hover,
+.pmail-demo-shell--light .accounting-inline-grid option:hover,
+.pmail-demo-shell--light .accounting-command-panel option:focus,
+.pmail-demo-shell--light .accounting-record-panel option:focus,
+.pmail-demo-shell--light .accounting-record-card option:focus,
+.pmail-demo-shell--light .accounting-inline-grid option:focus,
+.pmail-demo-shell--light .accounting-command-panel option:active,
+.pmail-demo-shell--light .accounting-record-panel option:active,
+.pmail-demo-shell--light .accounting-record-card option:active,
+.pmail-demo-shell--light .accounting-inline-grid option:active,
+.pmail-demo-shell--light .feature-form option:checked,
+.pmail-demo-shell--light .feature-form-grid option:checked {
+  background-color: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+/* Typography hierarchy */
+.pmail-demo-shell--light .bespoke-demo-message-meta,
+.pmail-demo-shell--light .bespoke-demo-detail-meta,
+.pmail-demo-shell--light .bespoke-demo-list-head span,
+.pmail-demo-shell--light .bespoke-demo-user,
+.pmail-demo-shell--light .bespoke-demo-back,
+.pmail-demo-shell--light .bespoke-demo-field-hint,
+.pmail-demo-shell--light .bespoke-demo-detail-body,
+.pmail-demo-shell--light .bespoke-demo-compose-hint,
+.pmail-demo-shell--light .bespoke-demo-kicker {
+  color: var(--muted);
+}
+
+.pmail-demo-shell--light .bespoke-demo-detail-from,
+.pmail-demo-shell--light .bespoke-demo-detail-subject,
+.pmail-demo-shell--light .bespoke-demo-list-head h2,
+.pmail-demo-shell--light .bespoke-demo-sidebar-title,
+.pmail-demo-shell--light .bespoke-demo-toolbar-label,
+.pmail-demo-shell--light .bespoke-demo-brand {
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .bespoke-demo-back:hover {
+  color: var(--accent-dark);
+}
+
+/* Status & overlay surfaces */
+.pmail-demo-shell--light .bespoke-demo-view-success,
+.pmail-demo-shell--light .bespoke-demo-mail-notice {
+  border: 1px solid var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .bespoke-demo-view-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.pmail-demo-shell--light .bespoke-demo-paid-addon-overlay {
+  background: var(--surface-overlay);
+  backdrop-filter: blur(8px);
+}
+
+.pmail-demo-shell--light .bespoke-demo-paid-addon-card {
+  background: var(--bg-card);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+.pmail-demo-shell--light .bespoke-demo-paid-addon-kicker {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .bespoke-demo-sidebar-logout {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.pmail-demo-shell--light .bespoke-demo-sidebar-logout:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #991b1b;
+}
+
+/* Calendar, chat, tables */
+.pmail-demo-shell--light .bespoke-demo-paginator-btn,
+.pmail-demo-shell--light .bespoke-demo-dropdown-item,
+.pmail-demo-shell--light .bespoke-demo-chat-bubble,
+.pmail-demo-shell--light .bespoke-demo-calendar-grid-cell {
+  border-color: var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .bespoke-demo-chat-bubble--self {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-open-badge--opened {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .bespoke-demo-open-badge--unopened {
+  background: var(--bg-inset);
+  color: var(--muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.pmail-demo-shell--light .bespoke-demo-pagination {
+  background: var(--bg-inset);
+  border-top-color: var(--border);
+}
+
+/* Accounting / industry tool panels */
+.pmail-demo-shell--light .accounting-command-panel input,
+.pmail-demo-shell--light .accounting-command-panel select,
+.pmail-demo-shell--light .accounting-command-panel textarea,
+.pmail-demo-shell--light .accounting-record-panel input,
+.pmail-demo-shell--light .accounting-record-panel select,
+.pmail-demo-shell--light .accounting-record-panel textarea,
+.pmail-demo-shell--light .accounting-record-card select,
+.pmail-demo-shell--light .accounting-inline-grid select {
+  background-color: var(--bg-inset);
+  border-color: var(--border);
+  color: var(--text);
+  color-scheme: light;
+  accent-color: var(--accent);
+}
+
+.pmail-demo-shell--light .accounting-command-panel select:focus,
+.pmail-demo-shell--light .accounting-record-panel select:focus,
+.pmail-demo-shell--light .accounting-record-card select:focus,
+.pmail-demo-shell--light .accounting-inline-grid select:focus {
+  background-color: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.14);
+}
+
+.pmail-demo-shell--light .accounting-command-panel option,
+.pmail-demo-shell--light .accounting-record-panel option,
+.pmail-demo-shell--light .accounting-record-card option,
+.pmail-demo-shell--light .accounting-inline-grid option {
+  background-color: var(--bg-card);
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .accounting-tool-hero,
+.pmail-demo-shell--light .accounting-command-panel,
+.pmail-demo-shell--light .accounting-record-panel,
+.pmail-demo-shell--light .accounting-empty-state,
+.pmail-demo-shell--light .accounting-record-card,
+.pmail-demo-shell--light .accounting-timeline-card,
+.pmail-demo-shell--light .accounting-note-list li {
+  background: var(--bg-card);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell--light .accounting-tool-hero::before {
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.08), transparent 65%);
+}
+
+.pmail-demo-shell--light .accounting-tool-hero p,
+.pmail-demo-shell--light .accounting-record-card p,
+.pmail-demo-shell--light .accounting-timeline-card p,
+.pmail-demo-shell--light .accounting-empty-state p,
+.pmail-demo-shell--light .accounting-note-list p {
+  color: var(--muted);
+}
+
+.pmail-demo-shell--light .accounting-tool-stat {
+  background: var(--bg-inset);
+  border-color: var(--border-subtle);
+}
+
+.pmail-demo-shell--light .accounting-tool-stat--accent {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.pmail-demo-shell--light .accounting-record-card--active {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.pmail-demo-shell--light .accounting-section-head > span {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent-dark);
+}
+
+/* Healthcare clinical panels — light theme */
+.pmail-demo-shell--light .healthcare-tool-shell--registry {
+  --hc-lane: #0284c7;
+  --hc-lane-soft: rgba(14, 165, 233, 0.1);
+  --hc-lane-border: rgba(14, 165, 233, 0.28);
+}
+
+.pmail-demo-shell--light .healthcare-tool-shell--scheduling {
+  --hc-lane: #0d9488;
+  --hc-lane-soft: rgba(13, 148, 136, 0.1);
+  --hc-lane-border: rgba(13, 148, 136, 0.28);
+}
+
+.pmail-demo-shell--light .healthcare-tool-shell--referrals {
+  --hc-lane: #d97706;
+  --hc-lane-soft: rgba(245, 158, 11, 0.1);
+  --hc-lane-border: rgba(245, 158, 11, 0.28);
+}
+
+.pmail-demo-shell--light .healthcare-tool-shell--compliance {
+  --hc-lane: #7c3aed;
+  --hc-lane-soft: rgba(124, 58, 237, 0.1);
+  --hc-lane-border: rgba(124, 58, 237, 0.28);
+}
+
+.pmail-demo-shell--light .healthcare-clinical-hero,
+.pmail-demo-shell--light .healthcare-intake-panel,
+.pmail-demo-shell--light .healthcare-record-panel,
+.pmail-demo-shell--light .healthcare-empty-state,
+.pmail-demo-shell--light .healthcare-chart-card,
+.pmail-demo-shell--light .healthcare-encounter-card,
+.pmail-demo-shell--light .healthcare-referral-card,
+.pmail-demo-shell--light .healthcare-audit-card,
+.pmail-demo-shell--light .healthcare-access-event,
+.pmail-demo-shell--light .healthcare-template-card,
+.pmail-demo-shell--light .healthcare-note-list li {
+  background: var(--bg-card);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell--light .healthcare-clinical-hero p,
+.pmail-demo-shell--light .healthcare-chart-card p,
+.pmail-demo-shell--light .healthcare-referral-card p,
+.pmail-demo-shell--light .healthcare-audit-card p,
+.pmail-demo-shell--light .healthcare-template-card p,
+.pmail-demo-shell--light .healthcare-empty-state p,
+.pmail-demo-shell--light .healthcare-access-event p {
+  color: var(--muted);
+}
+
+.pmail-demo-shell--light .healthcare-vital-chip {
+  background: var(--bg-inset);
+  border-color: var(--border-subtle);
+}
+
+.pmail-demo-shell--light .healthcare-vital-chip--accent {
+  background: var(--hc-lane-soft, var(--accent-soft));
+  border-color: var(--hc-lane-border, var(--accent-border));
+}
+
+.pmail-demo-shell--light .healthcare-chart-card--callback,
+.pmail-demo-shell--light .healthcare-audit-card--active,
+.pmail-demo-shell--light .healthcare-encounter-card--today {
+  background: var(--hc-lane-soft, var(--accent-soft));
+  border-color: var(--hc-lane-border, var(--accent-border));
+}
+
+.pmail-demo-shell--light .healthcare-section-head > span {
+  background: var(--hc-lane-soft, var(--accent-soft));
+  border-color: var(--hc-lane-border, var(--accent-border));
+  color: var(--hc-lane, var(--accent-dark));
+}
+
+.pmail-demo-shell--light .healthcare-status-pill {
+  background: var(--hc-lane-soft, var(--accent-soft));
+  color: var(--hc-lane, var(--accent-dark));
+}
+
+.pmail-demo-shell--light .healthcare-status-pill--warn {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+
+.pmail-demo-shell--light .healthcare-status-pill--ok {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+}
+
+.pmail-demo-shell--light .healthcare-status-pill--alert {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.pmail-demo-shell--light .healthcare-tool-shell select,
+.pmail-demo-shell--light .healthcare-intake-panel select,
+.pmail-demo-shell--light .healthcare-record-panel select,
+.pmail-demo-shell--light .healthcare-chart-card select,
+.pmail-demo-shell--light .healthcare-encounter-card select,
+.pmail-demo-shell--light .healthcare-referral-card select,
+.pmail-demo-shell--light .healthcare-audit-card select,
+.pmail-demo-shell--light .healthcare-field-grid select {
+  color-scheme: light;
+}
+
+/* Real estate industry workstation — light theme */
+.pmail-demo-shell--light .industry-ws-tool-shell--listings {
+  --ws-lane: #0284c7;
+  --ws-lane-soft: rgba(14, 165, 233, 0.1);
+  --ws-lane-border: rgba(14, 165, 233, 0.28);
+}
+
+.pmail-demo-shell--light .industry-ws-tool-shell--showings {
+  --ws-lane: #059669;
+  --ws-lane-soft: rgba(5, 150, 105, 0.1);
+  --ws-lane-border: rgba(5, 150, 105, 0.28);
+}
+
+.pmail-demo-shell--light .industry-ws-tool-shell--templates {
+  --ws-lane: #d97706;
+  --ws-lane-soft: rgba(245, 158, 11, 0.1);
+  --ws-lane-border: rgba(245, 158, 11, 0.28);
+}
+
+.pmail-demo-shell--light .industry-ws-tool-shell--deals {
+  --ws-lane: #7c3aed;
+  --ws-lane-soft: rgba(124, 58, 237, 0.1);
+  --ws-lane-border: rgba(124, 58, 237, 0.28);
+}
+
+.pmail-demo-shell--light .industry-ws-hero,
+.pmail-demo-shell--light .industry-ws-intake-panel,
+.pmail-demo-shell--light .industry-ws-record-panel,
+.pmail-demo-shell--light .industry-ws-empty-state,
+.pmail-demo-shell--light .industry-ws-board-card,
+.pmail-demo-shell--light .industry-ws-timeline-card,
+.pmail-demo-shell--light .industry-ws-template-card,
+.pmail-demo-shell--light .industry-ws-note-list li {
+  background: var(--bg-card);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell--light .industry-ws-hero p,
+.pmail-demo-shell--light .industry-ws-board-card p,
+.pmail-demo-shell--light .industry-ws-template-card p,
+.pmail-demo-shell--light .industry-ws-empty-state p {
+  color: var(--muted);
+}
+
+.pmail-demo-shell--light .industry-ws-vital-chip {
+  background: var(--bg-inset);
+  border-color: var(--border-subtle);
+}
+
+.pmail-demo-shell--light .industry-ws-vital-chip--accent {
+  background: var(--ws-lane-soft, var(--accent-soft));
+  border-color: var(--ws-lane-border, var(--accent-border));
+}
+
+.pmail-demo-shell--light .industry-ws-board-card--highlight,
+.pmail-demo-shell--light .industry-ws-board-card--active,
+.pmail-demo-shell--light .industry-ws-timeline-card--today {
+  background: var(--ws-lane-soft, var(--accent-soft));
+  border-color: var(--ws-lane-border, var(--accent-border));
+}
+
+.pmail-demo-shell--light .industry-ws-section-head > span {
+  background: var(--ws-lane-soft, var(--accent-soft));
+  border-color: var(--ws-lane-border, var(--accent-border));
+  color: var(--ws-lane, var(--accent-dark));
+}
+
+.pmail-demo-shell--light .industry-ws-status-pill {
+  background: var(--ws-lane-soft, var(--accent-soft));
+  color: var(--ws-lane, var(--accent-dark));
+}
+
+.pmail-demo-shell--light .industry-ws-status-pill--warn {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+
+.pmail-demo-shell--light .industry-ws-status-pill--ok {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+}
+
+.pmail-demo-shell--light .industry-ws-status-pill--alert {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.pmail-demo-shell--light .industry-ws-tool-shell select,
+.pmail-demo-shell--light .industry-ws-intake-panel select,
+.pmail-demo-shell--light .industry-ws-record-panel select,
+.pmail-demo-shell--light .industry-ws-board-card select,
+.pmail-demo-shell--light .industry-ws-timeline-card select,
+.pmail-demo-shell--light .industry-ws-field-grid select {
+  color-scheme: light;
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell input[type="date"],
+.pmail-demo-shell--light .bespoke-demo-industry-shell input[type="datetime-local"],
+.pmail-demo-shell--light .bespoke-demo input[type="date"],
+.pmail-demo-shell--light .bespoke-demo input[type="datetime-local"] {
+  color-scheme: light;
+}
+
+.pmail-demo-shell--light .bespoke-demo-industry-shell input[type="date"]::-webkit-calendar-picker-indicator,
+.pmail-demo-shell--light .bespoke-demo-industry-shell input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.pmail-demo-shell--light .bespoke-demo input[type="date"]::-webkit-calendar-picker-indicator,
+.pmail-demo-shell--light .bespoke-demo input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.72;
+}
+
+/* CRM, reminders, calendar, messaging split layouts */
+.pmail-demo-shell--light .bespoke-demo-crm-list,
+.pmail-demo-shell--light .bespoke-demo-reminders-main,
+.pmail-demo-shell--light .bespoke-demo-calendar-main,
+.pmail-demo-shell--light .bespoke-demo-messaging-directory {
+  background: var(--bg-list);
+  border-right-color: var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-crm-detail,
+.pmail-demo-shell--light .bespoke-demo-reminders-side,
+.pmail-demo-shell--light .bespoke-demo-calendar-side,
+.pmail-demo-shell--light .bespoke-demo-chat-panel {
+  background: var(--bg-detail);
+}
+
+.pmail-demo-shell--light .bespoke-demo-tool-panel {
+  background: var(--bg-inset);
+  border-top-color: var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-tool-panel-title {
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .bespoke-demo-sender-head {
+  background: var(--bg-inset);
+}
+
+.pmail-demo-shell--light .bespoke-demo-sender-head:hover,
+.pmail-demo-shell--light .bespoke-demo-sender-head--active {
+  background: var(--accent-soft);
+}
+
+.pmail-demo-shell--light .bespoke-demo-sender-avatar {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  border: 1px solid var(--accent-border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-sender-unread {
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .bespoke-demo-calendar-view-select {
+  background: var(--bg-inset);
+  border-color: var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-calendar-day-card {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-calendar-day-event {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .bespoke-demo-enterprise-action {
+  background: var(--bg-inset);
+  border-color: var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-enterprise-action:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-mail-folder-count {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .bespoke-demo-open-tracking {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-documents-table th {
+  background: var(--bg-inset);
+  color: var(--muted);
+  border-bottom-color: var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-documents-table td {
+  border-bottom-color: var(--border-subtle);
+}
+
+.pmail-demo-shell--light .bespoke-demo-compose-overlay {
+  background: rgba(228, 233, 240, 0.72);
+}
+
+.pmail-demo-shell--light .gmail-compose {
+  background: var(--bg-card);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+.pmail-demo-shell--light .gmail-compose--minimized,
+.pmail-demo-shell--light .gmail-compose__titlebar {
+  background: var(--bg-inset);
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .gmail-compose__row {
+  border-bottom-color: var(--border-subtle);
+}
+
+.pmail-demo-shell--light .gmail-compose__win-btn:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .bespoke-demo-link-btn {
+  color: var(--accent-dark);
+}
+
+/* Residual card/surface fixes not covered by --surface-* tokens alone */
+.pmail-demo-shell--light .bespoke-demo-crm-card,
+.pmail-demo-shell--light .bespoke-demo-reminder,
+.pmail-demo-shell--light .bespoke-demo-template-item,
+.pmail-demo-shell--light .bespoke-demo-signature-avatar-editor,
+.pmail-demo-shell--light .bespoke-demo-signature-preview-card {
+  background: var(--bg-card);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell--light .bespoke-demo-template-item--active,
+.pmail-demo-shell--light .bespoke-demo-crm-card--active {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-mail-folder:hover,
+.pmail-demo-shell--light .bespoke-demo-mail-folder--active {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-search {
+  background: var(--bg-inset);
+  border-color: var(--border);
+}

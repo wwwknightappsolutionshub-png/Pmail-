@@ -5,6 +5,7 @@ export interface SendMailInput {
   email: string;
   password: string;
   mailConfig: TenantMailConfig;
+  fromName?: string;
   to: string;
   cc?: string;
   bcc?: string;
@@ -56,7 +57,7 @@ export async function sendMail(input: SendMailInput): Promise<{ messageId: strin
   const headers = buildMailHeaders(input);
 
   const info = await transporter.sendMail({
-    from: input.email,
+    from: input.fromName ? `"${input.fromName.replace(/"/g, "")}" <${input.email}>` : input.email,
     to: input.to,
     cc: input.cc || undefined,
     bcc: input.bcc || undefined,

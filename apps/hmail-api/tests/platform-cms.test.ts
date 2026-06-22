@@ -67,7 +67,7 @@ describe("platform CMS", () => {
     const request = (await import("supertest")).default;
     const res = await request(app).get("/api/public/site");
     expect(res.status).toBe(200);
-    expect(res.body.sections.length).toBeGreaterThanOrEqual(5);
+    expect(res.body.sections.length).toBeGreaterThanOrEqual(9);
     expect(res.body.hostingPlans.length).toBeGreaterThanOrEqual(3);
     expect(res.body.addonMarketing.length).toBeGreaterThanOrEqual(9);
     expect(res.body.panelPreview.accountLabel).toContain("@");

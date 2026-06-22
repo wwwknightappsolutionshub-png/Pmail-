@@ -9,7 +9,7 @@ export function requireAddon(slug: string) {
       return;
     }
 
-    const allowed = await tenantHasAddonAccess(tenantId, slug);
+    const allowed = await tenantHasAddonAccess(tenantId, slug, req.auth?.user.id);
     if (!allowed) {
       res.status(403).json({ error: "Add-on not active. Start a trial from the Marketplace." });
       return;

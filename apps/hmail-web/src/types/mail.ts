@@ -17,13 +17,37 @@ export interface AuthUser {
   id: string;
   email: string;
   displayName: string | null;
+  businessVertical: BusinessVertical | null;
+  uiThemeVersion: "dark" | "light";
   tenant: {
     id: string;
     slug: string;
     name: string;
     branding: TenantBranding | null;
-    mail: { imapHost: string; smtpHost: string } | null;
+    mail: { imapHost: string; smtpHost: string; mailOnboardingComplete?: boolean } | null;
   };
+  mailConfig?: UserMailConfig | null;
+}
+
+export type BusinessVertical =
+  | "standard"
+  | "free-basic"
+  | "legal"
+  | "real-estate"
+  | "accounting"
+  | "recruitment"
+  | "b2b-services"
+  | "healthcare";
+
+export interface UserMailConfig {
+  providerPreset: string;
+  imapHost: string;
+  imapPort: number;
+  imapSecure: boolean;
+  smtpHost: string;
+  smtpPort: number;
+  smtpSecure: boolean;
+  configuredAt?: string;
 }
 
 export interface MailFolder {

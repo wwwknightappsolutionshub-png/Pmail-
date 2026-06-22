@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
@@ -6,6 +7,14 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
 
   if (err instanceof ZodError) {
     res.status(400).json({ error: "Invalid request", details: err.flatten() });
+    return;
+  }
+
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2021") {
+    res.status(503).json({
+      error:
+        "Database schema is missing tables for this feature. From apps/hmail-api run: npm run db:sqlite:setup (SQLite dev) or npm run db:migrate (PostgreSQL).",
+    });
     return;
   }
 

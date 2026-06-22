@@ -3,18 +3,19 @@ import { useAuth } from "./context/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
 import { MailPage } from "./pages/MailPage";
 import { AddonsPage } from "./pages/AddonsPage";
+import { BusinessVerticalPage } from "./pages/BusinessVerticalPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="app-loading">Loading PMail+…</div>;
   if (!user) return <Navigate to="/login" replace />;
+  if (!user.businessVertical) return <BusinessVerticalPage />;
   return <>{children}</>;
 }
 
 export function App() {
   return (
     <Routes>
-      <Route path="/login/prohost" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/login/:tenantSlug" element={<LoginPage />} />
       <Route

@@ -3,6 +3,7 @@ import type { Request } from "express";
 import type { HostingAccount, HostingPlan, Tenant } from "@prisma/client";
 import { hashPassword, hashToken, verifyPassword } from "../lib/crypto.js";
 import { prisma } from "../lib/prisma.js";
+import { ensurePanelDefaults } from "./panel-resources.service.js";
 
 const PANEL_SESSION_TTL_HOURS = 12;
 
@@ -31,6 +32,7 @@ export function sanitizeHostingAccount(account: HostingAccountWithRelations) {
     emailAccounts: account.emailAccounts,
     databases: account.databases,
     isSuspended: account.isSuspended,
+    isSampleDemo: account.isSampleDemo,
     tenant: {
       id: account.tenant.id,
       slug: account.tenant.slug,
@@ -115,19 +117,27 @@ export async function getPanelContext(req: Request): Promise<HostingAccountWithR
 }
 
 export async function getPanelDashboard(account: HostingAccountWithRelations) {
+  await ensurePanelDefaults(account);
+
   const diskPercent = account.diskQuotaMb > 0 ? Math.round((account.diskUsedMb / account.diskQuotaMb) * 100) : 0;
   const bandwidthPercent =
     account.bandwidthMb > 0 ? Math.round((account.bandwidthUsedMb / account.bandwidthMb) * 100) : 0;
+
+  const [domains, emailBoxes, databases] = await Promise.all([
+    prisma.panelAddonDomain.count({ where: { accountId: account.id } }),
+    prisma.panelMailbox.count({ where: { accountId: account.id } }),
+    prisma.panelDatabase.count({ where: { accountId: account.id } }),
+  ]);
 
   return {
     account: sanitizeHostingAccount(account),
     stats: {
       diskPercent,
       bandwidthPercent,
-      domains: 1,
+      domains,
       subdomains: 0,
-      emailBoxes: account.emailAccounts,
-      databases: account.databases,
+      emailBoxes,
+      databases,
       sslActive: true,
     },
     quickLinks: [

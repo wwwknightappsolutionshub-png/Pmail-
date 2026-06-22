@@ -101,13 +101,12 @@ describe("payments stripe paystack mock", () => {
     expect(sub?.paymentProvider).toBe("mock");
   });
 
-  it("rejects checkout for unknown tenant", async () => {
+  it("rejects checkout without tenant slug or organization name", async () => {
     const request = (await import("supertest")).default;
     const res = await request(app).post("/api/payments/checkout").send({
       provider: "mock",
       productType: "hosting_plan",
       productSlug: "starter",
-      tenantSlug: "missing",
       customerEmail: "buyer@example.com",
     });
     expect(res.status).toBe(400);

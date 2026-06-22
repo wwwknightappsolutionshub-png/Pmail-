@@ -14,7 +14,7 @@ npm run setup:sqlite
 npm run dev
 ```
 
-Open http://localhost:5173/login/demo and sign in with your Hostinger mailbox.
+Open http://localhost:5173/login and sign in with your Hostinger mailbox.
 
 > SQLite is for **local development only**. Production (shared hosting API or VPS) uses PostgreSQL.
 

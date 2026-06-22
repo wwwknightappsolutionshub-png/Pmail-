@@ -86,6 +86,7 @@ export function parseStripeWebhookEvent(payload: Buffer): {
   checkoutId?: string;
   sessionId?: string;
   paymentId?: string;
+  subscriptionId?: string;
 } {
   const event = JSON.parse(payload.toString("utf8")) as {
     id: string;
@@ -98,11 +99,18 @@ export function parseStripeWebhookEvent(payload: Buffer): {
     (obj.metadata as { checkout_id?: string } | undefined)?.checkout_id ??
     (obj.client_reference_id as string | undefined);
 
+  const subscriptionId =
+    (obj.subscription as string | undefined) ??
+    (typeof obj.subscription === "object" && obj.subscription !== null
+      ? ((obj.subscription as { id?: string }).id ?? undefined)
+      : undefined);
+
   return {
     id: event.id,
     type: event.type,
     checkoutId,
     sessionId: obj.id as string | undefined,
-    paymentId: (obj.payment_intent as string | undefined) ?? (obj.subscription as string | undefined),
+    paymentId: (obj.payment_intent as string | undefined) ?? subscriptionId,
+    subscriptionId,
   };
 }

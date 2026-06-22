@@ -1,0 +1,84 @@
+.mail-onboarding {
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.mail-onboarding h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+}
+
+.mail-onboarding-lead {
+  margin: 0 0 1.25rem;
+  color: var(--muted, #94a3b8);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.mail-onboarding-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.mail-onboarding-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.mail-onboarding-field,
+.mail-onboarding-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+}
+
+.mail-onboarding-form input,
+.mail-onboarding-form select {
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+}
+
+.mail-onboarding-check {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mail-onboarding-note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted, #94a3b8);
+}
+
+.mail-onboarding-error {
+  margin: 0;
+  color: #f87171;
+  font-size: 0.9rem;
+}
+
+.mail-onboarding-submit {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--brand-accent, #0d9488);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mail-onboarding-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+@media (max-width: 600px) {
+  .mail-onboarding-grid {
+    grid-template-columns: 1fr;
+  }
+}

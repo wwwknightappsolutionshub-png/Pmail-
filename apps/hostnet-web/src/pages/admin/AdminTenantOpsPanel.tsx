@@ -45,7 +45,7 @@ export function AdminTenantOpsPanel({
       <div className="admin-subtabs">
         {(["branding", "mail", "users", "addons"] as const).map((t) => (
           <button key={t} type="button" className={subTab === t ? "active" : ""} onClick={() => setSubTab(t)}>
-            {t}
+            {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
       </div>
@@ -76,7 +76,16 @@ export function AdminTenantOpsPanel({
         <UsersPanel tenantId={tenant.id} users={ops.users} onReload={reload} onError={onError} onMessage={onMessage} />
       )}
       {subTab === "addons" && (
-        <AddonsPanel tenantId={tenant.id} addons={ops.addons} trials={ops.trials} onReload={reload} onError={onError} onMessage={onMessage} />
+        <AddonsPanel
+          tenantId={tenant.id}
+          addons={ops.addons}
+          trials={ops.trials}
+          subscriptions={ops.subscriptions}
+          growth={ops.growth}
+          onReload={reload}
+          onError={onError}
+          onMessage={onMessage}
+        />
       )}
     </div>
   );
@@ -93,7 +102,7 @@ function BrandingForm({
   onSaved: () => void;
   onError: (msg: string) => void;
 }) {
-  const [productName, setProductName] = useState(branding?.productName ?? "hmail");
+  const [productName, setProductName] = useState(branding?.productName ?? "PMail+");
   const [primaryColor, setPrimaryColor] = useState(branding?.primaryColor ?? "#0d9488");
   const [loginTagline, setLoginTagline] = useState(branding?.loginTagline ?? "");
   const [saving, setSaving] = useState(false);
@@ -275,6 +284,8 @@ function AddonsPanel({
   tenantId,
   addons,
   trials,
+  subscriptions,
+  growth,
   onReload,
   onError,
   onMessage,
@@ -282,13 +293,27 @@ function AddonsPanel({
   tenantId: string;
   addons: TenantOpsPayload["addons"];
   trials: TenantOpsPayload["trials"];
+  subscriptions: TenantOpsPayload["subscriptions"];
+  growth: TenantOpsPayload["growth"];
   onReload: () => Promise<void>;
   onError: (msg: string) => void;
   onMessage: (msg: string) => void;
 }) {
+  const growthAddons = addons.filter((a) => a.slug.startsWith("prohost-growth"));
   const [addonSlug, setAddonSlug] = useState(addons[0]?.slug ?? "");
+  const [subAddonSlug, setSubAddonSlug] = useState(growthAddons[0]?.slug ?? "prohost-growth-pro");
   const [trialDays, setTrialDays] = useState(7);
+  const [periodDays, setPeriodDays] = useState(30);
+  const [planSlug, setPlanSlug] = useState<"starter" | "pro" | "agency">("pro");
+  const [planTierOverride, setPlanTierOverride] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (growth.hasWorkspace) {
+      setPlanSlug(growth.effectivePlanSlug as "starter" | "pro" | "agency");
+      setPlanTierOverride(growth.planTierOverride);
+    }
+  }, [growth]);
 
   async function grant(e: FormEvent) {
     e.preventDefault();
@@ -315,8 +340,52 @@ function AddonsPanel({
     }
   }
 
+  async function grantSubscription(e: FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.grantTenantAddonSubscription(tenantId, { addonSlug: subAddonSlug, periodDays });
+      await onReload();
+      onMessage("Subscription granted");
+    } catch (err) {
+      onError(err instanceof ApiError ? err.message : "Grant subscription failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function revokeSubscription(subscriptionId: string) {
+    if (!window.confirm("Revoke this subscription?")) return;
+    try {
+      await api.revokeTenantAddonSubscription(tenantId, subscriptionId);
+      await onReload();
+      onMessage("Subscription revoked");
+    } catch (err) {
+      onError(err instanceof ApiError ? err.message : "Revoke subscription failed");
+    }
+  }
+
+  async function saveGrowthPlan(e: FormEvent) {
+    e.preventDefault();
+    if (!growth.hasWorkspace) {
+      onError("Tenant has no Growth workspace yet");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.adminSetTenantGrowthPlan(tenantId, { planSlug, planTierOverride });
+      await onReload();
+      onMessage("Growth plan tier updated");
+    } catch (err) {
+      onError(err instanceof ApiError ? err.message : "Plan update failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div>
+      <h4 style={{ marginTop: 0 }}>Trials</h4>
       <form className="form-grid" style={{ marginBottom: "1rem" }} onSubmit={grant}>
         <label>
           Add-on
@@ -362,6 +431,96 @@ function AddonsPanel({
           </tbody>
         </table>
       </div>
+
+      <h4>Subscriptions</h4>
+      <form className="form-grid" style={{ marginBottom: "1rem" }} onSubmit={grantSubscription}>
+        <label>
+          Growth add-on
+          <select value={subAddonSlug} onChange={(e) => setSubAddonSlug(e.target.value)}>
+            {(growthAddons.length ? growthAddons : addons).map((a) => (
+              <option key={a.id} value={a.slug}>
+                {a.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Period days
+          <input type="number" min={1} max={365} value={periodDays} onChange={(e) => setPeriodDays(Number(e.target.value))} />
+        </label>
+        <button type="submit" className="btn btn-primary" disabled={saving}>
+          Grant subscription
+        </button>
+      </form>
+      <div className="table-wrap" style={{ marginBottom: "1.5rem" }}>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Add-on</th>
+              <th>Status</th>
+              <th>Renews</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {subscriptions.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="muted">
+                  No subscriptions
+                </td>
+              </tr>
+            ) : (
+              subscriptions.map((s) => (
+                <tr key={s.id}>
+                  <td>{s.addonName}</td>
+                  <td>{s.status}</td>
+                  <td className="muted">
+                    {s.currentPeriodEnd ? new Date(s.currentPeriodEnd).toLocaleDateString() : "—"}
+                  </td>
+                  <td>
+                    {s.status === "active" ? (
+                      <button type="button" className="btn btn-danger" onClick={() => revokeSubscription(s.id)}>
+                        Revoke
+                      </button>
+                    ) : null}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Growth plan tier</h4>
+      {growth.hasWorkspace ? (
+        <form className="form-grid" onSubmit={saveGrowthPlan}>
+          <p className="muted" style={{ gridColumn: "1 / -1", margin: 0 }}>
+            Workspace {growth.workspaceStatus} · stored {growth.planSlug} · effective {growth.effectivePlanSlug}
+            {growth.planTierOverride ? " (admin override)" : ""}
+          </p>
+          <label>
+            Plan tier
+            <select value={planSlug} onChange={(e) => setPlanSlug(e.target.value as "starter" | "pro" | "agency")}>
+              <option value="starter">Starter</option>
+              <option value="pro">Pro</option>
+              <option value="agency">Agency</option>
+            </select>
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <input
+              type="checkbox"
+              checked={planTierOverride}
+              onChange={(e) => setPlanTierOverride(e.target.checked)}
+            />
+            Admin override (ignore subscription tier)
+          </label>
+          <button type="submit" className="btn btn-primary" disabled={saving}>
+            Save plan tier
+          </button>
+        </form>
+      ) : (
+        <p className="muted">No Growth workspace for this tenant.</p>
+      )}
     </div>
   );
 }

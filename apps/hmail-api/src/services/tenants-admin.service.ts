@@ -60,7 +60,7 @@ export async function createTenant(input: TenantInput) {
       slug: input.slug.trim().toLowerCase(),
       name: input.name,
       isActive: input.isActive ?? true,
-      branding: { create: { productName: "hmail" } },
+      branding: { create: { productName: "PMail+" } },
       mail: { create: {} },
     },
     include: {

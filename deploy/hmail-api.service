@@ -1,5 +1,5 @@
 [Unit]
-Description=hmail API (Hostnet Panel)
+Description=PMail+ API (Prohost Cloud)
 After=network.target postgresql.service
 
 [Service]

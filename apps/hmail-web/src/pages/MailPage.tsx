@@ -5,41 +5,23 @@ import { useAuth } from "../context/AuthContext";
 import { useAddons } from "../context/AddonContext";
 import { AddonUpsellPanel } from "../components/AddonUpsellPanel";
 import { ComposeModal, type ComposeInitial } from "../components/ComposeModal";
-import {
-  CaseLinkedPanel,
-  ChecklistsPanel,
-  ClientPortalPanel,
-  CompliancePanel,
-  DeadlinesPanel,
-  ImmigrationDeskPanel,
-  IrccIntelPanel,
-  ScheduledPanelFeature,
-  TemplatesPanel,
-} from "../components/FeaturePanels";
+import { resolveInboxPath } from "../components/DocumentsPanel";
 import { FolderNav, folderDisplayLabel, resolveFolderKind, sortFolders } from "../components/FolderNav";
 import { HMailLogo } from "../components/HMailLogo";
 import { MailBulkActions } from "../components/MailBulkActions";
 import { MailFilterBar } from "../components/MailFilterBar";
 import { MailOrderBar } from "../components/MailOrderBar";
 import { MailPaginationBar } from "../components/MailPaginationBar";
-import { ContactsPanel } from "../components/ContactsPanel";
 import { MailSearchPanel } from "../components/MailSearchPanel";
 import { NewFolderModal } from "../components/NewFolderModal";
+import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
+import { SenderGroupedMessageList } from "../components/SenderGroupedMessageList";
 import { toolAddonSlug } from "../constants/addonTools";
 import {
   folderSupportsBulkActions,
   isVirtualView,
   virtualViewTitle,
-  VIEW_AUTO_RESPONSE,
-  VIEW_CASE_LINKED,
-  VIEW_CHECKLISTS,
-  VIEW_COMPLIANCE,
   VIEW_CONTACTS,
-  VIEW_DEADLINES,
-  VIEW_DESK,
-  VIEW_IRCC_INTEL,
-  VIEW_PORTAL,
-  VIEW_SCHEDULED,
   type MailSearchState,
   type MailStatusFilter,
 } from "../constants/mailViews";
@@ -108,6 +90,42 @@ const ADDON_UPSELL_COPY: Record<string, { name: string; description: string }> =
     name: "Client Portal",
     description: "Secure document requests and portal links per matter.",
   },
+  "bespoke-workspace": {
+    name: "Bespoke Workspace",
+    description: "CRM pipeline, reminders, and industry tools in one workspace.",
+  },
+  "open-tracking": {
+    name: "Open Tracking",
+    description: "Track when recipients open your sent messages.",
+  },
+  "full-calendar-functionality": {
+    name: "Full Calendar",
+    description: "Month and week calendar views with workspace events.",
+  },
+  "whatsapp-functionality": {
+    name: "WhatsApp",
+    description: "Send message summaries to WhatsApp from the read pane.",
+  },
+  "mail2pdf-functionality": {
+    name: "Mail2PDF",
+    description: "Export the open message to a downloadable PDF.",
+  },
+  "re-listing-board": {
+    name: "Listing Board",
+    description: "Manage property listings and buyer interest.",
+  },
+  "re-showing-scheduler": {
+    name: "Showing Scheduler",
+    description: "Schedule and confirm property showings.",
+  },
+  "re-quick-replies": {
+    name: "Quick Replies",
+    description: "Real-estate reply templates with merge fields.",
+  },
+  "re-deal-room": {
+    name: "Deal Room",
+    description: "Track offers and deal notes per listing.",
+  },
 };
 
 function renderGatedView(
@@ -162,6 +180,19 @@ export function MailPage() {
   const [composeInitial, setComposeInitial] = useState<ComposeInitial | undefined>();
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [mobilePane, setMobilePane] = useState<MobilePane>("list");
+  const [expandedSenderEmail, setExpandedSenderEmail] = useState<string | null>(null);
+  const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
+    (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
+  );
+  const [platformNotice, setPlatformNotice] = useState("");
+
+  const businessVertical = user?.businessVertical ?? null;
+  const inboxPath = useMemo(() => resolveInboxPath(folders), [folders]);
+  const useSenderGrouping =
+    !isVirtualView(activeFolder) &&
+    inboxPath === activeFolder &&
+    !appliedSearch.query &&
+    mailFilter === "all";
 
   const sortedFolders = useMemo(() => sortFolders(folders), [folders]);
   const isVirtual = isVirtualView(activeFolder);
@@ -272,6 +303,7 @@ export function MailPage() {
     setSelectedUid(null);
     setSelectedMessage(null);
     setSelectedUids([]);
+    setExpandedSenderEmail(null);
     setMailFilter("all");
     setMessagePage(1);
     setSearchDraft({ field: "subject", query: "" });
@@ -409,6 +441,91 @@ export function MailPage() {
     });
   };
 
+  const onMarkUnread = async () => {
+    if (!selectedUid) return;
+    await api.setFlags(activeFolder, selectedUid, { seen: false });
+    setMessages((prev) => prev.map((m) => (m.uid === selectedUid ? { ...m, seen: false } : m)));
+    setSelectedMessage((prev) => (prev ? { ...prev, seen: false } : prev));
+    setStatusMessage("Marked as unread");
+  };
+
+  const onPrintMessage = () => {
+    window.print();
+  };
+
+  const onMailToPdf = async () => {
+    if (!selectedMessage) return;
+    if (!hasAddon("mail2pdf-functionality")) {
+      navigate("/addons?highlight=mail2pdf-functionality");
+      return;
+    }
+    try {
+      const blob = await api.mail2pdf({
+        subject: selectedMessage.subject,
+        from: selectedMessage.from,
+        to: selectedMessage.to,
+        date: selectedMessage.date,
+        body: selectedMessage.html ?? selectedMessage.text ?? "",
+        cc: selectedMessage.cc,
+        attachments: selectedMessage.attachments.map((att) => att.filename),
+      });
+      const url = URL.createObjectURL(blob.blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = blob.filename;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setStatusMessage("PDF exported");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "PDF export failed");
+    }
+  };
+
+  const onWhatsappSend = async () => {
+    if (!selectedMessage) return;
+    if (!hasAddon("whatsapp-functionality")) {
+      navigate("/addons?highlight=whatsapp-functionality");
+      return;
+    }
+    const toPhone = window.prompt("Recipient WhatsApp number (E.164, e.g. +14165551234)");
+    if (!toPhone?.trim()) return;
+    try {
+      await api.sendWhatsapp({
+        toPhone: toPhone.trim(),
+        subject: selectedMessage.subject,
+        body: selectedMessage.text ?? selectedMessage.subject,
+      });
+      setStatusMessage("WhatsApp message queued");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "WhatsApp send failed");
+    }
+  };
+
+  const onReferFriend = async () => {
+    try {
+      const result = await api.referralInvite();
+      setPlatformNotice(result.rewardToast ?? result.message ?? "Referral invite sent.");
+    } catch (err) {
+      setPlatformNotice(err instanceof Error ? err.message : "Referral failed");
+    }
+  };
+
+  const onThemeToggle = async () => {
+    const next = uiThemeVersion === "dark" ? "light" : "dark";
+    setUiThemeVersion(next);
+    try {
+      await api.updateTheme(next);
+    } catch {
+      setUiThemeVersion(uiThemeVersion);
+    }
+  };
+
+  const openMessageFromDocuments = (folder: string, uid: number) => {
+    setActiveFolder(folder);
+    setSelectedUid(uid);
+    setMobilePane("read");
+  };
+
   const handleCreateFolder = async (name: string) => {
     const inbox = folders.find((f) => resolveFolderKind(f) === "inbox");
     const { folder } = await api.createFolder(name, inbox?.path);
@@ -417,45 +534,15 @@ export function MailPage() {
   };
 
   const renderMainContent = () => {
-    if (activeFolder === VIEW_SCHEDULED) {
-      return renderGatedView(activeFolder, hasAddon, <ScheduledPanelFeature />);
-    }
-    if (activeFolder === VIEW_AUTO_RESPONSE) {
-      return renderGatedView(
-        activeFolder,
-        hasAddon,
-        <TemplatesPanel onUseTemplate={(template) => openCompose({ mode: "new", subject: template.subject, html: template.html })} />,
-      );
-    }
-    if (activeFolder === VIEW_DESK) {
-      return renderGatedView(activeFolder, hasAddon, <ImmigrationDeskPanel />);
-    }
-    if (activeFolder === VIEW_CHECKLISTS) {
-      return renderGatedView(activeFolder, hasAddon, <ChecklistsPanel />);
-    }
-    if (activeFolder === VIEW_COMPLIANCE) {
-      return renderGatedView(activeFolder, hasAddon, <CompliancePanel />);
-    }
-    if (activeFolder === VIEW_IRCC_INTEL) {
-      return renderGatedView(activeFolder, hasAddon, <IrccIntelPanel />);
-    }
-    if (activeFolder === VIEW_CASE_LINKED) {
-      return renderGatedView(activeFolder, hasAddon, <CaseLinkedPanel />);
-    }
-    if (activeFolder === VIEW_DEADLINES) {
-      return renderGatedView(activeFolder, hasAddon, <DeadlinesPanel />);
-    }
-    if (activeFolder === VIEW_PORTAL) {
-      return renderGatedView(activeFolder, hasAddon, <ClientPortalPanel />);
-    }
-    if (activeFolder === VIEW_CONTACTS) {
-      return (
-        <ContactsPanel
-          initialEmail={contactsPrefillEmail}
-          onMessage={(msg) => setStatusMessage(msg)}
-        />
-      );
-    }
+    const virtualView = renderProductionVirtualView(activeFolder, {
+      renderGatedView: (view, panel) => renderGatedView(view, hasAddon, panel),
+      openCompose,
+      contactsPrefillEmail,
+      onContactsMessage: setStatusMessage,
+      inboxPath,
+      onOpenMessage: openMessageFromDocuments,
+    });
+    if (virtualView) return virtualView;
 
     const visibleSuggestions = contactSuggestions.filter((e) => !dismissedSuggestions.includes(e));
 
@@ -560,46 +647,65 @@ export function MailPage() {
             <div className="muted pad">No messages in this folder.</div>
           ) : (
             <>
-              <div className="message-table-head">
-                <span>{showBulkBar ? (
-                  <input
-                    type="checkbox"
-                    checked={messages.length > 0 && selectedUids.length === messages.length}
-                    onChange={toggleSelectAll}
-                    aria-label="Select all messages"
-                  />
-                ) : null}</span>
-                <span>Subject</span>
-                <span>Excerpt</span>
-                <span>Received</span>
-              </div>
-              {messages.map((msg) => (
-                <div
-                  key={msg.uid}
-                  className={`message-table-row ${selectedUid === msg.uid ? "selected" : ""} ${msg.seen ? "" : "unread"}`}
-                >
-                  <span className="message-table-cell message-table-cell--check">
-                    {showBulkBar ? (
+              {useSenderGrouping ? (
+                <SenderGroupedMessageList
+                  messages={messages}
+                  selectedUid={selectedUid}
+                  expandedSenderEmail={expandedSenderEmail}
+                  onToggleSender={(email) =>
+                    setExpandedSenderEmail((current) => (current === email ? null : email))
+                  }
+                  onSelectMessage={selectMessage}
+                  showBulkBar={showBulkBar}
+                  selectedUids={selectedUids}
+                  onToggleSelectUid={toggleSelectUid}
+                  onToggleSelectAll={toggleSelectAll}
+                  formatDate={formatDate}
+                />
+              ) : (
+                <>
+                  <div className="message-table-head">
+                    <span>{showBulkBar ? (
                       <input
                         type="checkbox"
-                        checked={selectedUids.includes(msg.uid)}
-                        onChange={() => toggleSelectUid(msg.uid)}
-                        aria-label={`Select message ${msg.subject}`}
+                        checked={messages.length > 0 && selectedUids.length === messages.length}
+                        onChange={toggleSelectAll}
+                        aria-label="Select all messages"
                       />
-                    ) : null}
-                  </span>
-                  <button type="button" className="message-table-cell message-table-cell--subject" onClick={() => selectMessage(msg.uid)}>
-                    <span className="message-subject-text">{msg.subject || "(No subject)"}</span>
-                    {msg.flagged ? <span className="message-star" aria-label="Starred">★</span> : null}
-                  </button>
-                  <button type="button" className="message-table-cell message-table-cell--snippet" onClick={() => selectMessage(msg.uid)}>
-                    {msg.snippet || msg.from || "—"}
-                  </button>
-                  <button type="button" className="message-table-cell message-table-cell--date" onClick={() => selectMessage(msg.uid)}>
-                    <time>{formatDate(msg.date)}</time>
-                  </button>
-                </div>
-              ))}
+                    ) : null}</span>
+                    <span>Subject</span>
+                    <span>Excerpt</span>
+                    <span>Received</span>
+                  </div>
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.uid}
+                      className={`message-table-row ${selectedUid === msg.uid ? "selected" : ""} ${msg.seen ? "" : "unread"}`}
+                    >
+                      <span className="message-table-cell message-table-cell--check">
+                        {showBulkBar ? (
+                          <input
+                            type="checkbox"
+                            checked={selectedUids.includes(msg.uid)}
+                            onChange={() => toggleSelectUid(msg.uid)}
+                            aria-label={`Select message ${msg.subject}`}
+                          />
+                        ) : null}
+                      </span>
+                      <button type="button" className="message-table-cell message-table-cell--subject" onClick={() => selectMessage(msg.uid)}>
+                        <span className="message-subject-text">{msg.subject || "(No subject)"}</span>
+                        {msg.flagged ? <span className="message-star" aria-label="Starred">★</span> : null}
+                      </button>
+                      <button type="button" className="message-table-cell message-table-cell--snippet" onClick={() => selectMessage(msg.uid)}>
+                        {msg.snippet || msg.from || "—"}
+                      </button>
+                      <button type="button" className="message-table-cell message-table-cell--date" onClick={() => selectMessage(msg.uid)}>
+                        <time>{formatDate(msg.date)}</time>
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
               <MailPaginationBar
                 page={messagePage}
                 pageSize={PAGE_SIZE}
@@ -615,7 +721,7 @@ export function MailPage() {
 
   return (
     <div
-      className="mail-app"
+      className={`mail-app ${uiThemeVersion === "light" ? "mail-app--light" : ""}`}
       data-mobile-pane={mobilePane}
       data-virtual-view={isVirtual ? "true" : "false"}
       data-content-pane={contentPane}
@@ -680,6 +786,7 @@ export function MailPage() {
             folders={folders}
             activeFolder={activeFolder}
             loading={loadingFolders}
+            businessVertical={businessVertical}
             onSelect={selectFolder}
             onNewFolder={() => setNewFolderOpen(true)}
             onCompose={() => openCompose({ mode: "new" })}
@@ -690,9 +797,16 @@ export function MailPage() {
           />
 
           <div className="sidebar-footer">
+            {platformNotice ? <div className="pane-status">{platformNotice}</div> : null}
             <div className="user-chip">
               <span>{user?.email}</span>
             </div>
+            <button type="button" className="ghost-btn" onClick={() => void onReferFriend()}>
+              Refer a friend
+            </button>
+            <button type="button" className="ghost-btn" onClick={() => void onThemeToggle()}>
+              {uiThemeVersion === "dark" ? "Light theme" : "Dark theme"}
+            </button>
             <button type="button" className="ghost-btn" onClick={() => logout()}>
               Sign out
             </button>
@@ -749,6 +863,18 @@ export function MailPage() {
                   <button type="button" onClick={onForward}>
                     Forward
                   </button>
+                  <button type="button" onClick={() => void onMarkUnread()}>
+                    Mark unread
+                  </button>
+                  <button type="button" onClick={onPrintMessage}>
+                    Print
+                  </button>
+                  <button type="button" onClick={() => void onMailToPdf()}>
+                    PDF
+                  </button>
+                  <button type="button" onClick={() => void onWhatsappSend()}>
+                    WhatsApp
+                  </button>
                   <button type="button" onClick={onMoveToTrash}>
                     Trash
                   </button>
@@ -803,9 +929,6 @@ export function MailPage() {
         </button>
         <button type="button" onClick={() => openCompose({ mode: "new" })}>
           <span>New mail</span>
-        </button>
-        <button type="button" className="mail-bottom-nav-signout" onClick={() => logout()}>
-          <span>Sign out</span>
         </button>
       </nav>
 

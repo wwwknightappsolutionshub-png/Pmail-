@@ -10,6 +10,20 @@ import {
   PanelAuthError,
   sanitizeHostingAccount,
 } from "../services/panel-auth.service.js";
+import {
+  createPanelDatabase,
+  createPanelDomain,
+  createPanelFile,
+  createPanelMailbox,
+  deletePanelDatabase,
+  deletePanelFile,
+  deletePanelMailbox,
+  ensurePanelDefaults,
+  listPanelDatabases,
+  listPanelDomains,
+  listPanelFiles,
+  listPanelMailboxes,
+} from "../services/panel-resources.service.js";
 
 const loginSchema = z.object({
   username: z.string().min(1),
@@ -85,60 +99,152 @@ panelRouter.get("/dashboard", async (req, res, next) => {
   }
 });
 
-panelRouter.get("/files", async (req, res) => {
-  const account = req.panelAccount!;
-  res.json({
-    path: account.homePath,
-    entries: [
-      { name: "public_html", type: "dir", size: null },
-      { name: "mail", type: "dir", size: null },
-      { name: "logs", type: "dir", size: null },
-      { name: "backups", type: "dir", size: null },
-      { name: ".htaccess", type: "file", size: 412 },
-    ],
-  });
+panelRouter.get("/files", async (req, res, next) => {
+  try {
+    const account = req.panelAccount!;
+    await ensurePanelDefaults(account);
+    const parentPath = String(req.query.path ?? "/");
+    const entries = await listPanelFiles(account.id, parentPath);
+    res.json({ path: parentPath, entries });
+  } catch (err) {
+    next(err);
+  }
 });
 
-panelRouter.get("/databases", async (req, res) => {
-  const account = req.panelAccount!;
-  res.json({
-    databases: Array.from({ length: account.databases }, (_, i) => ({
-      id: `db_${i + 1}`,
-      name: `${account.username}_db${i + 1}`,
-      sizeMb: 12 + i * 4,
-    })),
-  });
+panelRouter.post("/files", async (req, res, next) => {
+  try {
+    const account = req.panelAccount!;
+    const entry = await createPanelFile(account.id, {
+      parentPath: String(req.body?.parentPath ?? "/"),
+      name: String(req.body?.name ?? ""),
+      type: req.body?.type === "dir" ? "dir" : "file",
+      content: req.body?.content ? String(req.body.content) : undefined,
+    });
+    res.status(201).json({ entry });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
 });
 
-panelRouter.get("/domains", async (req, res) => {
-  const account = req.panelAccount!;
-  res.json({
-    domains: [
-      {
-        domain: account.domain,
-        documentRoot: `${account.homePath}/public_html`,
-        ssl: true,
-        primary: true,
-      },
-    ],
-  });
+panelRouter.delete("/files/:id", async (req, res, next) => {
+  try {
+    await deletePanelFile(req.panelAccount!.id, String(req.params.id));
+    res.status(204).send();
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
 });
 
-panelRouter.get("/email", async (req, res) => {
-  const account = req.panelAccount!;
-  res.json({
-    accounts: [
-      {
-        address: `${account.username}@${account.domain}`,
-        quotaMb: 1024,
-        usedMb: 240,
-      },
-      {
-        address: `support@${account.domain}`,
-        quotaMb: 512,
-        usedMb: 88,
-      },
-    ],
-    hmailUrl: `/login/${account.tenant.slug}`,
-  });
+panelRouter.get("/databases", async (req, res, next) => {
+  try {
+    const account = req.panelAccount!;
+    await ensurePanelDefaults(account);
+    const databases = await listPanelDatabases(account.id);
+    res.json({ databases });
+  } catch (err) {
+    next(err);
+  }
+});
+
+panelRouter.post("/databases", async (req, res, next) => {
+  try {
+    const row = await createPanelDatabase(req.panelAccount!.id, String(req.body?.name ?? ""));
+    res.status(201).json({ database: row });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+panelRouter.delete("/databases/:id", async (req, res, next) => {
+  try {
+    await deletePanelDatabase(req.panelAccount!.id, String(req.params.id));
+    res.status(204).send();
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+panelRouter.get("/domains", async (req, res, next) => {
+  try {
+    const account = req.panelAccount!;
+    await ensurePanelDefaults(account);
+    const domains = await listPanelDomains(account.id);
+    res.json({ domains });
+  } catch (err) {
+    next(err);
+  }
+});
+
+panelRouter.post("/domains", async (req, res, next) => {
+  try {
+    const account = req.panelAccount!;
+    const row = await createPanelDomain(account.id, account, String(req.body?.domain ?? ""));
+    res.status(201).json({ domain: row });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+panelRouter.get("/email", async (req, res, next) => {
+  try {
+    const account = req.panelAccount!;
+    await ensurePanelDefaults(account);
+    const accounts = await listPanelMailboxes(account.id);
+    res.json({
+      accounts,
+      hmailUrl: `/login/${account.tenant.slug}`,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+panelRouter.post("/email", async (req, res, next) => {
+  try {
+    const row = await createPanelMailbox(
+      req.panelAccount!.id,
+      String(req.body?.address ?? ""),
+      Number(req.body?.quotaMb ?? 512),
+    );
+    res.status(201).json({ mailbox: row });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+panelRouter.delete("/email/:id", async (req, res, next) => {
+  try {
+    await deletePanelMailbox(req.panelAccount!.id, String(req.params.id));
+    res.status(204).send();
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
 });

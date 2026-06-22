@@ -9,29 +9,22 @@
   padding-right: 0.15rem;
 }
 
-.folder-nav-section {
+.folder-nav-hint {
+  margin: 0.35rem 0 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.08);
+  color: var(--sidebar-muted, #94a3b8);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
 
 .folder-nav-section-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  width: 100%;
-  margin: 0.75rem 0 0;
-  padding: 0.35rem 0.5rem;
-  border: none;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-
-.folder-nav-section-toggle .folder-nav-heading {
   margin: 0;
 }
 
@@ -45,11 +38,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  padding-left: 0.65rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  margin-left: 1.05rem;
 }
 
 .folder-nav-loading {
   padding: 0.5rem 0.25rem;
-  font-family: "Exo", sans-serif;
+  font-family: inherit;
   font-size: 0.82rem;
   color: var(--sidebar-muted, #94a3b8);
 }
@@ -57,7 +53,7 @@
 .folder-nav-heading {
   margin: 0 0 0.35rem;
   padding: 0 0.5rem;
-  font-family: "Anek", "Anek Latin", sans-serif;
+  font-family: inherit;
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -179,7 +175,7 @@
 }
 
 .folder-nav-label {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: inherit;
   font-size: 0.88rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -193,7 +189,7 @@
   min-width: 1.35rem;
   padding: 0.12rem 0.45rem;
   border-radius: 999px;
-  font-family: "Exo", sans-serif;
+  font-family: inherit;
   font-size: 0.68rem;
   font-weight: 700;
   line-height: 1.2;

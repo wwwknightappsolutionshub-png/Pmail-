@@ -1,5 +1,9 @@
 import { prisma } from "../lib/prisma.js";
 import { logComplianceEvent } from "./compliance.service.js";
+import { appendToSentFolder } from "./imap.service.js";
+import { getLatestMailCredentials } from "./mail-credentials.service.js";
+import { sendMail } from "./smtp.service.js";
+import { getComposeSettingsByUserId } from "./compose-settings.service.js";
 
 export async function listScheduledMessages(tenantId: string, userId: string) {
   const rows = await prisma.scheduledMessage.findMany({
@@ -91,16 +95,74 @@ export async function processDueScheduledMessages(): Promise<number> {
   const due = await prisma.scheduledMessage.findMany({
     where: { status: "pending", scheduledFor: { lte: now } },
     take: 20,
+    orderBy: { scheduledFor: "asc" },
   });
 
+  let sent = 0;
+
   for (const row of due) {
-    await prisma.scheduledMessage.update({
-      where: { id: row.id },
-      data: { status: "sent", sentAt: now },
-    });
+    try {
+      const creds = await getLatestMailCredentials(row.userId);
+      if (!creds) {
+        await prisma.scheduledMessage.update({
+          where: { id: row.id },
+          data: {
+            status: "failed",
+            errorMessage: "No active mail session — user must log in to send scheduled mail",
+          },
+        });
+        continue;
+      }
+
+      const composeSettings = await getComposeSettingsByUserId(row.userId);
+      const result = await sendMail({
+        email: creds.email,
+        password: creds.password,
+        mailConfig: creds.mailConfig,
+        fromName: composeSettings.displayName?.trim() || undefined,
+        to: row.to,
+        cc: row.cc ?? undefined,
+        bcc: row.bcc ?? undefined,
+        subject: row.subject,
+        text: row.text ?? undefined,
+        html: row.html ?? undefined,
+      });
+
+      try {
+        await appendToSentFolder(
+          { email: creds.email, password: creds.password, mailConfig: creds.mailConfig },
+          {
+            email: creds.email,
+            password: creds.password,
+            mailConfig: creds.mailConfig,
+            to: row.to,
+            subject: row.subject,
+            text: row.text ?? undefined,
+            html: row.html ?? undefined,
+          },
+          result.messageId,
+        );
+      } catch {
+        // non-fatal
+      }
+
+      await prisma.scheduledMessage.update({
+        where: { id: row.id },
+        data: { status: "sent", sentAt: now, errorMessage: null },
+      });
+      sent += 1;
+    } catch (err) {
+      await prisma.scheduledMessage.update({
+        where: { id: row.id },
+        data: {
+          status: "failed",
+          errorMessage: err instanceof Error ? err.message : "Send failed",
+        },
+      });
+    }
   }
 
-  return due.length;
+  return sent;
 }
 
 function formatScheduled(row: {

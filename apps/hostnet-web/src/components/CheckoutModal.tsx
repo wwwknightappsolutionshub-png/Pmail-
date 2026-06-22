@@ -1,6 +1,7 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { PaymentProviderInfo } from "../types/site";
+import { slugifyOrgName } from "../utils/slugify";
 import "./CheckoutModal.css";
 
 export type CheckoutProduct = {
@@ -19,10 +20,16 @@ export function CheckoutModal({ product, onClose }: Props) {
   const [providers, setProviders] = useState<PaymentProviderInfo[]>([]);
   const [provider, setProvider] = useState<string>("mock");
   const [email, setEmail] = useState("");
-  const [tenantSlug, setTenantSlug] = useState("demo");
+  const [orgName, setOrgName] = useState("");
+  const [domain, setDomain] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const suggestedDomain = useMemo(() => {
+    const slug = slugifyOrgName(orgName);
+    return slug ? `${slug}.hostnet.local` : "";
+  }, [orgName]);
 
   useEffect(() => {
     api
@@ -46,8 +53,11 @@ export function CheckoutModal({ product, onClose }: Props) {
         provider: provider as "stripe" | "paystack" | "mock",
         productType: product!.productType,
         productSlug: product!.productSlug,
-        tenantSlug,
         customerEmail: email,
+        provision: {
+          orgName: orgName.trim(),
+          domain: (domain || suggestedDomain).trim(),
+        },
       });
       if (res.checkout.checkoutUrl) {
         window.location.href = res.checkout.checkoutUrl;
@@ -76,13 +86,21 @@ export function CheckoutModal({ product, onClose }: Props) {
         ) : (
           <form className="form-grid" onSubmit={submit}>
             <label>
-              Email
+              Organization name
+              <input value={orgName} onChange={(e) => setOrgName(e.target.value)} required />
+            </label>
+            <label>
+              Work email
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </label>
             <label>
-              Tenant slug
-              <input value={tenantSlug} onChange={(e) => setTenantSlug(e.target.value)} required />
-              <small className="muted">Use <code>demo</code> for local testing</small>
+              Panel domain
+              <input
+                value={domain || suggestedDomain}
+                onChange={(e) => setDomain(e.target.value)}
+                placeholder={suggestedDomain || "your-org.hostnet.local"}
+              />
+              <small className="muted">Used for panel login and PMail+ tenant slug</small>
             </label>
             <label>
               Payment provider
