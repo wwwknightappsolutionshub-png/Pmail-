@@ -73,7 +73,18 @@ type AutoReplyEntitlementState = {
   gated: boolean;
 };
 
-type Workspace = "inbox" | "industry" | "contacts" | "crm" | "reminders" | "calendar" | "messaging" | "settings";
+export type BespokeWorkspace =
+  | "inbox"
+  | "industry"
+  | "contacts"
+  | "crm"
+  | "reminders"
+  | "calendar"
+  | "messaging"
+  | "settings"
+  | "career";
+
+type Workspace = BespokeWorkspace;
 
 type SignatureDraft = {
   name: string;
@@ -129,8 +140,29 @@ type Props = {
     demo: BespokeMailDemoConfig;
     toolId: string;
     fallback: { title: string; lines: string[] };
-    applyComposeTemplate: (template: { subject: string; html: string }) => void;
+    applyComposeTemplate: (template: { subject: string; html: string; label?: string }) => void;
   }) => ReactNode;
+  onApplyComposeTemplate?: (template: { subject: string; html: string; label?: string }) => void;
+  /** Production PMail+ search in topbar (replaces demo MailSearchBar). */
+  renderTopbarSearch?: ReactNode;
+  /** Live IMAP mail workspace (replaces demo inbox panes). */
+  renderInboxWorkspace?: ReactNode;
+  /** Live workspace panels for Contacts, CRM, Calendar, etc. */
+  renderWorkspace?: (workspace: BespokeWorkspace) => ReactNode | null;
+  /** Show Job Hunter / Career tab when entitled. */
+  showCareerTab?: boolean;
+  /** When set, Career tab opens the full /career workspace instead of the inline panel. */
+  onCareerTabClick?: () => void;
+  /** Lock the shell to one workspace tab (e.g. career route keeps PMail+ ribbon on Career). */
+  forcedWorkspace?: BespokeWorkspace;
+  /** Fired when user selects a different workspace tab while forcedWorkspace is set. */
+  onWorkspaceTabNavigate?: (workspace: BespokeWorkspace) => void;
+  /** Switch workspace tab from parent (e.g. signature reminder → Brand Settings). */
+  requestedWorkspace?: BespokeWorkspace | null;
+  onRequestedWorkspaceHandled?: () => void;
+  mailWorkspaceViews?: Partial<Record<"contacts" | "crm" | "reminders" | "calendar", string>>;
+  activeMailWorkspaceView?: string | null;
+  onMailWorkspaceView?: (view: string | null) => void;
 };
 
 function htmlToComposeText(html: string): string {
@@ -452,12 +484,26 @@ export function BespokeMailDemo({
   onLogout,
   onReferFriend,
   renderIndustryTool,
+  onApplyComposeTemplate,
+  renderTopbarSearch,
+  renderInboxWorkspace,
+  renderWorkspace,
+  showCareerTab = false,
+  onCareerTabClick,
+  forcedWorkspace,
+  onWorkspaceTabNavigate,
+  requestedWorkspace,
+  onRequestedWorkspaceHandled,
+  mailWorkspaceViews,
+  activeMailWorkspaceView = null,
+  onMailWorkspaceView,
 }: Props) {
   const composeSeed = useMemo(() => getComposeSettings(demo.useCaseId), [demo.useCaseId]);
   const displayName = viewerName?.trim() || viewerEmail?.split("@")[0] || "there";
   const displayEmail = viewerEmail?.trim() || composeSeed.defaultSenderEmail;
 
-  const [workspace, setWorkspace] = useState<Workspace>("inbox");
+  const [workspace, setWorkspace] = useState<Workspace>(forcedWorkspace ?? "inbox");
+  const activeWorkspace = forcedWorkspace ?? workspace;
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [messages, setMessages] = useState<DemoMessage[]>(() => demo.messages.map((message) => ({ ...message })));
   const [selectedMessageId, setSelectedMessageId] = useState(demo.defaultMessageId);
@@ -597,6 +643,19 @@ export function BespokeMailDemo({
   useEffect(() => {
     if (platformNotice) setMailNotice(platformNotice);
   }, [platformNotice]);
+
+  useEffect(() => {
+    if (!requestedWorkspace || forcedWorkspace) return;
+    setWorkspace(requestedWorkspace);
+    setActiveTool(null);
+    onRequestedWorkspaceHandled?.();
+  }, [requestedWorkspace, forcedWorkspace, onRequestedWorkspaceHandled]);
+
+  useEffect(() => {
+    if (!mailNotice) return;
+    const timer = window.setTimeout(() => setMailNotice(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [mailNotice]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -900,7 +959,14 @@ export function BespokeMailDemo({
   const pendingReminderCount = reminders.filter((reminder) => reminder.status === "pending").length;
   const activeToolId = activeTool && demo.tools.some((tool) => tool.id === activeTool) ? activeTool : null;
   const toolPanel = demo.toolPanels[activeToolId ?? demo.defaultToolId] ?? demo.toolPanels[demo.defaultToolId];
-  const applyComposeTemplate = (template: { subject: string; html: string }) => {
+  const applyComposeTemplate = (template: { subject: string; html: string; label?: string }) => {
+    if (onApplyComposeTemplate) {
+      onApplyComposeTemplate(template);
+      setMailNotice(
+        template.label ? `"${template.label}" loaded into compose.` : "Template loaded into compose.",
+      );
+      return;
+    }
     setComposeDraft((current) => ({
       ...current,
       subject: template.subject,
@@ -1391,9 +1457,25 @@ export function BespokeMailDemo({
   }
 
   function openMailWorkspace() {
+    if (forcedWorkspace) {
+      onWorkspaceTabNavigate?.("inbox");
+      return;
+    }
     setActiveTool(null);
     setWorkspace("inbox");
+    onMailWorkspaceView?.(null);
   }
+
+  function resolveHighlightedWorkspace(): Workspace {
+    if (renderInboxWorkspace && mailWorkspaceViews && activeMailWorkspaceView) {
+      const entries = Object.entries(mailWorkspaceViews) as Array<[Workspace, string]>;
+      const match = entries.find(([, view]) => view === activeMailWorkspaceView);
+      if (match) return match[0];
+    }
+    return activeWorkspace;
+  }
+
+  const highlightedWorkspace = resolveHighlightedWorkspace();
 
   function runMailSearch(query: string, scope: MailSearchScope) {
     setMailSearchQuery(query);
@@ -1442,8 +1524,31 @@ export function BespokeMailDemo({
   }
 
   function openWorkspaceTool(nextWorkspace: Exclude<Workspace, "inbox" | "industry">, feature: string) {
+    if (forcedWorkspace) {
+      if (nextWorkspace !== forcedWorkspace) {
+        onWorkspaceTabNavigate?.(nextWorkspace);
+      }
+      return;
+    }
+    if (nextWorkspace === "career" && onCareerTabClick) {
+      onCareerTabClick();
+      return;
+    }
     if (workspaceToolsGated) {
       showPaidFeatureNotice(feature, "bespoke-workspace");
+      return;
+    }
+    if (
+      renderInboxWorkspace &&
+      mailWorkspaceViews &&
+      (nextWorkspace === "contacts" ||
+        nextWorkspace === "crm" ||
+        nextWorkspace === "reminders" ||
+        nextWorkspace === "calendar")
+    ) {
+      setWorkspace("inbox");
+      setActiveTool(null);
+      onMailWorkspaceView?.(mailWorkspaceViews[nextWorkspace] ?? null);
       return;
     }
     setWorkspace(nextWorkspace);
@@ -1904,8 +2009,27 @@ export function BespokeMailDemo({
     );
   }
 
+  function renderProductionWorkspacePanel(workspaceKey: BespokeWorkspace, demoPanel: ReactNode) {
+    const panel = renderWorkspace?.(workspaceKey);
+    if (panel) {
+      return (
+        <div className={`bespoke-demo-production-workspace bespoke-demo-production-workspace--${workspaceKey}`}>
+          {panel}
+        </div>
+      );
+    }
+    return demoPanel;
+  }
+
+  const bespokeDemoClassName = [
+    "bespoke-demo",
+    activeWorkspace === "settings" ? "bespoke-demo--workspace-settings" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className="bespoke-demo">
+    <div className={bespokeDemoClassName}>
       <header className="bespoke-demo-topbar">
         <div className="bespoke-demo-topbar-left">
           <div>
@@ -1914,17 +2038,19 @@ export function BespokeMailDemo({
           </div>
         </div>
         <div className="bespoke-demo-topbar-center">
-          <MailSearchBar
-            ref={mailSearchRef}
-            query={mailSearchQuery}
-            active={mailSearchActive}
-            scope={mailSearchScope}
-            contacts={crmContacts.map((contact) => ({ name: contact.name, email: contact.email }))}
-            onQueryChange={setMailSearchQuery}
-            onScopeChange={setMailSearchScope}
-            onSearch={runMailSearch}
-            onClear={clearMailSearch}
-          />
+          {renderTopbarSearch ?? (
+            <MailSearchBar
+              ref={mailSearchRef}
+              query={mailSearchQuery}
+              active={mailSearchActive}
+              scope={mailSearchScope}
+              contacts={crmContacts.map((contact) => ({ name: contact.name, email: contact.email }))}
+              onQueryChange={setMailSearchQuery}
+              onScopeChange={setMailSearchScope}
+              onSearch={runMailSearch}
+              onClear={clearMailSearch}
+            />
+          )}
         </div>
         <div className="bespoke-demo-topbar-right">
           <div className="bespoke-demo-topbar-actions">
@@ -1978,6 +2104,11 @@ export function BespokeMailDemo({
           <span className="bespoke-demo-user" title={displayEmail}>
             {displayName} &lt;{displayEmail}&gt;
           </span>
+          {onLogout ? (
+            <button type="button" className="bespoke-demo-topbar-signout" onClick={onLogout}>
+              Sign out
+            </button>
+          ) : null}
         </div>
       </header>
 
@@ -1985,7 +2116,7 @@ export function BespokeMailDemo({
         <button
           type="button"
           className={`bespoke-demo-workspace-tab${
-            workspace === "inbox" ? " bespoke-demo-workspace-tab--active" : ""
+            highlightedWorkspace === "inbox" ? " bespoke-demo-workspace-tab--active" : ""
           }`}
           onClick={openMailWorkspace}
         >
@@ -2004,7 +2135,7 @@ export function BespokeMailDemo({
         </button>
         <button
           type="button"
-          className={`bespoke-demo-workspace-tab${workspace === "contacts" ? " bespoke-demo-workspace-tab--active" : ""}`}
+          className={`bespoke-demo-workspace-tab${highlightedWorkspace === "contacts" ? " bespoke-demo-workspace-tab--active" : ""}`}
           onClick={() => openWorkspaceTool("contacts", "Contacts")}
         >
           Contacts
@@ -2012,14 +2143,14 @@ export function BespokeMailDemo({
         </button>
         <button
           type="button"
-          className={`bespoke-demo-workspace-tab${workspace === "crm" ? " bespoke-demo-workspace-tab--active" : ""}`}
+          className={`bespoke-demo-workspace-tab${highlightedWorkspace === "crm" ? " bespoke-demo-workspace-tab--active" : ""}`}
           onClick={() => openWorkspaceTool("crm", "CRM")}
         >
           CRM
         </button>
         <button
           type="button"
-          className={`bespoke-demo-workspace-tab${workspace === "reminders" ? " bespoke-demo-workspace-tab--active" : ""}`}
+          className={`bespoke-demo-workspace-tab${highlightedWorkspace === "reminders" ? " bespoke-demo-workspace-tab--active" : ""}`}
           onClick={() => openWorkspaceTool("reminders", "Reminders")}
         >
           Reminders
@@ -2027,7 +2158,7 @@ export function BespokeMailDemo({
         </button>
         <button
           type="button"
-          className={`bespoke-demo-workspace-tab${workspace === "calendar" ? " bespoke-demo-workspace-tab--active" : ""}`}
+          className={`bespoke-demo-workspace-tab${highlightedWorkspace === "calendar" ? " bespoke-demo-workspace-tab--active" : ""}`}
           onClick={() => openWorkspaceTool("calendar", "Calendar")}
         >
           Calendar
@@ -2035,7 +2166,7 @@ export function BespokeMailDemo({
         </button>
         <button
           type="button"
-          className={`bespoke-demo-workspace-tab${workspace === "messaging" ? " bespoke-demo-workspace-tab--active" : ""}`}
+          className={`bespoke-demo-workspace-tab${activeWorkspace === "messaging" ? " bespoke-demo-workspace-tab--active" : ""}`}
           onClick={() => openWorkspaceTool("messaging", "Messaging")}
         >
           Messaging
@@ -2043,14 +2174,23 @@ export function BespokeMailDemo({
         </button>
         <button
           type="button"
-          className={`bespoke-demo-workspace-tab${workspace === "settings" ? " bespoke-demo-workspace-tab--active" : ""}`}
+          className={`bespoke-demo-workspace-tab${activeWorkspace === "settings" ? " bespoke-demo-workspace-tab--active" : ""}`}
           onClick={() => openWorkspaceTool("settings", "Brand Settings")}
         >
           Brand Settings
         </button>
+        {showCareerTab ? (
+          <button
+            type="button"
+            className={`bespoke-demo-workspace-tab${activeWorkspace === "career" ? " bespoke-demo-workspace-tab--active" : ""}`}
+            onClick={() => (onCareerTabClick && forcedWorkspace !== "career" ? onCareerTabClick() : openWorkspaceTool("career", "Career"))}
+          >
+            Career
+          </button>
+        ) : null}
       </div>
 
-      {workspace === "inbox" || workspace === "industry" ? (
+      {activeWorkspace === "inbox" || activeWorkspace === "industry" ? (
         <div className="bespoke-demo-workspace-toolbar">
           <div className="bespoke-demo-workspace-toolbar-row">
             {!hideIndustryTools ? (
@@ -2145,7 +2285,16 @@ export function BespokeMailDemo({
         </div>
       ) : null}
 
-      {workspace === "inbox" ? (
+      {renderInboxWorkspace ? (
+        <div
+          className={`bespoke-demo-inbox-production-mount${
+            activeWorkspace === "inbox" ? "" : " bespoke-demo-inbox-production-mount--hidden"
+          }`}
+          aria-hidden={activeWorkspace !== "inbox"}
+        >
+          {renderInboxWorkspace}
+        </div>
+      ) : activeWorkspace === "inbox" ? (
         <div
           className={`bespoke-demo-shell${
             activeMailFolder === "documents" ? " bespoke-demo-shell--documents" : ""
@@ -2588,7 +2737,7 @@ export function BespokeMailDemo({
         </div>
       ) : null}
 
-      {workspace === "industry" ? (
+      {activeWorkspace === "industry" ? (
         <div className="bespoke-demo-industry-shell">
           {industryToolContent ?? (
             <div className="bespoke-demo-tool-panel bespoke-demo-tool-panel--expanded">
@@ -2603,8 +2752,10 @@ export function BespokeMailDemo({
         </div>
       ) : null}
 
-      {workspace === "contacts" ? (
-        <div className="bespoke-demo-crm-shell">
+      {activeWorkspace === "contacts" ? (
+        renderProductionWorkspacePanel(
+          "contacts",
+          <div className="bespoke-demo-crm-shell">
           <section className="bespoke-demo-crm-list">
             <div className="bespoke-demo-module-head">
               <div>
@@ -2754,11 +2905,14 @@ export function BespokeMailDemo({
               </button>
             </form>
           </section>
-        </div>
+        </div>,
+        )
       ) : null}
 
-      {workspace === "crm" ? (
-        <div className="bespoke-demo-crm-shell">
+      {activeWorkspace === "crm" ? (
+        renderProductionWorkspacePanel(
+          "crm",
+          <div className="bespoke-demo-crm-shell">
           <section className="bespoke-demo-crm-list">
             <div className="bespoke-demo-module-head">
               <div>
@@ -2845,11 +2999,14 @@ export function BespokeMailDemo({
               </>
             ) : null}
           </section>
-        </div>
+        </div>,
+        )
       ) : null}
 
-      {workspace === "reminders" ? (
-        <div className="bespoke-demo-reminders-shell">
+      {activeWorkspace === "reminders" ? (
+        renderProductionWorkspacePanel(
+          "reminders",
+          <div className="bespoke-demo-reminders-shell">
           <section className="bespoke-demo-reminders-main">
             <div className="bespoke-demo-module-head">
               <div>
@@ -2962,11 +3119,14 @@ export function BespokeMailDemo({
               </button>
             </form>
           </aside>
-        </div>
+        </div>,
+        )
       ) : null}
 
-      {workspace === "calendar" ? (
-        <div className={`bespoke-demo-calendar-shell${calendarFullView ? " bespoke-demo-calendar-shell--full" : ""}`}>
+      {activeWorkspace === "calendar" ? (
+        renderProductionWorkspacePanel(
+          "calendar",
+          <div className={`bespoke-demo-calendar-shell${calendarFullView ? " bespoke-demo-calendar-shell--full" : ""}`}>
           <section className="bespoke-demo-calendar-main">
             <div className="bespoke-demo-module-head">
               <div>
@@ -3234,11 +3394,14 @@ export function BespokeMailDemo({
               ) : null}
             </section>
           </aside>
-        </div>
+        </div>,
+        )
       ) : null}
 
-      {workspace === "messaging" ? (
-        <div className="bespoke-demo-messaging-shell">
+      {activeWorkspace === "messaging" ? (
+        renderProductionWorkspacePanel(
+          "messaging",
+          <div className="bespoke-demo-messaging-shell">
           <aside className="bespoke-demo-messaging-directory">
             <div className="bespoke-demo-module-head">
               <div>
@@ -3397,11 +3560,14 @@ export function BespokeMailDemo({
               <p className="muted bespoke-demo-empty">Select an organization user or synced phone contact to start messaging.</p>
             )}
           </section>
-        </div>
+        </div>,
+        )
       ) : null}
 
-      {workspace === "settings" ? (
-        <div className="bespoke-demo-settings-shell">
+      {activeWorkspace === "settings" ? (
+        renderProductionWorkspacePanel(
+          "settings",
+          <div className="bespoke-demo-settings-shell">
           <div className="bespoke-demo-module-head">
             <div>
               <h2>Brand Settings</h2>
@@ -3578,31 +3744,25 @@ export function BespokeMailDemo({
               ) : null}
             </section>
           </div>
-        </div>
+        </div>,
+        )
       ) : null}
 
+      {activeWorkspace === "career" ? renderProductionWorkspacePanel("career", <p className="muted">Career workspace unavailable.</p>) : null}
+
       {activeMailFolder === "new-mail" ? (
-        <div
-          className="gmail-compose-overlay"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) discardComposeMail();
-          }}
-        >
-          <MailComposeForm
-            draft={composeDraft}
-            contacts={crmContacts}
-            fromHeader={outboundFromHeader}
-            whatsappEnabled={whatsappEnabled}
-            centered
-            onChange={setComposeDraft}
-            onSaveDraft={saveDraftMail}
-            onSend={sendComposeMail}
-            onSchedule={scheduleComposeMail}
-            onSendWhatsapp={requestComposeWhatsappSend}
-            onDiscard={discardComposeMail}
-          />
-        </div>
+        <MailComposeForm
+          draft={composeDraft}
+          contacts={crmContacts}
+          fromHeader={outboundFromHeader}
+          whatsappEnabled={whatsappEnabled}
+          onChange={setComposeDraft}
+          onSaveDraft={saveDraftMail}
+          onSend={sendComposeMail}
+          onSchedule={scheduleComposeMail}
+          onSendWhatsapp={requestComposeWhatsappSend}
+          onDiscard={discardComposeMail}
+        />
       ) : null}
 
       <AutoReplyModal

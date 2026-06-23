@@ -1,0 +1,119 @@
+.career-interview-prep-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.career-interview-prep-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.career-interview-prep-form textarea,
+.career-interview-prep-form input,
+.career-interview-prep-form select {
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.career-interview-prep-form fieldset {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  margin: 0;
+}
+
+.career-interview-prep-form legend {
+  padding: 0 0.25rem;
+  font-weight: 600;
+}
+
+.career-interview-prep-radio {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.5rem !important;
+  margin-bottom: 0.35rem;
+}
+
+.career-interview-prep-inline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.career-interview-prep-results {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.career-interview-prep-results-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.career-interview-prep-results-header h2 {
+  margin: 0;
+}
+
+.career-interview-prep-meta {
+  color: #64748b;
+  margin: 0.35rem 0 1rem;
+}
+
+.career-interview-prep-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.career-interview-prep-card {
+  border: 1px solid #eef2f7;
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
+.career-interview-prep-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.career-interview-prep-card h4 {
+  margin: 0.65rem 0 0.25rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #64748b;
+}
+
+.career-interview-prep-card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.career-interview-prep-general {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.career-interview-prep-general h3 {
+  margin: 0 0 0.5rem;
+}
+
+.career-interview-prep-general ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}

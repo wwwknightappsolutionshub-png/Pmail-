@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { logComplianceEvent } from "./compliance.service.js";
+import { provisionB2bRouting } from "./b2b-routing.service.js";
 
 const WORKSPACE_STATUSES = new Set(["active", "paused", "archived", "onboarding"]);
 const ACCOUNT_TIERS = new Set(["standard", "premium", "enterprise", "strategic"]);
@@ -164,6 +165,8 @@ export async function createB2bWorkspace(
     entityId: workspace.id,
     metadata: { clientDomain: workspace.clientDomain, status, accountTier, arrCents: workspace.arrCents },
   });
+
+  await provisionB2bRouting(workspace.id, tenantId);
 
   return formatWorkspace(workspace);
 }
@@ -816,6 +819,9 @@ function formatWorkspace(workspace: {
   healthScore: number;
   brandColor: string | null;
   routingDomain: string | null;
+  routingStatus?: string;
+  routingMailbox?: string | null;
+  routingActivatedAt?: Date | null;
   onboardingStage: string;
   renewalDate: Date | null;
   createdAt: Date;
@@ -834,6 +840,9 @@ function formatWorkspace(workspace: {
     healthScore: workspace.healthScore,
     brandColor: workspace.brandColor,
     routingDomain: workspace.routingDomain,
+    routingStatus: workspace.routingStatus ?? "pending",
+    routingMailbox: workspace.routingMailbox ?? null,
+    routingActivatedAt: workspace.routingActivatedAt?.toISOString() ?? null,
     onboardingStage: workspace.onboardingStage,
     renewalDate: workspace.renewalDate?.toISOString() ?? null,
     clientName: workspace.clientContact

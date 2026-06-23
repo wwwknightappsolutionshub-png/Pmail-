@@ -2,10 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  min-height: min-content;
   padding-right: 0.15rem;
 }
 
@@ -19,6 +16,7 @@
   line-height: 1.45;
 }
 
+.folder-nav-section {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -182,7 +180,49 @@
 }
 
 .folder-nav-item.is-active .folder-nav-label {
-  color: #fff;
+  color: var(--folder-nav-active-label, #fff);
+}
+
+.folder-nav-flyout {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.4rem);
+  transform: translateX(-50%) translateY(4px);
+  z-index: 30;
+  max-width: 11rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 14, 26, 0.96);
+  color: #f8fafc;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 10px 24px rgba(2, 8, 23, 0.35);
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+}
+
+.mail-sidebar--collapsed .folder-nav-flyout {
+  display: block;
+}
+
+.mail-sidebar:not(.mail-sidebar--collapsed) .folder-nav-flyout {
+  display: none;
+}
+
+.mail-sidebar--collapsed .folder-nav-item:hover .folder-nav-flyout,
+.mail-sidebar--collapsed .folder-nav-item:focus-visible .folder-nav-flyout,
+.mail-sidebar--collapsed .mail-sidebar-toggle:hover .folder-nav-flyout,
+.mail-sidebar--collapsed .mail-sidebar-toggle:focus-visible .folder-nav-flyout {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .folder-nav-badge {
@@ -194,11 +234,10 @@
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
-  color: #042f2e;
-  background: linear-gradient(
-    120deg,
-    var(--brand-accent, #14b8a6),
-    var(--brand-primary, #0d9488)
+  color: var(--folder-nav-badge-text, #042f2e);
+  background: var(
+    --folder-nav-badge-bg,
+    linear-gradient(120deg, var(--brand-accent, #14b8a6), var(--brand-primary, #0d9488))
   );
 }
 
@@ -221,24 +260,37 @@
 }
 
 .folder-nav-item--compose {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 28%, transparent);
+  background: var(--accent-soft, rgba(255, 255, 255, 0.06));
+  border-color: color-mix(in srgb, var(--brand-accent, var(--accent, #14b8a6)) 34%, transparent);
 }
 
 .folder-nav-item--compose:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 40%, transparent);
+  background: color-mix(in srgb, var(--brand-accent, var(--accent, #14b8a6)) 16%, var(--accent-soft, rgba(255, 255, 255, 0.08)));
+  border-color: color-mix(in srgb, var(--brand-accent, var(--accent, #14b8a6)) 48%, transparent);
 }
 
 .folder-nav-icon--compose {
-  color: #ccfbf1;
-  background: color-mix(in srgb, var(--brand-primary, #0d4f6c) 70%, transparent);
-  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 35%, transparent);
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary, var(--accent-dark, #0d9488)),
+    var(--brand-accent, var(--accent, #14b8a6))
+  );
+  border-color: color-mix(in srgb, var(--brand-accent, var(--accent, #14b8a6)) 42%, transparent);
 }
 
 .folder-nav-item--compose .folder-nav-label {
-  color: #fff;
+  color: var(--folder-nav-compose-label, var(--text, #fff));
   font-weight: 700;
+}
+
+.mail-sidebar--collapsed .folder-nav-item--compose {
+  background: color-mix(in srgb, var(--brand-accent, var(--accent, #14b8a6)) 14%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent, var(--accent, #14b8a6)) 38%, transparent);
+}
+
+.mail-sidebar--collapsed .folder-nav-icon--compose {
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--brand-accent, var(--accent, #14b8a6)) 28%, transparent);
 }
 
 .folder-nav-icon--scheduled.is-active,

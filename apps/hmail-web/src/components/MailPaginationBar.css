@@ -4,11 +4,15 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.65rem 1rem;
-  border-top: 1px solid var(--border);
-  background: rgba(8, 14, 26, 0.72);
+  border-top: 1px solid var(--list-chrome-border, var(--border, #e2e8f0));
+  background: var(--list-chrome-bg, var(--surface-inset, #f8fafc));
   font-family: inherit;
   font-size: 0.82rem;
-  color: var(--text-muted);
+  color: var(--text-muted, #64748b);
+}
+
+.mail-pagination-summary {
+  color: var(--text-muted, #64748b);
 }
 
 .mail-pagination-actions {
@@ -19,17 +23,23 @@
 
 .mail-pagination-actions button {
   min-height: 2.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--list-chrome-btn-border, var(--border, #c8d1dc));
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text);
+  background: var(--list-chrome-btn-bg, #ffffff);
+  color: var(--text-secondary, var(--text, #334155));
   padding: 0.35rem 0.75rem;
   font-weight: 600;
   cursor: pointer;
 }
 
+.mail-pagination-actions button:hover:not(:disabled) {
+  border-color: var(--accent-border, color-mix(in srgb, var(--brand-accent, #0d9488) 38%, transparent));
+  background: var(--accent-soft, #ecf8f6);
+  color: var(--accent-dark, #0f766e);
+}
+
 .mail-pagination-actions span {
-  color: var(--text-muted);
+  color: var(--text-muted, #64748b);
 }
 
 .mail-pagination-actions button:disabled {

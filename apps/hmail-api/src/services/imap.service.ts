@@ -1,6 +1,8 @@
 import { ImapFlow } from "imapflow";
 import MailComposer from "nodemailer/lib/mail-composer/index.js";
 import { simpleParser, type ParsedMail } from "mailparser";
+import { encodeSenderKey, extractEmailAddress } from "../lib/list-unsubscribe.js";
+import { buildImapCriteriaFromParsed, parseMailSearchQuery } from "../lib/mail-search-parser.js";
 import type { TenantMailConfig } from "@prisma/client";
 import { buildMailHeaders, type SendMailInput } from "./smtp.service.js";
 
@@ -141,6 +143,11 @@ export async function verifyImapLogin(credentials: MailCredentials): Promise<voi
 }
 
 export async function listFolders(credentials: MailCredentials): Promise<MailFolder[]> {
+  const { useLocalPmailFixture, localFixtureListFolders } = await import("./local-pmail-fixture.service.js");
+  if (useLocalPmailFixture(credentials)) {
+    return localFixtureListFolders();
+  }
+
   const client = buildImapClient(credentials);
   try {
     await client.connect();
@@ -195,6 +202,19 @@ export async function listMessages(
   const { search, searchField, searchQuery, filter = "all", sortBy = "date", sortOrder = "desc" } =
     options;
   const queryText = (searchQuery ?? search ?? "").trim();
+
+  const { useLocalPmailFixture, localFixtureListMessages } = await import("./local-pmail-fixture.service.js");
+  if (useLocalPmailFixture(credentials)) {
+    return localFixtureListMessages(credentials, folder, {
+      page,
+      pageSize,
+      searchQuery: queryText,
+      filter,
+      sortBy,
+      sortOrder,
+    });
+  }
+
   const client = buildImapClient(credentials);
 
   try {
@@ -302,8 +322,20 @@ function buildImapSearchCriteria(options: {
   filter?: "all" | "unread" | "read" | "starred";
   legacySearch?: string;
 }): Record<string, unknown> {
-  const criteria: Record<string, unknown> = { all: true };
   const query = (options.searchQuery ?? options.legacySearch ?? "").trim();
+  const usesGmailSyntax =
+    Boolean(query) &&
+    (!options.searchField || /(^|\s)(is:|has:|in:|from:|to:|subject:|label:|filename:|before:|after:)/i.test(query));
+
+  if (usesGmailSyntax) {
+    const parsed = parseMailSearchQuery(query);
+    if (options.filter && options.filter !== "all" && parsed.filter === "all") {
+      parsed.filter = options.filter;
+    }
+    return buildImapCriteriaFromParsed(parsed);
+  }
+
+  const criteria: Record<string, unknown> = { all: true };
 
   if (options.filter === "unread") {
     delete criteria.all;
@@ -386,6 +418,11 @@ export async function getMessage(
   folder: string,
   uid: number,
 ): Promise<MailMessageDetail | null> {
+  const { useLocalPmailFixture, localFixtureGetMessage } = await import("./local-pmail-fixture.service.js");
+  if (useLocalPmailFixture(credentials)) {
+    return localFixtureGetMessage(credentials, folder, uid);
+  }
+
   const client = buildImapClient(credentials);
 
   try {
@@ -440,6 +477,12 @@ export async function setMessageFlags(
   uid: number,
   flags: { seen?: boolean; flagged?: boolean },
 ): Promise<void> {
+  const { useLocalPmailFixture, localFixtureSetMessageFlags } = await import("./local-pmail-fixture.service.js");
+  if (useLocalPmailFixture(credentials)) {
+    localFixtureSetMessageFlags(credentials, folder, uid, flags);
+    return;
+  }
+
   const client = buildImapClient(credentials);
   try {
     await client.connect();
@@ -460,6 +503,12 @@ export async function moveMessage(
   uid: number,
   targetFolder: string,
 ): Promise<void> {
+  const { useLocalPmailFixture, localFixtureMoveMessage } = await import("./local-pmail-fixture.service.js");
+  if (useLocalPmailFixture(credentials)) {
+    localFixtureMoveMessage(credentials, folder, uid, targetFolder);
+    return;
+  }
+
   const client = buildImapClient(credentials);
   try {
     await client.connect();
@@ -475,6 +524,12 @@ export async function deleteMessage(
   folder: string,
   uid: number,
 ): Promise<void> {
+  const { useLocalPmailFixture, localFixtureDeleteMessage } = await import("./local-pmail-fixture.service.js");
+  if (useLocalPmailFixture(credentials)) {
+    localFixtureDeleteMessage(credentials, folder, uid);
+    return;
+  }
+
   const client = buildImapClient(credentials);
   try {
     await client.connect();
@@ -529,6 +584,12 @@ export async function bulkMessageAction(
   targetFolder?: string,
 ): Promise<void> {
   if (uids.length === 0) return;
+
+  const { useLocalPmailFixture, localFixtureBulkMessageAction } = await import("./local-pmail-fixture.service.js");
+  if (useLocalPmailFixture(credentials)) {
+    localFixtureBulkMessageAction(credentials, folder, uids, action, targetFolder);
+    return;
+  }
 
   const client = buildImapClient(credentials);
   try {
@@ -592,6 +653,475 @@ export async function downloadAttachment(
       contentType: att.contentType,
       content: att.content,
     };
+  } finally {
+    await client.logout().catch(() => undefined);
+  }
+}
+
+function readHeaderValue(headers: ParsedMail["headers"], name: string): string | null {
+  const value = headers.get(name);
+  if (!value) return null;
+  return typeof value === "string" ? value : value.toString();
+}
+
+async function readListUnsubscribeHeaders(
+  client: ImapFlow,
+  uid: number,
+): Promise<{ listUnsubscribe: string | null; listUnsubscribePost: string | null }> {
+  const fetched = await client.fetchOne(
+    uid,
+    { uid: true, source: { start: 0, maxLength: 8192 } },
+    { uid: true },
+  );
+  if (!fetched || !("source" in fetched) || !fetched.source) {
+    return { listUnsubscribe: null, listUnsubscribePost: null };
+  }
+
+  const parsed = await simpleParser(fetched.source as Buffer);
+  return {
+    listUnsubscribe: readHeaderValue(parsed.headers, "list-unsubscribe"),
+    listUnsubscribePost: readHeaderValue(parsed.headers, "list-unsubscribe-post"),
+  };
+}
+
+export interface InboxSenderSummary {
+  senderKey: string;
+  senderEmail: string;
+  displayFrom: string;
+  messageCount: number;
+  unreadCount: number;
+  oldestDate: string | null;
+  newestDate: string | null;
+  hasUnsubscribe: boolean;
+}
+
+export async function findArchiveFolderPath(credentials: MailCredentials): Promise<string | null> {
+  const client = buildImapClient(credentials);
+  try {
+    await client.connect();
+    const mailboxes = await client.list();
+    const bySpecial = mailboxes.find((box) => box.specialUse === "\\Archive");
+    if (bySpecial) return bySpecial.path;
+
+    const byName = mailboxes.find((box) => {
+      const path = box.path.toLowerCase();
+      const name = box.name.toLowerCase();
+      return path === "archive" || path.endsWith(".archive") || name === "archive" || name === "all mail";
+    });
+    return byName?.path ?? null;
+  } finally {
+    await client.logout().catch(() => undefined);
+  }
+}
+
+export async function analyzeInboxSenders(
+  credentials: MailCredentials,
+  folder: string,
+  options: { maxScan: number; maxSenders: number },
+): Promise<{ folder: string; scannedCount: number; senders: InboxSenderSummary[] }> {
+  const client = buildImapClient(credentials);
+
+  try {
+    await client.connect();
+    await client.mailboxOpen(folder);
+    const searchResult = await client.search({ all: true }, { uid: true });
+    const allUids = Array.isArray(searchResult) ? searchResult : [];
+    const scanUids = allUids.slice(-options.maxScan);
+
+    type SenderAgg = {
+      senderEmail: string;
+      displayFrom: string;
+      messageCount: number;
+      unreadCount: number;
+      oldestMs: number;
+      newestMs: number;
+      latestUid: number;
+    };
+
+    const bySender = new Map<string, SenderAgg>();
+
+    for await (const msg of client.fetch(
+      scanUids,
+      { uid: true, envelope: true, flags: true },
+      { uid: true },
+    )) {
+      const fromAddr = msg.envelope?.from?.[0];
+      const displayFrom = fromAddr
+        ? `${fromAddr.name ? `${fromAddr.name} ` : ""}<${fromAddr.address}>`
+        : "Unknown sender";
+      const senderEmail = fromAddr?.address
+        ? extractEmailAddress(fromAddr.address)
+        : extractEmailAddress(displayFrom);
+      const dateMs = msg.envelope?.date?.getTime() ?? Date.now();
+      const seen = msg.flags?.has("\\Seen") ?? false;
+
+      const existing = bySender.get(senderEmail);
+      if (!existing) {
+        bySender.set(senderEmail, {
+          senderEmail,
+          displayFrom,
+          messageCount: 1,
+          unreadCount: seen ? 0 : 1,
+          oldestMs: dateMs,
+          newestMs: dateMs,
+          latestUid: msg.uid,
+        });
+        continue;
+      }
+
+      existing.messageCount += 1;
+      if (!seen) existing.unreadCount += 1;
+      if (dateMs < existing.oldestMs) existing.oldestMs = dateMs;
+      if (dateMs >= existing.newestMs) {
+        existing.newestMs = dateMs;
+        existing.latestUid = msg.uid;
+        existing.displayFrom = displayFrom;
+      }
+    }
+
+    const ranked = [...bySender.values()].sort((a, b) => b.messageCount - a.messageCount);
+    const top = ranked.slice(0, options.maxSenders);
+    const unsubscribeBySender = new Map<string, boolean>();
+
+    for (const sender of top) {
+      const headerValues = await readListUnsubscribeHeaders(client, sender.latestUid);
+      unsubscribeBySender.set(
+        sender.senderEmail,
+        Boolean(headerValues.listUnsubscribe && /https?:\/\//i.test(headerValues.listUnsubscribe)),
+      );
+    }
+
+    const senders: InboxSenderSummary[] = top.map((sender) => ({
+      senderKey: encodeSenderKey(sender.senderEmail),
+      senderEmail: sender.senderEmail,
+      displayFrom: sender.displayFrom,
+      messageCount: sender.messageCount,
+      unreadCount: sender.unreadCount,
+      oldestDate: new Date(sender.oldestMs).toISOString(),
+      newestDate: new Date(sender.newestMs).toISOString(),
+      hasUnsubscribe: unsubscribeBySender.get(sender.senderEmail) ?? false,
+    }));
+
+    return { folder, scannedCount: scanUids.length, senders };
+  } finally {
+    await client.logout().catch(() => undefined);
+  }
+}
+
+export async function getMessageUnsubscribeHeaders(
+  credentials: MailCredentials,
+  folder: string,
+  uid: number,
+): Promise<{ from: string | null; listUnsubscribe: string | null; listUnsubscribePost: string | null } | null> {
+  const client = buildImapClient(credentials);
+  try {
+    await client.connect();
+    await client.mailboxOpen(folder);
+
+    const fetched = await client.fetchOne(
+      uid,
+      { uid: true, envelope: true, source: { start: 0, maxLength: 8192 } },
+      { uid: true },
+    );
+    if (!fetched) return null;
+
+    const fromAddr = fetched.envelope?.from?.[0];
+    const from = fromAddr
+      ? `${fromAddr.name ? `${fromAddr.name} ` : ""}<${fromAddr.address}>`
+      : null;
+
+    const parsed =
+      "source" in fetched && fetched.source ? await simpleParser(fetched.source as Buffer) : null;
+
+    return {
+      from,
+      listUnsubscribe: parsed ? readHeaderValue(parsed.headers, "list-unsubscribe") : null,
+      listUnsubscribePost: parsed ? readHeaderValue(parsed.headers, "list-unsubscribe-post") : null,
+    };
+  } finally {
+    await client.logout().catch(() => undefined);
+  }
+}
+
+export type SenderCleanupAction = "delete" | "archive" | "markRead";
+
+export async function performSenderCleanup(
+  credentials: MailCredentials,
+  folder: string,
+  senderEmail: string,
+  action: SenderCleanupAction,
+  archiveFolder?: string,
+): Promise<number> {
+  const client = buildImapClient(credentials);
+  try {
+    await client.connect();
+    await client.mailboxOpen(folder);
+    const searchResult = await client.search({ from: senderEmail }, { uid: true });
+    const uids = Array.isArray(searchResult) ? searchResult : [];
+    if (uids.length === 0) return 0;
+
+    for (const uid of uids) {
+      switch (action) {
+        case "markRead":
+          await client.messageFlagsAdd(uid, ["\\Seen"], { uid: true });
+          break;
+        case "delete":
+          await client.messageDelete(uid, { uid: true });
+          break;
+        case "archive":
+          if (!archiveFolder) throw new Error("Archive folder required");
+          await client.messageMove(uid, archiveFolder, { uid: true });
+          break;
+      }
+    }
+
+    return uids.length;
+  } finally {
+    await client.logout().catch(() => undefined);
+  }
+}
+
+export interface ScannedMessageAttachments {
+  uid: number;
+  subject: string;
+  from: string;
+  date: string;
+  attachments: Array<{ partId: string; filename: string; contentType: string; size: number }>;
+}
+
+function collectAttachmentParts(structure: unknown): Array<{
+  partId: string;
+  filename: string;
+  contentType: string;
+  size: number;
+}> {
+  const results: Array<{ partId: string; filename: string; contentType: string; size: number }> = [];
+
+  const walk = (node: unknown): void => {
+    if (!node || typeof node !== "object") return;
+    const part = node as {
+      type?: string;
+      subtype?: string;
+      disposition?: string;
+      dispositionParameters?: { filename?: string };
+      parameters?: { name?: string; filename?: string };
+      childNodes?: unknown[];
+      size?: number;
+    };
+
+    const filename =
+      part.dispositionParameters?.filename ??
+      part.parameters?.filename ??
+      part.parameters?.name ??
+      "";
+    const contentType =
+      part.type && part.subtype ? `${part.type}/${part.subtype}`.toLowerCase() : "application/octet-stream";
+    const isAttachment =
+      part.disposition === "attachment" || (Boolean(filename) && part.disposition !== "inline");
+
+    if (isAttachment && filename) {
+      results.push({
+        partId: String(results.length),
+        filename,
+        contentType,
+        size: part.size ?? 0,
+      });
+    }
+
+    for (const child of part.childNodes ?? []) {
+      walk(child);
+    }
+  };
+
+  walk(structure);
+  return results;
+}
+
+export async function scanMessagesWithAttachments(
+  credentials: MailCredentials,
+  folder: string,
+  maxMessages: number,
+  onlyUid?: number,
+): Promise<ScannedMessageAttachments[]> {
+  const client = buildImapClient(credentials);
+
+  try {
+    await client.connect();
+    await client.mailboxOpen(folder);
+
+    let uids: number[];
+    if (onlyUid) {
+      uids = [onlyUid];
+    } else {
+      const searchResult = await client.search({ all: true }, { uid: true });
+      const allUids = Array.isArray(searchResult) ? searchResult : [];
+      uids = allUids.slice(-maxMessages);
+    }
+
+    const messages: ScannedMessageAttachments[] = [];
+
+    for await (const msg of client.fetch(
+      uids,
+      { uid: true, envelope: true, bodyStructure: true },
+      { uid: true },
+    )) {
+      const attachments = collectAttachmentParts(msg.bodyStructure);
+      if (attachments.length === 0) continue;
+
+      const envelope = msg.envelope;
+      const fromAddr = envelope?.from?.[0];
+      messages.push({
+        uid: msg.uid,
+        subject: envelope?.subject ?? "(No subject)",
+        from: fromAddr
+          ? `${fromAddr.name ? `${fromAddr.name} ` : ""}<${fromAddr.address}>`
+          : "",
+        date: envelope?.date?.toISOString() ?? new Date().toISOString(),
+        attachments,
+      });
+    }
+
+    return messages;
+  } finally {
+    await client.logout().catch(() => undefined);
+  }
+}
+
+export type SlaInboundMessage = {
+  uid: number;
+  subject: string;
+  fromEmail: string;
+  fromDisplay: string;
+  date: string;
+  messageId: string | null;
+  inReplyTo: string | null;
+  referencesHeader: string | null;
+};
+
+export async function scanInboundMessagesForSla(
+  credentials: MailCredentials,
+  folder: string,
+  options: { maxScan: number; userEmail: string },
+): Promise<{ scannedCount: number; messages: SlaInboundMessage[] }> {
+  const client = buildImapClient(credentials);
+  const userEmail = extractEmailAddress(options.userEmail).toLowerCase();
+
+  try {
+    await client.connect();
+    await client.mailboxOpen(folder);
+    const searchResult = await client.search({ all: true }, { uid: true });
+    const allUids = Array.isArray(searchResult) ? searchResult : [];
+    const scanUids = allUids.slice(-options.maxScan);
+    const messages: SlaInboundMessage[] = [];
+
+    for await (const msg of client.fetch(
+      scanUids,
+      { uid: true, source: { start: 0, maxLength: 8192 } },
+      { uid: true },
+    )) {
+      if (!msg.source) continue;
+      let parsed: ParsedMail;
+      try {
+        parsed = await simpleParser(msg.source);
+      } catch {
+        continue;
+      }
+
+      const fromText = parsed.from?.text ?? "";
+      const fromEmail = parsed.from?.value?.[0]?.address
+        ? extractEmailAddress(parsed.from.value[0].address)
+        : extractEmailAddress(fromText);
+      if (!fromEmail.includes("@")) continue;
+      if (fromEmail.toLowerCase() === userEmail) continue;
+
+      messages.push({
+        uid: msg.uid,
+        subject: parsed.subject ?? "(No subject)",
+        fromEmail,
+        fromDisplay: fromText || fromEmail,
+        date: (parsed.date ?? new Date()).toISOString(),
+        messageId: parsed.messageId ?? null,
+        inReplyTo: parsed.inReplyTo ?? null,
+        referencesHeader: Array.isArray(parsed.references)
+          ? parsed.references.join(" ")
+          : parsed.references ?? null,
+      });
+    }
+
+    return { scannedCount: scanUids.length, messages };
+  } finally {
+    await client.logout().catch(() => undefined);
+  }
+}
+
+export type CareerMailMessage = {
+  uid: number;
+  subject: string;
+  fromEmail: string;
+  toEmails: string[];
+  date: string;
+  messageId: string | null;
+  snippet: string;
+  direction: "inbound" | "outbound";
+};
+
+export async function scanFolderMessagesForJobHunter(
+  credentials: MailCredentials,
+  folder: string,
+  options: { maxScan: number; userEmail: string; direction: "inbound" | "outbound" },
+): Promise<{ scannedCount: number; messages: CareerMailMessage[] }> {
+  const client = buildImapClient(credentials);
+  const userEmail = extractEmailAddress(options.userEmail).toLowerCase();
+
+  try {
+    await client.connect();
+    await client.mailboxOpen(folder);
+    const searchResult = await client.search({ all: true }, { uid: true });
+    const allUids = Array.isArray(searchResult) ? searchResult : [];
+    const scanUids = allUids.slice(-options.maxScan);
+    const messages: CareerMailMessage[] = [];
+
+    for await (const msg of client.fetch(
+      scanUids,
+      { uid: true, source: { start: 0, maxLength: 16384 } },
+      { uid: true },
+    )) {
+      if (!msg.source) continue;
+      let parsed: ParsedMail;
+      try {
+        parsed = await simpleParser(msg.source);
+      } catch {
+        continue;
+      }
+
+      const fromText = parsed.from?.text ?? "";
+      const fromEmail = parsed.from?.value?.[0]?.address
+        ? extractEmailAddress(parsed.from.value[0].address)
+        : extractEmailAddress(fromText);
+      const toEmails = formatAddressField(parsed.to)
+        .split(",")
+        .map((entry) => extractEmailAddress(entry.trim()))
+        .filter((email) => email.includes("@"));
+
+      const snippet = (parsed.text ?? parsed.html ?? "").toString().slice(0, 2000);
+      const direction =
+        fromEmail.toLowerCase() === userEmail ? ("outbound" as const) : ("inbound" as const);
+      if (options.direction === "inbound" && direction !== "inbound") continue;
+      if (options.direction === "outbound" && direction !== "outbound") continue;
+
+      messages.push({
+        uid: msg.uid,
+        subject: parsed.subject ?? "(No subject)",
+        fromEmail,
+        toEmails,
+        date: (parsed.date ?? new Date()).toISOString(),
+        messageId: parsed.messageId ?? null,
+        snippet,
+        direction,
+      });
+    }
+
+    return { scannedCount: scanUids.length, messages };
   } finally {
     await client.logout().catch(() => undefined);
   }

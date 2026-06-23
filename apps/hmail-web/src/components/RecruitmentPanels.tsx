@@ -687,6 +687,9 @@ export function BulkOutreachPanel({ onUseTemplate }: { onUseTemplate: (t: { subj
     roleId: "",
     channel: "email",
     audience: "sourced_candidates",
+    subject: "",
+    bodyHtml: "",
+    scheduledFor: "",
   });
 
   const campaignRows = campaigns ?? [];
@@ -703,8 +706,11 @@ export function BulkOutreachPanel({ onUseTemplate }: { onUseTemplate: (t: { subj
         roleId: campaignForm.roleId || undefined,
         channel: campaignForm.channel,
         audience: campaignForm.audience,
+        subject: campaignForm.subject || undefined,
+        bodyHtml: campaignForm.bodyHtml || undefined,
+        scheduledFor: campaignForm.scheduledFor || undefined,
       });
-      setCampaignForm({ name: "", roleId: "", channel: "email", audience: "sourced_candidates" });
+      setCampaignForm({ name: "", roleId: "", channel: "email", audience: "sourced_candidates", subject: "", bodyHtml: "", scheduledFor: "" });
       setActionNotice("Outreach campaign created.");
       await refreshCampaigns();
     } catch (err) {
@@ -752,6 +758,9 @@ export function BulkOutreachPanel({ onUseTemplate }: { onUseTemplate: (t: { subj
             </select>
             <input placeholder="Audience" value={campaignForm.audience} onChange={(e) => setCampaignForm({ ...campaignForm, audience: e.target.value })} />
           </div>
+          <input placeholder="Email subject" value={campaignForm.subject} onChange={(e) => setCampaignForm({ ...campaignForm, subject: e.target.value })} />
+          <textarea placeholder="Email body (HTML)" value={campaignForm.bodyHtml} onChange={(e) => setCampaignForm({ ...campaignForm, bodyHtml: e.target.value })} />
+          <input type="datetime-local" value={campaignForm.scheduledFor} onChange={(e) => setCampaignForm({ ...campaignForm, scheduledFor: e.target.value })} />
           <button type="button" className="mail-toolbar-btn industry-ws-action-btn" onClick={() => void createCampaign()}>
             Create campaign
           </button>
@@ -778,13 +787,18 @@ export function BulkOutreachPanel({ onUseTemplate }: { onUseTemplate: (t: { subj
                     {campaign.launchedAt ? ` · Launched ${new Date(campaign.launchedAt).toLocaleString()}` : ""}
                   </p>
                   {campaign.role ? <p>Role: {campaign.role.title}</p> : null}
-                  <select defaultValue={campaign.status} onChange={(e) => void updateCampaignStatus(campaign.id, e.target.value)}>
+                  <div className="industry-ws-field-grid industry-ws-field-grid--duo">
+                    <button type="button" className="mail-toolbar-btn" onClick={() => void api.launchRcCampaign(campaign.id).then(refreshCampaigns)}>
+                      Launch now
+                    </button>
+                    <select defaultValue={campaign.status} onChange={(e) => void updateCampaignStatus(campaign.id, e.target.value)}>
                     <option value="draft">Draft</option>
                     <option value="scheduled">Scheduled</option>
                     <option value="sent">Sent</option>
                     <option value="paused">Paused</option>
                     <option value="completed">Completed</option>
                   </select>
+                  </div>
                 </article>
               ))}
             </div>
@@ -825,6 +839,9 @@ export function BulkOutreachPanel({ onUseTemplate }: { onUseTemplate: (t: { subj
 }
 
 export function TalentSearchPanel() {
+  const [mailQuery, setMailQuery] = useState("");
+  const [mailResults, setMailResults] = useState<Array<{ uid: number; subject: string; from: string; date: string; snippet: string }>>([]);
+  const [mailError, setMailError] = useState("");
   const { data: roles } = useLoad(() => api.rcRoles().then((r) => r.roles));
   const { data: contacts } = useLoad(() => api.rcContacts("candidate").then((r) => r.contacts));
   const { data: placements, loading, error, refresh } = useLoad(() => api.rcPlacements().then((r) => r.placements));
@@ -860,6 +877,16 @@ export function TalentSearchPanel() {
   const referenceRows = referenceChecks ?? [];
   const openPlacements = placementRows.filter((placement) => !["placed", "withdrawn"].includes(placement.status)).length;
   const pendingReferences = referenceRows.filter((check) => check.status === "requested" || check.status === "in_progress").length;
+
+  const searchMail = async () => {
+    setMailError("");
+    try {
+      const { results } = await api.rcTalentMailSearch(mailQuery);
+      setMailResults(results);
+    } catch (err) {
+      setMailError(err instanceof Error ? err.message : "Mail search failed");
+    }
+  };
 
   const createPlacement = async () => {
     setActionError("");
@@ -948,6 +975,26 @@ export function TalentSearchPanel() {
       {error ? <p className="mail-view-error">{error}</p> : null}
       {actionError ? <p className="mail-view-error">{actionError}</p> : null}
       {actionNotice ? <p className="mail-view-success">{actionNotice}</p> : null}
+
+      <section className="industry-ws-intake-panel industry-ws-intake-panel--primary" style={{ marginBottom: "1rem" }}>
+        <RecruitmentSectionHead code="Mail" title="Candidate mail search" description="Search inbox for messages from known recruitment contacts (IMAP + contact matching)." />
+        <input placeholder="from:resume OR subject:application" value={mailQuery} onChange={(e) => setMailQuery(e.target.value)} />
+        <button type="button" className="mail-toolbar-btn" onClick={() => void searchMail()}>
+          Search mail
+        </button>
+        {mailError ? <p className="mail-view-error">{mailError}</p> : null}
+        {mailResults.length > 0 ? (
+          <div className="feature-list">
+            {mailResults.map((row) => (
+              <article key={row.uid} className="feature-list-card">
+                <strong>{row.subject}</strong>
+                <p>{row.from}</p>
+                <p className="muted">{row.snippet}</p>
+              </article>
+            ))}
+          </div>
+        ) : null}
+      </section>
 
       <div className="industry-ws-tool-layout industry-ws-tool-layout--split">
         <section className="industry-ws-intake-panel">

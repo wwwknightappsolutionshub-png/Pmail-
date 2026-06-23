@@ -17,6 +17,175 @@ export type WorkspaceUser = {
   displayName: string;
 };
 
+export type CvRatingResult = {
+  overallScore: number;
+  categories: {
+    ats: { score: number; notes: string };
+    format: { score: number; notes: string };
+    keywords: { score: number; notes: string };
+    sections: { score: number; notes: string };
+  };
+  regionNotes: string;
+  improvements: string[];
+  targetRole: string | null;
+  region: string;
+  fileName: string;
+};
+
+export type JobApplicationRow = {
+  id: string;
+  company: string;
+  roleTitle: string;
+  appliedAt: string;
+  status: string;
+  source: string;
+  mailAccountId: string | null;
+  imapFolder: string | null;
+  messageUid: number | null;
+  messageMessageId: string | null;
+  threadHint: string | null;
+  hasMailLink: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type JobHunterCvContent = {
+  fullName: string;
+  contact: {
+    email: string;
+    phone: string;
+    location: string;
+    linkedIn?: string;
+  };
+  summary: string;
+  experience: Array<{
+    title: string;
+    company: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    bullets: string[];
+  }>;
+  education: Array<{
+    degree: string;
+    school: string;
+    year: string;
+    details?: string;
+  }>;
+  skills: string[];
+  certifications: Array<{
+    name: string;
+    issuer: string;
+    year: string;
+  }>;
+};
+
+export type JobHunterCvDocumentRow = {
+  id: string;
+  title: string;
+  region: string;
+  role: string | null;
+  industry: string | null;
+  content: JobHunterCvContent;
+  pdfStoragePath: string | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type JobHunterCvTemplateMeta = {
+  id: string;
+  region: string;
+  roleCategory: string;
+  industry: string;
+  experienceLevel?: "entry" | "mid" | "senior";
+  title: string;
+  description: string;
+};
+
+export type UserDocumentRow = {
+  id: string;
+  filename: string;
+  mimeType: string;
+  source: string;
+  isPinned: boolean;
+  isCareerCv: boolean;
+  jobHunterCvDocumentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type JobSiteLinkRow = {
+  id: string;
+  label: string;
+  url: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type InterviewPrepQuestion = {
+  question: string;
+  answerOutline: string[];
+  tips: string[];
+};
+
+export type InterviewPrepResult = {
+  targetRole: string | null;
+  region: string;
+  source: "job_description" | "application";
+  questions: InterviewPrepQuestion[];
+  generalTips: string[];
+};
+
+export type ApplyAssistPrefilledPayload = {
+  channel: "email_apply" | "linkedin_assist" | "indeed_assist";
+  subject?: string;
+  bodyText?: string;
+  bodyHtml?: string;
+  toEmail?: string;
+  company?: string;
+  coverBlurb?: string;
+  checklist?: string[];
+  openUrl?: string;
+  assistDisclaimer?: string;
+};
+
+export type ApplyAssistQueueItem = {
+  id: string;
+  channel: string;
+  status: string;
+  jobUrl: string | null;
+  careersEmail: string | null;
+  company: string | null;
+  targetRole: string;
+  region: string;
+  userDocumentId: string | null;
+  prefilled: ApplyAssistPrefilledPayload | null;
+  applicationId: string | null;
+  confirmedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ApplyAssistWallet = {
+  balance: number;
+  creditPackPriceCents: number;
+  creditsPerPack: number;
+  creditCostPerAssist: number;
+  dailyCap: number;
+  confirmedToday: number;
+  remainingToday: number;
+  ledger: Array<{
+    id: string;
+    delta: number;
+    reason: string;
+    applicationId: string | null;
+    queueId: string | null;
+    createdAt: string;
+  }>;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -171,7 +340,7 @@ export const api = {
   },
   message: (folder: string, uid: number) =>
     request<{ message: MailMessageDetail }>(`/api/mail/messages/${uid}?folder=${encodeURIComponent(folder)}`),
-  send: (body: {
+  send: async (body: {
     to: string;
     cc?: string;
     bcc?: string;
@@ -184,11 +353,47 @@ export const api = {
     priority?: "normal" | "high";
     requestReadReceipt?: boolean;
     trackingEnabled?: boolean;
+    vaultFileIds?: string[];
+    userDocumentIds?: string[];
     attachments?: Array<{ filename: string; content: string; contentType?: string }>;
-  }) =>
-    request<{ messageId: string; sentFolder?: string }>("/api/mail/send", {
+  }) => {
+    const res = await fetch(`${API_BASE}/api/mail/send`, {
       method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      let message = "Request failed";
+      try {
+        const data = (await res.json()) as { error?: string };
+        message = data.error ?? message;
+      } catch {
+        // ignore
+      }
+      throw new ApiError(message, res.status);
+    }
+    const data = (await res.json()) as Record<string, unknown>;
+    if (res.status === 202) {
+      return {
+        queued: true as const,
+        pendingId: String(data.pendingId),
+        undoSeconds: Number(data.undoSeconds),
+        undoUntil: String(data.undoUntil),
+        subject: String(data.subject),
+        to: String(data.to),
+      };
+    }
+    return {
+      queued: false as const,
+      messageId: String(data.messageId),
+      sentFolder: data.sentFolder ? String(data.sentFolder) : undefined,
+      trackingId: data.trackingId ? String(data.trackingId) : undefined,
+    };
+  },
+  undoPendingSend: (pendingId: string) =>
+    request<{ ok: boolean; cancelled: boolean }>(`/api/mail/send/${encodeURIComponent(pendingId)}/undo`, {
+      method: "POST",
     }),
   deleteMessage: (folder: string, uid: number) =>
     request<{ ok: boolean }>(`/api/mail/messages/${uid}?folder=${encodeURIComponent(folder)}`, { method: "DELETE" }),
@@ -213,7 +418,12 @@ export const api = {
       body: JSON.stringify({ folder, uids, action, targetFolder }),
     }),
   addons: () => request<{ addons: import("../types/addon").AddonItem[] }>("/api/addons"),
-  addonEntitlements: () => request<{ slugs: string[] }>("/api/addons/entitlements"),
+  addonEntitlements: () =>
+    request<{
+      slugs: string[];
+      jobHunter: import("../types/addon").JobHunterEntitlement;
+      panelWorkspaceTrial: import("../types/addon").PanelWorkspaceTrialStatus;
+    }>("/api/addons/entitlements"),
   startAddonTrial: (slug: string) =>
     request<{ addon: import("../types/addon").AddonItem }>(`/api/addons/${slug}/trial`, {
       method: "POST",
@@ -265,6 +475,7 @@ export const api = {
     scope: "user" | "tenant";
     includePlatformBundle: boolean;
     includeVerticalBundle: boolean;
+    includeJobHunterStandalone?: boolean;
     seats?: number;
   }) =>
     request<{
@@ -277,7 +488,7 @@ export const api = {
         amountCents: number;
         label: string;
         lines: Array<{
-          bundle: "platform" | "vertical";
+          bundle: "platform" | "vertical" | "job-hunter";
           label: string;
           addonSlugs: string[];
           anchorSlug: string;
@@ -296,6 +507,7 @@ export const api = {
       scope: "user" | "tenant";
       includePlatformBundle: boolean;
       includeVerticalBundle: boolean;
+      includeJobHunterStandalone?: boolean;
       seats?: number;
       provider?: "stripe" | "paystack" | "mock";
       successUrl?: string;
@@ -727,6 +939,9 @@ export const api = {
         clientEntity: { id: string; name: string; entityType: string } | null;
         contactName: string | null;
         user: { id: string; email: string; displayName: string | null } | null;
+        hasFile?: boolean;
+        fileSizeBytes?: number | null;
+        mimeType?: string | null;
       }>;
     }>(`/api/features/accounting/exchange-records${query ? `?${query}` : ""}`);
   },
@@ -742,6 +957,13 @@ export const api = {
     status?: string;
     notes?: string;
   }) => request<{ exchangeRecord: unknown }>("/api/features/accounting/exchange-records", { method: "POST", body: JSON.stringify(body) }),
+  uploadAcExchangeDocument: (recordId: string, body: { fileName: string; mimeType: string; dataBase64: string }) =>
+    request<{ exchangeRecord: unknown }>(`/api/features/accounting/exchange-records/${recordId}/upload`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  downloadAcExchangeDocument: (recordId: string) =>
+    fetch(`/api/features/accounting/exchange-records/${recordId}/download`, { credentials: "include" }),
   rcContacts: (role?: string) =>
     request<{
       contacts: Array<{
@@ -893,16 +1115,37 @@ export const api = {
         sentCount: number;
         replyCount: number;
         launchedAt: string | null;
+        subject: string | null;
+        bodyHtml: string | null;
+        scheduledFor: string | null;
         role: { id: string; title: string; clientCompany: string | null } | null;
       }>;
     }>(`/api/features/recruitment/campaigns${status ? `?status=${encodeURIComponent(status)}` : ""}`),
-  createRcCampaign: (body: { name: string; roleId?: string; channel?: string; status?: string; audience?: string }) =>
-    request<{ campaign: unknown }>("/api/features/recruitment/campaigns", { method: "POST", body: JSON.stringify(body) }),
-  updateRcCampaignStatus: (id: string, status: string) =>
+  createRcCampaign: (body: {
+    name: string;
+    roleId?: string;
+    channel?: string;
+    status?: string;
+    audience?: string;
+    subject?: string;
+    bodyHtml?: string;
+    scheduledFor?: string;
+  }) => request<{ campaign: unknown }>("/api/features/recruitment/campaigns", { method: "POST", body: JSON.stringify(body) }),
+  updateRcCampaignStatus: (
+    id: string,
+    status: string,
+    body?: { subject?: string; bodyHtml?: string; scheduledFor?: string },
+  ) =>
     request<{ campaign: unknown }>(`/api/features/recruitment/campaigns/${id}`, {
       method: "PATCH",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, ...body }),
     }),
+  launchRcCampaign: (id: string) =>
+    request<{ sent: number }>(`/api/features/recruitment/campaigns/${id}/launch`, { method: "POST" }),
+  rcTalentMailSearch: (q?: string) =>
+    request<{
+      results: Array<{ uid: number; subject: string; from: string; date: string; snippet: string }>;
+    }>(`/api/features/recruitment/talent-search/mail${q ? `?q=${encodeURIComponent(q)}` : ""}`),
   rcPlacements: (status?: string) =>
     request<{
       placements: Array<{
@@ -1023,6 +1266,9 @@ export const api = {
         healthScore: number;
         brandColor: string | null;
         routingDomain: string | null;
+        routingStatus?: string;
+        routingMailbox?: string | null;
+        routingActivatedAt?: string | null;
         onboardingStage: string;
         renewalDate: string | null;
         clientName: string | null;
@@ -1425,6 +1671,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ emails }),
     }),
+  syncInboxContacts: (options?: { force?: boolean }) =>
+    request<{ addedCount: number; addedEmails: string[]; skippedReason?: string }>("/api/contacts/sync-inbox", {
+      method: "POST",
+      body: JSON.stringify(options ?? {}),
+    }),
   contactLists: () => request<{ lists: MailContactCollection[] }>("/api/contacts/lists"),
   createContactList: (body: { name: string; description?: string | null }) =>
     request<{ list: MailContactCollection }>("/api/contacts/lists", { method: "POST", body: JSON.stringify(body) }),
@@ -1457,6 +1708,7 @@ export const api = {
         activeAutoReplyId: string | null;
         signatures: Array<{ id: string; name: string; body: string; avatarUrl: string | null; isDefault: boolean }>;
         autoReplies: Array<{ id: string; name: string; subject: string; body: string; enabled: boolean }>;
+        undoSendSeconds: number;
         autoReplyEntitlement: {
           entitled: boolean;
           gated: boolean;
@@ -1473,6 +1725,7 @@ export const api = {
     autoReplyEnabled?: boolean;
     activeSignatureId?: string;
     activeAutoReplyId?: string;
+    undoSendSeconds?: number;
   }) =>
     request<{ settings: unknown }>("/api/mail/compose-settings", {
       method: "PATCH",
@@ -1498,8 +1751,649 @@ export const api = {
         firstOpenedAt: string | null;
         lastOpenedAt: string | null;
         createdAt: string;
+        linkCount: number;
+        totalLinkClicks: number;
       }>;
     }>("/api/mail/tracking"),
+  mailTrackingDetail: (id: string) =>
+    request<{
+      tracking: {
+        id: string;
+        toEmail: string;
+        subject: string;
+        openCount: number;
+        firstOpenedAt: string | null;
+        lastOpenedAt: string | null;
+        createdAt: string;
+        linkCount: number;
+        totalLinkClicks: number;
+        links: Array<{
+          id: string;
+          originalUrl: string;
+          clickCount: number;
+          firstClickedAt: string | null;
+          lastClickedAt: string | null;
+          linkOrder: number;
+        }>;
+      };
+    }>(`/api/mail/tracking/${id}`),
+  listVaultFiles: () =>
+    request<{
+      files: Array<{
+        id: string;
+        originalName: string;
+        mimeType: string;
+        fileSizeBytes: number;
+        downloadCount: number;
+        expiresAt: string;
+        lastDownloadAt: string | null;
+        createdAt: string;
+        downloadUrl: string;
+      }>;
+    }>("/api/mail/vault"),
+  uploadVaultFile: (body: { fileName: string; mimeType: string; dataBase64: string }) =>
+    request<{
+      file: {
+        id: string;
+        originalName: string;
+        mimeType: string;
+        fileSizeBytes: number;
+        downloadCount: number;
+        expiresAt: string;
+        lastDownloadAt: string | null;
+        createdAt: string;
+        downloadUrl: string;
+      };
+    }>("/api/mail/vault", { method: "POST", body: JSON.stringify(body) }),
+  deleteVaultFile: (id: string) => request<void>(`/api/mail/vault/${id}`, { method: "DELETE" }),
+
+  listMailAccounts: () =>
+    request<{
+      accounts: Array<{
+        id: string;
+        email: string;
+        label: string | null;
+        providerPreset: string;
+        isPrimary: boolean;
+        sortOrder: number;
+        isActive: boolean;
+        createdAt: string;
+      }>;
+      activeMailAccountId: string | null;
+    }>("/api/mail/accounts"),
+  createMailAccount: (body: {
+    email: string;
+    password: string;
+    label?: string;
+    providerPreset: string;
+    imapHost?: string;
+    imapPort?: number;
+    imapSecure?: boolean;
+    smtpHost?: string;
+    smtpPort?: number;
+    smtpSecure?: boolean;
+  }) =>
+    request<{
+      account: {
+        id: string;
+        email: string;
+        label: string | null;
+        isPrimary: boolean;
+        isActive: boolean;
+      } | undefined;
+      activeMailAccountId: string | null;
+    }>("/api/mail/accounts", { method: "POST", body: JSON.stringify(body) }),
+  activateMailAccount: (id: string) =>
+    request<{
+      accounts: Array<{
+        id: string;
+        email: string;
+        label: string | null;
+        isPrimary: boolean;
+        isActive: boolean;
+      }>;
+      activeMailAccountId: string | null;
+    }>(`/api/mail/accounts/${id}/activate`, { method: "POST" }),
+  deleteMailAccount: (id: string) => request<void>(`/api/mail/accounts/${id}`, { method: "DELETE" }),
+
+  listCleanupSenders: (folder = "INBOX") =>
+    request<{
+      folder: string;
+      scannedCount: number;
+      senders: Array<{
+        senderKey: string;
+        senderEmail: string;
+        displayFrom: string;
+        messageCount: number;
+        unreadCount: number;
+        oldestDate: string | null;
+        newestDate: string | null;
+        hasUnsubscribe: boolean;
+      }>;
+    }>(`/api/mail/cleanup/senders?folder=${encodeURIComponent(folder)}`),
+  runSenderCleanup: (body: { folder: string; senderKey: string; action: "delete" | "archive" | "markRead" }) =>
+    request<{ processedCount: number; action: string; senderEmail: string }>("/api/mail/cleanup/senders/action", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getMessageUnsubscribeInfo: (folder: string, uid: number) =>
+    request<{
+      folder: string;
+      uid: number;
+      senderEmail: string | null;
+      options: Array<{ url: string; method: "get" | "post" }>;
+    }>(`/api/mail/cleanup/unsubscribe?folder=${encodeURIComponent(folder)}&uid=${uid}`),
+  unsubscribeFromMessage: (body: { folder: string; uid: number; preferredUrl?: string }) =>
+    request<{ ok: boolean; log: { id: string; status: string; senderEmail: string } }>("/api/mail/cleanup/unsubscribe", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  listUnsubscribeLogs: () =>
+    request<{
+      logs: Array<{
+        id: string;
+        senderEmail: string;
+        folder: string;
+        messageUid: number;
+        unsubscribeUrl: string;
+        method: string;
+        status: string;
+        httpStatus: number | null;
+        errorMessage: string | null;
+        createdAt: string;
+      }>;
+    }>("/api/mail/cleanup/logs"),
+
+  listAttachmentCategories: () =>
+    request<{ categories: Array<{ category: string; label: string; count: number }> }>(
+      "/api/mail/attachments/categories",
+    ),
+  listCategorizedAttachments: (params?: { category?: string; folder?: string }) => {
+    const search = new URLSearchParams();
+    if (params?.category) search.set("category", params.category);
+    if (params?.folder) search.set("folder", params.folder);
+    const query = search.toString();
+    return request<{
+      attachments: Array<{
+        id: string;
+        folder: string;
+        messageUid: number;
+        partId: string;
+        filename: string;
+        mimeType: string;
+        fileSizeBytes: number;
+        category: string;
+        categoryLabel: string;
+        categorySource: string;
+        messageSubject: string;
+        messageFrom: string;
+        messageDate: string;
+        vaultFileId: string | null;
+      }>;
+    }>(`/api/mail/attachments/categorized${query ? `?${query}` : ""}`);
+  },
+  scanAttachmentCategories: (folder = "INBOX") =>
+    request<{ folder: string; scannedMessages: number; upsertedAttachments: number }>(
+      "/api/mail/attachments/scan",
+      { method: "POST", body: JSON.stringify({ folder }) },
+    ),
+  categorizeMessageAttachments: (folder: string, uid: number) =>
+    request<{
+      folder: string;
+      uid: number;
+      attachments: Array<{
+        id: string;
+        partId: string;
+        category: string;
+        categoryLabel: string;
+        vaultFileId: string | null;
+      }>;
+    }>(`/api/mail/attachments/message?folder=${encodeURIComponent(folder)}&uid=${uid}`),
+  updateAttachmentCategory: (id: string, category: string) =>
+    request<{ attachment: { id: string; category: string; categorySource: string } }>(
+      `/api/mail/attachments/${id}/category`,
+      { method: "PATCH", body: JSON.stringify({ category }) },
+    ),
+  exportCategorizedAttachmentToVault: (id: string) =>
+    request<{ vaultFileId: string; reused: boolean; record: { id: string; vaultFileId: string | null } }>(
+      `/api/mail/attachments/${id}/vault`,
+      { method: "POST" },
+    ),
+
+  listEsignRequests: () =>
+    request<{
+      requests: Array<{
+        id: string;
+        documentName: string;
+        status: string;
+        signerEmail: string;
+        signerName: string;
+        signingUrl: string | null;
+        documentDownloadUrl: string | null;
+        createdAt: string;
+      }>;
+    }>("/api/mail/esign"),
+  createEsignUpload: (body: {
+    fileName: string;
+    mimeType: string;
+    dataBase64: string;
+    signerEmail: string;
+    signerName: string;
+    subject: string;
+    message: string;
+  }) =>
+    request<{ request: { id: string; documentName: string; status: string } }>("/api/mail/esign/upload", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  createEsignFromAttachment: (body: {
+    folder: string;
+    messageUid: number;
+    partId: string;
+    signerEmail: string;
+    signerName: string;
+    subject: string;
+    message: string;
+    messageSubjectSnapshot?: string;
+  }) =>
+    request<{ request: { id: string; documentName: string; status: string } }>("/api/mail/esign/from-attachment", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  refreshEsignRequest: (id: string) =>
+    request<{ request: { id: string; status: string } }>(`/api/mail/esign/${id}/refresh`, { method: "POST" }),
+  getEsignComposeHandoff: (id: string) =>
+    request<{ compose: { to: string; subject: string; html: string; text: string } }>(
+      `/api/mail/esign/${id}/compose-handoff`,
+    ),
+
+  getEmailSlaSettings: () =>
+    request<{
+      settings: { responseHours: number; atRiskRatio: number; scanFolder: string; enabled: boolean; updatedAt: string };
+    }>("/api/mail/sla/settings"),
+  updateEmailSlaSettings: (body: {
+    responseHours?: number;
+    atRiskRatio?: number;
+    scanFolder?: string;
+    enabled?: boolean;
+  }) =>
+    request<{ settings: { responseHours: number; atRiskRatio: number; scanFolder: string; enabled: boolean } }>(
+      "/api/mail/sla/settings",
+      { method: "PUT", body: JSON.stringify(body) },
+    ),
+  listEmailSlaThreads: (status?: string) =>
+    request<{
+      threads: Array<{
+        id: string;
+        subject: string;
+        fromEmail: string;
+        fromDisplay: string;
+        status: string;
+        remainingLabel: string | null;
+        deadlineAt: string;
+        folder: string;
+        messageUid: number;
+      }>;
+    }>(`/api/mail/sla/threads${status ? `?status=${encodeURIComponent(status)}` : ""}`),
+  listEmailSlaAlerts: () =>
+    request<{
+      alerts: Array<{
+        id: string;
+        alertType: string;
+        createdAt: string;
+        thread: {
+          id: string;
+          subject: string;
+          fromDisplay: string;
+          remainingLabel: string | null;
+        };
+      }>;
+    }>("/api/mail/sla/alerts"),
+  scanEmailSlaThreads: (folder = "INBOX") =>
+    request<{ folder: string; scannedMessages: number; createdThreads: number; updatedThreads: number }>(
+      "/api/mail/sla/scan",
+      { method: "POST", body: JSON.stringify({ folder }) },
+    ),
+  dismissEmailSlaThread: (id: string) =>
+    request<{ thread: { id: string; status: string } }>(`/api/mail/sla/threads/${id}/dismiss`, { method: "POST" }),
+  acknowledgeEmailSlaAlert: (id: string) =>
+    request<{ alert: { id: string; acknowledgedAt: string | null } }>(`/api/mail/sla/alerts/${id}/acknowledge`, {
+      method: "POST",
+    }),
+  getEmailSlaComposeHandoff: (id: string) =>
+    request<{
+      compose: {
+        mode?: "reply";
+        to: string;
+        subject: string;
+        inReplyTo?: string;
+        references?: string;
+      };
+    }>(`/api/mail/sla/threads/${id}/compose-handoff`),
+  exportEmailSlaReport: () =>
+    request<{ report: { id: string; rowCount: number; downloadUrl: string; expiresAt: string } }>(
+      "/api/mail/sla/reports/export",
+      { method: "POST" },
+    ),
+
+  getJobHunterSettings: () =>
+    request<{
+      settings: {
+        regionCode: string;
+        enabled: boolean;
+        pausedUntil: string | null;
+        paused: boolean;
+        manualJobHuntingOverride: boolean;
+        careerScore: number;
+        careerNavUnlocked: boolean;
+        careerNavScoreThreshold: number;
+        careerUnlockedAt: string | null;
+        tierBDisclosureVersion: string | null;
+        tierBDisclosureAcceptedAt: string | null;
+        needsTierBDisclosure: boolean;
+        inferencesDeletedAt: string | null;
+        entitlement: import("../types/addon").JobHunterEntitlement;
+        mailAccounts: Array<{
+          id: string;
+          email: string;
+          label: string | null;
+          isPrimary: boolean;
+          domainKind: string;
+          scanEnabled: boolean;
+          canScan: boolean;
+        }>;
+      };
+    }>("/api/mail/job-hunter/settings"),
+  getJobHunterConsent: () =>
+    request<{
+      consent: {
+        needsDisclosure: boolean;
+        tierBDisclosureVersion: string;
+        acceptedAt: string | null;
+        recordedVersion: string | null;
+      };
+    }>("/api/mail/job-hunter/consent"),
+  acceptJobHunterConsent: () =>
+    request<{ settings: unknown }>("/api/mail/job-hunter/consent", { method: "POST" }),
+  updateJobHunterSettings: (body: {
+    regionCode?: "US" | "CA" | "UK" | "ME" | "INTL";
+    enabled?: boolean;
+    pause90Days?: boolean;
+    clearPause?: boolean;
+    manualJobHuntingOverride?: boolean;
+    mailAccountScan?: Array<{ mailAccountId: string; scanEnabled: boolean }>;
+  }) =>
+    request<{ settings: unknown }>("/api/mail/job-hunter/settings", {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+  deleteJobHunterInferences: () =>
+    request<{ settings: unknown }>("/api/mail/job-hunter/inferences/delete", { method: "POST" }),
+
+  getJobHunterScannerRegions: () =>
+    request<{ regions: Array<{ code: string; label: string }> }>("/api/job-hunter/scanner/regions"),
+
+  rateJobHunterCv: (body: {
+    fileName: string;
+    mimeType: string;
+    dataBase64: string;
+    region: string;
+    targetRole?: string;
+    fromToastOptIn?: boolean;
+  }) => request<{ rating: CvRatingResult }>("/api/job-hunter/scanner/rate", {
+    method: "POST",
+    body: JSON.stringify(body),
+  }),
+
+  listJobApplications: (status?: string) => {
+    const query = status ? `?status=${encodeURIComponent(status)}` : "";
+    return request<{ applications: JobApplicationRow[] }>(`/api/job-hunter/applications${query}`);
+  },
+
+  syncJobApplications: () =>
+    request<{ result: { scannedMessages: number; upsertedApplications: number; skipped: string | null } }>(
+      "/api/job-hunter/applications/sync",
+      { method: "POST" },
+    ),
+
+  getJobApplication: (id: string) =>
+    request<{ application: JobApplicationRow }>(`/api/job-hunter/applications/${id}`),
+
+  createJobApplication: (body: {
+    company: string;
+    roleTitle: string;
+    appliedAt?: string;
+    status?: JobApplicationRow["status"];
+  }) =>
+    request<{ application: JobApplicationRow }>("/api/job-hunter/applications", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  updateJobApplication: (
+    id: string,
+    body: Partial<Pick<JobApplicationRow, "company" | "roleTitle" | "status">> & { appliedAt?: string },
+  ) =>
+    request<{ application: JobApplicationRow }>(`/api/job-hunter/applications/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+
+  listJobHunterCvTemplates: (query = "") =>
+    request<{
+      templates: JobHunterCvTemplateMeta[];
+      groupedByProfession: Array<{
+        profession: string;
+        label: string;
+        templates: JobHunterCvTemplateMeta[];
+      }>;
+      filters: {
+        roleCategories: string[];
+        industries: string[];
+        experienceLevels: string[];
+        professions: Array<{ code: string; label: string }>;
+      };
+    }>(`/api/job-hunter/cv/templates${query}`),
+
+  listJobHunterCvDocuments: () =>
+    request<{ documents: JobHunterCvDocumentRow[] }>("/api/job-hunter/cv/documents"),
+
+  getJobHunterCvDocument: (id: string) =>
+    request<{ document: JobHunterCvDocumentRow }>(`/api/job-hunter/cv/documents/${id}`),
+
+  createJobHunterCvDocument: (body: {
+    title?: string;
+    region?: string;
+    role?: string;
+    industry?: string;
+    templateId?: string;
+    content?: JobHunterCvContent;
+  }) =>
+    request<{ document: JobHunterCvDocumentRow }>("/api/job-hunter/cv/documents", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  updateJobHunterCvDocument: (
+    id: string,
+    body: {
+      title?: string;
+      region?: string;
+      role?: string;
+      industry?: string;
+      content?: JobHunterCvContent;
+    },
+  ) =>
+    request<{ document: JobHunterCvDocumentRow }>(`/api/job-hunter/cv/documents/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+
+  async exportJobHunterCvPdf(id: string) {
+    const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+    const res = await fetch(`${API_BASE}/api/job-hunter/cv/documents/${encodeURIComponent(id)}/export-pdf`, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!res.ok) {
+      let message = "CV PDF export failed";
+      try {
+        const data = (await res.json()) as { error?: string };
+        message = data.error ?? message;
+      } catch {
+        // ignore
+      }
+      throw new ApiError(message, res.status);
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get("Content-Disposition") ?? "";
+    const match = disposition.match(/filename="([^"]+)"/);
+    const filename = match?.[1] ?? "cv.pdf";
+    return { blob, filename };
+  },
+
+  publishJobHunterDocument: (body: {
+    cvDocumentId?: string;
+    fileName?: string;
+    mimeType?: string;
+    dataBase64?: string;
+    source?: "job_hunter_cv" | "job_hunter_scanner";
+    isPinned?: boolean;
+  }) =>
+    request<{ document: UserDocumentRow }>("/api/job-hunter/documents/publish", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  listUserDocuments: () => request<{ documents: UserDocumentRow[] }>("/api/mail/documents"),
+
+  listAttachableCareerDocuments: () =>
+    request<{ documents: UserDocumentRow[] }>("/api/mail/documents/attachable/career"),
+
+  pinUserDocument: (id: string, isPinned: boolean) =>
+    request<{ document: UserDocumentRow }>(`/api/mail/documents/${id}/pin`, {
+      method: "PATCH",
+      body: JSON.stringify({ isPinned }),
+    }),
+
+  async downloadUserDocument(id: string) {
+    const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+    const res = await fetch(`${API_BASE}/api/mail/documents/${encodeURIComponent(id)}/download`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      let message = "Document download failed";
+      try {
+        const data = (await res.json()) as { error?: string };
+        message = data.error ?? message;
+      } catch {
+        // ignore
+      }
+      throw new ApiError(message, res.status);
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get("Content-Disposition") ?? "";
+    const match = disposition.match(/filename="([^"]+)"/);
+    const filename = match?.[1] ?? "document";
+    return { blob, filename };
+  },
+
+  listJobSiteLinks: () => request<{ links: JobSiteLinkRow[] }>("/api/job-hunter/job-sites"),
+
+  createJobSiteLink: (body: { label: string; url: string; sortOrder?: number }) =>
+    request<{ link: JobSiteLinkRow }>("/api/job-hunter/job-sites", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  updateJobSiteLink: (id: string, body: { label?: string; url?: string; sortOrder?: number }) =>
+    request<{ link: JobSiteLinkRow }>(`/api/job-hunter/job-sites/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+
+  deleteJobSiteLink: async (id: string) => {
+    const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+    const res = await fetch(`${API_BASE}/api/job-hunter/job-sites/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!res.ok && res.status !== 204) {
+      let message = "Could not delete job site link";
+      try {
+        const data = (await res.json()) as { error?: string };
+        message = data.error ?? message;
+      } catch {
+        // ignore
+      }
+      throw new ApiError(message, res.status);
+    }
+  },
+
+  generateInterviewPrep: (body: {
+    jobDescription?: string;
+    applicationId?: string;
+    targetRole?: string;
+    region?: string;
+  }) =>
+    request<{ prep: InterviewPrepResult }>("/api/job-hunter/interview-prep", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  getApplyAssistWallet: () => request<{ wallet: ApplyAssistWallet }>("/api/job-hunter/apply-assist/wallet"),
+
+  getApplyAssistSetup: () =>
+    request<{
+      setup: {
+        channels: string[];
+        regions: Array<{ code: string; label: string }>;
+        documents: Array<{ id: string; filename: string }>;
+        creditPackPriceCents: number;
+        creditsPerPack: number;
+        dailyCap: number;
+        linkedInIndeedCopy: string;
+      };
+    }>("/api/job-hunter/apply-assist/setup"),
+
+  purchaseApplyAssistCredits: (body: { provider?: "stripe" | "paystack" | "mock"; successUrl?: string; cancelUrl?: string }) =>
+    request<{ checkout: { id: string; checkoutUrl: string | null; amountCents: number; productName: string; credits: number } }>(
+      "/api/job-hunter/apply-assist/purchase",
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+
+  listApplyAssistQueue: () => request<{ items: ApplyAssistQueueItem[] }>("/api/job-hunter/apply-assist/queue"),
+
+  createApplyAssistQueueItem: (body: {
+    channel: "email_apply" | "linkedin_assist" | "indeed_assist";
+    targetRole: string;
+    region: string;
+    jobUrl?: string;
+    careersEmail?: string;
+    company?: string;
+    userDocumentId?: string;
+  }) =>
+    request<{ item: ApplyAssistQueueItem }>("/api/job-hunter/apply-assist/queue", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  prefillApplyAssistQueueItem: (id: string) =>
+    request<{ item: ApplyAssistQueueItem }>(`/api/job-hunter/apply-assist/queue/${id}/prefill`, { method: "POST" }),
+
+  confirmApplyAssistQueueItem: (
+    id: string,
+    body: {
+      userSubmitted?: boolean;
+      subjectOverride?: string;
+      bodyTextOverride?: string;
+      bodyHtmlOverride?: string;
+    },
+  ) =>
+    request<{ queue: ApplyAssistQueueItem; application: JobApplicationRow; wallet: ApplyAssistWallet }>(
+      `/api/job-hunter/apply-assist/queue/${id}/confirm`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
 
   workspaceStages: () =>
     request<{ stages: Array<{ slug: string; label: string; sortOrder: number }> }>("/api/features/workspace/stages"),
@@ -1683,4 +2577,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload ?? {}),
     }),
+  pwaVapidPublicKey: () => request<{ publicKey: string }>("/api/pwa/vapid-public-key"),
+  savePwaPushSubscription: (subscription: { endpoint: string; keys: { p256dh: string; auth: string } }) =>
+    request<{ ok: boolean }>("/api/pwa/push-subscriptions", { method: "POST", body: JSON.stringify(subscription) }),
+  removePwaPushSubscription: (endpoint: string) =>
+    request<{ ok: boolean }>("/api/pwa/push-subscriptions", { method: "DELETE", body: JSON.stringify({ endpoint }) }),
+  triggerPwaMailSync: () => request<{ notified: number }>("/api/pwa/mail-sync/trigger", { method: "POST" }),
+  provisionB2bRouting: (workspaceId: string) =>
+    request<{ workspace: unknown }>(`/api/features/b2b/workspaces/${workspaceId}/provision-routing`, { method: "POST" }),
 };

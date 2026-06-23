@@ -16,7 +16,6 @@ import { seedDemoVps } from "../src/services/vps.service.js";
 import { seedEmailTemplates } from "../src/services/email-template.service.js";
 import { seedPublicFormDefinitions } from "../src/services/form-definition.service.js";
 import { seedTestimonials } from "../src/services/testimonial.service.js";
-import { seedPmailTesterB2bWorkspace } from "../src/services/pmail-tester-seed.service.js";
 
 resolveDatabaseUrl();
 
@@ -85,8 +84,8 @@ async function seedPmailTesterTenant() {
           primaryColor: "#0f172a",
           accentColor: "#14b8a6",
           backgroundColor: "#f8fafc",
-          loginTagline: "Local PMail+ tester workspace — Acme Corp B2B delivery",
-          industryProfile: "b2b-services",
+          loginTagline: "Local PMail+ tester — accounting workspace",
+          industryProfile: "accounting",
         },
       },
       mail: {
@@ -110,13 +109,13 @@ async function seedPmailTesterTenant() {
             primaryColor: "#0f172a",
             accentColor: "#14b8a6",
             backgroundColor: "#f8fafc",
-            loginTagline: "Local PMail+ tester workspace — Acme Corp B2B delivery",
-            industryProfile: "b2b-services",
+            loginTagline: "Local PMail+ tester — accounting workspace",
+            industryProfile: "accounting",
           },
           update: {
             productName: "PMail+",
-            loginTagline: "Local PMail+ tester workspace — Acme Corp B2B delivery",
-            industryProfile: "b2b-services",
+            loginTagline: "Local PMail+ tester — accounting workspace",
+            industryProfile: "accounting",
           },
         },
       },
@@ -130,7 +129,7 @@ async function seedPmailTesterTenant() {
       tenantId: tenant.id,
       email: "pmailtester@gmail.com",
       displayName: "PMail Tester",
-      businessVertical: "b2b-services",
+      businessVertical: "accounting",
       uiThemeVersion: "dark",
       mailConfig: {
         create: {
@@ -146,38 +145,20 @@ async function seedPmailTesterTenant() {
     },
     update: {
       displayName: "PMail Tester",
-      businessVertical: "b2b-services",
+      businessVertical: "accounting",
       isActive: true,
     },
   });
 
-  await seedPmailTesterB2bWorkspace(tenant.id, user.id);
+  const { resetPmailTesterCareerState, ensurePmailTesterAccountingWorkspace } = await import(
+    "../src/services/pmail-tester-seed.service.js"
+  );
+  const { ensurePmailTesterPanelWorkspaceTrial } = await import("../src/services/panel-workspace-trial.service.js");
+  await ensurePmailTesterPanelWorkspaceTrial(user.id);
+  await resetPmailTesterCareerState(user.id);
+  await ensurePmailTesterAccountingWorkspace(tenant.id, user.id);
 
-  const addons = await prisma.addon.findMany({ where: { isPaid: true, deletedAt: null } });
-  const periodEnd = new Date();
-  periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-  for (const addon of addons) {
-    await prisma.userAddonSubscription.upsert({
-      where: { userId_addonId: { userId: user.id, addonId: addon.id } },
-      create: {
-        tenantId: tenant.id,
-        userId: user.id,
-        addonId: addon.id,
-        scope: "user",
-        status: "active",
-        priceCents: addon.priceCents,
-        currentPeriodEnd: periodEnd,
-      },
-      update: {
-        status: "active",
-        priceCents: addon.priceCents,
-        canceledAt: null,
-        currentPeriodEnd: periodEnd,
-      },
-    });
-  }
-
-  return tenant;
+  return { tenant, user };
 }
 
 async function main() {
@@ -204,11 +185,11 @@ async function main() {
   await seedDemoHostingAccount(demo.id, businessPlan?.id);
   await seedDemoVps(demo.id);
 
-  console.log("Seeded tenants:", prohost.slug, demo.slug, tester.slug);
+  console.log("Seeded tenants:", prohost.slug, demo.slug, tester.tenant.slug);
   console.log("PMail+ login URL: /login (tenant: prohost)");
   console.log("Seeded add-on catalog, landing CMS, platform admin, demo VPS, and demo panel account (demo@hostnet.local / panel123)");
   console.log("Platform admins: admin@hostnet.local / changeme123 (super_admin), ops@hostnet.local / ops-admin-pass12 (admin, dev only)");
-  console.log("PMail+ tester: tenant pmail-tester, pmailtester@gmail.com / mailtester1234 (B2B Services workspace)");
+  console.log("PMail+ tester: tenant pmail-tester, pmailtester@gmail.com / mailtester1234 (Accounting workspace)");
 }
 
 main()

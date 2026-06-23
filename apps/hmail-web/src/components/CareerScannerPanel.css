@@ -1,0 +1,208 @@
+.career-scanner-panel {
+  max-width: none;
+  padding: 0;
+}
+
+.career-scanner-header h2 {
+  margin: 0 0 0.35rem;
+}
+
+.career-scanner-header p {
+  margin: 0 0 1rem;
+  color: var(--muted, #8ba3c7);
+  line-height: 1.5;
+}
+
+.career-scanner-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.career-scanner-uploaded,
+.career-scanner-suggested {
+  padding: 1rem;
+  border: 1px solid var(--border, rgba(139, 163, 199, 0.18));
+  border-radius: 14px;
+  background: var(--surface-inset, rgba(5, 10, 18, 0.45));
+  min-height: 22rem;
+}
+
+.pmail-demo-shell--light .career-scanner-uploaded,
+.pmail-demo-shell--light .career-scanner-suggested {
+  background: #f8fafc;
+  border-color: #dbe3ee;
+}
+
+.career-scanner-uploaded h3,
+.career-scanner-suggested h3 {
+  margin: 0 0 0.85rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-2, #14b8a6);
+}
+
+.career-scanner-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.career-scanner-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted, #8ba3c7);
+}
+
+.career-scanner-field input[type="text"],
+.career-scanner-field select {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border, rgba(139, 163, 199, 0.18));
+  border-radius: 10px;
+  background: var(--surface-input, rgba(8, 14, 26, 0.78));
+  color: var(--text, #e8eef8);
+  font: inherit;
+}
+
+.career-scanner-file-name {
+  color: var(--text, #e8eef8);
+}
+
+.career-scanner-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.career-scanner-error {
+  color: #b91c1c;
+  margin: 0;
+}
+
+.career-scanner-submit,
+.career-scanner-save-documents {
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: none;
+  background: #0d9488;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.career-scanner-save-documents {
+  background: transparent;
+  border: 1px solid var(--border, rgba(139, 163, 199, 0.18));
+  color: var(--text, #e8eef8);
+}
+
+.career-scanner-submit:disabled,
+.career-scanner-save-documents:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.career-scanner-placeholder {
+  margin: 0;
+  color: var(--muted, #8ba3c7);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.career-scanner-overall {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--surface-card, rgba(16, 28, 48, 0.65));
+}
+
+.career-scanner-overall strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.career-scanner-overall.good strong {
+  color: #34d399;
+}
+
+.career-scanner-overall.mid strong {
+  color: #fbbf24;
+}
+
+.career-scanner-overall.low strong {
+  color: #f87171;
+}
+
+.career-scanner-categories {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.career-scanner-category {
+  border: 1px solid var(--border, rgba(139, 163, 199, 0.18));
+  border-radius: 10px;
+  padding: 0.65rem;
+}
+
+.career-scanner-category header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.career-scanner-category p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted, #8ba3c7);
+}
+
+.career-scanner-category strong.good {
+  color: #34d399;
+}
+
+.career-scanner-category strong.mid {
+  color: #fbbf24;
+}
+
+.career-scanner-category strong.low {
+  color: #f87171;
+}
+
+.career-scanner-region-notes h4,
+.career-scanner-improvements h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+}
+
+.career-scanner-region-notes p {
+  margin: 0 0 1rem;
+  color: var(--muted, #8ba3c7);
+  line-height: 1.5;
+}
+
+.career-scanner-improvements ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--text, #e8eef8);
+  line-height: 1.5;
+}
+
+.career-scanner-notice {
+  color: #34d399;
+}
+
+@media (max-width: 900px) {
+  .career-scanner-layout {
+    grid-template-columns: 1fr;
+  }
+}

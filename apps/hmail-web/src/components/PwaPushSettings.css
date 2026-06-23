@@ -1,0 +1,53 @@
+.pwa-push-settings {
+  padding: 1rem 1.05rem;
+  border: 1px solid var(--border-subtle, rgba(148, 163, 184, 0.22));
+  border-radius: 16px;
+  background: var(--surface-card, #ffffff);
+}
+
+.pwa-push-settings-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text, #0f172a);
+}
+
+.pwa-push-settings-head p {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-muted, #64748b);
+}
+
+.pwa-push-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.85rem;
+}
+
+.pwa-push-settings-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 0.48rem 0.95rem;
+  background: var(--brand-primary, #0d4f6c);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.pwa-push-settings-btn--off {
+  background: var(--surface-inset, #f1f5f9);
+  color: var(--text-muted, #64748b);
+  border: 1px solid var(--border-subtle, rgba(148, 163, 184, 0.22));
+}
+
+.pwa-push-settings-error {
+  margin: 0.65rem 0 0;
+  font-size: 0.78rem;
+  color: #b91c1c;
+}

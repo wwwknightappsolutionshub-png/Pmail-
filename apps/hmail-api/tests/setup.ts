@@ -20,6 +20,7 @@ process.env.COOKIE_SECURE ??= "false";
 process.env.ADMIN_DEFAULT_EMAIL ??= "admin@test.local";
 process.env.ADMIN_DEFAULT_PASSWORD ??= "test-admin-pass";
 process.env.PMAIL_TESTER_BYPASS_AUTH ??= "true";
+process.env.PMAIL_TESTER_UNLOCK_ALL_ADDONS ??= "true";
 
 execSync("npx tsx scripts/prisma-cli.ts db push --schema prisma/schema.sqlite.prisma --skip-generate", {
   cwd: apiRoot,

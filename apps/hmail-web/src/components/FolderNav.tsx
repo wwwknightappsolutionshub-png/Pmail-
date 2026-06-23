@@ -9,9 +9,11 @@ import {
   REAL_ESTATE_NAV,
   RECRUITMENT_NAV,
   WORKSPACE_NAV,
+  platformToolsSidebarNav,
   toolAddonSlug,
 } from "../constants/addonTools";
-import { VIEW_CONTACTS, VIEW_DOCUMENTS } from "../constants/mailViews";
+import { VIEW_DOCUMENTS, VIEW_INDUSTRY_TOOLS } from "../constants/mailViews";
+import { FolderNavIcon } from "./FolderNavIcons";
 import "./FolderNav.css";
 
 export type FolderKind =
@@ -37,6 +39,16 @@ export type FolderKind =
   | "workspace_calendar"
   | "industry_tools"
   | "open_tracking"
+  | "file_vault"
+  | "inbox_cleanup"
+  | "attachment_categorize"
+  | "esign"
+  | "email_sla"
+  | "mail2pdf"
+  | "job_hunter_settings"
+  | "career_scanner"
+  | "career_workspace"
+  | "auto_reply_functionality"
   | "provider_settings"
   | "compose_settings"
   | "re_listing_board"
@@ -101,6 +113,16 @@ export function folderDisplayLabel(folder: MailFolder): string {
     workspace_calendar: "Full calendar",
     industry_tools: "Industry tools",
     open_tracking: "Open tracking",
+    file_vault: "File vault",
+    inbox_cleanup: "Inbox cleanup",
+    attachment_categorize: "Attachment categories",
+    esign: "E-sign",
+    email_sla: "Email SLA",
+    mail2pdf: "Mail 2 PDF",
+    job_hunter_settings: "Job Hunter",
+    career_scanner: "CV Scanner",
+    career_workspace: "Career",
+    auto_reply_functionality: "Auto-reply",
     provider_settings: "Provider settings",
     compose_settings: "Compose settings",
     re_listing_board: "Listing Board",
@@ -162,18 +184,11 @@ function verticalNavFor(businessVertical?: BusinessVertical | null) {
   }
 }
 
-function FolderIcon({ kind }: { kind: FolderKind }) {
-  if (kind === "compose") {
-    return (
-      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M4 6.5 10 11l6-4.5V14.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1h8.5" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      </svg>
-    );
-  }
+function FolderNavFlyout({ label }: { label: string }) {
   return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <path d="M5 5.5h10a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
+    <span className="folder-nav-flyout" role="tooltip">
+      {label}
+    </span>
   );
 }
 
@@ -186,7 +201,9 @@ interface FolderNavProps {
   onNewFolder: () => void;
   onCompose: () => void;
   onOpenAddons: (highlightSlug?: string) => void;
+  onPaidAddonGate?: (slug: string, label: string) => void;
   hasAddon: (slug: string) => boolean;
+  hideIndustryTools?: boolean;
 }
 
 function renderSpecialItem(
@@ -205,6 +222,7 @@ function renderSpecialItem(
       key={path}
       type="button"
       className={`folder-nav-item folder-nav-item--${kind} ${isActive ? "is-active" : ""} ${locked ? "is-locked" : ""}`}
+      title={label}
       onClick={() => {
         if (locked && options?.onLocked) {
           options.onLocked();
@@ -213,9 +231,10 @@ function renderSpecialItem(
         onSelect(path);
       }}
     >
+      <FolderNavFlyout label={label} />
       <span className="folder-nav-item-accent" aria-hidden="true" />
       <span className={`folder-nav-icon folder-nav-icon--${kind}`}>
-        <FolderIcon kind={kind} />
+        <FolderNavIcon kind={kind} />
       </span>
       <span className="folder-nav-label">{label}</span>
       {locked ? <span className="folder-nav-lock" aria-label="Requires add-on">🔒</span> : null}
@@ -232,13 +251,18 @@ export function FolderNav({
   onNewFolder,
   onCompose,
   onOpenAddons,
+  onPaidAddonGate,
   hasAddon,
+  hideIndustryTools = false,
 }: FolderNavProps) {
   const sorted = sortFolders(folders);
   const primary = sorted.filter((f) => resolveFolderKind(f) !== "other");
   const other = sorted.filter((f) => resolveFolderKind(f) === "other");
-  const industryNav = verticalNavFor(businessVertical);
-  const showLegalTools = businessVertical === "legal";
+  const industryNav = hideIndustryTools ? null : verticalNavFor(businessVertical);
+  const showLegalTools = !hideIndustryTools && businessVertical === "legal";
+  const workspaceNav = platformToolsSidebarNav(
+    hideIndustryTools ? WORKSPACE_NAV.filter((item) => item.view !== VIEW_INDUSTRY_TOOLS) : WORKSPACE_NAV,
+  );
 
   if (loading) {
     return <div className="folder-nav-loading">Loading folders…</div>;
@@ -254,11 +278,13 @@ export function FolderNav({
         key={folder.path}
         type="button"
         className={`folder-nav-item folder-nav-item--${kind} ${isActive ? "is-active" : ""}`}
+        title={folderDisplayLabel(folder)}
         onClick={() => onSelect(folder.path)}
       >
+        <FolderNavFlyout label={folderDisplayLabel(folder)} />
         <span className="folder-nav-item-accent" aria-hidden="true" />
         <span className={`folder-nav-icon folder-nav-icon--${kind}`}>
-          <FolderIcon kind={kind} />
+          <FolderNavIcon kind={kind} />
         </span>
         <span className="folder-nav-label">{folderDisplayLabel(folder)}</span>
         {count > 0 ? <span className="folder-nav-badge">{count}</span> : null}
@@ -270,17 +296,24 @@ export function FolderNav({
     const slug = toolAddonSlug(view) ?? "";
     return renderSpecialItem(kind, label, view, activeFolder, onSelect, {
       locked: slug ? !hasAddon(slug) : false,
-      onLocked: () => onOpenAddons(slug),
+      onLocked: () => {
+        if (slug && onPaidAddonGate) {
+          onPaidAddonGate(slug, label);
+          return;
+        }
+        onOpenAddons(slug);
+      },
     });
   };
 
   return (
     <nav className="folder-nav" aria-label="Mail folders">
       <div className="folder-nav-group folder-nav-group--compose">
-        <button type="button" className="folder-nav-item folder-nav-item--compose" onClick={onCompose}>
+        <button type="button" className="folder-nav-item folder-nav-item--compose" onClick={onCompose} title="New mail">
+          <FolderNavFlyout label="New mail" />
           <span className="folder-nav-item-accent" aria-hidden="true" />
           <span className="folder-nav-icon folder-nav-icon--compose">
-            <FolderIcon kind="compose" />
+            <FolderNavIcon kind="compose" />
           </span>
           <span className="folder-nav-label">New mail</span>
         </button>
@@ -289,13 +322,12 @@ export function FolderNav({
       <p className="folder-nav-heading">Mailboxes</p>
       <div className="folder-nav-group">
         {primary.map(renderItem)}
-        {renderSpecialItem("contacts", "Contacts", VIEW_CONTACTS, activeFolder, onSelect)}
         {renderSpecialItem("documents", "Documents", VIEW_DOCUMENTS, activeFolder, onSelect)}
       </div>
 
-      <p className="folder-nav-heading folder-nav-heading--secondary">Platform tools</p>
-      <div className="folder-nav-group">
-        {WORKSPACE_NAV.map((item) => renderTool(item.view, item.label, item.kind))}
+      <p className="folder-nav-heading folder-nav-heading--secondary folder-nav-heading--platform-tools">Platform tools</p>
+      <div className="folder-nav-group folder-nav-group--platform-tools">
+        {workspaceNav.map((item) => renderTool(item.view, item.label, item.kind))}
       </div>
 
       {showLegalTools ? (
@@ -319,8 +351,6 @@ export function FolderNav({
             {industryNav.map((item) => renderTool(item.view, item.label, item.kind))}
           </div>
         </>
-      ) : !showLegalTools ? (
-        <p className="folder-nav-hint">Choose your industry workspace in Add-ons to unlock vertical tools.</p>
       ) : null}
 
       <p className="folder-nav-heading folder-nav-heading--secondary">Folders</p>
@@ -329,10 +359,12 @@ export function FolderNav({
           type="button"
           className="folder-nav-item folder-nav-item--new_folder"
           onClick={onNewFolder}
+          title="New folder"
         >
+          <FolderNavFlyout label="New folder" />
           <span className="folder-nav-item-accent" aria-hidden="true" />
           <span className="folder-nav-icon folder-nav-icon--new_folder">
-            <FolderIcon kind="new_folder" />
+            <FolderNavIcon kind="new_folder" />
           </span>
           <span className="folder-nav-label">New folder</span>
         </button>
@@ -340,10 +372,11 @@ export function FolderNav({
 
       <p className="folder-nav-heading folder-nav-heading--secondary">Marketplace</p>
       <div className="folder-nav-group">
-        <button type="button" className="folder-nav-item folder-nav-item--addons" onClick={() => onOpenAddons()}>
+        <button type="button" className="folder-nav-item folder-nav-item--addons" onClick={() => onOpenAddons()} title="Add-ons">
+          <FolderNavFlyout label="Add-ons" />
           <span className="folder-nav-item-accent" aria-hidden="true" />
           <span className="folder-nav-icon folder-nav-icon--addons">
-            <FolderIcon kind="addons" />
+            <FolderNavIcon kind="addons" />
           </span>
           <span className="folder-nav-label">Add-ons</span>
         </button>

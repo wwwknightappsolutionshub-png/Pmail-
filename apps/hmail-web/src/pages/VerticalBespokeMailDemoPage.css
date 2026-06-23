@@ -1,5 +1,37 @@
+/* Lock document scroll for full-viewport PMail shell (prevents dark body strip below page) */
+html:has(.pmail-demo-shell) {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+html:has(.pmail-demo-shell) body {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: #050a12;
+}
+
+html:has(.pmail-demo-shell) #root {
+  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+html:has(.pmail-demo-shell--light) body {
+  background: #e4e9f0;
+}
+
 .pmail-demo-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
   --pmail-search-layer: 9000;
+  --pmail-compose-layer: 10050;
   --scrollbar-track: rgba(8, 14, 26, 0.72);
   --scrollbar-thumb: rgba(139, 163, 199, 0.28);
   --scrollbar-thumb-hover: rgba(139, 163, 199, 0.42);
@@ -151,6 +183,9 @@
 
 .pmail-demo-shell--light .bespoke-demo {
   background: var(--bg-canvas);
+  --scrollbar-track: #eef1f6;
+  --scrollbar-thumb: #c5d0de;
+  --scrollbar-thumb-hover: #94a3b8;
 }
 
 .pmail-demo-shell--light .btn-secondary,
@@ -164,6 +199,12 @@
 .pmail-demo-shell--light .btn-primary {
   color: #ffffff;
   box-shadow: 0 6px 16px rgba(13, 148, 136, 0.22);
+}
+
+.pmail-demo-shell--light .btn-primary,
+.pmail-demo-shell--light .gmail-compose__send,
+.pmail-demo-shell--light .gmail-compose__send-menu {
+  color: #ffffff;
 }
 
 .pmail-demo-shell--light .bespoke-demo-industry-shell {
@@ -262,7 +303,7 @@
 
 .pmail-demo-shell .btn-primary {
   background: linear-gradient(135deg, var(--accent-light), var(--accent-dark));
-  color: #042f2e;
+  color: #ffffff;
   box-shadow: 0 8px 24px rgba(20, 184, 166, 0.25);
 }
 
@@ -2851,14 +2892,14 @@
 }
 
 .pmail-demo-shell--light .gmail-compose {
-  background: var(--bg-card);
-  border-color: var(--border-strong);
+  background: var(--surface-compose);
+  border-color: var(--border);
   box-shadow: var(--shadow-lg);
 }
 
 .pmail-demo-shell--light .gmail-compose--minimized,
 .pmail-demo-shell--light .gmail-compose__titlebar {
-  background: var(--bg-inset);
+  background: var(--surface-compose-bar);
   color: var(--text);
 }
 
@@ -2869,6 +2910,53 @@
 .pmail-demo-shell--light .gmail-compose__win-btn:hover {
   background: var(--accent-soft);
   color: var(--text);
+}
+
+.pmail-demo-shell--light .gmail-compose__send,
+.pmail-demo-shell--light .gmail-compose__send-menu {
+  color: #ffffff;
+}
+
+.pmail-demo-shell--light .bespoke-mail-search-bar {
+  background: var(--bg-inset);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.pmail-demo-shell--light .bespoke-mail-search--focused .bespoke-mail-search-bar,
+.pmail-demo-shell--light .bespoke-mail-search--active .bespoke-mail-search-bar,
+.pmail-demo-shell--light .bespoke-mail-search--advanced .bespoke-mail-search-bar {
+  background: #ffffff;
+  border-color: var(--accent-border);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.pmail-demo-shell--light .bespoke-mail-search-recent,
+.pmail-demo-shell--light .bespoke-mail-search-advanced {
+  background: var(--bg-card);
+  border-color: var(--border);
+  box-shadow: var(--shadow-md);
+}
+
+.pmail-demo-shell--light .bespoke-mail-search-recent-item:hover {
+  background: var(--surface-hover);
+}
+
+.pmail-demo-shell--light .bespoke-demo-workspace-toolbar,
+.pmail-demo-shell--light .bespoke-demo-workspace-tabs,
+.pmail-demo-shell--light .bespoke-demo-topbar {
+  box-shadow: none;
+}
+
+.pmail-demo-shell--light .bespoke-demo-tools-segment {
+  background: var(--surface-inset);
+  border-color: var(--border);
+}
+
+.pmail-demo-shell--light .bespoke-demo-toolbar-label {
+  color: var(--muted);
 }
 
 .pmail-demo-shell--light .bespoke-demo-link-btn {
@@ -2901,4 +2989,426 @@
 .pmail-demo-shell--light .bespoke-demo-search {
   background: var(--bg-inset);
   border-color: var(--border);
+}
+
+/* Production mail embedded in Stop 2 bespoke shell */
+.pmail-demo-shell .bespoke-demo-production-workspace {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.pmail-demo-shell .bespoke-demo-production-workspace--crm,
+.pmail-demo-shell .bespoke-demo-production-workspace--reminders,
+.pmail-demo-shell .bespoke-demo-production-workspace--calendar {
+  padding: 0;
+  overflow: hidden;
+}
+
+.pmail-demo-shell .bespoke-demo-production-workspace:not(.bespoke-demo-production-workspace--settings) {
+  background: var(--bg-canvas, var(--bg));
+}
+
+.pmail-demo-shell .bespoke-demo-production-workspace--settings {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: transparent;
+}
+
+.pmail-demo-shell .bespoke-demo-production-workspace--career {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-canvas, var(--bg));
+}
+
+.pmail-demo-shell:not(.pmail-demo-shell--light) .bespoke-demo--workspace-settings {
+  background: var(--bg-2);
+}
+
+.pmail-demo-shell--light .bespoke-demo--workspace-settings {
+  background: var(--bg-canvas);
+}
+
+.pmail-demo-shell .bespoke-demo-production-workspace .mail-view-panel,
+.pmail-demo-shell .bespoke-demo-production-workspace .contacts-panel {
+  max-width: none;
+}
+
+.pmail-demo-shell .bespoke-production-settings-stack {
+  display: grid;
+  gap: 1.25rem;
+  padding-bottom: 1.5rem;
+}
+
+.pmail-demo-shell .bespoke-demo-topbar-center .gmail-mail-search,
+.pmail-demo-shell .bespoke-demo-topbar-center .bespoke-mail-search {
+  width: min(720px, 100%);
+}
+
+.pmail-demo-shell:not(.pmail-demo-shell--light) .mail-app--embedded-in-bespoke {
+  --folder-nav-active-label: #fff;
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke {
+  --brand-primary: var(--accent-dark);
+  --brand-accent: var(--accent);
+  --sidebar-text: var(--text);
+  --sidebar-muted: var(--muted);
+  --folder-nav-compose-label: var(--text);
+  --folder-nav-badge-bg: linear-gradient(120deg, var(--accent), var(--accent-dark));
+  --folder-nav-badge-text: #042f2e;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: calc(100vh - 11.5rem);
+  background: transparent;
+  color: var(--text);
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-sidebar {
+  background: var(--surface-sidebar);
+  border-right: 1px solid var(--border);
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-sidebar-toggle {
+  border-color: var(--border);
+  background: var(--surface-icon-btn, rgba(255, 255, 255, 0.06));
+  color: var(--text);
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-sidebar-toggle:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .folder-nav-item.is-active {
+  background: var(--surface-active);
+  border-color: var(--accent-border);
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .folder-nav-item.is-active .folder-nav-item-accent {
+  background: var(--accent);
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .folder-nav-item.is-active .folder-nav-icon {
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .folder-nav-badge {
+  color: #042f2e;
+  background: linear-gradient(120deg, var(--accent), var(--accent-dark));
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-layout {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke[data-virtual-view="true"] .mail-list-pane {
+  min-height: 0;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke[data-virtual-view="true"] .mail-list-pane:has(.platform-tools-panel) {
+  background: var(--list-chrome-bg, rgba(8, 14, 26, 0.72));
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke[data-virtual-view="true"] .mail-list-pane:has(.platform-tools-panel) {
+  background: var(--surface-list, #ffffff);
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke[data-virtual-view="true"] .mail-list-pane > .platform-tools-panel {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke[data-virtual-view="true"] .mail-layout {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .platform-tools-panel {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-sidebar {
+  height: 100%;
+  max-height: 100%;
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-sidebar-body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-sidebar-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-sidebar-body::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-sidebar-body::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-sidebar-body::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+@media (min-width: 900px) {
+  .pmail-demo-shell .mail-app--embedded-in-bespoke .mail-list-search {
+    display: none;
+  }
+}
+
+.pmail-demo-shell .mail-app--embedded-in-bespoke .mail-list-search {
+  display: none;
+}
+
+.pmail-demo-shell .bespoke-demo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Light workspace — embedded production mail (remove dark sidebar/list bleed) */
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke {
+  --folder-nav-active-label: var(--accent-dark);
+  --folder-nav-compose-label: var(--accent-dark);
+  --folder-nav-badge-bg: var(--accent);
+  --folder-nav-badge-text: #ffffff;
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light {
+  --folder-nav-active-label: var(--accent-dark);
+  --folder-nav-compose-label: var(--accent-dark);
+  --folder-nav-badge-bg: var(--accent);
+  --folder-nav-badge-text: #ffffff;
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-sidebar {
+  background: var(--surface-sidebar);
+  border-right-color: var(--border);
+  box-shadow: none;
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-list-pane,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-read-pane {
+  background: var(--surface-list);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .list-header,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .message-table-head {
+  background: var(--surface-inset-deep);
+  color: var(--text-secondary);
+  border-color: var(--border-subtle);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .message-table-row {
+  background: var(--surface-list);
+  border-color: var(--border-subtle);
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .message-table-row:hover,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .message-table-row.selected {
+  background: var(--surface-hover);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .message-sender-group-head {
+  background: var(--surface-inset);
+  color: var(--text-secondary);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .read-header,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .read-body,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .read-empty {
+  background: var(--surface-detail);
+  border-color: var(--border-subtle);
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-filter-chip,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-toolbar-btn,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-page-btn,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-order-select,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-sidebar-toggle {
+  border-color: var(--border);
+  background: var(--surface-inset);
+  color: var(--text-secondary);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-sidebar-toggle:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-filter-chip.is-active,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-toolbar-btn--active,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-page-btn.is-active {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-item {
+  color: var(--text-secondary, var(--text));
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-item:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-subtle);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke .folder-nav-item.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke .folder-nav-item.is-active .folder-nav-label {
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-item.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-item.is-active .folder-nav-label {
+  color: var(--accent-dark);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-icon {
+  color: var(--muted);
+  background: var(--surface-inset);
+  border-color: var(--border-subtle);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-item.is-active .folder-nav-icon {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-item--compose {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-heading,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-hint {
+  color: var(--muted);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-badge {
+  color: #ffffff;
+  background: var(--accent);
+  box-shadow: none;
+}
+
+/* Beat .bespoke-demo * scrollbar (dark track bleeds into light sidebar) */
+.pmail-demo-shell--light .bespoke-demo .mail-app--embedded-in-bespoke .mail-sidebar-body {
+  scrollbar-color: #c5d0de #eef1f6;
+  color-scheme: light;
+}
+
+.pmail-demo-shell--light .bespoke-demo .mail-app--embedded-in-bespoke .mail-sidebar-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pmail-demo-shell--light .bespoke-demo .mail-app--embedded-in-bespoke .mail-sidebar-body::-webkit-scrollbar-track {
+  background: #eef1f6;
+}
+
+.pmail-demo-shell--light .bespoke-demo .mail-app--embedded-in-bespoke .mail-sidebar-body::-webkit-scrollbar-thumb {
+  background-color: #c5d0de;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.pmail-demo-shell--light .bespoke-demo .mail-app--embedded-in-bespoke .mail-sidebar-body::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+.pmail-demo-shell--light .bespoke-demo .mail-app--embedded-in-bespoke .mail-sidebar-body::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.pmail-demo-shell--light .bespoke-demo .mail-app--embedded-in-bespoke .mail-sidebar-body::-webkit-scrollbar-corner {
+  background: #eef1f6;
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .folder-nav-flyout {
+  background: var(--surface-dropdown);
+  border-color: var(--border);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light select option,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-order-select option {
+  background: #ffffff;
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .pane-status,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .contact-suggest-banner {
+  background: var(--surface-notice);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .ghost-btn {
+  border-color: var(--border);
+  background: var(--surface-inset);
+  color: var(--text-secondary);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-order-bar,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-filter-bar,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-bulk-actions {
+  background: var(--surface-inset);
+  border-color: var(--border-subtle);
+  color: var(--text);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-actions button {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-summary,
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-actions span {
+  color: var(--muted);
 }

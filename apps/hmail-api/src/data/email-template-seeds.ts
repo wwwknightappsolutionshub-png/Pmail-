@@ -355,6 +355,57 @@ Upgrade here: {{ctaUrl}}`,
 <p class="muted">If you do not subscribe, Platform tools will be gated when the trial ends.</p>`),
   },
   {
+    slug: "panel-workspace-welcome",
+    name: "Panel workspace welcome trial",
+    category: "pmail",
+    subject: "Your {{productName}} workspace tools trial is active",
+    variables: ["fullName", "ctaUrl", "productName", "trialDays"],
+    textBody: `Hi {{fullName}},
+
+Welcome to {{productName}}. Your complimentary {{trialDays}}-day Panel workspace tools trial is now active — CRM, reminders, open tracking, file vault, inbox cleanup, e-sign, email SLA, and more.
+
+Explore add-ons: {{ctaUrl}}`,
+    htmlBody: WRAPPER(`
+<p>Hi <strong>{{fullName}}</strong>,</p>
+<p>Welcome to <strong>{{productName}}</strong>. Your complimentary <strong>{{trialDays}}-day</strong> Panel workspace tools trial is now active.</p>
+<p>Unlocked during your trial: CRM pipeline, reminders, open tracking, file vault, inbox cleanup, attachment categories, e-sign, email SLA, Mail2PDF, auto-reply, and other Panel workspace tools.</p>
+<p><a class="btn" href="{{ctaUrl}}">Open workspace add-ons</a></p>`),
+  },
+  {
+    slug: "panel-workspace-day5-upsell",
+    name: "Panel workspace day-5 upsell",
+    category: "pmail",
+    subject: "Upgrade your {{productName}} workspace tools",
+    variables: ["fullName", "ctaUrl", "productName", "daysLeft"],
+    textBody: `Hi {{fullName}},
+
+You have been using {{productName}} workspace tools for 5 days. Subscribe now to keep all Panel workspace tools after your trial ends in {{daysLeft}} days.
+
+Upgrade: {{ctaUrl}}`,
+    htmlBody: WRAPPER(`
+<p>Hi <strong>{{fullName}}</strong>,</p>
+<p>You have been exploring <strong>{{productName}}</strong> Panel workspace tools for 5 days.</p>
+<p>Subscribe now to keep CRM, reminders, open tracking, file vault, e-sign, email SLA, and the rest of your workspace tools after your trial ends in <strong>{{daysLeft}} days</strong>.</p>
+<p><a class="btn" href="{{ctaUrl}}">Upgrade workspace tools</a></p>`),
+  },
+  {
+    slug: "panel-workspace-day7-final",
+    name: "Panel workspace day-7 final reminder",
+    category: "pmail",
+    subject: "Final reminder — workspace tools lock tomorrow",
+    variables: ["fullName", "ctaUrl", "productName"],
+    textBody: `Hi {{fullName}},
+
+This is your final reminder: your complimentary {{productName}} Panel workspace tools trial ends tomorrow. CRM, reminders, open tracking, file vault, e-sign, email SLA, and other Panel tools will be locked unless you upgrade.
+
+Upgrade now: {{ctaUrl}}`,
+    htmlBody: WRAPPER(`
+<p>Hi <strong>{{fullName}}</strong>,</p>
+<p><strong>Final reminder:</strong> your complimentary <strong>{{productName}}</strong> Panel workspace tools trial ends <strong>tomorrow</strong>.</p>
+<p>CRM, reminders, open tracking, file vault, e-sign, email SLA, and other Panel workspace tools will be locked unless you upgrade.</p>
+<p><a class="btn" href="{{ctaUrl}}">Upgrade before tools lock</a></p>`),
+  },
+  {
     slug: "auto-reply-upsell",
     name: "Auto Reply complimentary ending upsell",
     category: "pmail",

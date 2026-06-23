@@ -15,6 +15,9 @@ import { startReminderDispatchJob } from "./jobs/reminder-dispatch.job.js";
 import { startScheduledSendJob } from "./jobs/scheduled-send.job.js";
 import { startGrowthQueueJob } from "./jobs/growth-queue.job.js";
 import { startMembershipPackageJob } from "./jobs/membership-package.job.js";
+import { startRecruitmentOutreachJob, startPwaMailSyncJob } from "./jobs/pwa-mail-sync.job.js";
+import { startInboxContactSyncJob } from "./jobs/inbox-contact-sync.job.js";
+import { startJobHunterSyncJob } from "./jobs/job-hunter-sync.job.js";
 import { seedAddonCatalog } from "./services/addon.service.js";
 import { seedAddonMarketing, ensureAddonMarketing } from "./services/addon-marketing.service.js";
 import { cleanupLegacySiteSections } from "./services/cms.service.js";
@@ -50,6 +53,10 @@ startReminderDispatchJob();
 startBillingLifecycleJob();
 startMembershipPackageJob();
 startGrowthQueueJob();
+startRecruitmentOutreachJob();
+startPwaMailSyncJob();
+startInboxContactSyncJob();
+startJobHunterSyncJob();
 
 app.listen(env.API_PORT, () => {
   console.log(`hmail-api listening on http://localhost:${env.API_PORT}`);

@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { logComplianceEvent } from "./compliance.service.js";
+import { saveAcDocument, readAcDocument } from "./ac-document-storage.service.js";
 
 const CONTACT_ROLES = new Set(["client", "partner", "staff"]);
 const DOCUMENT_REQUEST_STATUSES = new Set(["open", "requested", "client_uploading", "review_needed", "accepted", "overdue", "closed"]);
@@ -580,6 +581,69 @@ export async function createAcDocumentExchangeRecord(
   return formatExchangeRecord(record);
 }
 
+export async function uploadAcExchangeDocument(
+  tenantId: string,
+  userId: string,
+  userEmail: string,
+  recordId: string,
+  input: { fileName: string; mimeType: string; dataBase64: string },
+) {
+  const existing = await prisma.acDocumentExchangeRecord.findFirst({
+    where: { id: recordId, tenantId },
+  });
+  if (!existing) throw new Error("Exchange record not found");
+
+  const stored = await saveAcDocument({
+    tenantId,
+    fileName: input.fileName,
+    mimeType: input.mimeType,
+    dataBase64: input.dataBase64,
+  });
+
+  const record = await prisma.acDocumentExchangeRecord.update({
+    where: { id: recordId },
+    data: {
+      storagePath: stored.storagePath,
+      fileSizeBytes: stored.fileSizeBytes,
+      mimeType: stored.mimeType,
+      action: "uploaded",
+      status: "received",
+    },
+    include: {
+      documentRequest: { select: { id: true, title: true, referenceCode: true } },
+      clientEntity: { select: { id: true, name: true, entityType: true } },
+      contact: { select: { firstName: true, lastName: true, email: true } },
+      user: { select: { id: true, email: true, displayName: true } },
+    },
+  });
+
+  await logComplianceEvent({
+    tenantId,
+    userId,
+    userEmail,
+    action: "ac_secure_exchange.file_uploaded",
+    entityType: "ac_document_exchange_record",
+    entityId: recordId,
+    metadata: { fileSizeBytes: stored.fileSizeBytes, mimeType: stored.mimeType },
+  });
+
+  return formatExchangeRecord(record);
+}
+
+export async function readAcExchangeDocument(tenantId: string, recordId: string) {
+  const record = await prisma.acDocumentExchangeRecord.findFirst({
+    where: { id: recordId, tenantId },
+  });
+  if (!record?.storagePath) throw new Error("No file attached to this exchange record");
+
+  const buffer = await readAcDocument(tenantId, record.storagePath);
+  return {
+    buffer,
+    mimeType: record.mimeType ?? "application/octet-stream",
+    fileName: record.documentName,
+  };
+}
+
 function formatContact(contact: {
   id: string;
   firstName: string;
@@ -736,6 +800,9 @@ function formatExchangeRecord(record: {
   status: string;
   notes: string | null;
   ipAddress: string | null;
+  storagePath?: string | null;
+  fileSizeBytes?: number | null;
+  mimeType?: string | null;
   occurredAt: Date;
   createdAt: Date;
   documentRequest?: { id: string; title: string; referenceCode: string | null } | null;
@@ -753,6 +820,9 @@ function formatExchangeRecord(record: {
     status: record.status,
     notes: record.notes,
     ipAddress: record.ipAddress,
+    hasFile: Boolean(record.storagePath),
+    fileSizeBytes: record.fileSizeBytes ?? null,
+    mimeType: record.mimeType ?? null,
     occurredAt: record.occurredAt.toISOString(),
     createdAt: record.createdAt.toISOString(),
     documentRequest: record.documentRequest

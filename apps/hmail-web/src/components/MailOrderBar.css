@@ -3,8 +3,8 @@
   flex-wrap: wrap;
   gap: 0.75rem 1rem;
   padding: 0.65rem 1rem;
-  border-bottom: 1px solid var(--border);
-  background: rgba(8, 14, 26, 0.72);
+  border-bottom: 1px solid var(--list-chrome-border, var(--border, #e2e8f0));
+  background: var(--list-chrome-bg, var(--surface-inset, #f8fafc));
   font-family: inherit;
 }
 
@@ -14,15 +14,15 @@
   gap: 0.45rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-muted, #64748b);
 }
 
 .mail-order-bar select {
   min-height: 2.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--list-chrome-btn-border, var(--border, #c8d1dc));
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text);
+  background: var(--list-chrome-btn-bg, #ffffff);
+  color: var(--text, #152033);
   padding: 0.35rem 0.55rem;
   font-family: inherit;
   font-size: 0.82rem;
@@ -34,6 +34,6 @@
 }
 
 .mail-order-bar select option {
-  background: #0b1220;
-  color: var(--text);
+  background: var(--surface-card, #ffffff);
+  color: var(--text, #152033);
 }

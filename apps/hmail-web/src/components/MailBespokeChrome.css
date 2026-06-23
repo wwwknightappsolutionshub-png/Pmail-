@@ -1,0 +1,33 @@
+/* Desktop: full bespoke chrome; mobile falls back to drawer sidebar */
+@media (min-width: 768px) {
+  .mail-bespoke-chrome {
+    display: block;
+  }
+
+  .mail-sidebar-head .mail-brand-logo {
+    display: none;
+  }
+
+  .list-header-actions .free-addon-btn,
+  .list-header-actions .signout-btn {
+    display: none;
+  }
+
+  .mail-list-search {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .mail-bespoke-chrome {
+    display: none;
+  }
+}
+
+.bespoke-prod-ghost-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}

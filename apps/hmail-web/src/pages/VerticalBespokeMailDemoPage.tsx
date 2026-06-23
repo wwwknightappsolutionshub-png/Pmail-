@@ -1,4 +1,4 @@
-import { BespokeMailDemo } from "@hostnet-demo/components/demo/BespokeMailDemo";
+import { BespokeMailDemo, type BespokeWorkspace } from "@hostnet-demo/components/demo/BespokeMailDemo";
 import "@hostnet-demo/components/demo/BespokeMailDemo.css";
 import { getBespokeMailDemo } from "@hostnet-demo/data/bespokeMailDemoData";
 import {
@@ -7,6 +7,12 @@ import {
   FilingCalendarPanel,
   SecureExchangePanel,
 } from "../components/AccountingPanels";
+import {
+  ClientPortalPanel,
+  CompliancePanel,
+  DeadlinesPanel,
+  ImmigrationDeskPanel,
+} from "../components/FeaturePanels";
 import {
   ClientWorkspacesPanel,
   ProjectTrackerPanel,
@@ -32,6 +38,9 @@ import {
   ShowingSchedulerPanel,
 } from "../components/RealEstatePanels";
 import type { BusinessVertical } from "../types/mail";
+import type { ReactNode } from "react";
+import { useAddons } from "../context/AddonContext";
+import { shouldHideVerticalIndustryRibbon } from "../utils/verticalIndustryRibbon";
 import "./VerticalBespokeMailDemoPage.css";
 
 type AutoReplyEntitlementState = {
@@ -53,8 +62,8 @@ type LiveComposeSettings = {
 };
 
 const VERTICAL_DEMO_IDS: Record<BusinessVertical, string> = {
-  standard: "accounting",
-  "free-basic": "accounting",
+  standard: "platform",
+  "free-basic": "platform",
   legal: "legal",
   "real-estate": "real-estate",
   accounting: "accounting",
@@ -98,6 +107,19 @@ type VerticalBespokeMailDemoPageProps = {
     subject: string;
     body: string;
   }) => void | Promise<{ id?: string } | void>;
+  renderTopbarSearch?: ReactNode;
+  renderInboxWorkspace?: ReactNode;
+  renderWorkspace?: (workspace: BespokeWorkspace) => ReactNode | null;
+  showCareerTab?: boolean;
+  onCareerTabClick?: () => void;
+  forcedWorkspace?: BespokeWorkspace;
+  onWorkspaceTabNavigate?: (workspace: BespokeWorkspace) => void;
+  requestedWorkspace?: BespokeWorkspace | null;
+  onRequestedWorkspaceHandled?: () => void;
+  onApplyComposeTemplate?: (template: { subject: string; html: string; label?: string }) => void;
+  mailWorkspaceViews?: Partial<Record<"contacts" | "crm" | "reminders" | "calendar", string>>;
+  activeMailWorkspaceView?: string | null;
+  onMailWorkspaceView?: (view: string | null) => void;
 };
 
 export function VerticalBespokeMailDemoPage({
@@ -121,8 +143,24 @@ export function VerticalBespokeMailDemoPage({
   liveComposeSettings,
   onAutoReplySettingsPersist,
   onAutoReplyTemplateSave,
+  renderTopbarSearch,
+  renderInboxWorkspace,
+  renderWorkspace,
+  showCareerTab,
+  onCareerTabClick,
+  forcedWorkspace,
+  onWorkspaceTabNavigate,
+  requestedWorkspace,
+  onRequestedWorkspaceHandled,
+  onApplyComposeTemplate,
+  mailWorkspaceViews,
+  activeMailWorkspaceView,
+  onMailWorkspaceView,
 }: VerticalBespokeMailDemoPageProps) {
-  const demoId = VERTICAL_DEMO_IDS[businessVertical ?? "legal"] ?? "legal";
+  const { hasAddon } = useAddons();
+  const resolvedHideIndustryTools =
+    hideIndustryTools ?? shouldHideVerticalIndustryRibbon(businessVertical, hasAddon);
+  const demoId = VERTICAL_DEMO_IDS[businessVertical ?? "standard"] ?? "platform";
   const demo = getBespokeMailDemo(demoId);
 
   if (!demo) {
@@ -166,7 +204,7 @@ export function VerticalBespokeMailDemoPage({
         uiThemeVersion={uiThemeVersion}
         platformNotice={platformNotice}
         onThemeChange={onThemeChange}
-        hideIndustryTools={hideIndustryTools}
+        hideIndustryTools={resolvedHideIndustryTools}
         workspaceToolsGated={workspaceToolsGated}
         onStartAddonSubscription={onStartAddonSubscription}
         onMailToPdfExport={onMailToPdfExport}
@@ -174,7 +212,27 @@ export function VerticalBespokeMailDemoPage({
         organizationUsers={organizationUsers}
         onLogout={onLogout}
         onReferFriend={onReferFriend}
+        renderTopbarSearch={renderTopbarSearch}
+        renderInboxWorkspace={renderInboxWorkspace}
+        renderWorkspace={renderWorkspace}
+        showCareerTab={showCareerTab}
+        onCareerTabClick={onCareerTabClick}
+        forcedWorkspace={forcedWorkspace}
+        onWorkspaceTabNavigate={onWorkspaceTabNavigate}
+        requestedWorkspace={requestedWorkspace}
+        onRequestedWorkspaceHandled={onRequestedWorkspaceHandled}
+        onApplyComposeTemplate={onApplyComposeTemplate}
+        mailWorkspaceViews={mailWorkspaceViews}
+        activeMailWorkspaceView={activeMailWorkspaceView}
+        onMailWorkspaceView={onMailWorkspaceView}
         renderIndustryTool={({ demo: currentDemo, toolId, applyComposeTemplate }) => {
+          if (currentDemo.useCaseId === "legal") {
+            if (toolId === "matters") return <ImmigrationDeskPanel />;
+            if (toolId === "deadlines") return <DeadlinesPanel />;
+            if (toolId === "compliance") return <CompliancePanel />;
+            if (toolId === "clients") return <ClientPortalPanel />;
+          }
+
           if (currentDemo.useCaseId === "accounting") {
             if (toolId === "intake") return <DocumentIntakePanel />;
             if (toolId === "deadlines") return <FilingCalendarPanel />;

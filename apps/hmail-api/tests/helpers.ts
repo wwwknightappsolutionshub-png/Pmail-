@@ -46,6 +46,25 @@ export async function resetTestDatabase(): Promise<void> {
   await prisma.growthWorkspace.deleteMany();
   await prisma.growthPromptTemplate.deleteMany();
   await prisma.autoReplySentLog.deleteMany();
+  await prisma.trackedEmailLink.deleteMany();
+  await prisma.mailVaultFile.deleteMany();
+  await prisma.userMailAccount.deleteMany();
+  await prisma.mailUnsubscribeLog.deleteMany();
+  await prisma.categorizedMailAttachment.deleteMany();
+  await prisma.mailEsignRequest.deleteMany();
+  await prisma.mailSlaAlert.deleteMany();
+  await prisma.mailSlaReportExport.deleteMany();
+  await prisma.mailSlaThread.deleteMany();
+  await prisma.userMailSlaSettings.deleteMany();
+  await prisma.jobHunterMailAccountSettings.deleteMany();
+  await prisma.jobApplication.deleteMany();
+  await prisma.jobHunterCvDocument.deleteMany();
+  await prisma.userDocument.deleteMany();
+  await prisma.userJobSiteLink.deleteMany();
+  await prisma.jobApplyAssistLedger.deleteMany();
+  await prisma.jobApplyAssistQueue.deleteMany();
+  await prisma.jobApplyAssistCreditWallet.deleteMany();
+  await prisma.userJobHunterSettings.deleteMany();
   await prisma.sentMessageTracking.deleteMany();
   try {
     await prisma.pmailReferralLead.deleteMany();
@@ -182,7 +201,7 @@ export async function seedPmailTesterTenant() {
       tenantId: tenant.id,
       email: "pmailtester@gmail.com",
       displayName: "PMail Tester",
-      businessVertical: "healthcare",
+      businessVertical: "accounting",
       mailConfig: {
         create: {
           providerPreset: "custom",
@@ -197,10 +216,16 @@ export async function seedPmailTesterTenant() {
     },
     update: {
       displayName: "PMail Tester",
-      businessVertical: "healthcare",
+      businessVertical: "accounting",
       isActive: true,
     },
   });
+
+  const user = await prisma.user.findFirstOrThrow({
+    where: { tenantId: tenant.id, email: "pmailtester@gmail.com" },
+  });
+  const { ensurePmailTesterAccountingWorkspace } = await import("../src/services/pmail-tester-seed.service.js");
+  await ensurePmailTesterAccountingWorkspace(tenant.id, user.id);
 }
 
 export async function seedTestTenant() {
@@ -266,6 +291,7 @@ export async function createAuthenticatedAgent(app: Express): Promise<{
   const withAuth = {
     get: (path: string) => agent.get(path).set("Cookie", [`hmail_session=${token}`]),
     post: (path: string) => agent.post(path).set("Cookie", [`hmail_session=${token}`]),
+    put: (path: string) => agent.put(path).set("Cookie", [`hmail_session=${token}`]),
     patch: (path: string) => agent.patch(path).set("Cookie", [`hmail_session=${token}`]),
     delete: (path: string) => agent.delete(path).set("Cookie", [`hmail_session=${token}`]),
   };
@@ -374,13 +400,55 @@ export async function grantAddonTrial(tenantId: string, slug: string): Promise<v
   if (!addon) throw new Error(`Addon not found: ${slug}`);
 
   const endsAt = new Date();
-  endsAt.setDate(endsAt.getDate() + 7);
+  const trialDays = slug === "job-hunter-functionality" ? 30 : 7;
+  endsAt.setDate(endsAt.getDate() + trialDays);
 
   await prisma.tenantAddonTrial.upsert({
     where: { tenantId_addonId: { tenantId, addonId: addon.id } },
     create: { tenantId, addonId: addon.id, endsAt, status: "active" },
     update: { endsAt, status: "active" },
   });
+}
+
+export async function unlockCareerWorkspace(userId: string, tenantId: string, manual = true): Promise<void> {
+  const now = new Date();
+  const existing = await prisma.userJobHunterSettings.findUnique({ where: { userId } });
+  await prisma.userJobHunterSettings.upsert({
+    where: { userId },
+    create: {
+      tenantId,
+      userId,
+      tierBDisclosureAcceptedAt: now,
+      manualJobHuntingOverride: manual,
+      careerScore: manual ? 50 : 0,
+      careerUnlockedAt: manual ? now : undefined,
+      enabled: true,
+    },
+    update: {
+      tierBDisclosureAcceptedAt: now,
+      manualJobHuntingOverride: manual,
+      careerScore: manual ? 50 : 0,
+      enabled: true,
+      ...(manual && !existing?.careerUnlockedAt ? { careerUnlockedAt: now } : {}),
+    },
+  });
+}
+
+export async function expireCareerTrial(userId: string): Promise<void> {
+  const past = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000);
+  await prisma.userJobHunterSettings.update({
+    where: { userId },
+    data: { careerUnlockedAt: past },
+  });
+}
+
+export async function grantApplyAssistCredits(
+  tenantId: string,
+  userId: string,
+  credits: number,
+): Promise<void> {
+  const { grantApplyAssistCredits: grant } = await import("../src/services/job-hunter-apply-assist.service.js");
+  await grant({ tenantId, userId, credits, reason: "test_grant" });
 }
 
 export { prisma as testPrisma };

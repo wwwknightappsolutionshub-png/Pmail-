@@ -27,6 +27,14 @@ export interface AuthUser {
     mail: { imapHost: string; smtpHost: string; mailOnboardingComplete?: boolean } | null;
   };
   mailConfig?: UserMailConfig | null;
+  activeMailAccount?: {
+    id: string;
+    email: string;
+    label: string | null;
+    isPrimary: boolean;
+    isActive: boolean;
+  } | null;
+  mailAccountCount?: number;
 }
 
 export type BusinessVertical =

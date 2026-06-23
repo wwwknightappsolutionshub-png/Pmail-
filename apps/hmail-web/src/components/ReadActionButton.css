@@ -1,0 +1,110 @@
+.read-action-btn {
+  position: relative;
+  flex-shrink: 0;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 1px solid #dbe3ec;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #334155;
+  padding: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.read-action-btn:hover:not(:disabled),
+.read-action-btn:focus-visible:not(:disabled) {
+  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 35%, #dbe3ec);
+  background: color-mix(in srgb, var(--brand-accent, #0d9488) 8%, #f8fafc);
+  color: var(--brand-accent, #0d9488);
+}
+
+.read-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.read-action-btn--danger {
+  border-color: #fecaca;
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.read-action-btn--danger:hover:not(:disabled),
+.read-action-btn--danger:focus-visible:not(:disabled) {
+  border-color: #f87171;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.read-action-btn-icon {
+  display: grid;
+  place-items: center;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.read-action-btn-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.read-action-tooltip-portal {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  padding: 0.32rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: rgba(15, 23, 42, 0.96);
+  color: #f8fafc;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+}
+
+.read-actions {
+  overflow: visible;
+}
+
+.read-header {
+  overflow: visible;
+}
+
+.mail-app .read-action-btn {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.mail-app .read-action-btn--danger {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+}
+
+.mail-app.mail-app--light .read-action-btn {
+  border-color: var(--border);
+  background: var(--surface-inset);
+  color: var(--text-secondary);
+}
+
+.mail-app.mail-app--light .read-action-btn--danger {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.mail-app.mail-app--light .read-action-tooltip-portal {
+  background: #1e293b;
+  border-color: rgba(15, 23, 42, 0.2);
+  color: #f8fafc;
+}

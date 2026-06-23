@@ -7,6 +7,7 @@ import {
   buildTrackingPixelUrl,
   createSentTracking,
   injectTrackingPixel,
+  wrapTrackedLinksInHtml,
 } from "./tracking.service.js";
 import { buildReferralCompose, PMail_REFERRAL_SUBJECT } from "./referral.service.js";
 
@@ -142,9 +143,10 @@ export async function sendReferralInvitations(input: {
       subject,
     });
     const pixelUrl = buildTrackingPixelUrl(tracking.trackingToken, input.apiPublicBase);
-    const htmlBody = input.html?.trim()
-      ? injectTrackingPixel(input.html, pixelUrl)
-      : undefined;
+    let htmlBody = input.html?.trim() ? injectTrackingPixel(input.html, pixelUrl) : undefined;
+    if (htmlBody) {
+      htmlBody = await wrapTrackedLinksInHtml(htmlBody, tracking.id, input.apiPublicBase);
+    }
 
     const lead = await prisma.pmailReferralLead.create({
       data: {

@@ -1,0 +1,43 @@
+.undo-send-toast {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: min(420px, calc(100vw - 2rem));
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.undo-send-toast p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.undo-send-btn {
+  flex-shrink: 0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  border: none;
+  background: #0d9488;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.undo-send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.undo-send-error {
+  color: #f87171;
+  margin-top: 0.35rem;
+}

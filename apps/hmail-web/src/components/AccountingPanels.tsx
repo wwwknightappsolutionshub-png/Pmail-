@@ -477,8 +477,36 @@ export function SecureExchangePanel({ onUseTemplate }: { onUseTemplate: (t: { su
     status: "received",
     notes: "",
   });
+  const [uploadTargetId, setUploadTargetId] = useState("");
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [actionError, setActionError] = useState("");
   const [actionNotice, setActionNotice] = useState("");
+
+  const uploadDocument = async () => {
+    if (!uploadTargetId || !uploadFile) return;
+    setActionError("");
+    try {
+      const dataBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result ?? "");
+          resolve(result.split(",")[1] ?? "");
+        };
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsDataURL(uploadFile);
+      });
+      await api.uploadAcExchangeDocument(uploadTargetId, {
+        fileName: uploadFile.name,
+        mimeType: uploadFile.type || "application/pdf",
+        dataBase64,
+      });
+      setUploadFile(null);
+      setActionNotice("Document uploaded securely.");
+      await refreshExchangeRecords();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Upload failed");
+    }
+  };
 
   const createRecord = async () => {
     setActionError("");
@@ -584,6 +612,23 @@ export function SecureExchangePanel({ onUseTemplate }: { onUseTemplate: (t: { su
           </div>
           <input placeholder="Audit note" value={recordForm.notes} onChange={(e) => setRecordForm({ ...recordForm, notes: e.target.value })} />
           <button type="button" className="mail-toolbar-btn" onClick={() => void createRecord()}>Record exchange</button>
+          <div className="accounting-section-head" style={{ marginTop: "1.25rem" }}>
+            <span>Upload</span>
+            <div>
+              <h3>Attach secure file</h3>
+              <p>Upload a binary document to an existing exchange record.</p>
+            </div>
+          </div>
+          <select value={uploadTargetId} onChange={(e) => setUploadTargetId(e.target.value)}>
+            <option value="">Select exchange record</option>
+            {exchangeRows.map((record) => (
+              <option key={record.id} value={record.id}>{record.documentName}</option>
+            ))}
+          </select>
+          <input type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.csv" onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)} />
+          <button type="button" className="mail-toolbar-btn" disabled={!uploadTargetId || !uploadFile} onClick={() => void uploadDocument()}>
+            Upload file
+          </button>
         </section>
         <section className="accounting-record-panel">
           <div className="accounting-section-head">

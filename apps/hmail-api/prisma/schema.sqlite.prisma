@@ -40,6 +40,17 @@ model Tenant {
   crmPipelineStages CrmPipelineStage[]
   marketingLeads MarketingLead[]
   pmailReferralLeads PmailReferralLead[]
+  mailVaultFiles     MailVaultFile[]
+  mailUnsubscribeLogs MailUnsubscribeLog[]
+  categorizedMailAttachments CategorizedMailAttachment[]
+  mailEsignRequests        MailEsignRequest[]
+  mailSlaThreads           MailSlaThread[]
+  mailSlaAlerts            MailSlaAlert[]
+  mailSlaReportExports     MailSlaReportExport[]
+  userMailSlaSettings      UserMailSlaSettings[]
+  userJobHunterSettings    UserJobHunterSettings[]
+  jobApplyAssistCreditWallets JobApplyAssistCreditWallet[]
+  jobApplyAssistQueues        JobApplyAssistQueue[]
   membershipApplications MembershipApplication[]
   growthWorkspace GrowthWorkspace?
   reContacts ReContact[]
@@ -112,9 +123,14 @@ model User {
   email       String
   displayName String?
   businessVertical String?
+  healthcareAccessRole String?
   uiThemeVersion String @default("dark")
   isActive    Boolean   @default(true)
   lastLoginAt DateTime?
+  inboxContactsSyncedAt DateTime?
+  panelWorkspaceTrialStartedAt DateTime?
+  panelWorkspaceDay5EmailSent Boolean @default(false)
+  panelWorkspaceDay7ReminderSent Boolean @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -127,10 +143,28 @@ model User {
   signatures     UserSignature[]
   autoReplies    UserAutoReply[]
   sentTracking   SentMessageTracking[]
+  mailVaultFiles MailVaultFile[]
+  mailUnsubscribeLogs MailUnsubscribeLog[]
+  categorizedMailAttachments CategorizedMailAttachment[]
+  mailEsignRequests        MailEsignRequest[]
+  mailSlaThreads           MailSlaThread[]
+  mailSlaAlerts            MailSlaAlert[]
+  mailSlaReportExports     MailSlaReportExport[]
+  userMailSlaSettings      UserMailSlaSettings?
+  userJobHunterSettings    UserJobHunterSettings?
+  jobHunterMailAccountSettings JobHunterMailAccountSettings[]
+  jobApplications          JobApplication[]
+  jobHunterCvDocuments     JobHunterCvDocument[]
+  userDocuments            UserDocument[]
+  jobSiteLinks             UserJobSiteLink[]
+  jobApplyAssistWallet     JobApplyAssistCreditWallet?
+  jobApplyAssistLedger     JobApplyAssistLedger[]
+  jobApplyAssistQueue      JobApplyAssistQueue[]
   crmRecords     CrmRecord[]
   workspaceReminders WorkspaceReminder[]
   workspaceCalendarEvents WorkspaceCalendarEvent[]
   calendarSettings WorkspaceCalendarSettings?
+  pwaPushSubscriptions PwaPushSubscription[]
   industryTools  IndustryToolState[]
   autoReplyLogs  AutoReplySentLog[]
   reListingsAssigned ReListing[] @relation("ReListingAssignedAgent")
@@ -150,6 +184,7 @@ model User {
   hcAuditNotes               HcAuditNote[]
   hcAccessLogs               HcAccessLog[]
   mailConfig                 UserMailConfig?
+  mailAccounts               UserMailAccount[]
   addonSubscriptions         UserAddonSubscription[]
   pmailReferralsSent         PmailReferralLead[] @relation("PmailReferralSender")
   pmailReferralsConverted    PmailReferralLead[] @relation("PmailReferralConverted")
@@ -254,14 +289,44 @@ model Session {
   userId                String
   tokenHash             String   @unique
   encryptedMailPassword String
+  activeMailAccountId   String?
   expiresAt             DateTime
   createdAt             DateTime @default(now())
   ipAddress             String?
   userAgent             String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeMailAccount UserMailAccount? @relation(fields: [activeMailAccountId], references: [id], onDelete: SetNull)
 
   @@index([expiresAt])
+  @@index([activeMailAccountId])
+}
+
+model UserMailAccount {
+  id                    String   @id @default(uuid())
+  userId                String
+  email                 String
+  label                 String?
+  providerPreset        String
+  imapHost              String
+  imapPort              Int      @default(993)
+  imapSecure            Boolean  @default(true)
+  smtpHost              String
+  smtpPort              Int      @default(465)
+  smtpSecure            Boolean  @default(true)
+  encryptedMailPassword String
+  isPrimary             Boolean  @default(false)
+  sortOrder             Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions Session[]
+  jobHunterSettings JobHunterMailAccountSettings?
+  jobApplications   JobApplication[]
+
+  @@unique([userId, email])
+  @@index([userId])
 }
 
 model HostingAccount {
@@ -452,6 +517,8 @@ model ScheduledMessage {
   html         String?
   scheduledFor DateTime
   status       String    @default("pending")
+  sendKind     String    @default("scheduled")
+  payloadJson  String?
   sentAt       DateTime?
   errorMessage String?
   createdAt    DateTime  @default(now())
@@ -861,6 +928,9 @@ model AcDocumentExchangeRecord {
   category          String   @default("source_document")
   status            String   @default("received")
   notes             String?
+  storagePath       String?
+  fileSizeBytes     Int?
+  mimeType          String?
   ipAddress         String?
   occurredAt        DateTime @default(now())
   createdAt         DateTime @default(now())
@@ -1018,6 +1088,9 @@ model RcOutreachCampaign {
   channel     String   @default("email")
   status      String   @default("draft")
   audience    String   @default("sourced_candidates")
+  subject     String?
+  bodyHtml    String?
+  scheduledFor DateTime?
   sentCount   Int      @default(0)
   replyCount  Int      @default(0)
   launchedAt  DateTime?
@@ -1131,6 +1204,9 @@ model B2bWorkspace {
   healthScore     Int      @default(75)
   brandColor      String?
   routingDomain   String?
+  routingStatus   String   @default("pending")
+  routingMailbox  String?
+  routingActivatedAt DateTime?
   onboardingStage String   @default("kickoff")
   renewalDate     DateTime?
   assignedUserId  String?
@@ -1829,6 +1905,7 @@ model WorkspaceCalendarEvent {
   location    String?
   notes       String?
   syncSource  String   @default("local")
+  externalId  String?
   crmRecordId String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -1838,18 +1915,36 @@ model WorkspaceCalendarEvent {
 
   @@index([tenantId, userId, startAt])
   @@index([tenantId, userId, syncSource])
+  @@index([tenantId, userId, syncSource, externalId])
 }
 
 model WorkspaceCalendarSettings {
   userId                String   @id
   googleConnected       Boolean  @default(false)
   microsoftConnected    Boolean  @default(false)
+  googleTokenEnc        String?
+  microsoftTokenEnc     String?
+  googleCalendarId      String?
+  microsoftCalendarId   String?
   lastSyncAt            DateTime?
   capacityHoursPerWeek  Int      @default(40)
   reminderSequencesJson String   @default("[]")
   updatedAt             DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PwaPushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model UserComposeSettings {
@@ -1860,6 +1955,7 @@ model UserComposeSettings {
   activeAutoReplyId               String?
   autoReplyComplimentaryStartedAt DateTime?
   autoReplyUpsellEmailSent        Boolean   @default(false)
+  undoSendSeconds                 Int       @default(10)
   updatedAt                       DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1907,9 +2003,400 @@ model SentMessageTracking {
   lastOpenedAt  DateTime?
   createdAt     DateTime  @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links TrackedEmailLink[]
 
   @@index([userId])
+}
+
+model TrackedEmailLink {
+  id                    String    @id @default(uuid())
+  sentMessageTrackingId String
+  originalUrl           String
+  clickToken            String    @unique
+  clickCount            Int       @default(0)
+  firstClickedAt        DateTime?
+  lastClickedAt         DateTime?
+  linkOrder             Int       @default(0)
+  createdAt             DateTime  @default(now())
+
+  sentMessage SentMessageTracking @relation(fields: [sentMessageTrackingId], references: [id], onDelete: Cascade)
+
+  @@index([sentMessageTrackingId])
+}
+
+model MailVaultFile {
+  id              String    @id @default(uuid())
+  tenantId        String
+  userId          String
+  originalName    String
+  storagePath     String
+  mimeType        String
+  fileSizeBytes   Int
+  downloadToken   String    @unique
+  downloadCount   Int       @default(0)
+  expiresAt       DateTime
+  lastDownloadAt  DateTime?
+  createdAt       DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([expiresAt])
+  categorizedAttachments CategorizedMailAttachment[]
+}
+
+model MailUnsubscribeLog {
+  id              String   @id @default(uuid())
+  tenantId        String
+  userId          String
+  senderEmail     String
+  folder          String
+  messageUid      Int
+  unsubscribeUrl  String
+  method          String
+  status          String
+  httpStatus      Int?
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model CategorizedMailAttachment {
+  id              String   @id @default(uuid())
+  tenantId        String
+  userId          String
+  folder          String
+  messageUid      Int
+  partId          String
+  filename        String
+  mimeType        String
+  fileSizeBytes   Int
+  category        String
+  categorySource  String   @default("auto")
+  messageSubject  String
+  messageFrom     String
+  messageDate     DateTime
+  vaultFileId     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vaultFile MailVaultFile? @relation(fields: [vaultFileId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, folder, messageUid, partId])
+  @@index([tenantId])
+  @@index([userId, category])
+  @@index([userId, messageDate])
+}
+
+/// E-sign requests from mailbox attachments (Phase 1.6)
+model MailEsignRequest {
+  id                     String    @id @default(uuid())
+  tenantId               String
+  userId                 String
+  provider               String    @default("dropbox_sign")
+  providerRequestId      String?
+  status                 String
+  documentName           String
+  mimeType               String
+  fileSizeBytes          Int
+  storagePath            String
+  downloadToken          String    @unique
+  downloadCount          Int       @default(0)
+  expiresAt              DateTime
+  lastDownloadAt         DateTime?
+  signerEmail            String
+  signerName             String
+  subject                String
+  message                String
+  signingUrl             String?
+  sourceFolder           String?
+  sourceMessageUid       Int?
+  sourcePartId           String?
+  messageSubjectSnapshot String?
+  completedAt            DateTime?
+  lastSyncedAt           DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+/// Email SLA tracker settings (Phase 2.1)
+model UserMailSlaSettings {
+  userId         String   @id
+  tenantId       String
+  responseHours  Int      @default(24)
+  atRiskRatio    Float    @default(0.8)
+  scanFolder     String   @default("INBOX")
+  enabled        Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+/// Job Hunter Tier B settings (Phase 1)
+model UserJobHunterSettings {
+  userId                    String    @id
+  tenantId                  String
+  regionCode                String    @default("INTL")
+  tierBDisclosureAcceptedAt DateTime?
+  tierBDisclosureVersion    String?
+  enabled                   Boolean   @default(true)
+  pausedUntil               DateTime?
+  manualJobHuntingOverride  Boolean   @default(false)
+  careerScore               Int       @default(0)
+  careerUnlockedAt          DateTime?
+  inferencesDeletedAt       DateTime?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+/// Per-mailbox Job Hunter scan opt-in (Phase 1)
+model JobHunterMailAccountSettings {
+  id            String   @id @default(uuid())
+  userId        String
+  mailAccountId String   @unique
+  scanEnabled   Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mailAccount UserMailAccount @relation(fields: [mailAccountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Job application history inferred from career mail or entered manually (Phase 3)
+model JobApplication {
+  id               String   @id @default(uuid())
+  userId           String
+  mailAccountId    String?
+  company          String
+  roleTitle        String
+  appliedAt        DateTime
+  status           String
+  source           String
+  imapFolder       String?
+  messageUid       Int?
+  messageMessageId String?
+  threadHint       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mailAccount UserMailAccount? @relation(fields: [mailAccountId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, imapFolder, messageUid])
+  @@unique([userId, messageMessageId])
+  @@index([userId, appliedAt])
+  @@index([userId, status])
+}
+
+/// User-built CV documents (Phase 4)
+model JobHunterCvDocument {
+  id              String   @id @default(uuid())
+  userId          String
+  title           String
+  region          String
+  role            String?
+  industry        String?
+  contentJson     String
+  pdfStoragePath  String?
+  source          String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userDocuments UserDocument[]
+
+  @@index([userId, updatedAt])
+}
+
+/// Published user documents index (Phase 5 — Job Hunter CVs in Documents)
+model UserDocument {
+  id                    String   @id @default(uuid())
+  userId                String
+  filename              String
+  mimeType              String
+  storagePath           String
+  source                String
+  isPinned              Boolean  @default(false)
+  jobHunterCvDocumentId String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobHunterCvDocument JobHunterCvDocument? @relation(fields: [jobHunterCvDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isPinned, updatedAt])
+  @@index([userId, source])
+  @@index([jobHunterCvDocumentId])
+}
+
+/// Saved job board links (Phase 6)
+model UserJobSiteLink {
+  id        String   @id @default(uuid())
+  userId    String
+  label     String
+  url       String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sortOrder])
+}
+
+/// Apply Assist credit wallet (Phase 8)
+model JobApplyAssistCreditWallet {
+  userId    String   @id
+  tenantId  String
+  balance   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+/// Apply Assist credit ledger (Phase 8)
+model JobApplyAssistLedger {
+  id            String   @id @default(uuid())
+  userId        String
+  delta         Int
+  reason        String
+  applicationId String?
+  queueId       String?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+/// Apply Assist queue item (Phase 8)
+model JobApplyAssistQueue {
+  id                   String    @id @default(uuid())
+  userId               String
+  tenantId             String
+  channel              String
+  status               String    @default("queued")
+  jobUrl               String?
+  careersEmail         String?
+  company              String?
+  targetRole           String
+  region               String
+  userDocumentId       String?
+  prefilledPayloadJson String?
+  applicationId        String?
+  confirmedAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+/// Inbound email threads tracked for response SLA (Phase 2.1)
+model MailSlaThread {
+  id               String    @id @default(uuid())
+  tenantId         String
+  userId           String
+  threadKey        String
+  folder           String
+  messageUid       Int
+  subject          String
+  fromEmail        String
+  fromDisplay      String
+  messageId        String?
+  inReplyTo        String?
+  referencesHeader String?
+  firstInboundAt   DateTime
+  lastInboundAt    DateTime
+  deadlineAt       DateTime
+  atRiskAt         DateTime
+  respondedAt      DateTime?
+  dismissedAt      DateTime?
+  status           String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alerts MailSlaAlert[]
+
+  @@unique([userId, threadKey])
+  @@index([tenantId])
+  @@index([userId, status])
+  @@index([userId, deadlineAt])
+}
+
+model MailSlaAlert {
+  id             String    @id @default(uuid())
+  tenantId       String
+  userId         String
+  threadId       String
+  alertType      String
+  acknowledgedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  tenant Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thread MailSlaThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId, acknowledgedAt])
+  @@index([threadId, alertType])
+}
+
+model MailSlaReportExport {
+  id             String    @id @default(uuid())
+  tenantId       String
+  userId         String
+  storagePath    String
+  fileSizeBytes  Int
+  downloadToken  String    @unique
+  downloadCount  Int       @default(0)
+  expiresAt      DateTime
+  lastDownloadAt DateTime?
+  rowCount       Int
+  createdAt      DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId, createdAt])
 }
 
 model IndustryToolState {

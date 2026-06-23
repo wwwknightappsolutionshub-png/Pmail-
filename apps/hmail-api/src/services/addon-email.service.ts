@@ -310,3 +310,95 @@ export async function sendAutoReplyUpsellEmail(input: {
   }
 }
 
+export type PanelWorkspaceTrialEmailType = "welcome" | "day5_upsell" | "day7_final";
+
+export async function sendPanelWorkspaceTrialEmail(input: {
+  tenantId: string;
+  userEmail: string;
+  emailType: PanelWorkspaceTrialEmailType;
+  trialEndsAt: Date;
+}): Promise<void> {
+  const env = getEnv();
+  const marketplaceUrl = `${resolveMarketplaceUrl()}?highlight=open-tracking`;
+  const fullName = input.userEmail.split("@")[0] || "there";
+  const daysLeft = Math.max(
+    0,
+    Math.ceil((input.trialEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+  );
+
+  const templateSlug =
+    input.emailType === "welcome"
+      ? "panel-workspace-welcome"
+      : input.emailType === "day5_upsell"
+        ? "panel-workspace-day5-upsell"
+        : "panel-workspace-day7-final";
+
+  let content: { subject: string; text: string; html: string };
+  try {
+    const rendered = await renderEmailTemplate(templateSlug, {
+      fullName,
+      ctaUrl: marketplaceUrl,
+      productName: "PMail+",
+      trialDays: "7",
+      daysLeft: String(daysLeft),
+    });
+    content = {
+      subject: rendered.subject,
+      text: rendered.text?.trim() || rendered.subject,
+      html: rendered.html,
+    };
+  } catch {
+    const subjects: Record<PanelWorkspaceTrialEmailType, string> = {
+      welcome: "Your PMail+ workspace tools trial is active",
+      day5_upsell: "Upgrade your PMail+ workspace tools",
+      day7_final: "Final reminder — workspace tools lock tomorrow",
+    };
+    content = {
+      subject: subjects[input.emailType],
+      text: `${subjects[input.emailType]} ${marketplaceUrl}`,
+      html: `<p>${subjects[input.emailType]}</p><p><a href="${marketplaceUrl}">View add-ons</a></p>`,
+    };
+  }
+
+  const emailType = `panel_workspace_${input.emailType}`;
+  const alreadySent = await prisma.addonEmailLog.findFirst({
+    where: { tenantId: input.tenantId, userEmail: input.userEmail, emailType },
+  });
+  if (alreadySent) return;
+
+  const from = process.env.NURTURE_SMTP_FROM ?? "noreply@hmail.local";
+  const host = process.env.NURTURE_SMTP_HOST;
+
+  if (host) {
+    const transporter = nodemailer.createTransport({
+      host,
+      port: Number(process.env.NURTURE_SMTP_PORT ?? 587),
+      secure: process.env.NURTURE_SMTP_SECURE === "true",
+      auth: process.env.NURTURE_SMTP_USER
+        ? {
+            user: process.env.NURTURE_SMTP_USER,
+            pass: process.env.NURTURE_SMTP_PASS ?? "",
+          }
+        : undefined,
+    });
+
+    await transporter.sendMail({
+      from,
+      to: input.userEmail,
+      subject: content.subject,
+      text: content.text,
+      html: content.html,
+    });
+  } else if (env.NODE_ENV === "development") {
+    console.info(`[panel-workspace-trial] ${input.emailType} → ${input.userEmail}: ${content.subject}`);
+  }
+
+  await prisma.addonEmailLog.create({
+    data: {
+      tenantId: input.tenantId,
+      userEmail: input.userEmail,
+      emailType,
+    },
+  });
+}
+

@@ -1,0 +1,69 @@
+.paid-addon-toast-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(2, 8, 23, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.paid-addon-toast {
+  width: min(100%, 28rem);
+  padding: 1.35rem 1.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  background: rgba(10, 18, 32, 0.98);
+  color: #e8eef8;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+.pmail-demo-shell--light .paid-addon-toast,
+.mail-app--light .paid-addon-toast {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(13, 148, 136, 0.28);
+}
+
+.paid-addon-toast-copy strong {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.paid-addon-toast-copy p {
+  margin: 0.55rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.paid-addon-toast-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.paid-addon-toast-primary {
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.paid-addon-toast-btn {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  background: transparent;
+  color: inherit;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+}

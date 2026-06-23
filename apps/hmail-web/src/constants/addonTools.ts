@@ -8,10 +8,19 @@ import {
   VIEW_INDUSTRY_TOOLS,
   VIEW_IRCC_INTEL,
   VIEW_OPEN_TRACKING,
+  VIEW_FILE_VAULT,
+  VIEW_INBOX_CLEANUP,
+  VIEW_ATTACHMENT_CATEGORIZE,
+  VIEW_ESIGN,
+  VIEW_EMAIL_SLA,
+  VIEW_MAIL2PDF,
+  VIEW_JOB_HUNTER_SETTINGS,
+  VIEW_CAREER_SCANNER,
   VIEW_CALENDAR,
   VIEW_PORTAL,
   VIEW_SCHEDULED,
   VIEW_COMPOSE_SETTINGS,
+  VIEW_AUTO_REPLY_FUNCTIONALITY,
   VIEW_PROVIDER_SETTINGS,
   VIEW_WORKSPACE_CRM,
   VIEW_WORKSPACE_REMINDERS,
@@ -51,6 +60,15 @@ export const TOOL_ADDON_SLUGS: Record<string, string> = {
   [VIEW_WORKSPACE_REMINDERS]: "bespoke-workspace",
   [VIEW_INDUSTRY_TOOLS]: "bespoke-workspace",
   [VIEW_OPEN_TRACKING]: "open-tracking",
+  [VIEW_FILE_VAULT]: "file-vault-functionality",
+  [VIEW_INBOX_CLEANUP]: "inbox-cleanup-functionality",
+  [VIEW_ATTACHMENT_CATEGORIZE]: "attachment-categorize-functionality",
+  [VIEW_ESIGN]: "esign-from-email-functionality",
+  [VIEW_EMAIL_SLA]: "email-sla-tracker-functionality",
+  [VIEW_MAIL2PDF]: "mail2pdf-functionality",
+  [VIEW_JOB_HUNTER_SETTINGS]: "job-hunter-functionality",
+  [VIEW_CAREER_SCANNER]: "job-hunter-functionality",
+  [VIEW_AUTO_REPLY_FUNCTIONALITY]: "auto-reply-functionality",
   [VIEW_CALENDAR]: "full-calendar-functionality",
   [VIEW_RE_LISTING_BOARD]: "re-listing-board",
   [VIEW_RE_SHOWING_SCHEDULER]: "re-showing-scheduler",
@@ -103,9 +121,33 @@ export const WORKSPACE_NAV = [
   { view: VIEW_CALENDAR, label: "Full calendar", kind: "workspace_calendar" as const },
   { view: VIEW_INDUSTRY_TOOLS, label: "Industry tools", kind: "industry_tools" as const },
   { view: VIEW_OPEN_TRACKING, label: "Open tracking", kind: "open_tracking" as const },
+  { view: VIEW_FILE_VAULT, label: "File vault", kind: "file_vault" as const },
+  { view: VIEW_INBOX_CLEANUP, label: "Inbox cleanup", kind: "inbox_cleanup" as const },
+  { view: VIEW_ATTACHMENT_CATEGORIZE, label: "Attachment categories", kind: "attachment_categorize" as const },
+  { view: VIEW_ESIGN, label: "E-sign", kind: "esign" as const },
+  { view: VIEW_EMAIL_SLA, label: "Email SLA", kind: "email_sla" as const },
+  { view: VIEW_MAIL2PDF, label: "Mail 2 PDF", kind: "mail2pdf" as const },
+  { view: VIEW_JOB_HUNTER_SETTINGS, label: "Job Hunter", kind: "job_hunter_settings" as const },
+  { view: VIEW_CAREER_SCANNER, label: "CV Scanner", kind: "career_scanner" as const },
+  { view: VIEW_AUTO_REPLY_FUNCTIONALITY, label: "Auto-reply", kind: "auto_reply_functionality" as const },
   { view: VIEW_PROVIDER_SETTINGS, label: "Provider settings", kind: "provider_settings" as const },
   { view: VIEW_COMPOSE_SETTINGS, label: "Compose settings", kind: "compose_settings" as const },
 ];
+
+/** Platform tools reachable from top tabs / Brand Settings — not listed in the mail sidebar. */
+const SIDEBAR_HIDDEN_PLATFORM_VIEWS = new Set<string>([
+  VIEW_WORKSPACE_CRM,
+  VIEW_WORKSPACE_REMINDERS,
+  VIEW_CALENDAR,
+  VIEW_PROVIDER_SETTINGS,
+  VIEW_COMPOSE_SETTINGS,
+  VIEW_CAREER_SCANNER,
+  VIEW_JOB_HUNTER_SETTINGS,
+]);
+
+export function platformToolsSidebarNav<T extends (typeof WORKSPACE_NAV)[number]>(items: T[]): T[] {
+  return items.filter((item) => !SIDEBAR_HIDDEN_PLATFORM_VIEWS.has(item.view));
+}
 
 export const REAL_ESTATE_NAV = [
   { view: VIEW_RE_LISTING_BOARD, label: "Listing Board", kind: "re_listing_board" as const },

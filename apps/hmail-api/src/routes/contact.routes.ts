@@ -21,6 +21,8 @@ import {
   updateContactGroup,
   updateContactList,
 } from "../services/contact.service.js";
+import { syncInboxContactsForUser } from "../services/inbox-contact-sync.service.js";
+import { resolveRequestMailCredentials } from "../services/mail-account.service.js";
 
 const contactSchema = z.object({
   email: z.string().email(),
@@ -103,6 +105,17 @@ contactRouter.post("/suggest", async (req, res, next) => {
     const body = suggestSchema.parse(req.body);
     const suggestions = await suggestContactsFromEmails(req.auth!.user.id, body.emails);
     res.json({ suggestions });
+  } catch (err) {
+    next(err);
+  }
+});
+
+contactRouter.post("/sync-inbox", async (req, res, next) => {
+  try {
+    const force = Boolean(req.body?.force);
+    const credentials = await resolveRequestMailCredentials(req);
+    const result = await syncInboxContactsForUser(req.auth!.user.id, credentials, { force });
+    res.json(result);
   } catch (err) {
     next(err);
   }

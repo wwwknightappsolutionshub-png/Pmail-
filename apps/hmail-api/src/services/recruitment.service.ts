@@ -473,7 +473,16 @@ export async function createRcOutreachCampaign(
   tenantId: string,
   userId: string,
   userEmail: string,
-  input: { name: string; roleId?: string; channel?: string; status?: string; audience?: string },
+  input: {
+    name: string;
+    roleId?: string;
+    channel?: string;
+    status?: string;
+    audience?: string;
+    subject?: string;
+    bodyHtml?: string;
+    scheduledFor?: string;
+  },
 ) {
   if (!input.name.trim()) throw new Error("Campaign name is required");
   if (input.roleId) {
@@ -484,6 +493,8 @@ export async function createRcOutreachCampaign(
   if (!OUTREACH_CHANNELS.has(channel)) throw new Error("Invalid outreach channel");
   const status = input.status ?? "draft";
   if (!OUTREACH_STATUSES.has(status)) throw new Error("Invalid campaign status");
+  const scheduledFor = input.scheduledFor ? new Date(input.scheduledFor) : null;
+  if (scheduledFor && Number.isNaN(scheduledFor.getTime())) throw new Error("Invalid scheduled date");
 
   const campaign = await prisma.rcOutreachCampaign.create({
     data: {
@@ -494,6 +505,9 @@ export async function createRcOutreachCampaign(
       channel,
       status,
       audience: input.audience?.trim() || "sourced_candidates",
+      subject: input.subject?.trim() || null,
+      bodyHtml: input.bodyHtml?.trim() || null,
+      scheduledFor,
       launchedAt: status === "sent" ? new Date() : null,
     },
     include: {
@@ -521,14 +535,23 @@ export async function updateRcOutreachCampaignStatus(
   userEmail: string,
   campaignId: string,
   status: string,
+  input?: { subject?: string; bodyHtml?: string; scheduledFor?: string },
 ) {
   if (!OUTREACH_STATUSES.has(status)) throw new Error("Invalid campaign status");
   const existing = await prisma.rcOutreachCampaign.findFirst({ where: { id: campaignId, tenantId } });
   if (!existing) throw new Error("Outreach campaign not found");
+  const scheduledFor = input?.scheduledFor ? new Date(input.scheduledFor) : undefined;
+  if (scheduledFor && Number.isNaN(scheduledFor.getTime())) throw new Error("Invalid scheduled date");
 
   const campaign = await prisma.rcOutreachCampaign.update({
     where: { id: campaignId },
-    data: { status, launchedAt: status === "sent" ? new Date() : existing.launchedAt },
+    data: {
+      status,
+      launchedAt: status === "sent" ? new Date() : existing.launchedAt,
+      subject: input?.subject?.trim() || undefined,
+      bodyHtml: input?.bodyHtml?.trim() || undefined,
+      scheduledFor,
+    },
     include: {
       role: true,
       user: { select: { id: true, email: true, displayName: true } },
@@ -1007,6 +1030,9 @@ function formatCampaign(campaign: {
   channel: string;
   status: string;
   audience: string;
+  subject: string | null;
+  bodyHtml: string | null;
+  scheduledFor: Date | null;
   sentCount: number;
   replyCount: number;
   launchedAt: Date | null;
@@ -1021,6 +1047,9 @@ function formatCampaign(campaign: {
     channel: campaign.channel,
     status: campaign.status,
     audience: campaign.audience,
+    subject: campaign.subject,
+    bodyHtml: campaign.bodyHtml,
+    scheduledFor: campaign.scheduledFor?.toISOString() ?? null,
     sentCount: campaign.sentCount,
     replyCount: campaign.replyCount,
     launchedAt: campaign.launchedAt?.toISOString() ?? null,

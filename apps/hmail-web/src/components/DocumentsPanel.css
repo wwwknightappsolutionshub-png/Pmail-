@@ -1,0 +1,38 @@
+.documents-career-section,
+.documents-mail-section {
+  margin-bottom: 1.25rem;
+}
+
+.documents-career-section h3,
+.documents-mail-section h3 {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+}
+
+.documents-career-badge {
+  display: inline-block;
+  margin-right: 0.45rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: #ccfbf1;
+  color: #0f766e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.documents-row-pinned {
+  background: #f0fdfa;
+}
+
+.documents-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.documents-notice {
+  color: #047857;
+  margin: 0 0 0.75rem;
+}

@@ -1,13 +1,18 @@
+import { getEnv } from "../config/env.js";
 import { prisma } from "../lib/prisma.js";
+import { getLatestMailCredentials } from "./mail-credentials.service.js";
+import {
+  executeOutgoingMailSend,
+  type OutgoingMailPayload,
+} from "./mail-outgoing.service.js";
 import { logComplianceEvent } from "./compliance.service.js";
 import { appendToSentFolder } from "./imap.service.js";
-import { getLatestMailCredentials } from "./mail-credentials.service.js";
-import { sendMail } from "./smtp.service.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
+import { sendMail } from "./smtp.service.js";
 
 export async function listScheduledMessages(tenantId: string, userId: string) {
   const rows = await prisma.scheduledMessage.findMany({
-    where: { tenantId, userId, status: { in: ["pending", "failed"] } },
+    where: { tenantId, userId, status: { in: ["pending", "failed"] }, sendKind: "scheduled" },
     orderBy: { scheduledFor: "asc" },
   });
 
@@ -48,6 +53,7 @@ export async function createScheduledMessage(
       html: input.html,
       scheduledFor,
       status: "pending",
+      sendKind: "scheduled",
     },
   });
 
@@ -71,7 +77,7 @@ export async function cancelScheduledMessage(
   id: string,
 ) {
   const row = await prisma.scheduledMessage.findFirst({
-    where: { id, tenantId, userId, status: "pending" },
+    where: { id, tenantId, userId, status: "pending", sendKind: "scheduled" },
   });
   if (!row) throw new Error("Scheduled message not found");
 
@@ -99,6 +105,7 @@ export async function processDueScheduledMessages(): Promise<number> {
   });
 
   let sent = 0;
+  const apiPublicBase = getEnv().PUBLIC_API_URL?.trim() || `http://localhost:${getEnv().API_PORT}`;
 
   for (const row of due) {
     try {
@@ -114,36 +121,47 @@ export async function processDueScheduledMessages(): Promise<number> {
         continue;
       }
 
-      const composeSettings = await getComposeSettingsByUserId(row.userId);
-      const result = await sendMail({
-        email: creds.email,
-        password: creds.password,
-        mailConfig: creds.mailConfig,
-        fromName: composeSettings.displayName?.trim() || undefined,
-        to: row.to,
-        cc: row.cc ?? undefined,
-        bcc: row.bcc ?? undefined,
-        subject: row.subject,
-        text: row.text ?? undefined,
-        html: row.html ?? undefined,
-      });
+      if (row.sendKind === "undo_send" && row.payloadJson) {
+        const payload = JSON.parse(row.payloadJson) as OutgoingMailPayload;
+        await executeOutgoingMailSend({
+          tenantId: row.tenantId,
+          userId: row.userId,
+          credentials: creds,
+          apiPublicBase,
+          payload,
+        });
+      } else {
+        const composeSettings = await getComposeSettingsByUserId(row.userId);
+        const result = await sendMail({
+          email: creds.email,
+          password: creds.password,
+          mailConfig: creds.mailConfig,
+          fromName: composeSettings.displayName?.trim() || undefined,
+          to: row.to,
+          cc: row.cc ?? undefined,
+          bcc: row.bcc ?? undefined,
+          subject: row.subject,
+          text: row.text ?? undefined,
+          html: row.html ?? undefined,
+        });
 
-      try {
-        await appendToSentFolder(
-          { email: creds.email, password: creds.password, mailConfig: creds.mailConfig },
-          {
-            email: creds.email,
-            password: creds.password,
-            mailConfig: creds.mailConfig,
-            to: row.to,
-            subject: row.subject,
-            text: row.text ?? undefined,
-            html: row.html ?? undefined,
-          },
-          result.messageId,
-        );
-      } catch {
-        // non-fatal
+        try {
+          await appendToSentFolder(
+            { email: creds.email, password: creds.password, mailConfig: creds.mailConfig },
+            {
+              email: creds.email,
+              password: creds.password,
+              mailConfig: creds.mailConfig,
+              to: row.to,
+              subject: row.subject,
+              text: row.text ?? undefined,
+              html: row.html ?? undefined,
+            },
+            result.messageId,
+          );
+        } catch {
+          // non-fatal
+        }
       }
 
       await prisma.scheduledMessage.update({

@@ -26,18 +26,34 @@ export interface AddonCatalogEntry {
 
 export type AddonKind = "vertical" | "platform" | "system";
 
+/** Phase 1.1–1.6 — $15/mo Platform marketplace bundle (see PMail-ROADMAP.md) */
+export const MARKETPLACE_PLATFORM_BUNDLE_SLUGS = [
+  "open-tracking",
+  "file-vault-functionality",
+  "multi-inbox-functionality",
+  "inbox-cleanup-functionality",
+  "attachment-categorize-functionality",
+  "esign-from-email-functionality",
+  "job-hunter-functionality",
+] as const;
+
+export const MARKETPLACE_PLATFORM_BUNDLE_SLUG_SET = new Set<string>(MARKETPLACE_PLATFORM_BUNDLE_SLUGS);
+
+/** Legacy + Phase 1 platform add-ons available à-la-carte (not all are in the $15 bundle) */
 export const PLATFORM_SPECIFIC_PAID_ADDON_SLUGS = [
   "whatsapp-functionality",
   "mail2pdf-functionality",
   "full-calendar-functionality",
   "scheduled-send",
-  "open-tracking",
   "auto-reply-functionality",
+  "job-hunter-functionality",
+  "job-apply-assist-functionality",
+  ...MARKETPLACE_PLATFORM_BUNDLE_SLUGS,
 ] as const;
 
 export const PLATFORM_SPECIFIC_PAID_ADDON_SET = new Set<string>(PLATFORM_SPECIFIC_PAID_ADDON_SLUGS);
 
-export const PLATFORM_WORKSPACE_BUNDLE_SLUGS = PLATFORM_SPECIFIC_PAID_ADDON_SLUGS;
+export const PLATFORM_WORKSPACE_BUNDLE_SLUGS = MARKETPLACE_PLATFORM_BUNDLE_SLUGS;
 
 export const LEGAL_PHASE_1_SLUGS = [
   "immigration-desk",
@@ -47,6 +63,8 @@ export const LEGAL_PHASE_1_SLUGS = [
 ] as const;
 
 export const MARKETPLACE_PLATFORM_BUNDLE_USER_PRICE_CENTS = 1500;
+export const JOB_HUNTER_STANDALONE_USER_PRICE_CENTS = 1000;
+export const JOB_HUNTER_ADDON_SLUG = "job-hunter-functionality";
 export const MARKETPLACE_VERTICAL_BUNDLE_USER_PRICE_CENTS = 3000;
 export const MARKETPLACE_VERTICAL_BUNDLE_TENANT_SEAT_PRICE_CENTS = 2000;
 export const MARKETPLACE_VERTICAL_BUNDLE_MIN_TENANT_SEATS = 5;
@@ -59,14 +77,16 @@ export function resolveAddonKind(entry: Pick<AddonCatalogEntry, "slug" | "vertic
 
 export function resolveAddonUserPriceCents(entry: Pick<AddonCatalogEntry, "slug" | "vertical" | "priceCents">): number {
   const kind = resolveAddonKind(entry);
-  if (kind === "platform") return 1500;
+  if (entry.slug === JOB_HUNTER_ADDON_SLUG) return JOB_HUNTER_STANDALONE_USER_PRICE_CENTS;
+  if (kind === "platform") return MARKETPLACE_PLATFORM_BUNDLE_USER_PRICE_CENTS;
   if (kind === "vertical") return 3000;
   return entry.priceCents;
 }
 
 export function resolveAddonTenantSeatPriceCents(entry: Pick<AddonCatalogEntry, "slug" | "vertical" | "priceCents">): number {
   const kind = resolveAddonKind(entry);
-  if (kind === "platform") return 1500;
+  if (entry.slug === JOB_HUNTER_ADDON_SLUG) return JOB_HUNTER_STANDALONE_USER_PRICE_CENTS;
+  if (kind === "platform") return MARKETPLACE_PLATFORM_BUNDLE_USER_PRICE_CENTS;
   if (kind === "vertical") return 2000;
   return entry.priceCents;
 }
@@ -602,8 +622,13 @@ export const ADDON_CATALOG: AddonCatalogEntry[] = [
     name: "Open Tracking",
     group: "communications",
     vertical: "platform",
-    description: "Know when recipients open sent mail with read-receipt pixels.",
-    features: ["Tracking pixel on send", "Open count and timestamps", "Sent mail tracking dashboard"],
+    description: "Know when recipients open sent mail and click tracked links.",
+    features: [
+      "Tracking pixel on send",
+      "Link click wrapping and redirect",
+      "Open and click counts with timestamps",
+      "Sent mail tracking dashboard",
+    ],
     sortOrder: 920,
     priceCents: 0,
     releasePhase: 1,
@@ -658,6 +683,138 @@ export const ADDON_CATALOG: AddonCatalogEntry[] = [
     releasePhase: 1,
   },
   {
+    slug: "file-vault-functionality",
+    name: "File Vault",
+    group: "communications",
+    vertical: "platform",
+    description: "Send large attachments via secure download links and manage a personal file vault.",
+    features: [
+      "Upload files up to 100 MB",
+      "Tokenized secure download links in mail",
+      "Vault panel with expiry and download counts",
+      "Large file handoff from compose",
+    ],
+    sortOrder: 947,
+    priceCents: 1500,
+    releasePhase: 1,
+  },
+  {
+    slug: "multi-inbox-functionality",
+    name: "Multiple Inboxes",
+    group: "communications",
+    vertical: "platform",
+    description: "Connect additional mailboxes and switch between them in PMail+.",
+    features: [
+      "Connect up to 5 mail accounts",
+      "Inbox switcher in the mail workspace",
+      "Per-account IMAP/SMTP credentials",
+      "Send and read from the active mailbox",
+    ],
+    sortOrder: 948,
+    priceCents: 1500,
+    releasePhase: 1,
+  },
+  {
+    slug: "inbox-cleanup-functionality",
+    name: "Inbox Cleanup & Unsubscribe",
+    group: "communications",
+    vertical: "platform",
+    description: "Bulk inbox cleanup by sender and one-click List-Unsubscribe from marketing mail.",
+    features: [
+      "Sender volume dashboard for inbox cleanup",
+      "Bulk delete, archive, or mark-read by sender",
+      "List-Unsubscribe detection on messages",
+      "One-click unsubscribe with audit log",
+    ],
+    sortOrder: 949,
+    priceCents: 1500,
+    releasePhase: 1,
+  },
+  {
+    slug: "attachment-categorize-functionality",
+    name: "Attachment Auto-Categorize",
+    group: "communications",
+    vertical: "platform",
+    description: "Automatically classify mailbox attachments and organize them for cleanup and compose handoff.",
+    features: [
+      "Scan inbox attachments by MIME type and filename",
+      "Business categories: invoices, receipts, tax forms, contracts",
+      "Category dashboard with manual overrides",
+      "Export categorized files to vault for compose",
+    ],
+    sortOrder: 950,
+    priceCents: 1500,
+    releasePhase: 1,
+  },
+  {
+    slug: "esign-from-email-functionality",
+    name: "E-Sign from Email",
+    group: "communications",
+    vertical: "platform",
+    description: "Send PDF and Word attachments for e-signature via Dropbox Sign directly from your inbox.",
+    features: [
+      "Send mailbox attachments or uploads for e-signature",
+      "Dropbox Sign integration with status refresh",
+      "Secure tokenized document download links",
+      "Compose handoff with signing link for the signer",
+    ],
+    sortOrder: 951,
+    priceCents: 1500,
+    releasePhase: 1,
+  },
+  {
+    slug: "email-sla-tracker-functionality",
+    name: "Email SLA Tracker",
+    group: "communications",
+    vertical: "platform",
+    description: "Track inbound thread response times and get breach alerts before clients wait too long.",
+    features: [
+      "Inbound thread SLA timers from first message received",
+      "At-risk and breach alerts with acknowledgement",
+      "Scan inbox to sync open threads and deadlines",
+      "Compose reply handoff and secure CSV report export",
+    ],
+    sortOrder: 960,
+    priceCents: 1500,
+    releasePhase: 2,
+  },
+  {
+    slug: "job-hunter-functionality",
+    name: "Job Hunter",
+    group: "communications",
+    vertical: "platform",
+    description:
+      "Privacy-first career workspace — CV Hub, scanner, apply assist hooks, and mail-based career intelligence with Tier B consent.",
+    features: [
+      "30-day full-access trial — starts when Career unlocks or from Marketplace",
+      "CV Hub, builder, scanner, application tracking, and interview prep",
+      "Tier B consent with per-inbox scan controls",
+      "Included in the Platform workspace bundle · also available standalone",
+    ],
+    sortOrder: 965,
+    priceCents: 1000,
+    releasePhase: 1,
+    comingSoon: false,
+  },
+  {
+    slug: "job-apply-assist-functionality",
+    name: "Apply Assist",
+    group: "communications",
+    vertical: "platform",
+    description:
+      "Prefill job applications from your Career dashboard — you review and confirm every send. Credits per completed assist.",
+    features: [
+      "Email-apply prefill with full mail preview before you send",
+      "Attach a Career CV from Documents on confirm",
+      "$5 per 100 credits — 1 credit per completed assist",
+      "LinkedIn/Indeed assist-only checklists — no unattended submission",
+    ],
+    sortOrder: 966,
+    priceCents: 500,
+    releasePhase: 1,
+    comingSoon: false,
+  },
+  {
     slug: "prohost-growth",
     name: "Prohost Growth",
     group: "growth",
@@ -704,3 +861,26 @@ export function getCatalogEntry(slug: string): AddonCatalogEntry | undefined {
 }
 
 export const TRIAL_DAYS = 7;
+
+/** First-time user welcome trial for panel workspace tools (days). */
+export const PANEL_WORKSPACE_WELCOME_TRIAL_DAYS = 7;
+
+/**
+ * All Panel workspace add-ons included in the automatic 7-day welcome trial (excludes Job Hunter —
+ * career tools unlock separately via inbox signals or marketplace).
+ */
+export const PANEL_WORKSPACE_WELCOME_TRIAL_SLUGS = [
+  "bespoke-workspace",
+  ...MARKETPLACE_PLATFORM_BUNDLE_SLUGS.filter((slug) => slug !== JOB_HUNTER_ADDON_SLUG),
+  "whatsapp-functionality",
+  "mail2pdf-functionality",
+  "full-calendar-functionality",
+  "scheduled-send",
+  "auto-reply-functionality",
+  "email-sla-tracker-functionality",
+] as const;
+
+export const PANEL_WORKSPACE_WELCOME_TRIAL_SLUG_SET = new Set<string>(PANEL_WORKSPACE_WELCOME_TRIAL_SLUGS);
+
+/** Job Hunter marketplace + career unlock trial length (days). */
+export const JOB_HUNTER_TRIAL_DAYS = 30;

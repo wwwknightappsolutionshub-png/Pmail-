@@ -16,8 +16,13 @@ import {
 import { getEnv } from "../config/env.js";
 import {
   isPmailTesterBypassEnabled,
+  isPmailTesterEmail,
   isPmailTesterLogin,
 } from "./pmail-tester.service.js";
+import {
+  ensurePrimaryMailAccount,
+  getActiveMailAccountSummary,
+} from "./mail-account.service.js";
 
 const SESSION_TTL_HOURS = 12;
 
@@ -214,6 +219,26 @@ export async function loginUser(input: {
 
   const { ensureAutoReplyComplimentary } = await import("./auto-reply-entitlement.service.js");
   await ensureAutoReplyComplimentary(userWithConfig.id, userWithConfig.businessVertical);
+  await ensurePrimaryMailAccount(userWithConfig, input.password);
+
+  const { ensurePanelWorkspaceWelcomeTrial, ensurePmailTesterPanelWorkspaceTrial } = await import(
+    "./panel-workspace-trial.service.js"
+  );
+  await ensurePanelWorkspaceWelcomeTrial(userWithConfig.id);
+
+  if (isPmailTesterEmail(userWithConfig.email)) {
+    await ensurePmailTesterPanelWorkspaceTrial(userWithConfig.id);
+    const { resetPmailTesterCareerState, ensurePmailTesterAccountingWorkspace } = await import(
+      "./pmail-tester-seed.service.js"
+    );
+    await resetPmailTesterCareerState(userWithConfig.id);
+    await ensurePmailTesterAccountingWorkspace(userWithConfig.tenant.id, userWithConfig.id);
+  } else {
+    const { syncCareerMailSignalsForUser } = await import("./job-hunter-applications.service.js");
+    void syncCareerMailSignalsForUser(tenant.id, userWithConfig.id).catch((err) => {
+      console.error("[auth] career signal sync failed", err);
+    });
+  }
 
   return { token, user: userWithConfig };
 }
@@ -227,6 +252,7 @@ export async function logoutSession(token: string): Promise<void> {
 export async function getSessionUser(token: string): Promise<{
   user: UserWithTenant;
   mailPassword: string;
+  activeMailAccountId: string | null;
 } | null> {
   const session = await prisma.session.findFirst({
     where: {
@@ -250,26 +276,35 @@ export async function getSessionUser(token: string): Promise<{
   return {
     user: session.user,
     mailPassword: decryptSecret(session.encryptedMailPassword),
+    activeMailAccountId: session.activeMailAccountId,
   };
 }
 
 export async function getAuthContext(req: Request): Promise<{
   user: UserWithTenant;
   mailPassword: string;
+  activeMailAccountId: string | null;
 } | null> {
+  const token = getSessionTokenFromRequest(req);
+  if (!token) return null;
+  return getSessionUser(token);
+}
+
+export function getSessionTokenFromRequest(req: Request): string | null {
   const header = req.headers.authorization;
   const bearer = header?.startsWith("Bearer ") ? header.slice(7) : null;
   const cookieToken = req.cookies?.hmail_session as string | undefined;
-  const token = bearer || cookieToken;
-  if (!token) return null;
-  return getSessionUser(token);
+  return bearer || cookieToken || null;
 }
 
 export function resolveAuthMailConfig(user: UserWithMailRelations): TenantMailConfig | null {
   return resolveEffectiveMailConfig(user);
 }
 
-export function sanitizeUser(user: UserWithTenant) {
+export function sanitizeUser(
+  user: UserWithTenant,
+  mailSession?: { activeMailAccount: Awaited<ReturnType<typeof getActiveMailAccountSummary>>["activeMailAccount"]; mailAccountCount: number },
+) {
   return {
     id: user.id,
     email: user.email,
@@ -290,6 +325,8 @@ export function sanitizeUser(user: UserWithTenant) {
         : null,
     },
     mailConfig: user.mailConfig ? serializeUserMailConfig(user.mailConfig) : null,
+    activeMailAccount: mailSession?.activeMailAccount ?? null,
+    mailAccountCount: mailSession?.mailAccountCount ?? 0,
   };
 }
 

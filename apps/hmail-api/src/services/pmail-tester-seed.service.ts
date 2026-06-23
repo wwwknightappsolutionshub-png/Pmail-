@@ -1,4 +1,287 @@
+import { ACCOUNTING_PHASE_1_SLUGS } from "../data/addon-catalog.js";
+import { JOB_HUNTER_TIER_B_VERSION } from "../lib/job-hunter.js";
 import { prisma } from "../lib/prisma.js";
+import { recordCareerUnlockedIfNeeded } from "./job-hunter-entitlement.service.js";
+
+const PMAIL_TESTER_ACCOUNTING_TRIAL_DAYS = 30;
+
+export async function grantPmailTesterAccountingAddonTrials(tenantId: string): Promise<void> {
+  const addons = await prisma.addon.findMany({
+    where: { slug: { in: [...ACCOUNTING_PHASE_1_SLUGS] }, isActive: true },
+    select: { id: true, slug: true },
+  });
+
+  const endsAt = new Date();
+  endsAt.setDate(endsAt.getDate() + PMAIL_TESTER_ACCOUNTING_TRIAL_DAYS);
+
+  for (const addon of addons) {
+    await prisma.tenantAddonTrial.upsert({
+      where: { tenantId_addonId: { tenantId, addonId: addon.id } },
+      create: {
+        tenantId,
+        addonId: addon.id,
+        endsAt,
+        status: "active",
+        trialSource: "pmail_tester_seed",
+      },
+      update: {
+        endsAt,
+        status: "active",
+        trialSource: "pmail_tester_seed",
+      },
+    });
+  }
+}
+
+/** Seed accounting desk sample data for PMail+ tester QA. */
+export async function seedPmailTesterAccountingWorkspace(tenantId: string, userId: string) {
+  await clearPmailTesterVerticalData(tenantId);
+
+  const client = await prisma.acContact.create({
+    data: {
+      tenantId,
+      firstName: "Jordan",
+      lastName: "Lee",
+      email: "jordan.lee@blueledger.example",
+      phone: "+14165550142",
+      role: "client",
+    },
+  });
+
+  const partnerContact = await prisma.acContact.create({
+    data: {
+      tenantId,
+      firstName: "Sam",
+      lastName: "Nguyen",
+      email: "sam.nguyen@mapletax.example",
+      phone: "+14165550208",
+      role: "client",
+    },
+  });
+
+  const parentEntity = await prisma.acClientEntity.create({
+    data: {
+      tenantId,
+      name: "Maple Tax Partners LLP",
+      entityType: "partnership",
+      taxIdentifierType: "business_number",
+      taxIdentifier: "111222333RC0001",
+      jurisdiction: "ON",
+      fiscalYearEnd: "Dec 31",
+      engagementType: "year_end",
+      primaryContactId: partnerContact.id,
+      status: "active",
+    },
+  });
+
+  const clientEntity = await prisma.acClientEntity.create({
+    data: {
+      tenantId,
+      name: "Blue Ledger Inc.",
+      entityType: "corporation",
+      taxIdentifierType: "business_number",
+      taxIdentifier: "765432109RC0001",
+      jurisdiction: "ON",
+      fiscalYearEnd: "Dec 31",
+      engagementType: "year_end",
+      primaryContactId: client.id,
+      parentEntityId: parentEntity.id,
+      status: "active",
+    },
+  });
+
+  await prisma.acEntityNote.create({
+    data: {
+      entityId: clientEntity.id,
+      userId,
+      body: "2024 corporate engagement letter signed — T2 and HST filings in scope.",
+    },
+  });
+
+  const documentDueAt = new Date();
+  documentDueAt.setDate(documentDueAt.getDate() + 10);
+
+  const documentRequest = await prisma.acDocumentRequest.create({
+    data: {
+      tenantId,
+      title: "2024 T1 return source documents",
+      referenceCode: "DOC-2024-001",
+      category: "tax_slip",
+      fiscalYear: "2024",
+      status: "requested",
+      vaultStatus: "requested",
+      dueAt: documentDueAt,
+      assignedUserId: userId,
+      clientContactId: client.id,
+    },
+  });
+
+  const signatureRequest = await prisma.acDocumentRequest.create({
+    data: {
+      tenantId,
+      title: "Signed T2 authorization",
+      referenceCode: "DOC-2024-AUTH",
+      category: "signature",
+      fiscalYear: "2024",
+      status: "review_needed",
+      vaultStatus: "in_review",
+      assignedUserId: userId,
+      clientContactId: client.id,
+    },
+  });
+
+  const filingDueAt = new Date();
+  filingDueAt.setDate(filingDueAt.getDate() + 30);
+  const filingReminderAt = new Date();
+  filingReminderAt.setDate(filingReminderAt.getDate() + 15);
+
+  await prisma.acFilingDeadline.create({
+    data: {
+      tenantId,
+      clientEntityId: clientEntity.id,
+      contactId: client.id,
+      dueAt: filingDueAt,
+      status: "open",
+      filingType: "corporate_tax",
+      taxPeriod: "FY2024",
+      reminderAt: filingReminderAt,
+      notes: "Corporate T2 filing — gather signed financials and source slips.",
+    },
+  });
+
+  await prisma.acDocumentExchangeRecord.create({
+    data: {
+      tenantId,
+      documentRequestId: signatureRequest.id,
+      clientEntityId: clientEntity.id,
+      contactId: client.id,
+      userId,
+      documentName: "t2-authorization.pdf",
+      category: "signature",
+      action: "uploaded",
+      status: "accepted",
+      notes: "Client uploaded signed authorization via secure exchange.",
+    },
+  });
+
+  await prisma.acDocumentExchangeRecord.create({
+    data: {
+      tenantId,
+      documentRequestId: documentRequest.id,
+      clientEntityId: clientEntity.id,
+      contactId: client.id,
+      userId,
+      documentName: "t4-summary.pdf",
+      category: "tax_slip",
+      action: "received",
+      status: "received",
+      notes: "T4 package received for 2024 personal return prep.",
+    },
+  });
+
+  await prisma.mailContact.upsert({
+    where: { userId_email: { userId, email: client.email! } },
+    create: {
+      userId,
+      email: client.email!,
+      firstName: client.firstName,
+      lastName: client.lastName,
+      phone: client.phone,
+      company: "Blue Ledger Inc.",
+      notes: "Seeded PMail+ accounting client contact for workspace testing.",
+    },
+    update: {
+      firstName: client.firstName,
+      lastName: client.lastName,
+      phone: client.phone,
+      company: "Blue Ledger Inc.",
+      notes: "Seeded PMail+ accounting client contact for workspace testing.",
+    },
+  });
+
+  return { client, partnerContact, parentEntity, clientEntity, documentRequest, signatureRequest };
+}
+
+/** Point PMail+ tester at the accounting vertical with trials and sample desk data. */
+export async function ensurePmailTesterAccountingWorkspace(tenantId: string, userId: string): Promise<void> {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { businessVertical: "accounting" },
+  });
+
+  await prisma.tenantBranding.updateMany({
+    where: { tenantId },
+    data: {
+      industryProfile: "accounting",
+      loginTagline: "Local PMail+ tester — accounting workspace",
+    },
+  });
+
+  await grantPmailTesterAccountingAddonTrials(tenantId);
+  await seedPmailTesterAccountingWorkspace(tenantId, userId);
+}
+
+/** PMail+ tester should land in an unlocked career workspace without manual setup. */
+export async function ensurePmailTesterCareerReady(tenantId: string, userId: string) {
+  const now = new Date();
+  const existing = await prisma.userJobHunterSettings.findUnique({ where: { userId } });
+
+  if (
+    existing?.manualJobHuntingOverride &&
+    existing.tierBDisclosureAcceptedAt &&
+    existing.careerUnlockedAt
+  ) {
+    return;
+  }
+
+  await prisma.userJobHunterSettings.upsert({
+    where: { userId },
+    create: {
+      tenantId,
+      userId,
+      regionCode: "US",
+      enabled: true,
+      manualJobHuntingOverride: true,
+      careerScore: 50,
+      tierBDisclosureAcceptedAt: now,
+      tierBDisclosureVersion: JOB_HUNTER_TIER_B_VERSION,
+      careerUnlockedAt: now,
+    },
+    update: {
+      enabled: true,
+      manualJobHuntingOverride: true,
+      tierBDisclosureAcceptedAt: existing?.tierBDisclosureAcceptedAt ?? now,
+      tierBDisclosureVersion: JOB_HUNTER_TIER_B_VERSION,
+      careerUnlockedAt: existing?.careerUnlockedAt ?? now,
+    },
+  });
+
+  await recordCareerUnlockedIfNeeded(tenantId, userId);
+}
+
+/** Keep PMail+ tester career hidden until real inbox/sent job-search signals unlock it. */
+export async function resetPmailTesterCareerState(userId: string): Promise<void> {
+  await prisma.jobApplication.deleteMany({ where: { userId, source: "mail_inferred" } });
+  await prisma.userJobHunterSettings.upsert({
+    where: { userId },
+    create: {
+      userId,
+      tenantId: (await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { tenantId: true } }))
+        .tenantId,
+      enabled: true,
+      manualJobHuntingOverride: false,
+      careerScore: 0,
+      careerUnlockedAt: null,
+      tierBDisclosureAcceptedAt: null,
+      tierBDisclosureVersion: null,
+    },
+    update: {
+      manualJobHuntingOverride: false,
+      careerScore: 0,
+      careerUnlockedAt: null,
+    },
+  });
+}
 
 export async function clearPmailTesterVerticalData(tenantId: string) {
   await prisma.b2bSlaNote.deleteMany({ where: { case: { tenantId } } });

@@ -85,6 +85,7 @@ describe("Prohost Growth Phase F", () => {
     expect(owner?.hostingAccountId).toBe(hostingAccountId);
 
     const trial = await testPrisma.tenantAddonTrial.findFirst({
+      where: { addon: { slug: "prohost-growth" } },
       include: { addon: true },
     });
     expect(trial?.addon.slug).toBe("prohost-growth");

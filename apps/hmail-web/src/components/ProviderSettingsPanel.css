@@ -1,0 +1,167 @@
+.provider-settings.mail-view-panel {
+  --ps-surface: var(--surface-card, #ffffff);
+  --ps-surface-muted: var(--surface-inset, #f1f5f9);
+  --ps-border: var(--border-subtle, rgba(148, 163, 184, 0.22));
+  --ps-text: var(--text, #0f172a);
+  --ps-muted: var(--text-muted, #64748b);
+  --ps-accent: var(--brand-accent, #0d9488);
+  --ps-primary: var(--brand-primary, #0d4f6c);
+  padding: 0;
+  background: transparent;
+}
+
+.provider-settings-hero {
+  margin-bottom: 0.85rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--ps-border);
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ps-accent) 8%, var(--ps-surface)) 0%,
+    var(--ps-surface) 55%
+  );
+}
+
+.provider-settings-kicker {
+  margin: 0 0 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ps-accent);
+}
+
+.provider-settings-hero h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ps-text);
+}
+
+.provider-settings-hero p {
+  margin: 0.35rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--ps-muted);
+}
+
+.provider-settings-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.provider-settings-section {
+  padding: 1rem 1.05rem;
+  border: 1px solid var(--ps-border);
+  border-radius: 16px;
+  background: var(--ps-surface);
+}
+
+.provider-settings-section h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ps-text);
+}
+
+.provider-settings-server-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.provider-settings-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.provider-settings-field > span:first-child {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ps-text);
+}
+
+.provider-settings-hint {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--ps-muted);
+}
+
+.provider-settings-field input {
+  width: 100%;
+  border: 1px solid var(--ps-border);
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  background: var(--ps-surface-muted);
+  color: var(--ps-text);
+  font-size: 0.84rem;
+  font-family: inherit;
+}
+
+.provider-settings-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.provider-settings-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--ps-text);
+}
+
+.provider-settings-check input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  accent-color: var(--ps-accent);
+}
+
+.provider-settings-status {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ps-accent);
+}
+
+.provider-settings-error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #b91c1c;
+}
+
+.provider-settings-btn {
+  justify-self: start;
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.provider-settings-btn--primary {
+  border: none;
+  background: var(--ps-primary);
+  color: #fff;
+}
+
+.provider-settings-btn--primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.provider-settings .provider-preset-picker {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .provider-settings-server-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -267,8 +267,10 @@ export async function createMarketplaceCheckout(input: CreateMarketplaceCheckout
   const successUrl = input.successUrl ?? env.PAYMENT_SUCCESS_URL;
   const cancelUrl = input.cancelUrl ?? env.PAYMENT_CANCEL_URL;
   const productSlug = `marketplace-${input.selection.vertical}`;
-  const anchorSlug = quote.lines.find((line) => line.bundle === "vertical")?.anchorSlug
-    ?? quote.lines.find((line) => line.bundle === "platform")?.anchorSlug;
+  const anchorSlug =
+    quote.lines.find((line) => line.bundle === "vertical")?.anchorSlug ??
+    quote.lines.find((line) => line.bundle === "platform")?.anchorSlug ??
+    quote.lines.find((line) => line.bundle === "job-hunter")?.anchorSlug;
   if (!anchorSlug) throw new PaymentError("No bundle anchor found");
 
   const anchorAddon = await prisma.addon.findFirst({
@@ -297,6 +299,7 @@ export async function createMarketplaceCheckout(input: CreateMarketplaceCheckout
       vertical: input.selection.vertical,
       includePlatformBundle: input.selection.includePlatformBundle,
       includeVerticalBundle: input.selection.includeVerticalBundle,
+      includeJobHunterStandalone: input.selection.includeJobHunterStandalone,
       seats: quote.seats,
       lines: quote.lines.map((line) => ({
         bundle: line.bundle,
@@ -495,7 +498,9 @@ export async function completePaymentCheckout(
     });
 
     if (checkout.productType === "addon") {
-      if (metadata.marketplaceCheckout) {
+      if (metadata.applyAssistCredits?.creditPurchase) {
+        // Apply Assist credits granted after this transaction completes.
+      } else if (metadata.marketplaceCheckout) {
         const marketplace = metadata.marketplaceCheckout;
         await activateMarketplaceSelection(
           checkout.tenantId,
@@ -505,6 +510,7 @@ export async function completePaymentCheckout(
             scope: marketplace.scope,
             includePlatformBundle: marketplace.includePlatformBundle,
             includeVerticalBundle: marketplace.includeVerticalBundle,
+            includeJobHunterStandalone: marketplace.includeJobHunterStandalone,
             seats: marketplace.seats,
           },
           checkout.provider,
@@ -634,9 +640,20 @@ export async function completePaymentCheckout(
     }
   });
 
+  if (checkout.productType === "addon" && metadata.applyAssistCredits?.creditPurchase) {
+    const { grantApplyAssistCredits } = await import("./job-hunter-apply-assist.service.js");
+    await grantApplyAssistCredits({
+      tenantId: checkout.tenantId,
+      userId: metadata.applyAssistCredits.userId,
+      credits: metadata.applyAssistCredits.credits,
+      reason: "purchase",
+      checkoutId: checkout.id,
+    });
+  }
+
   if (checkout.productType === "addon") {
     const planSlug = resolveGrowthPlanFromCheckoutSlug(checkout.productSlug);
-    if (planSlug) {
+    if (planSlug && !metadata.applyAssistCredits?.creditPurchase) {
       await upgradeGrowthPlanOnSubscription(checkout.tenantId, planSlug);
     }
   }

@@ -5,6 +5,7 @@ import {
   createAuthenticatedAgent,
   grantAddonTrial,
   resetTestDatabase,
+  testPrisma,
 } from "./helpers.js";
 
 describe("accounting addons e2e", () => {
@@ -836,6 +837,10 @@ describe("healthcare addons e2e", () => {
     const { agent, tenant, user } = await createAuthenticatedAgent(app);
     await grantAddonTrial(tenant.id, "hc-patient-registry");
     await grantAddonTrial(tenant.id, "hc-hipaa-audit");
+    await testPrisma.user.update({
+      where: { id: user.id },
+      data: { healthcareAccessRole: "admin" },
+    });
 
     const chartRes = await agent.post("/api/features/healthcare/charts").send({
       chartNumber: "HC-AUDIT-001",

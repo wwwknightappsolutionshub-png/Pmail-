@@ -30,6 +30,34 @@ describe("PMail+ tester login", () => {
     expect(res.status).toBe(200);
     expect(res.body.user.email).toBe("pmailtester@gmail.com");
     expect(res.body.user.tenant.slug).toBe("pmail-tester");
+    expect(res.body.user.businessVertical).toBe("accounting");
+  });
+
+  it("seeds accounting workspace data and addon trials for tester login", async () => {
+    const agent = request.agent(app);
+    const login = await agent.post("/api/auth/tester/login").send({
+      email: "pmailtester@gmail.com",
+      password: "mailtester1234",
+    });
+    expect(login.status).toBe(200);
+
+    const ent = await agent.get("/api/addons/entitlements");
+    expect(ent.body.slugs).toEqual(
+      expect.arrayContaining([
+        "ac-document-intake",
+        "ac-filing-calendar",
+        "ac-secure-exchange",
+        "ac-client-entities",
+      ]),
+    );
+
+    const entities = await agent.get("/api/features/accounting/client-entities");
+    expect(entities.status).toBe(200);
+    expect(entities.body.clientEntities.length).toBeGreaterThan(0);
+
+    const requests = await agent.get("/api/features/accounting/document-requests");
+    expect(requests.status).toBe(200);
+    expect(requests.body.documentRequests.length).toBeGreaterThan(0);
   });
 
   it("rejects tester login with wrong password", async () => {

@@ -16,3 +16,7 @@ export function isPmailTesterLogin(input: {
   if (input.password !== undefined && input.password !== env.PMAIL_TESTER_PASSWORD) return false;
   return true;
 }
+
+export function isPmailTesterEmail(email: string): boolean {
+  return email.trim().toLowerCase() === getEnv().PMAIL_TESTER_EMAIL.toLowerCase();
+}

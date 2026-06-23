@@ -43,13 +43,19 @@ export type CheckoutMetadata = {
     vertical: string;
     includePlatformBundle: boolean;
     includeVerticalBundle: boolean;
+    includeJobHunterStandalone?: boolean;
     seats: number;
     lines: Array<{
-      bundle: "platform" | "vertical";
+      bundle: "platform" | "vertical" | "job-hunter";
       anchorSlug: string;
       unitPriceCents: number;
       amountCents: number;
     }>;
+  };
+  applyAssistCredits?: {
+    userId: string;
+    credits: number;
+    creditPurchase: boolean;
   };
 };
 

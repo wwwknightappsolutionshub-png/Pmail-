@@ -23,6 +23,10 @@ import { getEnv } from "../config/env.js";
 import { requireAuth } from "../middleware/auth.js";
 import { isBusinessVertical, selectBusinessVertical } from "../services/business-vertical.service.js";
 import { attributeReferralSignup } from "../services/referral-lead.service.js";
+import {
+  ensurePrimaryMailAccount,
+  getActiveMailAccountSummary,
+} from "../services/mail-account.service.js";
 
 const loginSchema = z.object({
   tenantSlug: z.string().min(1),
@@ -206,7 +210,14 @@ authRouter.get("/me", async (req, res, next) => {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    res.json({ user: sanitizeUser(context.user) });
+    await ensurePrimaryMailAccount(context.user, context.mailPassword);
+    const mailSummary = await getActiveMailAccountSummary(context.user.id, context.activeMailAccountId);
+    res.json({
+      user: sanitizeUser(context.user, {
+        activeMailAccount: mailSummary.activeMailAccount,
+        mailAccountCount: mailSummary.mailAccountCount,
+      }),
+    });
   } catch (err) {
     next(err);
   }

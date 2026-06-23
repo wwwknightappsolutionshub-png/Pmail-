@@ -3,6 +3,12 @@
   --mail-topbar-h: 3.5rem;
   --mail-bottom-nav-h: 0rem;
   --sidebar-width: min(88vw, 320px);
+  --mail-sidebar-rail-width: 230px;
+  --mail-sidebar-rail-width-collapsed: 72px;
+  --list-chrome-bg: rgba(8, 14, 26, 0.72);
+  --list-chrome-border: var(--border);
+  --list-chrome-btn-bg: rgba(255, 255, 255, 0.06);
+  --list-chrome-btn-border: rgba(255, 255, 255, 0.12);
 
   min-height: 100dvh;
   display: flex;
@@ -10,6 +16,10 @@
   background: var(--bg);
   font-family: var(--font-app);
   color: var(--text);
+}
+
+.mail-app[data-sidebar-collapsed="true"] {
+  --mail-sidebar-rail-width: var(--mail-sidebar-rail-width-collapsed);
 }
 
 .bespoke-prod-topbar {
@@ -24,11 +34,24 @@
 }
 
 .bespoke-prod-topbar-left,
+.bespoke-prod-topbar-center,
 .bespoke-prod-topbar-right {
   display: flex;
   align-items: center;
   gap: 1rem;
   min-width: 0;
+}
+
+.bespoke-prod-topbar-center {
+  flex: 1 1 420px;
+  max-width: 720px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.bespoke-prod-topbar-center .mail-search-shell {
+  width: 100%;
 }
 
 .bespoke-prod-topbar-right {
@@ -134,8 +157,12 @@
 
 .bespoke-prod-toolbar-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(12rem, 0.55fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
+}
+
+.bespoke-prod-toolbar-row--industry-only .bespoke-prod-toolbar-block {
+  border-right: none;
 }
 
 .bespoke-prod-toolbar-block {
@@ -336,6 +363,64 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.5rem;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.mail-sidebar-rail-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.mail-sidebar-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 0.1rem;
+  margin-right: -0.1rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 163, 199, 0.35) transparent;
+}
+
+.mail-sidebar-body .folder-nav {
+  flex: none;
+  min-height: min-content;
+  overflow: visible;
+}
+
+.mail-sidebar-toggle {
+  display: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--sidebar-text);
+  cursor: pointer;
+  place-items: center;
+  padding: 0;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.mail-sidebar-toggle svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.mail-sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: color-mix(in srgb, var(--brand-accent, #14b8a6) 35%, transparent);
+  color: #fff;
 }
 
 .mail-sidebar-close {
@@ -416,6 +501,24 @@
   display: flex;
 }
 
+.list-header-main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.list-header-switcher {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.list-header-main h2 {
+  margin: 0;
+  flex-shrink: 0;
+}
+
 .list-header {
   padding: 0.85rem 1rem;
   border-bottom: 1px solid #e2e8f0;
@@ -424,6 +527,9 @@
   justify-content: space-between;
   gap: 0.65rem;
   background: #fff;
+  overflow: visible;
+  position: relative;
+  z-index: 40;
 }
 
 .mail-app .list-header {
@@ -647,7 +753,7 @@
   color: #0f172a;
 }
 
-.mail-app .message-table-row.unread .message-subject-text {
+.mail-app:not(.mail-app--light) .message-table-row.unread .message-subject-text {
   color: #fff;
 }
 
@@ -997,8 +1103,7 @@
   cursor: pointer;
 }
 
-.mail-app .read-back-btn,
-.mail-app .read-actions button {
+.mail-app .read-back-btn {
   border-color: rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.06);
   color: var(--text);
@@ -1017,25 +1122,13 @@
 
 .read-actions {
   display: flex;
-  gap: 0.45rem;
+  gap: 0.35rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
-.read-actions button {
-  min-height: 2.5rem;
-  border: 1px solid #dbe3ec;
-  background: #f8fafc;
-  color: #0f172a;
-  border-radius: 10px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.read-actions .danger {
-  border-color: #fecaca;
-  color: #b91c1c;
-  background: #fef2f2;
+.read-actions .message-unsubscribe--icon {
+  display: inline-flex;
 }
 
 .attachments {
@@ -1076,9 +1169,9 @@
 .mail-app .mail-filter-bar,
 .mail-app .mail-bulk-actions,
 .mail-app .contact-suggest-banner,
-.mail-app .mail-view-panel {
+.mail-app .mail-view-panel:not(.platform-tools-panel) {
   border-color: var(--border);
-  background: rgba(8, 14, 26, 0.72);
+  background: var(--list-chrome-bg);
   color: var(--text);
 }
 
@@ -1103,7 +1196,21 @@
 .mail-app .contact-search-input,
 .mail-app .contact-form input,
 .mail-app .contact-form textarea,
-.mail-app .contact-form select {
+.mail-app .contact-form select,
+.mail-app .contacts-field input,
+.mail-app .contacts-field textarea,
+.mail-app .contacts-search,
+.mail-app .contacts-member-row select,
+.mail-app .crm-field input,
+.mail-app .crm-field textarea,
+.mail-app .crm-field select,
+.mail-app .crm-search,
+.mail-app .crm-stage-select,
+.mail-app .reminders-field input,
+.mail-app .reminders-field select,
+.mail-app .cal-field input,
+.mail-app .cal-field textarea,
+.mail-app .cal-field select {
   border-color: rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.06);
   color: var(--text);
@@ -1156,6 +1263,19 @@
 .mail-app .contacts-toolbar,
 .mail-app .contact-card,
 .mail-app .contact-form,
+.mail-app .contacts-composer,
+.mail-app .contacts-card,
+.mail-app .contacts-member-box,
+.mail-app .crm-composer,
+.mail-app .crm-card,
+.mail-app .crm-detail,
+.mail-app .reminders-composer,
+.mail-app .reminders-card,
+.mail-app .reminders-filter-tabs,
+.mail-app .cal-composer,
+.mail-app .cal-drawer,
+.mail-app .cal-grid-day,
+.mail-app .cal-view-tabs,
 .mail-app .mail-modal {
   border-color: rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.045);
@@ -1172,7 +1292,10 @@
 .mail-app .feature-list-card strong,
 .mail-app .workspace-detail h3,
 .mail-app .mail-view-header h2,
-.mail-app .contact-card strong {
+.mail-app .contact-card strong,
+.mail-app .contacts-card-name,
+.mail-app .crm-card-name,
+.mail-app .reminders-card-title {
   color: #fff;
 }
 
@@ -1261,7 +1384,37 @@
 }
 
 .mail-app[data-virtual-view="true"] .mail-list-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
+}
+
+.mail-app[data-virtual-view="true"] .mail-list-pane > .mail-view-panel {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.mail-app[data-virtual-view="true"] .mail-list-pane:has(.platform-tools-panel) {
+  background: var(--list-chrome-bg);
+}
+
+.mail-app.mail-app--light[data-virtual-view="true"] .mail-list-pane:has(.platform-tools-panel) {
+  background: #ffffff;
+}
+
+.mail-app[data-virtual-view="true"] .mail-view-panel.platform-tools-panel {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+}
+
+.mail-app[data-virtual-view="true"] .list-header {
+  flex-shrink: 0;
 }
 
 @media (max-width: 1100px) {
@@ -1326,6 +1479,12 @@
     max-height: 42vh;
   }
 
+  .mail-app[data-virtual-view="true"] .mail-list-pane {
+    max-height: none;
+    flex: 1;
+    min-height: 0;
+  }
+
   .mail-read-pane {
     display: flex !important;
   }
@@ -1355,7 +1514,10 @@
 
   .mail-layout {
     display: grid;
-    grid-template-columns: 230px 1fr;
+    grid-template-columns: var(--mail-sidebar-rail-width) 1fr;
+    transition: grid-template-columns 0.2s ease;
+    min-height: 0;
+    align-items: stretch;
   }
 
   .mail-sidebar {
@@ -1364,10 +1526,78 @@
     bottom: auto;
     transform: none;
     width: auto;
+    height: 100%;
+    max-height: 100%;
     min-height: 0;
+    align-self: stretch;
     box-shadow: none;
     border-right: 1px solid var(--border);
     background: rgba(10, 18, 32, 0.85);
+    transition:
+      padding 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .mail-app.mail-app--light .mail-sidebar {
+    background: #eef1f6;
+    box-shadow: none;
+  }
+
+  .mail-sidebar-toggle {
+    display: grid;
+  }
+
+  .mail-sidebar--collapsed {
+    padding-inline: 0.45rem;
+  }
+
+  .mail-sidebar--collapsed .mail-sidebar-head,
+  .mail-sidebar--collapsed .folder-nav-heading,
+  .mail-sidebar--collapsed .folder-nav-hint {
+    display: none;
+  }
+
+  .mail-sidebar--collapsed .folder-nav-item {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0;
+    padding: 0.45rem;
+    min-height: 2.65rem;
+  }
+
+  .mail-sidebar--collapsed .folder-nav-item-accent,
+  .mail-sidebar--collapsed .folder-nav-label,
+  .mail-sidebar--collapsed .folder-nav-lock {
+    display: none;
+  }
+
+  .mail-sidebar--collapsed .folder-nav-badge {
+    position: absolute;
+    top: 0.28rem;
+    right: 0.28rem;
+    min-width: 0.45rem;
+    width: 0.45rem;
+    height: 0.45rem;
+    padding: 0;
+    font-size: 0;
+    line-height: 0;
+    overflow: hidden;
+    border-radius: 999px;
+  }
+
+  .mail-sidebar--collapsed .folder-nav-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .mail-sidebar--collapsed .folder-nav-icon svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .mail-sidebar--collapsed .mail-sidebar-rail-head {
+    flex-direction: column;
+    align-items: center;
   }
 
   .mail-list-pane,
@@ -1393,7 +1623,9 @@
 /* ─── Desktop: Bespoke folder + list + read panes ─── */
 @media (min-width: 1100px) {
   .mail-layout {
-    grid-template-columns: 220px minmax(0, 1fr) minmax(0, 1.15fr);
+    grid-template-columns: var(--mail-sidebar-rail-width) minmax(0, 1fr) minmax(0, 1.15fr);
+    min-height: 0;
+    height: 100%;
   }
 
   .mail-list-pane {
@@ -1449,12 +1681,24 @@
 
 @media (min-width: 1400px) {
   .mail-layout {
-    grid-template-columns: 240px minmax(0, 1fr) minmax(0, 1.2fr);
+    grid-template-columns: var(--mail-sidebar-rail-width) minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+
+  .mail-app[data-sidebar-collapsed="false"] {
+    --mail-sidebar-rail-width: 240px;
   }
 }
 
 .mail-app.mail-app--light {
   color-scheme: light;
+  --list-chrome-bg: #f8fafc;
+  --list-chrome-border: var(--border);
+  --list-chrome-btn-bg: #ffffff;
+  --list-chrome-btn-border: var(--border);
+  --folder-nav-active-label: #0f766e;
+  --folder-nav-compose-label: #0f766e;
+  --folder-nav-badge-bg: #0d9488;
+  --folder-nav-badge-text: #ffffff;
   --bg: #e4e9f0;
   --bg-canvas: #e4e9f0;
   --surface: #ffffff;
@@ -1516,6 +1760,11 @@
   background: #ecf8f6;
 }
 
+.mail-app.mail-app--light .message-table-row.unread .message-subject-text {
+  color: #0f172a;
+  font-weight: 700;
+}
+
 .mail-app.mail-app--light .message-sender-avatar {
   background: color-mix(in srgb, var(--brand-accent, #14b8a6) 18%, #ffffff);
   color: #0f766e;
@@ -1534,7 +1783,6 @@
   color: var(--text);
 }
 
-.mail-app.mail-app--light .read-actions button,
 .mail-app.mail-app--light .ghost-btn,
 .mail-app.mail-app--light .signout-btn,
 .mail-app.mail-app--light .free-addon-btn {
@@ -1574,13 +1822,46 @@
   color: var(--sidebar-text);
 }
 
+.mail-app.mail-app--light .folder-nav-item:hover {
+  background: #f1f5f9;
+  border-color: var(--border-subtle);
+}
+
 .mail-app.mail-app--light .folder-nav-item.is-active {
   background: #ecf8f6;
   color: #0f766e;
 }
 
+.mail-app.mail-app--light .folder-nav-icon {
+  color: var(--sidebar-muted);
+  background: #f1f5f9;
+  border-color: var(--border-subtle);
+}
+
+.mail-app.mail-app--light .folder-nav-item.is-active .folder-nav-icon {
+  color: #ffffff;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  border-color: color-mix(in srgb, #0d9488 40%, transparent);
+}
+
+.mail-app.mail-app--light .folder-nav-item--compose {
+  background: #ecf8f6;
+  border-color: color-mix(in srgb, #0d9488 28%, transparent);
+}
+
+.mail-app.mail-app--light .folder-nav-item--compose:hover {
+  background: color-mix(in srgb, #0d9488 10%, #ecf8f6);
+}
+
 .mail-app.mail-app--light .folder-nav-heading {
   color: var(--sidebar-muted);
+}
+
+.mail-app.mail-app--light .folder-nav-flyout {
+  background: #ffffff;
+  color: #152033;
+  border-color: #c8d1dc;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
 }
 
 .mail-app.mail-app--light .mail-bottom-nav {
@@ -1593,4 +1874,212 @@
   background: #ecf8f6;
   border-color: color-mix(in srgb, var(--brand-accent, #14b8a6) 45%, transparent);
   color: #0f766e;
+}
+
+.mail-app.mail-app--light .mail-search-field select,
+.mail-app.mail-app--light .mail-search-query input,
+.mail-app.mail-app--light .mail-bulk-move select,
+.mail-app.mail-app--light .mail-order-select,
+.mail-app.mail-app--light .mail-modal-body input,
+.mail-app.mail-app--light .feature-form input,
+.mail-app.mail-app--light .feature-form-grid input,
+.mail-app.mail-app--light .feature-form-grid select,
+.mail-app.mail-app--light .contact-search-input,
+.mail-app.mail-app--light .contact-form input,
+.mail-app.mail-app--light .contact-form textarea,
+.mail-app.mail-app--light .contact-form select,
+.mail-app.mail-app--light .contacts-field input,
+.mail-app.mail-app--light .contacts-field textarea,
+.mail-app.mail-app--light .contacts-search,
+.mail-app.mail-app--light .contacts-member-row select,
+.mail-app.mail-app--light .crm-field input,
+.mail-app.mail-app--light .crm-field textarea,
+.mail-app.mail-app--light .crm-field select,
+.mail-app.mail-app--light .crm-search,
+.mail-app.mail-app--light .crm-stage-select,
+.mail-app.mail-app--light .reminders-field input,
+.mail-app.mail-app--light .reminders-field select,
+.mail-app.mail-app--light .cal-field input,
+.mail-app.mail-app--light .cal-field textarea,
+.mail-app.mail-app--light .cal-field select {
+  border-color: var(--border);
+  background: var(--surface-inset);
+  color: var(--text);
+}
+
+.mail-app.mail-app--light .contacts-composer,
+.mail-app.mail-app--light .contacts-card,
+.mail-app.mail-app--light .contacts-member-box,
+.mail-app.mail-app--light .contacts-tabs,
+.mail-app.mail-app--light .crm-composer,
+.mail-app.mail-app--light .crm-card,
+.mail-app.mail-app--light .crm-detail,
+.mail-app.mail-app--light .crm-stage-tabs button,
+.mail-app.mail-app--light .reminders-composer,
+.mail-app.mail-app--light .reminders-card,
+.mail-app.mail-app--light .reminders-filter-tabs,
+.mail-app.mail-app--light .cal-composer,
+.mail-app.mail-app--light .cal-drawer,
+.mail-app.mail-app--light .cal-grid-day,
+.mail-app.mail-app--light .cal-view-tabs,
+.mail-app.mail-app--light .cal-feature-tabs button {
+  background: var(--surface-inset);
+  border-color: var(--border-subtle);
+}
+
+.mail-app.mail-app--light .reminders-filter-tabs button.is-active,
+.mail-app.mail-app--light .cal-view-tabs button.is-active {
+  background: #ffffff;
+}
+
+.mail-app.mail-app--light .crm-card.is-selected {
+  background: color-mix(in srgb, var(--brand-accent, #0d9488) 10%, #ffffff);
+}
+
+.mail-app.mail-app--light .contacts-tabs button.is-active {
+  background: #ffffff;
+}
+
+.mail-app.mail-app--light .contacts-card-name,
+.mail-app.mail-app--light .crm-card-name,
+.mail-app.mail-app--light .reminders-card-title {
+  color: var(--text);
+}
+
+.mail-app.mail-app--light .mail-search-field select option,
+.mail-app.mail-app--light .mail-bulk-move select option,
+.mail-app.mail-app--light .mail-order-select option,
+.mail-app.mail-app--light .feature-form-grid select option {
+  background: #ffffff;
+  color: var(--text);
+}
+
+.mail-app.mail-app--light .mail-filter-chip,
+.mail-app.mail-app--light .mail-toolbar-btn,
+.mail-app.mail-app--light .mail-page-btn,
+.mail-app.mail-app--light .contact-suggest-banner button,
+.mail-app.mail-app--light .read-back-btn {
+  border-color: var(--border);
+  background: var(--surface-inset);
+  color: var(--text-secondary);
+}
+
+.mail-app.mail-app--light .mail-filter-chip.is-active,
+.mail-app.mail-app--light .mail-toolbar-btn--active,
+.mail-app.mail-app--light .mail-page-btn.is-active {
+  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 38%, transparent);
+  background: color-mix(in srgb, var(--brand-accent, #0d9488) 12%, #ffffff);
+  color: var(--brand-primary, #0f766e);
+}
+
+.mail-app.mail-app--light .folder-nav-badge {
+  color: var(--folder-nav-badge-text);
+  background: var(--folder-nav-badge-bg);
+  box-shadow: none;
+}
+
+.mail-app.mail-app--light .mail-sidebar-body {
+  scrollbar-color: #c5d0de #eef1f6;
+}
+
+.mail-app.mail-app--light .mail-sidebar-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mail-app.mail-app--light .mail-sidebar-body::-webkit-scrollbar-track {
+  background: #eef1f6;
+}
+
+.mail-app.mail-app--light .mail-sidebar-body::-webkit-scrollbar-thumb {
+  background: #c5d0de;
+  border-radius: 999px;
+}
+
+.mail-app.mail-app--light .mail-sidebar-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.mail-app.mail-app--light .mail-sidebar-body::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.mail-app.mail-app--light .mail-sidebar-body::-webkit-scrollbar-corner {
+  background: #eef1f6;
+}
+
+.mail-app.mail-app--light .mail-sidebar-toggle {
+  border-color: var(--border);
+  background: #f8fafc;
+  color: var(--text-secondary);
+}
+
+.mail-app.mail-app--light .mail-pagination,
+.mail-app.mail-app--light .mail-order-bar,
+.mail-app.mail-app--light .mail-filter-bar,
+.mail-app.mail-app--light .mail-bulk-actions {
+  background: var(--list-chrome-bg);
+  border-color: var(--list-chrome-border);
+  color: var(--text);
+}
+
+.mail-app.mail-app--light .mail-pagination-summary,
+.mail-app.mail-app--light .mail-pagination-actions span,
+.mail-app.mail-app--light .mail-order-bar label {
+  color: var(--text-muted);
+}
+
+.mail-app.mail-app--light .mail-pagination-actions button {
+  background: var(--list-chrome-btn-bg);
+  border-color: var(--list-chrome-btn-border);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 767px) {
+  .mail-app .mail-view-panel:not(.platform-tools-panel) {
+    padding: 0.75rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mail-app .mail-view-panel.platform-tools-panel {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .mail-app .mail-view-header h2 {
+    font-size: 1.15rem;
+  }
+
+  .mail-app .feature-form,
+  .mail-app .feature-form-grid,
+  .mail-app .contact-form {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .mail-app .feature-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mail-app .feature-list {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .mail-app .read-actions {
+    gap: 0.3rem;
+  }
+
+  .mail-app .bespoke-prod-insights {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .compose-minimized {
+    right: max(0.75rem, env(safe-area-inset-right));
+    bottom: calc(var(--mail-bottom-nav-h, 3.5rem) + max(0.75rem, env(safe-area-inset-bottom)));
+    width: min(20rem, calc(100vw - 1.5rem));
+  }
 }

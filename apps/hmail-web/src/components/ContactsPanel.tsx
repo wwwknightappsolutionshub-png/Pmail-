@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { MailContact, MailContactCollection } from "../types/contact";
 import "./ContactsPanel.css";
@@ -13,6 +13,26 @@ const emptyContactForm = {
   company: "",
   notes: "",
 };
+
+const TAB_LABELS: Record<Tab, string> = {
+  contacts: "Contacts",
+  lists: "Lists",
+  groups: "Groups",
+};
+
+function contactInitials(contact: MailContact): string {
+  const fromName = [contact.firstName, contact.lastName].filter(Boolean).join(" ").trim();
+  if (fromName) {
+    const parts = fromName.split(/\s+/);
+    return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
+  }
+  return contact.email.slice(0, 2).toUpperCase();
+}
+
+function collectionInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase() || "?";
+}
 
 export function ContactsPanel({
   initialEmail,
@@ -35,16 +55,15 @@ export function ContactsPanel({
   const [selectedListId, setSelectedListId] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [memberContactId, setMemberContactId] = useState("");
+  const [contactSearch, setContactSearch] = useState("");
+  const [showContactForm, setShowContactForm] = useState(Boolean(initialEmail));
+  const [showCollectionForm, setShowCollectionForm] = useState(false);
 
   async function reload() {
     setLoading(true);
     setError("");
     try {
-      const [c, l, g] = await Promise.all([
-        api.contacts(),
-        api.contactLists(),
-        api.contactGroups(),
-      ]);
+      const [c, l, g] = await Promise.all([api.contacts(), api.contactLists(), api.contactGroups()]);
       setContacts(c.contacts);
       setLists(l.lists);
       setGroups(g.groups);
@@ -63,8 +82,61 @@ export function ContactsPanel({
     if (initialEmail) {
       setContactForm((f) => ({ ...f, email: initialEmail }));
       setTab("contacts");
+      setShowContactForm(true);
     }
   }, [initialEmail]);
+
+  const filteredContacts = useMemo(() => {
+    const query = contactSearch.trim().toLowerCase();
+    if (!query) return contacts;
+    return contacts.filter((contact) => {
+      const haystack = [
+        contact.displayName,
+        contact.email,
+        contact.phone,
+        contact.company,
+        contact.firstName,
+        contact.lastName,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [contactSearch, contacts]);
+
+  function resetContactForm() {
+    setContactForm(emptyContactForm);
+    setEditingContactId(null);
+    setShowContactForm(false);
+  }
+
+  function startEditContact(contact: MailContact) {
+    setEditingContactId(contact.id);
+    setContactForm({
+      email: contact.email,
+      firstName: contact.firstName ?? "",
+      lastName: contact.lastName ?? "",
+      phone: contact.phone ?? "",
+      company: contact.company ?? "",
+      notes: contact.notes ?? "",
+    });
+    setShowContactForm(true);
+  }
+
+  function resetCollectionForm() {
+    setCollectionName("");
+    setCollectionDescription("");
+    setEditingCollectionId(null);
+    setShowCollectionForm(false);
+  }
+
+  function startEditCollection(collection: MailContactCollection) {
+    setEditingCollectionId(collection.id);
+    setCollectionName(collection.name);
+    setCollectionDescription(collection.description ?? "");
+    setShowCollectionForm(true);
+  }
 
   async function saveContact(e: React.FormEvent) {
     e.preventDefault();
@@ -76,8 +148,7 @@ export function ContactsPanel({
         await api.createContact(contactForm);
         onMessage?.("Contact added");
       }
-      setContactForm(emptyContactForm);
-      setEditingContactId(null);
+      resetContactForm();
       await reload();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Save failed");
@@ -96,147 +167,301 @@ export function ContactsPanel({
         else await api.createContactGroup(payload);
         onMessage?.(kind === "lists" ? "List created" : "Group created");
       }
-      setCollectionName("");
-      setCollectionDescription("");
-      setEditingCollectionId(null);
+      resetCollectionForm();
       await reload();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Save failed");
     }
   }
 
+  const collectionKind = tab === "lists" ? "lists" : "groups";
+  const collections = tab === "lists" ? lists : groups;
+  const selectedCollectionId = tab === "lists" ? selectedListId : selectedGroupId;
+  const setSelectedCollectionId = tab === "lists" ? setSelectedListId : setSelectedGroupId;
+
   return (
     <div className="contacts-panel">
-      <div className="contacts-tabs">
-        {(["contacts", "lists", "groups"] as const).map((t) => (
-          <button key={t} type="button" className={tab === t ? "is-active" : ""} onClick={() => setTab(t)}>
-            {t === "contacts" ? "Contacts" : t === "lists" ? "Lists" : "Groups"}
+      <header className="contacts-toolbar">
+        <nav className="contacts-tabs" aria-label="Contact views">
+          {(["contacts", "lists", "groups"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={tab === t ? "is-active" : ""}
+              onClick={() => {
+                setTab(t);
+                resetCollectionForm();
+              }}
+            >
+              {TAB_LABELS[t]}
+            </button>
+          ))}
+        </nav>
+        {tab === "contacts" && !showContactForm ? (
+          <button type="button" className="contacts-primary-btn" onClick={() => setShowContactForm(true)}>
+            New contact
           </button>
-        ))}
-      </div>
+        ) : null}
+        {tab !== "contacts" && !showCollectionForm ? (
+          <button type="button" className="contacts-primary-btn" onClick={() => setShowCollectionForm(true)}>
+            {tab === "lists" ? "New list" : "New group"}
+          </button>
+        ) : null}
+      </header>
 
       {error ? <div className="contacts-error">{error}</div> : null}
-      {loading ? <p className="contacts-muted">Loading contacts…</p> : null}
+      {loading ? <p className="contacts-muted">Loading…</p> : null}
 
       {tab === "contacts" ? (
         <div className="contacts-section">
-          <form className="contacts-form" onSubmit={saveContact}>
-            <h3>{editingContactId ? "Edit contact" : "Add contact"}</h3>
-            <div className="contacts-form-grid">
-              <input required type="email" placeholder="Email" value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} />
-              <input placeholder="First name" value={contactForm.firstName} onChange={(e) => setContactForm({ ...contactForm, firstName: e.target.value })} />
-              <input placeholder="Last name" value={contactForm.lastName} onChange={(e) => setContactForm({ ...contactForm, lastName: e.target.value })} />
-              <input placeholder="Phone" value={contactForm.phone} onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })} />
-              <input placeholder="Company" value={contactForm.company} onChange={(e) => setContactForm({ ...contactForm, company: e.target.value })} />
-              <textarea placeholder="Notes" value={contactForm.notes} onChange={(e) => setContactForm({ ...contactForm, notes: e.target.value })} />
-            </div>
-            <div className="contacts-form-actions">
-              <button type="submit">{editingContactId ? "Update" : "Add contact"}</button>
-              {editingContactId ? (
-                <button type="button" className="ghost" onClick={() => { setEditingContactId(null); setContactForm(emptyContactForm); }}>
+          {showContactForm ? (
+            <form className="contacts-composer" onSubmit={saveContact}>
+              <div className="contacts-composer-head">
+                <h3>{editingContactId ? "Edit contact" : "New contact"}</h3>
+                <button type="button" className="contacts-icon-btn" aria-label="Close form" onClick={resetContactForm}>
+                  ×
+                </button>
+              </div>
+              <div className="contacts-form-grid">
+                <label className="contacts-field contacts-field--full">
+                  <span>Email</span>
+                  <input
+                    required
+                    type="email"
+                    autoComplete="email"
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                  />
+                </label>
+                <label className="contacts-field">
+                  <span>First name</span>
+                  <input
+                    autoComplete="given-name"
+                    value={contactForm.firstName}
+                    onChange={(e) => setContactForm({ ...contactForm, firstName: e.target.value })}
+                  />
+                </label>
+                <label className="contacts-field">
+                  <span>Last name</span>
+                  <input
+                    autoComplete="family-name"
+                    value={contactForm.lastName}
+                    onChange={(e) => setContactForm({ ...contactForm, lastName: e.target.value })}
+                  />
+                </label>
+                <label className="contacts-field">
+                  <span>Phone</span>
+                  <input
+                    type="tel"
+                    autoComplete="tel"
+                    value={contactForm.phone}
+                    onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                  />
+                </label>
+                <label className="contacts-field">
+                  <span>Company</span>
+                  <input
+                    autoComplete="organization"
+                    value={contactForm.company}
+                    onChange={(e) => setContactForm({ ...contactForm, company: e.target.value })}
+                  />
+                </label>
+                <label className="contacts-field contacts-field--full">
+                  <span>Notes</span>
+                  <textarea
+                    rows={2}
+                    value={contactForm.notes}
+                    onChange={(e) => setContactForm({ ...contactForm, notes: e.target.value })}
+                  />
+                </label>
+              </div>
+              <div className="contacts-form-actions">
+                <button type="submit" className="contacts-primary-btn">
+                  {editingContactId ? "Save changes" : "Add contact"}
+                </button>
+                <button type="button" className="contacts-secondary-btn" onClick={resetContactForm}>
                   Cancel
                 </button>
-              ) : null}
-            </div>
-          </form>
+              </div>
+            </form>
+          ) : null}
 
-          <ul className="contacts-list">
-            {contacts.map((c) => (
-              <li key={c.id}>
-                <div>
-                  <strong>{c.displayName}</strong>
-                  <span>{c.email}</span>
-                  {c.phone ? <span>{c.phone}</span> : null}
-                </div>
-                <div className="contacts-row-actions">
-                  <button type="button" onClick={() => { setEditingContactId(c.id); setContactForm({ email: c.email, firstName: c.firstName ?? "", lastName: c.lastName ?? "", phone: c.phone ?? "", company: c.company ?? "", notes: c.notes ?? "" }); }}>Edit</button>
-                  <button type="button" className="danger" onClick={async () => { await api.deleteContact(c.id); await reload(); }}>Delete</button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="contacts-search-wrap">
+            <input
+              type="search"
+              className="contacts-search"
+              placeholder="Search contacts"
+              value={contactSearch}
+              onChange={(e) => setContactSearch(e.target.value)}
+              aria-label="Search contacts"
+            />
+            <span className="contacts-count">{filteredContacts.length}</span>
+          </div>
+
+          {!loading && filteredContacts.length === 0 ? (
+            <p className="contacts-empty">
+              {contacts.length === 0 ? "No contacts yet. Add your first contact above." : "No contacts match your search."}
+            </p>
+          ) : (
+            <ul className="contacts-list">
+              {filteredContacts.map((contact) => (
+                <li key={contact.id} className="contacts-card">
+                  <div className="contacts-avatar" aria-hidden="true">
+                    {contactInitials(contact)}
+                  </div>
+                  <div className="contacts-card-body">
+                    <strong className="contacts-card-name">{contact.displayName}</strong>
+                    <span className="contacts-card-meta">
+                      {contact.email}
+                      {contact.phone ? ` · ${contact.phone}` : ""}
+                    </span>
+                    {contact.company ? <span className="contacts-card-company">{contact.company}</span> : null}
+                  </div>
+                  <div className="contacts-card-actions">
+                    <button type="button" className="contacts-text-btn" onClick={() => startEditContact(contact)}>
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="contacts-text-btn contacts-text-btn--danger"
+                      onClick={async () => {
+                        await api.deleteContact(contact.id);
+                        if (editingContactId === contact.id) resetContactForm();
+                        await reload();
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       ) : null}
 
-      {tab === "lists" ? (
+      {tab === "lists" || tab === "groups" ? (
         <div className="contacts-section">
-          <div className="contacts-form">
-            <h3>{editingCollectionId ? "Edit list" : "Create contact list"}</h3>
-            <div className="contacts-form-grid">
-              <input placeholder="List name" value={collectionName} onChange={(e) => setCollectionName(e.target.value)} />
-              <input placeholder="Description" value={collectionDescription} onChange={(e) => setCollectionDescription(e.target.value)} />
+          {showCollectionForm ? (
+            <div className="contacts-composer">
+              <div className="contacts-composer-head">
+                <h3>
+                  {editingCollectionId
+                    ? tab === "lists"
+                      ? "Edit list"
+                      : "Edit group"
+                    : tab === "lists"
+                      ? "New list"
+                      : "New group"}
+                </h3>
+                <button type="button" className="contacts-icon-btn" aria-label="Close form" onClick={resetCollectionForm}>
+                  ×
+                </button>
+              </div>
+              <div className="contacts-form-grid">
+                <label className="contacts-field contacts-field--full">
+                  <span>Name</span>
+                  <input value={collectionName} onChange={(e) => setCollectionName(e.target.value)} />
+                </label>
+                <label className="contacts-field contacts-field--full">
+                  <span>Description</span>
+                  <input value={collectionDescription} onChange={(e) => setCollectionDescription(e.target.value)} />
+                </label>
+              </div>
+              <div className="contacts-form-actions">
+                <button
+                  type="button"
+                  className="contacts-primary-btn"
+                  onClick={() => void saveCollection(collectionKind)}
+                >
+                  {editingCollectionId ? "Save changes" : tab === "lists" ? "Create list" : "Create group"}
+                </button>
+                <button type="button" className="contacts-secondary-btn" onClick={resetCollectionForm}>
+                  Cancel
+                </button>
+              </div>
             </div>
-            <div className="contacts-form-actions">
-              <button type="button" onClick={() => saveCollection("lists")}>{editingCollectionId ? "Update list" : "Create list"}</button>
-            </div>
-          </div>
-          <ul className="contacts-list">
-            {lists.map((list) => (
-              <li key={list.id}>
-                <div>
-                  <strong>{list.name}</strong>
-                  <span>{list.memberCount} contacts</span>
-                </div>
-                <div className="contacts-row-actions">
-                  <button type="button" onClick={() => { setEditingCollectionId(list.id); setCollectionName(list.name); setCollectionDescription(list.description ?? ""); }}>Edit</button>
-                  <button type="button" className="danger" onClick={async () => { await api.deleteContactList(list.id); await reload(); }}>Delete</button>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="contacts-member-box">
-            <h4>Add contact to list</h4>
-            <select value={selectedListId} onChange={(e) => setSelectedListId(e.target.value)}>
-              <option value="">Select list</option>
-              {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-            </select>
-            <select value={memberContactId} onChange={(e) => setMemberContactId(e.target.value)}>
-              <option value="">Select contact</option>
-              {contacts.map((c) => <option key={c.id} value={c.id}>{c.displayName}</option>)}
-            </select>
-            <button type="button" onClick={async () => { if (!selectedListId || !memberContactId) return; await api.addContactToList(selectedListId, memberContactId); await reload(); onMessage?.("Added to list"); }}>Add to list</button>
-          </div>
-        </div>
-      ) : null}
+          ) : null}
 
-      {tab === "groups" ? (
-        <div className="contacts-section">
-          <div className="contacts-form">
-            <h3>{editingCollectionId ? "Edit group" : "Create contact group"}</h3>
-            <div className="contacts-form-grid">
-              <input placeholder="Group name" value={collectionName} onChange={(e) => setCollectionName(e.target.value)} />
-              <input placeholder="Description" value={collectionDescription} onChange={(e) => setCollectionDescription(e.target.value)} />
+          {!loading && collections.length === 0 ? (
+            <p className="contacts-empty">
+              {tab === "lists" ? "No lists yet." : "No groups yet."} Create one to organize contacts.
+            </p>
+          ) : (
+            <ul className="contacts-list">
+              {collections.map((collection) => (
+                <li key={collection.id} className="contacts-card">
+                  <div className="contacts-avatar contacts-avatar--collection" aria-hidden="true">
+                    {collectionInitials(collection.name)}
+                  </div>
+                  <div className="contacts-card-body">
+                    <strong className="contacts-card-name">{collection.name}</strong>
+                    <span className="contacts-card-meta">
+                      {collection.memberCount} contact{collection.memberCount === 1 ? "" : "s"}
+                      {collection.description ? ` · ${collection.description}` : ""}
+                    </span>
+                  </div>
+                  <div className="contacts-card-actions">
+                    <button type="button" className="contacts-text-btn" onClick={() => startEditCollection(collection)}>
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="contacts-text-btn contacts-text-btn--danger"
+                      onClick={async () => {
+                        if (collectionKind === "lists") await api.deleteContactList(collection.id);
+                        else await api.deleteContactGroup(collection.id);
+                        if (editingCollectionId === collection.id) resetCollectionForm();
+                        await reload();
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {collections.length > 0 && contacts.length > 0 ? (
+            <div className="contacts-member-box">
+              <p className="contacts-member-label">Add to {tab === "lists" ? "list" : "group"}</p>
+              <div className="contacts-member-row">
+                <select value={selectedCollectionId} onChange={(e) => setSelectedCollectionId(e.target.value)}>
+                  <option value="">{tab === "lists" ? "Select list" : "Select group"}</option>
+                  {collections.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+                <select value={memberContactId} onChange={(e) => setMemberContactId(e.target.value)}>
+                  <option value="">Select contact</option>
+                  {contacts.map((contact) => (
+                    <option key={contact.id} value={contact.id}>
+                      {contact.displayName}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="contacts-primary-btn contacts-primary-btn--compact"
+                  onClick={async () => {
+                    if (!selectedCollectionId || !memberContactId) return;
+                    if (collectionKind === "lists") {
+                      await api.addContactToList(selectedCollectionId, memberContactId);
+                    } else {
+                      await api.addContactToGroup(selectedCollectionId, memberContactId);
+                    }
+                    await reload();
+                    onMessage?.(tab === "lists" ? "Added to list" : "Added to group");
+                  }}
+                >
+                  Add
+                </button>
+              </div>
             </div>
-            <div className="contacts-form-actions">
-              <button type="button" onClick={() => saveCollection("groups")}>{editingCollectionId ? "Update group" : "Create group"}</button>
-            </div>
-          </div>
-          <ul className="contacts-list">
-            {groups.map((group) => (
-              <li key={group.id}>
-                <div>
-                  <strong>{group.name}</strong>
-                  <span>{group.memberCount} contacts</span>
-                </div>
-                <div className="contacts-row-actions">
-                  <button type="button" onClick={() => { setEditingCollectionId(group.id); setCollectionName(group.name); setCollectionDescription(group.description ?? ""); }}>Edit</button>
-                  <button type="button" className="danger" onClick={async () => { await api.deleteContactGroup(group.id); await reload(); }}>Delete</button>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="contacts-member-box">
-            <h4>Add contact to group</h4>
-            <select value={selectedGroupId} onChange={(e) => setSelectedGroupId(e.target.value)}>
-              <option value="">Select group</option>
-              {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-            </select>
-            <select value={memberContactId} onChange={(e) => setMemberContactId(e.target.value)}>
-              <option value="">Select contact</option>
-              {contacts.map((c) => <option key={c.id} value={c.id}>{c.displayName}</option>)}
-            </select>
-            <button type="button" onClick={async () => { if (!selectedGroupId || !memberContactId) return; await api.addContactToGroup(selectedGroupId, memberContactId); await reload(); onMessage?.("Added to group"); }}>Add to group</button>
-          </div>
+          ) : null}
         </div>
       ) : null}
     </div>

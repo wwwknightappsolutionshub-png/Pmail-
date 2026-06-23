@@ -1,0 +1,60 @@
+.message-unsubscribe {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.message-unsubscribe button {
+  border: 1px solid rgba(255, 120, 120, 0.45);
+  background: rgba(255, 80, 80, 0.12);
+  color: inherit;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+}
+
+.message-unsubscribe-error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #ffb4b4;
+}
+
+.inbox-cleanup-toolbar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.inbox-cleanup-toolbar label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.inbox-cleanup-toolbar input {
+  min-width: 12rem;
+}
+
+.inbox-cleanup-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.inbox-cleanup-logs {
+  margin-top: 1.5rem;
+}
+
+.inbox-cleanup-logs ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.mail-view-muted {
+  opacity: 0.75;
+  margin: 0 0 0.75rem;
+}

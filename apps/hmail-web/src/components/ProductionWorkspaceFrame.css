@@ -1,0 +1,50 @@
+.production-workspace-frame {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  background: var(--surface-list, var(--bg-canvas, var(--bg)));
+}
+
+.production-workspace-frame__header.list-header {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  background: rgba(8, 14, 26, 0.88);
+  color: #e2e8f0;
+}
+
+.production-workspace-frame__header.list-header h2 {
+  margin: 0;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.production-workspace-frame__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.production-workspace-frame__body .mail-view-panel {
+  max-width: none;
+  min-height: min-content;
+}
+
+.pmail-demo-shell .bespoke-demo-production-workspace .production-workspace-frame {
+  margin: 0;
+  height: 100%;
+  background: var(--surface-list, var(--bg-canvas, var(--bg)));
+}
+
+.pmail-demo-shell--light .bespoke-demo-production-workspace .production-workspace-frame__header {
+  background: var(--surface-inset-deep);
+  border-bottom-color: var(--border-subtle);
+  color: var(--text-secondary);
+}

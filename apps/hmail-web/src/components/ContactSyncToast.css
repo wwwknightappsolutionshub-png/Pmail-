@@ -1,0 +1,68 @@
+.contact-sync-toast-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1385;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(2, 8, 23, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.contact-sync-toast {
+  width: min(100%, 32rem);
+  padding: 1.25rem 1.2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  background: rgba(10, 18, 32, 0.98);
+  color: #e8eef8;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+.pmail-demo-shell--light .contact-sync-toast,
+.mail-app--light .contact-sync-toast {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(13, 148, 136, 0.28);
+}
+
+.contact-sync-toast-copy strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.contact-sync-toast-copy p {
+  margin: 0.5rem 0 0;
+  font-size: 0.86rem;
+  opacity: 0.9;
+}
+
+.contact-sync-toast-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.contact-sync-toast-primary {
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.contact-sync-toast-btn {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  background: transparent;
+  color: inherit;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+}

@@ -13,8 +13,17 @@ export const VIEW_WORKSPACE_CRM = "__view__:workspace_crm";
 export const VIEW_WORKSPACE_REMINDERS = "__view__:workspace_reminders";
 export const VIEW_PROVIDER_SETTINGS = "__view__:provider_settings";
 export const VIEW_COMPOSE_SETTINGS = "__view__:compose_settings";
+export const VIEW_AUTO_REPLY_FUNCTIONALITY = "__view__:auto_reply_functionality";
 export const VIEW_CALENDAR = "__view__:workspace_calendar";
 export const VIEW_OPEN_TRACKING = "__view__:open_tracking";
+export const VIEW_FILE_VAULT = "__view__:file_vault";
+export const VIEW_INBOX_CLEANUP = "__view__:inbox_cleanup";
+export const VIEW_ATTACHMENT_CATEGORIZE = "__view__:attachment_categorize";
+export const VIEW_ESIGN = "__view__:esign";
+export const VIEW_EMAIL_SLA = "__view__:email_sla";
+export const VIEW_MAIL2PDF = "__view__:mail2pdf";
+export const VIEW_JOB_HUNTER_SETTINGS = "__view__:job_hunter_settings";
+export const VIEW_CAREER_SCANNER = "__view__:career_scanner";
 export const VIEW_INDUSTRY_TOOLS = "__view__:industry_tools";
 export const VIEW_RE_LISTING_BOARD = "__view__:re_listing_board";
 export const VIEW_RE_SHOWING_SCHEDULER = "__view__:re_showing_scheduler";
@@ -54,7 +63,16 @@ export const ALL_VIRTUAL_VIEWS = [
   VIEW_CALENDAR,
   VIEW_PROVIDER_SETTINGS,
   VIEW_COMPOSE_SETTINGS,
+  VIEW_AUTO_REPLY_FUNCTIONALITY,
   VIEW_OPEN_TRACKING,
+  VIEW_FILE_VAULT,
+  VIEW_INBOX_CLEANUP,
+  VIEW_ATTACHMENT_CATEGORIZE,
+  VIEW_ESIGN,
+  VIEW_EMAIL_SLA,
+  VIEW_MAIL2PDF,
+  VIEW_JOB_HUNTER_SETTINGS,
+  VIEW_CAREER_SCANNER,
   VIEW_INDUSTRY_TOOLS,
   VIEW_RE_LISTING_BOARD,
   VIEW_RE_SHOWING_SCHEDULER,
@@ -82,9 +100,12 @@ export type MailStatusFilter = "all" | "unread" | "read" | "starred";
 
 export type MailSearchField = "date" | "sender" | "subject" | "recipient" | "body";
 
+export type MailSearchScope = "all" | "inbox" | "sent" | "drafts" | "scheduled" | "trash";
+
 export interface MailSearchState {
   field: MailSearchField;
   query: string;
+  scope?: MailSearchScope;
 }
 
 export function isVirtualView(path: string): boolean {
@@ -117,7 +138,16 @@ export function virtualViewTitle(path: string): string {
     [VIEW_CALENDAR]: "Full calendar",
     [VIEW_PROVIDER_SETTINGS]: "Provider settings",
     [VIEW_COMPOSE_SETTINGS]: "Compose settings",
+    [VIEW_AUTO_REPLY_FUNCTIONALITY]: "Auto-reply",
     [VIEW_OPEN_TRACKING]: "Open tracking",
+    [VIEW_FILE_VAULT]: "File vault",
+    [VIEW_INBOX_CLEANUP]: "Inbox cleanup",
+    [VIEW_ATTACHMENT_CATEGORIZE]: "Attachment categories",
+    [VIEW_ESIGN]: "E-sign",
+    [VIEW_EMAIL_SLA]: "Email SLA",
+    [VIEW_MAIL2PDF]: "Mail 2 PDF",
+    [VIEW_JOB_HUNTER_SETTINGS]: "Job Hunter",
+    [VIEW_CAREER_SCANNER]: "CV Scanner",
     [VIEW_INDUSTRY_TOOLS]: "Industry tools",
     [VIEW_RE_LISTING_BOARD]: "Listing Board",
     [VIEW_RE_SHOWING_SCHEDULER]: "Showing Scheduler",

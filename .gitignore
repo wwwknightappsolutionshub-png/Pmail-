@@ -8,6 +8,7 @@ build/
 .DS_Store
 coverage/
 .prisma/
+apps/hmail-web/dev-dist/
 apps/hmail-api/prisma/*.db
 apps/hmail-api/prisma/*.db-journal
 apps/hmail-api/prisma/dev.db

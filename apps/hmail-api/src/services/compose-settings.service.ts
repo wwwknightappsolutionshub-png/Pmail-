@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { ensureAutoReplyComplimentary, getAutoReplyEntitlement } from "./auto-reply-entitlement.service.js";
+import { normalizeUndoSendSeconds } from "./mail-outgoing.service.js";
 
 export async function getComposeSettingsByUserId(userId: string) {
   const user = await prisma.user.findUnique({
@@ -22,6 +23,7 @@ export async function getComposeSettings(userId: string, tenantId: string, busin
 
   return {
     displayName: settings?.displayName ?? null,
+    undoSendSeconds: settings?.undoSendSeconds ?? 10,
     autoReplyEnabled: autoReplyEntitlement.entitled ? (settings?.autoReplyEnabled ?? true) : false,
     activeSignatureId: settings?.activeSignatureId ?? signatures[0]?.id ?? null,
     activeAutoReplyId: settings?.activeAutoReplyId ?? autoReplies[0]?.id ?? null,
@@ -39,6 +41,7 @@ export async function updateComposeSettings(
     autoReplyEnabled: boolean;
     activeSignatureId: string;
     activeAutoReplyId: string;
+    undoSendSeconds: number;
   }>,
 ) {
   if (input.autoReplyEnabled === true || input.activeAutoReplyId) {
@@ -48,6 +51,9 @@ export async function updateComposeSettings(
     }
   }
 
+  const undoSendSeconds =
+    input.undoSendSeconds !== undefined ? normalizeUndoSendSeconds(input.undoSendSeconds) : undefined;
+
   return prisma.userComposeSettings.upsert({
     where: { userId },
     create: {
@@ -56,12 +62,14 @@ export async function updateComposeSettings(
       autoReplyEnabled: input.autoReplyEnabled ?? false,
       activeSignatureId: input.activeSignatureId || null,
       activeAutoReplyId: input.activeAutoReplyId || null,
+      undoSendSeconds: undoSendSeconds ?? 10,
     },
     update: {
       displayName: input.displayName?.trim() ?? undefined,
       autoReplyEnabled: input.autoReplyEnabled ?? undefined,
       activeSignatureId: input.activeSignatureId ?? undefined,
       activeAutoReplyId: input.activeAutoReplyId ?? undefined,
+      undoSendSeconds,
     },
   });
 }

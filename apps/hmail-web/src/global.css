@@ -35,6 +35,7 @@ body {
   background: #f1f5f9;
   font-family: var(--font-app);
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button,

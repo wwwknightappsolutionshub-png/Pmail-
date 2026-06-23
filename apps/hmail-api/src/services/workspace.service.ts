@@ -1,5 +1,10 @@
 import { randomBytes } from "node:crypto";
 import { prisma } from "../lib/prisma.js";
+import {
+  clearProviderTokens,
+  storeCalendarProviderToken,
+  syncProviderCalendarEvents,
+} from "./calendar-provider.service.js";
 
 const DEFAULT_STAGES = [
   { slug: "lead", label: "Lead", sortOrder: 0 },
@@ -357,51 +362,17 @@ export async function updateCalendarSettings(
   });
 }
 
-async function seedProviderEvents(
+async function syncProviderEvents(
   tenantId: string,
   userId: string,
   provider: "google" | "microsoft",
-) {
-  const existing = await prisma.workspaceCalendarEvent.count({
-    where: { tenantId, userId, syncSource: provider },
-  });
-  if (existing > 0) return;
-
-  const base = new Date();
-  base.setDate(base.getDate() + (provider === "google" ? 2 : 4));
-  const firstStart = new Date(base);
-  firstStart.setHours(10, 0, 0, 0);
-  const firstEnd = new Date(firstStart);
-  firstEnd.setHours(11, 0, 0, 0);
-
-  const secondDay = new Date(base);
-  secondDay.setDate(secondDay.getDate() + 1);
-  const secondStart = new Date(secondDay);
-  secondStart.setHours(14, 30, 0, 0);
-  const secondEnd = new Date(secondStart);
-  secondEnd.setHours(15, 30, 0, 0);
-
-  const prefix = provider === "google" ? "Google Calendar" : "Microsoft Outlook";
-  const rows = [
-    {
-      tenantId,
-      userId,
-      title: `${prefix}: Client review`,
-      startAt: firstStart,
-      endAt: firstEnd,
-      syncSource: provider,
-    },
-    {
-      tenantId,
-      userId,
-      title: `${prefix}: Team coverage block`,
-      startAt: secondStart,
-      endAt: secondEnd,
-      syncSource: provider,
-    },
-  ];
-
-  await prisma.workspaceCalendarEvent.createMany({ data: rows });
+): Promise<void> {
+  try {
+    await syncProviderCalendarEvents(tenantId, userId, provider);
+  } catch (err) {
+    console.error(`[calendar-sync] ${provider}`, err);
+    throw err;
+  }
 }
 
 function reminderDueFromEvent(startAt: Date, trigger: CalendarReminderTrigger): Date {
@@ -452,23 +423,30 @@ export async function setCalendarProviderConnection(
   userId: string,
   provider: "google" | "microsoft",
   connected: boolean,
+  token?: { accessToken: string; refreshToken?: string; calendarId?: string },
 ) {
   await getOrCreateCalendarSettings(userId);
 
   if (connected) {
-    await prisma.workspaceCalendarSettings.update({
-      where: { userId },
-      data: provider === "google" ? { googleConnected: true } : { microsoftConnected: true },
-    });
-    await seedProviderEvents(tenantId, userId, provider);
+    if (token?.accessToken) {
+      await storeCalendarProviderToken(userId, provider, token);
+    } else {
+      await prisma.workspaceCalendarSettings.update({
+        where: { userId },
+        data: provider === "google" ? { googleConnected: true } : { microsoftConnected: true },
+      });
+    }
+
+    const settings = await prisma.workspaceCalendarSettings.findUnique({ where: { userId } });
+    const tokenEnc = settings?.[provider === "google" ? "googleTokenEnc" : "microsoftTokenEnc"];
+    if (tokenEnc) {
+      await syncProviderEvents(tenantId, userId, provider);
+    }
   } else {
     await prisma.workspaceCalendarEvent.deleteMany({
       where: { tenantId, userId, syncSource: provider },
     });
-    await prisma.workspaceCalendarSettings.update({
-      where: { userId },
-      data: provider === "google" ? { googleConnected: false } : { microsoftConnected: false },
-    });
+    await clearProviderTokens(userId, provider);
   }
 
   await syncCalendarProviders(tenantId, userId);
@@ -476,8 +454,8 @@ export async function setCalendarProviderConnection(
 
 export async function syncCalendarProviders(tenantId: string, userId: string) {
   const settings = await getOrCreateCalendarSettings(userId);
-  if (settings.googleConnected) await seedProviderEvents(tenantId, userId, "google");
-  if (settings.microsoftConnected) await seedProviderEvents(tenantId, userId, "microsoft");
+  if (settings.googleConnected) await syncProviderEvents(tenantId, userId, "google");
+  if (settings.microsoftConnected) await syncProviderEvents(tenantId, userId, "microsoft");
 
   await prisma.workspaceCalendarSettings.update({
     where: { userId },

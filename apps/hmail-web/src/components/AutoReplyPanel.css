@@ -1,0 +1,181 @@
+.auto-reply-panel .platform-tools-hero {
+  border-left-width: 4px;
+}
+
+.auto-reply-status-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--pt-border);
+  border-radius: var(--pt-radius);
+  background: linear-gradient(135deg, var(--pt-surface) 0%, var(--pt-surface-alt) 100%);
+  box-shadow: var(--pt-shadow);
+}
+
+.auto-reply-status-card__copy {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.auto-reply-status-card__copy strong {
+  font-size: 1rem;
+  color: var(--pt-text);
+}
+
+.auto-reply-status-card__copy p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--pt-text-muted);
+  line-height: 1.45;
+}
+
+.auto-reply-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.auto-reply-status-badge--on {
+  background: var(--pt-accent-soft);
+  border-color: var(--pt-accent);
+  color: var(--pt-accent-dark);
+}
+
+.auto-reply-status-badge--off {
+  background: var(--pt-surface-alt);
+  border-color: var(--pt-border);
+  color: var(--pt-text-muted);
+}
+
+.auto-reply-status-badge__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.auto-reply-composer {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--pt-border);
+  border-radius: var(--pt-radius);
+  background: var(--pt-surface);
+  box-shadow: var(--pt-shadow);
+}
+
+.auto-reply-composer__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--pt-text);
+}
+
+.auto-reply-composer__grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.auto-reply-composer__grid label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--pt-text-secondary);
+}
+
+.auto-reply-composer__grid input,
+.auto-reply-composer__grid textarea {
+  min-height: 2.65rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--pt-border-strong);
+  border-radius: 10px;
+  background: var(--pt-surface-alt);
+  color: var(--pt-text);
+}
+
+.auto-reply-composer__grid textarea {
+  min-height: 9rem;
+  resize: vertical;
+}
+
+.auto-reply-rule-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.auto-reply-rule-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.1rem 1.15rem;
+  border: 1px solid var(--pt-border);
+  border-radius: var(--pt-radius);
+  background: var(--pt-surface);
+  box-shadow: var(--pt-shadow);
+}
+
+.auto-reply-rule-card.is-active {
+  border-color: var(--pt-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--pt-accent) 25%, transparent), var(--pt-shadow);
+}
+
+.auto-reply-rule-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.auto-reply-rule-card__head strong {
+  font-size: 1rem;
+  color: var(--pt-text);
+}
+
+.auto-reply-rule-card__subject {
+  margin: 0.2rem 0 0;
+  font-size: 0.86rem;
+  color: var(--pt-text-muted);
+}
+
+.auto-reply-rule-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.auto-reply-preview-card {
+  border: 1px solid var(--pt-border-strong);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.auto-reply-preview-card iframe {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #ffffff;
+  color: #0f172a;
+  overflow: hidden;
+}
+
+@media (min-width: 960px) {
+  .auto-reply-panel.platform-tools-panel--split .platform-tools-split-primary {
+    display: grid;
+    gap: 1rem;
+  }
+}

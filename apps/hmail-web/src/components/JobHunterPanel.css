@@ -1,0 +1,425 @@
+/* Career workspace configure page */
+.career-jh-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.career-jh-settings-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.career-jh-settings-header h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+  color: var(--text, #e8eef8);
+}
+
+.career-jh-settings-header > div > p {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--muted, #8ba3c7);
+  line-height: 1.5;
+}
+
+.career-jh-settings-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  min-width: min(100%, 16rem);
+}
+
+.career-jh-settings-cta .career-jh-settings-hint {
+  margin: 0;
+  text-align: right;
+}
+
+.career-jh-settings-hint {
+  margin: 0 0 0.65rem;
+  color: var(--muted, #8ba3c7);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.career-jh-settings-loading {
+  margin: 0;
+  color: var(--muted, #8ba3c7);
+}
+
+.career-jh-settings-notice {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  background: rgba(20, 184, 166, 0.12);
+  color: #5eead4;
+}
+
+.career-jh-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.career-jh-settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid var(--border, rgba(139, 163, 199, 0.18));
+  border-radius: 14px;
+  background: var(--surface-inset, rgba(5, 10, 18, 0.45));
+}
+
+.career-jh-settings-card--wide {
+  grid-column: 1 / -1;
+}
+
+.career-jh-settings-card--danger {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(127, 29, 29, 0.14);
+}
+
+.career-jh-settings-card h3 {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-2, #14b8a6);
+}
+
+.career-jh-settings-card--danger h3 {
+  color: #fca5a5;
+}
+
+.career-jh-settings-select {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border, rgba(139, 163, 199, 0.18));
+  border-radius: 10px;
+  background: var(--surface-input, rgba(8, 14, 26, 0.78));
+  color: var(--text, #e8eef8);
+  font: inherit;
+}
+
+.career-jh-settings-select:focus {
+  outline: 2px solid rgba(45, 212, 191, 0.45);
+  outline-offset: 1px;
+}
+
+.career-jh-settings-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.35rem 0 0;
+  color: var(--text, #e8eef8);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.career-jh-settings-toggle input {
+  margin-top: 0.2rem;
+  accent-color: #14b8a6;
+}
+
+.career-jh-settings-accounts {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+}
+
+.career-jh-settings-accounts li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border, rgba(139, 163, 199, 0.18));
+}
+
+.career-jh-settings-accounts li:last-child {
+  border-bottom: none;
+}
+
+.career-jh-settings-accounts strong {
+  display: block;
+  color: var(--text, #e8eef8);
+  font-size: 0.9rem;
+}
+
+.career-jh-settings-accounts span {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted, #8ba3c7);
+  font-size: 0.8rem;
+}
+
+.career-jh-settings-danger-btn {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  border-color: rgba(248, 113, 113, 0.45) !important;
+  background: rgba(127, 29, 29, 0.35) !important;
+  color: #fecaca !important;
+  box-shadow: none !important;
+}
+
+.career-jh-settings-danger-btn:hover:not(:disabled) {
+  background: rgba(153, 27, 27, 0.55) !important;
+  color: #fff !important;
+}
+
+.pmail-demo-shell--light .career-jh-settings-header h2 {
+  color: #0f172a;
+}
+
+.pmail-demo-shell--light .career-jh-settings-header > div > p,
+.pmail-demo-shell--light .career-jh-settings-hint,
+.pmail-demo-shell--light .career-jh-settings-loading {
+  color: #475569;
+}
+
+.pmail-demo-shell--light .career-jh-settings-notice {
+  border-color: rgba(13, 148, 136, 0.28);
+  background: #ecfdf5;
+  color: #0f766e;
+}
+
+.pmail-demo-shell--light .career-jh-settings-card {
+  background: #f8fafc;
+  border-color: #dbe3ee;
+}
+
+.pmail-demo-shell--light .career-jh-settings-card--danger {
+  border-color: #fecaca;
+  background: #fff1f2;
+}
+
+.pmail-demo-shell--light .career-jh-settings-card--danger h3 {
+  color: #b91c1c;
+}
+
+.pmail-demo-shell--light .career-jh-settings-select {
+  background: #fff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.pmail-demo-shell--light .career-jh-settings-toggle {
+  color: #0f172a;
+}
+
+.pmail-demo-shell--light .career-jh-settings-accounts strong {
+  color: #0f172a;
+}
+
+.pmail-demo-shell--light .career-jh-settings-accounts span {
+  color: #64748b;
+}
+
+.pmail-demo-shell--light .career-jh-settings-danger-btn {
+  border-color: #fca5a5 !important;
+  background: #fff !important;
+  color: #b91c1c !important;
+}
+
+.pmail-demo-shell--light .career-jh-settings-danger-btn:hover:not(:disabled) {
+  background: #fef2f2 !important;
+  color: #991b1b !important;
+}
+
+@media (max-width: 900px) {
+  .career-jh-settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .career-jh-settings-cta {
+    align-items: flex-start;
+  }
+
+  .career-jh-settings-cta .career-jh-settings-hint {
+    text-align: left;
+  }
+}
+
+/* Mail-embedded settings (legacy production workspace) */
+.job-hunter-panel--minimal .mail-view-header h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.job-hunter-panel--minimal .mail-view-header p {
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.job-hunter-panel--minimal .feature-form {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.job-hunter-panel--minimal .feature-form:last-of-type {
+  border-bottom: none;
+}
+
+.job-hunter-panel--minimal .feature-form h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.career-jh-panel--settings {
+  padding: 0;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+.career-workspace-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #fcd34d;
+  background: #fffbeb;
+}
+
+.career-workspace-alert-copy p {
+  margin: 0.2rem 0 0;
+  color: #92400e;
+  font-size: 0.88rem;
+}
+
+.job-hunter-panel .job-hunter-notice {
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  background: rgba(13, 148, 136, 0.12);
+  color: #0f766e;
+  margin-bottom: 1rem;
+}
+
+.job-hunter-workspace-cta {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.job-hunter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.job-hunter-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.job-hunter-account-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.job-hunter-account-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.job-hunter-account-list li span {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.job-hunter-consent-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.job-hunter-consent-modal {
+  max-width: 400px;
+  width: 100%;
+  background: var(--surface-card, #fff);
+  color: var(--text, #334155);
+  border: 1px solid var(--border, rgba(148, 163, 184, 0.22));
+  border-radius: 14px;
+  padding: 1rem 1.15rem 0.95rem;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+
+.job-hunter-consent-modal h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text, #1e293b);
+}
+
+.job-hunter-consent-lead {
+  margin: 0 0 0.65rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted, #64748b);
+}
+
+.job-hunter-consent-points {
+  margin: 0 0 0.65rem;
+  padding-left: 1rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted, #94a3b8);
+}
+
+.job-hunter-consent-footnote {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--muted, #cbd5e1);
+}
+
+.job-hunter-consent-actions {
+  margin-top: 0.85rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pmail-demo-shell:not(.pmail-demo-shell--light) .job-hunter-consent-modal {
+  background: rgba(16, 28, 48, 0.98);
+  border-color: rgba(139, 163, 199, 0.22);
+}
+
+.pmail-demo-shell:not(.pmail-demo-shell--light) .job-hunter-consent-modal h2 {
+  color: #e8eef8;
+}
+
+.pmail-demo-shell:not(.pmail-demo-shell--light) .job-hunter-consent-lead,
+.pmail-demo-shell:not(.pmail-demo-shell--light) .job-hunter-consent-points {
+  color: #8ba3c7;
+}
+
+.pmail-demo-shell:not(.pmail-demo-shell--light) .job-hunter-consent-footnote {
+  color: #64748b;
+}

@@ -50,6 +50,8 @@ type CapacityMember = {
 
 type EnterprisePanel = "sync" | "reminder-sequences" | "capacity" | null;
 
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 function eventDateKey(iso: string): string {
   return iso.slice(0, 10);
 }
@@ -79,13 +81,15 @@ function useLoad<T>(loader: () => Promise<T>, deps: unknown[] = []) {
 }
 
 export function CalendarPanel() {
-  const [cursorDate, setCursorDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const [cursorDate, setCursorDate] = useState(() => todayKey);
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [enterprisePanel, setEnterprisePanel] = useState<EnterprisePanel>(null);
+  const [showForm, setShowForm] = useState(false);
   const [notice, setNotice] = useState("");
   const [form, setForm] = useState({
     title: "",
-    date: new Date().toISOString().slice(0, 10),
+    date: todayKey,
     startTime: "09:00",
     endTime: "10:00",
     allDay: false,
@@ -150,6 +154,8 @@ export function CalendarPanel() {
         return {
           key: dateKey,
           day: String(date.getDate()),
+          dateKey,
+          isBlank: false,
           events: list.filter((event) => eventDateKey(event.startAt) === dateKey),
         };
       });
@@ -161,6 +167,8 @@ export function CalendarPanel() {
       ...Array.from({ length: leadingBlanks }, (_, index) => ({
         key: `blank-${index}`,
         day: "",
+        dateKey: "",
+        isBlank: true,
         events: [] as CalendarEventRow[],
       })),
       ...Array.from({ length: daysInMonth }, (_, index) => {
@@ -169,6 +177,8 @@ export function CalendarPanel() {
         return {
           key: dateKey,
           day: String(day),
+          dateKey,
+          isBlank: false,
           events: list.filter((event) => eventDateKey(event.startAt) === dateKey),
         };
       }),
@@ -182,6 +192,7 @@ export function CalendarPanel() {
   });
 
   const syncedEventCount = (events ?? []).filter((event) => event.syncSource && event.syncSource !== "local").length;
+  const providerConnected = Boolean(settings?.googleConnected || settings?.microsoftConnected);
 
   const shiftPeriod = (delta: number) => {
     const cursor = new Date(`${cursorDate}T00:00:00`);
@@ -194,20 +205,35 @@ export function CalendarPanel() {
     await Promise.all([refreshEvents(), refreshSettings(), refreshCapacity()]);
   };
 
-  const createEvent = async () => {
+  const resetForm = () => {
+    setForm({
+      title: "",
+      date: cursorDate,
+      startTime: "09:00",
+      endTime: "10:00",
+      allDay: false,
+      location: "",
+      notes: "",
+    });
+    setShowForm(false);
+  };
+
+  const createEvent = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!form.title.trim()) return;
     const startAt = form.allDay
       ? `${form.date}T00:00:00.000Z`
       : new Date(`${form.date}T${form.startTime}:00`).toISOString();
     const endAt = form.allDay ? null : new Date(`${form.date}T${form.endTime}:00`).toISOString();
     await api.createCalendarEvent({
-      title: form.title,
+      title: form.title.trim(),
       startAt,
       endAt: endAt ?? undefined,
       allDay: form.allDay,
       location: form.location || undefined,
       notes: form.notes || undefined,
     });
-    setForm((current) => ({ ...current, title: "", location: "", notes: "" }));
+    resetForm();
     setNotice("Event added");
     await refreshAll();
   };
@@ -240,81 +266,104 @@ export function CalendarPanel() {
     );
     const result = await api.updateCalendarReminderSequences(sequences);
     setSettings(result.settings as CalendarSettings);
-    setNotice("Reminder sequences updated");
+    setNotice("Sequences updated");
   };
 
   const loading = eventsLoading || settingsLoading;
   const error = eventsError || settingsError;
 
+  const featureTabs = [
+    { id: "sync" as const, label: "Sync", dotOn: providerConnected },
+    {
+      id: "reminder-sequences" as const,
+      label: "Sequences",
+      dotOn: Boolean(settings?.reminderSequences.some((s) => s.active)),
+    },
+    { id: "capacity" as const, label: "Capacity", dotOn: Boolean((capacity ?? []).length) },
+  ];
+
   return (
     <div className="mail-view-panel calendar-panel">
-      <header className="mail-view-header">
-        <h2>Full calendar</h2>
-        <p>Month and week views with provider sync, reminder sequences, and team capacity.</p>
+      <header className="cal-toolbar">
+        <div>
+          <h2 className="cal-title">Calendar</h2>
+          <p className="cal-subtitle">Month & week views</p>
+        </div>
+        {!showForm ? (
+          <button type="button" className="cal-primary-btn" onClick={() => setShowForm(true)}>
+            New event
+          </button>
+        ) : null}
       </header>
 
-      {notice ? <p className="calendar-panel-notice">{notice}</p> : null}
-
-      <div className="calendar-panel-toolbar">
-        <button type="button" className="mail-toolbar-btn" onClick={() => shiftPeriod(-1)}>
-          Previous
+      <div className="cal-nav-row">
+        <button type="button" className="cal-nav-btn" aria-label="Previous period" onClick={() => shiftPeriod(-1)}>
+          ‹
         </button>
-        <strong>{periodLabel}</strong>
-        <button type="button" className="mail-toolbar-btn" onClick={() => shiftPeriod(1)}>
-          Next
+        <strong className="cal-period-label">{periodLabel}</strong>
+        <button type="button" className="cal-nav-btn" aria-label="Next period" onClick={() => shiftPeriod(1)}>
+          ›
         </button>
-        <button type="button" className={`mail-toolbar-btn ${viewMode === "month" ? "is-active" : ""}`} onClick={() => setViewMode("month")}>
-          Month
-        </button>
-        <button type="button" className={`mail-toolbar-btn ${viewMode === "week" ? "is-active" : ""}`} onClick={() => setViewMode("week")}>
-          Week
-        </button>
-        <span className="calendar-panel-stat">{syncedEventCount} synced events</span>
+        <div className="cal-view-tabs" role="tablist" aria-label="Calendar view">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === "month"}
+            className={viewMode === "month" ? "is-active" : ""}
+            onClick={() => setViewMode("month")}
+          >
+            Month
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === "week"}
+            className={viewMode === "week" ? "is-active" : ""}
+            onClick={() => setViewMode("week")}
+          >
+            Week
+          </button>
+        </div>
+        {syncedEventCount > 0 ? <span className="cal-stat">{syncedEventCount} synced</span> : null}
       </div>
 
-      <section className="calendar-enterprise-actions">
-        {(
-          [
-            { id: "sync" as const, label: "Calendar sync" },
-            { id: "reminder-sequences" as const, label: "Automated reminder sequences" },
-            { id: "capacity" as const, label: "Team capacity" },
-          ] as const
-        ).map((feature) => (
+      <div className="cal-feature-tabs">
+        {featureTabs.map((feature) => (
           <button
             key={feature.id}
             type="button"
-            className={`calendar-enterprise-action ${enterprisePanel === feature.id ? "is-active" : ""}`}
+            className={enterprisePanel === feature.id ? "is-active" : ""}
             onClick={() => setEnterprisePanel((current) => (current === feature.id ? null : feature.id))}
           >
-            <span>{feature.label}</span>
-            <small>Available</small>
+            <span className={`cal-feature-dot${feature.dotOn ? " is-on" : ""}`} aria-hidden="true" />
+            {feature.label}
           </button>
         ))}
-      </section>
+      </div>
 
       {enterprisePanel === "sync" && settings ? (
-        <section className="calendar-enterprise-panel">
-          <h3>Calendar sync</h3>
-          <div className="calendar-sync-actions">
+        <section className="cal-drawer">
+          <h3>Provider sync</h3>
+          <div className="cal-drawer-actions">
             <button
               type="button"
-              className={`mail-toolbar-btn ${settings.googleConnected ? "is-active" : ""}`}
+              className={`cal-secondary-btn${settings.googleConnected ? " is-active" : ""}`}
               onClick={() => void toggleProvider("google", !settings.googleConnected)}
             >
-              {settings.googleConnected ? "Disconnect Google" : "Connect Google"}
+              {settings.googleConnected ? "Google connected" : "Connect Google"}
             </button>
             <button
               type="button"
-              className={`mail-toolbar-btn ${settings.microsoftConnected ? "is-active" : ""}`}
+              className={`cal-secondary-btn${settings.microsoftConnected ? " is-active" : ""}`}
               onClick={() => void toggleProvider("microsoft", !settings.microsoftConnected)}
             >
-              {settings.microsoftConnected ? "Disconnect Microsoft" : "Connect Microsoft"}
+              {settings.microsoftConnected ? "Microsoft connected" : "Connect Microsoft"}
             </button>
-            <button type="button" className="mail-toolbar-btn" onClick={() => void runSync()}>
+            <button type="button" className="cal-primary-btn" onClick={() => void runSync()}>
               Sync now
             </button>
           </div>
-          <p className="muted">
+          <p className="cal-drawer-footnote">
             {settings.lastSyncAt
               ? `Last sync ${new Date(settings.lastSyncAt).toLocaleString()}`
               : "No sync run yet"}
@@ -323,14 +372,18 @@ export function CalendarPanel() {
       ) : null}
 
       {enterprisePanel === "reminder-sequences" && settings ? (
-        <section className="calendar-enterprise-panel">
-          <h3>Automated client reminder sequences</h3>
-          <div className="feature-list">
+        <section className="cal-drawer">
+          <h3>Reminder sequences</h3>
+          <div className="cal-sequence-list">
             {settings.reminderSequences.map((sequence) => (
-              <article key={sequence.id} className="feature-list-card">
-                <strong>{sequence.name}</strong>
-                <p>{sequence.triggers.length} triggers · {sequence.active ? "Active" : "Paused"}</p>
-                <button type="button" className="mail-toolbar-btn" onClick={() => void toggleSequence(sequence.id)}>
+              <article key={sequence.id} className="cal-sequence-card">
+                <div>
+                  <strong>{sequence.name}</strong>
+                  <p>
+                    {sequence.triggers.length} triggers · {sequence.active ? "Active" : "Paused"}
+                  </p>
+                </div>
+                <button type="button" className="cal-text-btn" onClick={() => void toggleSequence(sequence.id)}>
                   {sequence.active ? "Pause" : "Activate"}
                 </button>
               </article>
@@ -340,21 +393,22 @@ export function CalendarPanel() {
       ) : null}
 
       {enterprisePanel === "capacity" ? (
-        <section className="calendar-enterprise-panel">
+        <section className="cal-drawer">
           <h3>Team capacity</h3>
-          {capacityLoading ? <p className="mail-view-empty">Loading capacity…</p> : null}
-          <div className="calendar-capacity-list">
+          {capacityLoading ? <p className="cal-status">Loading capacity…</p> : null}
+          <div className="cal-capacity-list">
             {(capacity ?? []).map((member) => (
-              <article key={member.userId} className={`calendar-capacity-card calendar-capacity-card--${member.coverage}`}>
-                <div className="calendar-capacity-top">
+              <article key={member.userId} className={`cal-capacity-card cal-capacity-card--${member.coverage}`}>
+                <div className="cal-capacity-top">
                   <strong>{member.displayName}</strong>
                   <span>{member.utilization}%</span>
                 </div>
-                <div className="calendar-capacity-bar" aria-hidden="true">
+                <div className="cal-capacity-bar" aria-hidden="true">
                   <span style={{ width: `${member.utilization}%` }} />
                 </div>
-                <p className="muted">
-                  {member.eventCount} event{member.eventCount === 1 ? "" : "s"} · {member.hoursBooked}h booked / {member.hoursAvailable}h
+                <p className="cal-capacity-meta">
+                  {member.eventCount} event{member.eventCount === 1 ? "" : "s"} · {member.hoursBooked}h /{" "}
+                  {member.hoursAvailable}h
                 </p>
               </article>
             ))}
@@ -362,46 +416,107 @@ export function CalendarPanel() {
         </section>
       ) : null}
 
-      <section className="feature-form calendar-event-form">
-        <input placeholder="Event title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
-        <label className="feature-toggle">
-          <input type="checkbox" checked={form.allDay} onChange={(e) => setForm({ ...form, allDay: e.target.checked })} />
-          All day
-        </label>
-        {!form.allDay ? (
-          <>
-            <input type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} />
-            <input type="time" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} />
-          </>
-        ) : null}
-        <input placeholder="Location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-        <textarea placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-        <button type="button" className="mail-toolbar-btn" onClick={() => void createEvent()}>
-          Add event
-        </button>
-      </section>
+      {showForm ? (
+        <form className="cal-composer" onSubmit={(e) => void createEvent(e)}>
+          <div className="cal-composer-head">
+            <h3>New event</h3>
+            <button type="button" className="cal-icon-btn" aria-label="Close form" onClick={resetForm}>
+              ×
+            </button>
+          </div>
+          <div className="cal-form-grid">
+            <label className="cal-field cal-field--full">
+              <span>Title</span>
+              <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            </label>
+            <label className="cal-field">
+              <span>Date</span>
+              <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+            </label>
+            {!form.allDay ? (
+              <label className="cal-field">
+                <span>Start</span>
+                <input
+                  type="time"
+                  value={form.startTime}
+                  onChange={(e) => setForm({ ...form, startTime: e.target.value })}
+                />
+              </label>
+            ) : null}
+            {!form.allDay ? (
+              <label className="cal-field">
+                <span>End</span>
+                <input
+                  type="time"
+                  value={form.endTime}
+                  onChange={(e) => setForm({ ...form, endTime: e.target.value })}
+                />
+              </label>
+            ) : null}
+            <label className="cal-toggle">
+              <input
+                type="checkbox"
+                checked={form.allDay}
+                onChange={(e) => setForm({ ...form, allDay: e.target.checked })}
+              />
+              All day
+            </label>
+            <label className="cal-field cal-field--full">
+              <span>Location</span>
+              <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+            </label>
+            <label className="cal-field cal-field--full">
+              <span>Notes</span>
+              <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            </label>
+          </div>
+          <div className="cal-form-actions">
+            <button type="submit" className="cal-primary-btn">
+              Add event
+            </button>
+            <button type="button" className="cal-secondary-btn" onClick={resetForm}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : null}
 
-      {loading ? <p className="mail-view-empty">Loading calendar…</p> : null}
+      {notice ? <p className="cal-notice">{notice}</p> : null}
+      {loading ? <p className="cal-status">Loading…</p> : null}
       {error ? <p className="mail-view-error">{error}</p> : null}
 
-      <div className="calendar-grid">
+      <div className="cal-grid-head" aria-hidden="true">
+        {WEEKDAY_LABELS.map((label) => (
+          <span key={label}>{label}</span>
+        ))}
+      </div>
+
+      <div className="cal-grid">
         {visibleDays.map((day) => (
-          <article key={day.key} className="calendar-grid-day">
-            <strong>{day.day || " "}</strong>
-            {day.events.map((event) => (
-              <div key={event.id} className="calendar-grid-event">
-                <span>{event.title}</span>
-                {event.syncSource && event.syncSource !== "local" ? (
-                  <small>Synced from {event.syncSource === "google" ? "Google" : "Microsoft"}</small>
-                ) : null}
-                {event.syncSource === "local" ? (
-                  <button type="button" className="mail-toolbar-btn" onClick={() => void removeEvent(event.id)}>
-                    Remove
-                  </button>
-                ) : null}
-              </div>
-            ))}
+          <article
+            key={day.key}
+            className={`cal-grid-day${day.isBlank ? " is-blank" : ""}${day.dateKey === todayKey ? " is-today" : ""}`}
+          >
+            {!day.isBlank ? (
+              <>
+                <span className="cal-day-num">{day.day}</span>
+                {day.events.map((event) => (
+                  <div key={event.id} className="cal-event">
+                    <span className="cal-event-title">{event.title}</span>
+                    {event.syncSource && event.syncSource !== "local" ? (
+                      <span className="cal-event-meta">
+                        {event.syncSource === "google" ? "Google" : "Microsoft"}
+                      </span>
+                    ) : null}
+                    {event.syncSource === "local" ? (
+                      <button type="button" className="cal-event-remove" onClick={() => void removeEvent(event.id)}>
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+              </>
+            ) : null}
           </article>
         ))}
       </div>

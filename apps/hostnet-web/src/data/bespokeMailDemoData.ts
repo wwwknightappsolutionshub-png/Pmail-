@@ -104,6 +104,25 @@ export type BespokeMailDemoConfig = {
 };
 
 export const BESPOKE_MAIL_DEMOS: Record<string, BespokeMailDemoConfig> = {
+  platform: {
+    useCaseId: "platform",
+    brandName: "PMail+",
+    workspaceLabel: "Mail workspace",
+    userLabel: "Inbox",
+    crmLabel: "People",
+    crmContacts: [],
+    reminders: [],
+    crmStageOptions: [],
+    defaultContactId: "",
+    folders: ["INBOX", "Sent", "Drafts", "Archive"],
+    tools: [],
+    defaultToolId: "",
+    defaultMessageId: "",
+    insights: [],
+    messages: [],
+    toolPanels: {},
+  },
+
   legal: {
     useCaseId: "legal",
     brandName: "Hartwell & Partners",

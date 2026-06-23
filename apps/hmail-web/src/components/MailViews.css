@@ -1,3 +1,11 @@
+.mail-view-panel.platform-tools-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+}
+
 .mail-view-panel {
   flex: 1;
   min-height: 0;

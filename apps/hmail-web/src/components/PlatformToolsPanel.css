@@ -1,0 +1,878 @@
+/* Platform tools — Open tracking, File vault, Inbox cleanup, etc. */
+
+.platform-tools-panel {
+  --pt-text: #0f172a;
+  --pt-text-secondary: #334155;
+  --pt-text-muted: #475569;
+  --pt-border: #cbd5e1;
+  --pt-border-strong: #94a3b8;
+  --pt-surface: #ffffff;
+  --pt-surface-alt: #f8fafc;
+  --pt-surface-inset: #f1f5f9;
+  --pt-accent: #0d9488;
+  --pt-accent-dark: #0f766e;
+  --pt-accent-soft: #ecf8f6;
+  --pt-danger-bg: #fef2f2;
+  --pt-danger-border: #fecaca;
+  --pt-danger-text: #991b1b;
+  --pt-success-bg: #ecfdf5;
+  --pt-success-border: #a7f3d0;
+  --pt-success-text: #047857;
+  --pt-radius: 14px;
+  --pt-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --pt-scroll-pad-bottom: calc(3rem + env(safe-area-inset-bottom, 0px));
+
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  align-self: stretch;
+  overflow: hidden;
+  padding: 0;
+  background: var(--pt-surface);
+  color: var(--pt-text);
+}
+
+.platform-tools-panel__scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 1.15rem 1.35rem var(--pt-scroll-pad-bottom);
+  scrollbar-gutter: stable;
+}
+
+.platform-tools-panel__scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.platform-tools-panel__scroll::-webkit-scrollbar-track {
+  background: var(--pt-surface-inset);
+  border-radius: 999px;
+}
+
+.platform-tools-panel__scroll::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border: 2px solid var(--pt-surface-inset);
+  border-radius: 999px;
+}
+
+.platform-tools-section {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.platform-tools-section__title,
+.platform-tools-results__title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pt-text-secondary);
+}
+
+.platform-tools-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 0;
+  flex-shrink: 0;
+  padding-bottom: 0.75rem;
+}
+
+.platform-tools-results:last-of-type {
+  margin-bottom: 0.5rem;
+}
+
+.platform-tools-results__body {
+  flex: 0 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* One scroll surface — avoid nested clipping below the results section */
+.platform-tools-panel:not(.platform-tools-panel--split) .platform-tools-results__body > .feature-list,
+.platform-tools-panel:not(.platform-tools-panel--split) .platform-tools-results__body > .auto-reply-rule-list {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
+/* Split panels: scroll only the right-hand results column */
+.platform-tools-panel--split .platform-tools-split-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+  max-height: min(72vh, 900px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
+  -webkit-overflow-scrolling: touch;
+}
+
+.platform-tools-panel--split .platform-tools-split-secondary .platform-tools-results__body > .feature-list,
+.platform-tools-panel--split .platform-tools-split-secondary .auto-reply-rule-list {
+  max-height: none;
+  overflow: visible;
+  padding-bottom: 0.5rem;
+}
+
+.platform-tools-panel__footer-spacer {
+  flex-shrink: 0;
+  width: 100%;
+  min-height: 2.75rem;
+  height: 2.75rem;
+  pointer-events: none;
+}
+
+.platform-tools-panel--split .platform-tools-panel__scroll .platform-tools-panel__footer-spacer {
+  grid-column: 1 / -1;
+}
+
+/* Enterprise chrome */
+.platform-tools-panel--enterprise {
+  --pt-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.platform-tools-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.35rem 1.5rem;
+  border: 1px solid var(--pt-border);
+  border-radius: calc(var(--pt-radius) + 2px);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 55%, #ecf8f6 100%);
+  box-shadow: var(--pt-shadow);
+  border-left: 4px solid var(--pt-accent);
+}
+
+.platform-tools-hero__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pt-accent-dark);
+}
+
+.platform-tools-hero__text h2 {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--pt-text);
+}
+
+.platform-tools-hero__text p {
+  margin: 0.5rem 0 0;
+  max-width: 62ch;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--pt-text-muted);
+}
+
+.platform-tools-command {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--pt-border);
+  border-radius: calc(var(--pt-radius) + 2px);
+  background: var(--pt-surface);
+  box-shadow: var(--pt-shadow);
+}
+
+.platform-tools-command__head {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.platform-tools-command__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--pt-text);
+}
+
+.platform-tools-command__subtitle {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--pt-text-muted);
+}
+
+.platform-tools-command__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem 1rem;
+}
+
+.platform-tools-command__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-left: auto;
+}
+
+.platform-tools-field {
+  display: grid;
+  gap: 0.4rem;
+  min-width: min(100%, 16rem);
+  flex: 1 1 14rem;
+}
+
+.platform-tools-field__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pt-text-secondary);
+}
+
+.platform-tools-field__hint {
+  font-size: 0.78rem;
+  color: var(--pt-text-muted);
+}
+
+.platform-tools-field__hint--error {
+  color: var(--pt-danger-text);
+}
+
+.platform-tools-select-wrap {
+  position: relative;
+}
+
+.platform-tools-select-wrap::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0.9rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid var(--pt-text-secondary);
+  border-bottom: 2px solid var(--pt-text-secondary);
+  transform: translateY(-65%) rotate(45deg);
+  pointer-events: none;
+}
+
+.platform-tools-select,
+.platform-tools-panel .platform-tools-select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 2.25rem 0.65rem 0.9rem;
+  border: 1px solid var(--pt-border-strong);
+  border-radius: 10px;
+  background: var(--pt-surface-alt);
+  color: var(--pt-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  appearance: none;
+  cursor: pointer;
+}
+
+.platform-tools-select:focus {
+  outline: none;
+  border-color: var(--pt-accent);
+  background: #fff;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pt-accent) 20%, transparent);
+}
+
+.platform-tools-stat-banner {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--pt-border);
+  background: var(--pt-surface-alt);
+  color: var(--pt-text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.platform-tools-stat-banner--success {
+  border-color: var(--pt-success-border);
+  background: var(--pt-success-bg);
+  color: var(--pt-success-text);
+}
+
+.platform-tools-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-top: 0.15rem;
+}
+
+.platform-tools-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.15rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--pt-border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--pt-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.platform-tools-chip:hover {
+  border-color: var(--pt-accent);
+  background: var(--pt-accent-soft);
+  color: var(--pt-accent-dark);
+}
+
+.platform-tools-chip.is-active {
+  border-color: var(--pt-accent-dark);
+  background: linear-gradient(135deg, var(--pt-accent-dark), var(--pt-accent));
+  color: #fff;
+}
+
+.platform-tools-chip__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.platform-tools-chip.is-active .platform-tools-chip__count {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.platform-tools-upload-bar {
+  margin: 0;
+  padding: 1rem 1.15rem;
+}
+
+.platform-tools-upload-bar .mail-toolbar-btn--primary {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Split layout — form/tools left, scrollable results right (wide screens) */
+.platform-tools-split-header,
+.platform-tools-panel--split .platform-tools-hero,
+.platform-tools-panel--split > .platform-tools-panel__scroll > .platform-tools-alert {
+  grid-column: 1 / -1;
+}
+
+.platform-tools-panel--split .platform-tools-panel__scroll {
+  display: grid;
+  gap: 1.15rem;
+  align-content: start;
+  overflow-y: auto;
+}
+
+@media (min-width: 960px) {
+  .platform-tools-panel--split .platform-tools-panel__scroll {
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .platform-tools-panel--split .platform-tools-split-primary {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    align-self: start;
+  }
+
+  .platform-tools-panel--split .platform-tools-split-secondary {
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 959px) {
+  .platform-tools-panel--split .platform-tools-split-primary {
+    position: static;
+  }
+}
+
+/* Theme-aware surfaces — light default tokens live on .platform-tools-panel root */
+.mail-app.mail-app--light .platform-tools-panel,
+.pmail-demo-shell--light .mail-app .platform-tools-panel {
+  --pt-text: #0f172a;
+  --pt-text-secondary: #334155;
+  --pt-text-muted: #475569;
+  --pt-border: #cbd5e1;
+  --pt-border-strong: #94a3b8;
+  --pt-surface: #ffffff;
+  --pt-surface-alt: #f8fafc;
+  --pt-surface-inset: #f1f5f9;
+  --pt-accent: #0d9488;
+  --pt-accent-dark: #0f766e;
+  --pt-accent-soft: #ecf8f6;
+  --pt-danger-bg: #fef2f2;
+  --pt-danger-border: #fecaca;
+  --pt-danger-text: #991b1b;
+  --pt-success-bg: #ecfdf5;
+  --pt-success-border: #a7f3d0;
+  --pt-success-text: #047857;
+  --pt-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.06);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: var(--pt-text);
+}
+
+.mail-app:not(.mail-app--light) .platform-tools-panel,
+.pmail-demo-shell:not(.pmail-demo-shell--light) .mail-app:not(.mail-app--light) .platform-tools-panel {
+  --pt-text: #e8edf5;
+  --pt-text-secondary: #cbd5e1;
+  --pt-text-muted: #94a3b8;
+  --pt-border: rgba(148, 163, 184, 0.22);
+  --pt-border-strong: rgba(148, 163, 184, 0.34);
+  --pt-surface: rgba(14, 22, 38, 0.96);
+  --pt-surface-alt: rgba(10, 16, 30, 0.92);
+  --pt-surface-inset: rgba(6, 11, 22, 0.95);
+  --pt-accent: #2dd4bf;
+  --pt-accent-dark: #14b8a6;
+  --pt-accent-soft: rgba(20, 184, 166, 0.14);
+  --pt-danger-bg: rgba(127, 29, 29, 0.35);
+  --pt-danger-border: rgba(248, 113, 113, 0.35);
+  --pt-danger-text: #fecaca;
+  --pt-success-bg: rgba(6, 78, 59, 0.35);
+  --pt-success-border: rgba(52, 211, 153, 0.35);
+  --pt-success-text: #a7f3d0;
+  --pt-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.22);
+  background: var(--pt-surface-inset);
+  color: var(--pt-text);
+}
+
+.mail-app:not(.mail-app--light) .platform-tools-hero,
+.pmail-demo-shell:not(.pmail-demo-shell--light) .mail-app:not(.mail-app--light) .platform-tools-hero {
+  background: linear-gradient(135deg, rgba(14, 22, 38, 0.98) 0%, rgba(10, 16, 30, 0.95) 55%, rgba(13, 148, 136, 0.14) 100%);
+}
+
+.mail-app:not(.mail-app--light) .platform-tools-command,
+.pmail-demo-shell:not(.pmail-demo-shell--light) .mail-app:not(.mail-app--light) .platform-tools-command {
+  background: var(--pt-surface);
+  box-shadow: var(--pt-shadow);
+}
+
+.platform-tools-panel .mail-view-header {
+  padding: 1.15rem 1.35rem;
+  border: 1px solid var(--pt-border);
+  border-radius: var(--pt-radius);
+  background: var(--pt-surface);
+  box-shadow: var(--pt-shadow);
+  border-left: 4px solid var(--pt-accent);
+}
+
+.platform-tools-panel .mail-view-header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--pt-text);
+  line-height: 1.25;
+}
+
+.platform-tools-panel .mail-view-header p {
+  margin: 0.45rem 0 0;
+  max-width: 62ch;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--pt-text-muted);
+}
+
+.platform-tools-panel .feature-form,
+.platform-tools-panel .feature-form-grid {
+  gap: 1rem;
+  margin: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--pt-border);
+  border-radius: var(--pt-radius);
+  background: var(--pt-surface);
+  box-shadow: var(--pt-shadow);
+}
+
+.platform-tools-panel .feature-form h3,
+.platform-tools-panel .email-sla-alerts h3,
+.platform-tools-panel .email-sla-threads h3,
+.platform-tools-panel .inbox-cleanup-logs h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pt-text-secondary);
+}
+
+.platform-tools-panel .feature-form label,
+.platform-tools-panel .inbox-cleanup-toolbar label,
+.platform-tools-panel .attachment-categorize-toolbar label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--pt-text-secondary);
+}
+
+.platform-tools-panel .feature-form input,
+.platform-tools-panel .feature-form textarea,
+.platform-tools-panel .feature-form select,
+.platform-tools-panel .inbox-cleanup-toolbar input,
+.platform-tools-panel .attachment-categorize-toolbar input,
+.platform-tools-panel .feature-list-card select {
+  min-height: 2.65rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--pt-border-strong);
+  border-radius: 10px;
+  background: var(--pt-surface-alt);
+  color: var(--pt-text);
+  line-height: 1.4;
+}
+
+.platform-tools-panel .feature-form input::placeholder,
+.platform-tools-panel .feature-form textarea::placeholder {
+  color: var(--pt-text-muted);
+  opacity: 0.85;
+}
+
+.platform-tools-panel .feature-form input:focus,
+.platform-tools-panel .feature-form textarea:focus,
+.platform-tools-panel .feature-form select:focus,
+.platform-tools-panel .inbox-cleanup-toolbar input:focus,
+.platform-tools-panel .attachment-categorize-toolbar input:focus,
+.platform-tools-panel .feature-list-card select:focus {
+  outline: none;
+  border-color: var(--pt-accent);
+  background: var(--pt-surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pt-accent) 22%, transparent);
+}
+
+.platform-tools-panel .feature-form textarea {
+  min-height: 7.5rem;
+}
+
+.platform-tools-panel .feature-toggle,
+.platform-tools-panel .email-sla-enabled {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--pt-text-secondary);
+  cursor: pointer;
+}
+
+.platform-tools-panel .feature-toggle input,
+.platform-tools-panel .email-sla-enabled input {
+  width: 1.05rem;
+  height: 1.05rem;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  accent-color: var(--pt-accent);
+}
+
+.platform-tools-panel .inbox-cleanup-toolbar,
+.platform-tools-panel .attachment-categorize-toolbar,
+.platform-tools-panel .email-sla-settings-actions,
+.platform-tools-panel .esign-request-actions,
+.platform-tools-panel .email-sla-thread-actions,
+.platform-tools-panel .inbox-cleanup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.platform-tools-panel .inbox-cleanup-toolbar,
+.platform-tools-panel .attachment-categorize-toolbar {
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--pt-border);
+  border-radius: var(--pt-radius);
+  background: var(--pt-surface-alt);
+  margin: 0;
+}
+
+.platform-tools-panel .attachment-categorize-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+}
+
+.platform-tools-panel .mail-toolbar-btn {
+  min-height: 2.35rem;
+  padding: 0.45rem 0.95rem;
+  border: 1px solid var(--pt-border-strong);
+  border-radius: 10px;
+  background: var(--pt-surface);
+  color: var(--pt-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.platform-tools-panel .mail-toolbar-btn:hover:not(:disabled) {
+  border-color: var(--pt-accent);
+  background: var(--pt-accent-soft);
+  color: var(--pt-accent-dark);
+}
+
+.platform-tools-panel .mail-toolbar-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.platform-tools-panel .mail-toolbar-btn--primary,
+.platform-tools-panel .mail-toolbar-btn.is-active {
+  border-color: var(--pt-accent-dark);
+  background: linear-gradient(135deg, var(--pt-accent-dark), var(--pt-accent));
+  color: #ffffff;
+}
+
+.platform-tools-panel .mail-toolbar-btn--primary:hover:not(:disabled),
+.platform-tools-panel .mail-toolbar-btn.is-active:hover:not(:disabled) {
+  filter: brightness(1.05);
+  color: #ffffff;
+}
+
+.platform-tools-panel a.mail-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.platform-tools-panel .feature-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.platform-tools-panel .feature-list-card {
+  border: 1px solid var(--pt-border);
+  border-radius: var(--pt-radius);
+  padding: 1.1rem 1.2rem;
+  background: var(--pt-surface);
+  box-shadow: var(--pt-shadow);
+}
+
+.platform-tools-panel .feature-list-card strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--pt-text);
+  font-size: 0.98rem;
+}
+
+.platform-tools-panel .feature-list-card p {
+  margin: 0.2rem 0;
+  color: var(--pt-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.platform-tools-panel .esign-request-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.platform-tools-panel .platform-tools-empty {
+  margin: 0 0 1.25rem;
+  padding: 1.5rem 1.25rem;
+  border: 1px dashed var(--pt-border-strong);
+  border-radius: var(--pt-radius);
+  background: var(--pt-surface-alt);
+  color: var(--pt-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.platform-tools-panel .mail-view-empty {
+  margin: 0;
+  padding: 0.85rem 0;
+  color: var(--pt-text-muted);
+  font-size: 0.9rem;
+}
+
+.platform-tools-panel .mail-view-muted {
+  margin: 0 0 0.5rem;
+  opacity: 1;
+  color: var(--pt-text-muted);
+  font-size: 0.88rem;
+}
+
+.platform-tools-panel .platform-tools-alert {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.platform-tools-panel .platform-tools-alert--error,
+.platform-tools-panel .mail-view-error {
+  border: 1px solid var(--pt-danger-border);
+  background: var(--pt-danger-bg);
+  color: var(--pt-danger-text);
+}
+
+.platform-tools-panel .platform-tools-alert--success,
+.platform-tools-panel .platform-tools-notice {
+  border: 1px solid var(--pt-success-border);
+  background: var(--pt-success-bg);
+  color: var(--pt-success-text);
+}
+
+.platform-tools-panel .email-sla-alerts,
+.platform-tools-panel .email-sla-threads,
+.platform-tools-panel .inbox-cleanup-logs {
+  margin: 0;
+}
+
+.platform-tools-panel .inbox-cleanup-logs ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.platform-tools-panel .inbox-cleanup-logs li {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--pt-border);
+  border-radius: 10px;
+  background: var(--pt-surface-alt);
+  color: var(--pt-text-muted);
+  font-size: 0.86rem;
+}
+
+.platform-tools-panel .inbox-cleanup-logs li strong {
+  color: var(--pt-text);
+}
+
+.platform-tools-panel .esign-upload-form {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-items: end;
+}
+
+.platform-tools-panel .esign-upload-form label:has(textarea) {
+  grid-column: 1 / -1;
+}
+
+.platform-tools-panel .email-sla-settings {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  align-items: end;
+}
+
+.platform-tools-panel .email-sla-enabled {
+  grid-column: 1 / -1;
+}
+
+.platform-tools-panel .email-sla-settings-actions {
+  grid-column: 1 / -1;
+  padding-top: 0.25rem;
+}
+
+.platform-tools-panel .auto-reply-preview-card {
+  margin-top: 0;
+  border-color: var(--pt-border-strong);
+  background: #ffffff;
+}
+
+.platform-tools-panel .auto-reply-preview-card span {
+  color: var(--pt-text-muted);
+}
+
+.platform-tools-panel .auto-reply-preview-card iframe {
+  border: 0;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+@media (max-width: 720px) {
+  .platform-tools-panel__scroll {
+    padding: 0.9rem 0.85rem var(--pt-scroll-pad-bottom);
+  }
+
+  .platform-tools-panel .esign-upload-form,
+  .platform-tools-panel .email-sla-settings {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-tools-results__body > .feature-list {
+    max-height: none;
+  }
+}
+
+/* Theme-aware overrides for nested platform-tool surfaces */
+.mail-app .platform-tools-panel .mail-view-header,
+.mail-app .platform-tools-panel .feature-form,
+.mail-app .platform-tools-panel .feature-form-grid,
+.mail-app .platform-tools-panel .feature-list-card {
+  border-color: var(--pt-border);
+  background: var(--pt-surface);
+  color: var(--pt-text);
+  box-shadow: var(--pt-shadow);
+}
+
+.mail-app .platform-tools-panel .mail-view-header h2,
+.mail-app .platform-tools-panel .feature-list-card strong,
+.mail-app .platform-tools-panel .feature-form h3,
+.mail-app .platform-tools-panel .email-sla-alerts h3,
+.mail-app .platform-tools-panel .email-sla-threads h3,
+.mail-app .platform-tools-panel .inbox-cleanup-logs h3 {
+  color: var(--pt-text);
+}
+
+.mail-app .platform-tools-panel .mail-view-header p,
+.mail-app .platform-tools-panel .mail-view-empty,
+.mail-app .platform-tools-panel .feature-list-card p,
+.mail-app .platform-tools-panel .mail-view-muted {
+  color: var(--pt-text-muted);
+}
+
+.mail-app .platform-tools-panel .feature-form input,
+.mail-app .platform-tools-panel .feature-form textarea,
+.mail-app .platform-tools-panel .feature-form select,
+.mail-app .platform-tools-panel .inbox-cleanup-toolbar input,
+.mail-app .platform-tools-panel .attachment-categorize-toolbar input,
+.mail-app .platform-tools-panel .feature-list-card select {
+  border-color: var(--pt-border-strong);
+  background: var(--pt-surface-alt);
+  color: var(--pt-text);
+}
+
+.mail-app .platform-tools-panel .mail-toolbar-btn {
+  border-color: var(--pt-border-strong);
+  background: var(--pt-surface);
+  color: var(--pt-text-secondary);
+}
+
+.mail-app .platform-tools-panel .mail-toolbar-btn--primary,
+.mail-app .platform-tools-panel .mail-toolbar-btn.is-active {
+  border-color: var(--pt-accent-dark);
+  background: linear-gradient(135deg, var(--pt-accent-dark), var(--pt-accent));
+  color: #ffffff;
+}

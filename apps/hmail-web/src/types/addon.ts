@@ -25,6 +25,26 @@ export type AddonReleasePhase = 1 | 2 | 3;
 
 export type AddonAccessStatus = "none" | "trial" | "active" | "expired";
 
+export interface PanelWorkspaceTrialStatus {
+  active: boolean;
+  startedAt: string | null;
+  endsAt: string | null;
+  daysLeft: number | null;
+}
+
+export interface JobHunterEntitlement {
+  hasAccess: boolean;
+  canWrite: boolean;
+  readOnly: boolean;
+  paidActive: boolean;
+  marketplaceTrialActive: boolean;
+  careerTrialActive: boolean;
+  careerTrialExpired: boolean;
+  careerTrialStartedAt: string | null;
+  careerTrialEndsAt: string | null;
+  careerTrialDaysLeft: number | null;
+}
+
 export interface AddonItem {
   id: string;
   slug: string;
@@ -45,6 +65,7 @@ export interface AddonItem {
   trialEndsAt?: string;
   trialDaysLeft?: number;
   canStartTrial: boolean;
+  hasDirectSubscription: boolean;
 }
 
 export const ADDON_GROUP_LABELS: Record<AddonGroup, string> = {
@@ -72,18 +93,23 @@ export type MarketplaceLicenseScope = "user" | "tenant";
 export type MarketplaceBrowseVertical = Exclude<AddonVertical, "platform">;
 
 export const MARKETPLACE_PLATFORM_BUNDLE_USER_PRICE_CENTS = 1500;
+export const JOB_HUNTER_STANDALONE_USER_PRICE_CENTS = 1000;
+export const JOB_HUNTER_ADDON_SLUG = "job-hunter-functionality";
 export const MARKETPLACE_VERTICAL_BUNDLE_USER_PRICE_CENTS = 3000;
 export const MARKETPLACE_VERTICAL_BUNDLE_TENANT_SEAT_PRICE_CENTS = 2000;
 export const MARKETPLACE_VERTICAL_BUNDLE_MIN_TENANT_SEATS = 5;
 
 export const MARKETPLACE_PLATFORM_BUNDLE_SLUGS = [
-  "whatsapp-functionality",
-  "mail2pdf-functionality",
-  "full-calendar-functionality",
-  "scheduled-send",
   "open-tracking",
-  "auto-reply-functionality",
+  "file-vault-functionality",
+  "multi-inbox-functionality",
+  "inbox-cleanup-functionality",
+  "attachment-categorize-functionality",
+  "esign-from-email-functionality",
+  "job-hunter-functionality",
 ] as const;
+
+export const MARKETPLACE_PLATFORM_BUNDLE_SLUG_SET = new Set<string>(MARKETPLACE_PLATFORM_BUNDLE_SLUGS);
 
 export const MARKETPLACE_VERTICAL_BUNDLE_SLUGS: Record<MarketplaceBrowseVertical, readonly string[]> = {
   legal: ["immigration-desk", "immigration-templates", "program-checklists", "compliance-pack"],
@@ -112,11 +138,12 @@ export const MARKETPLACE_VERTICAL_LABELS: Record<MarketplaceBrowseVertical, stri
   healthcare: "Healthcare",
 };
 
+export function isPlatformBundleAddon(slug: string): boolean {
+  return MARKETPLACE_PLATFORM_BUNDLE_SLUG_SET.has(slug);
+}
+
 export function isPlatformWorkspaceAddon(addon: Pick<AddonItem, "addonKind" | "vertical" | "slug">): boolean {
-  return (
-    MARKETPLACE_PLATFORM_BUNDLE_SLUGS.includes(addon.slug as (typeof MARKETPLACE_PLATFORM_BUNDLE_SLUGS)[number]) ||
-    addon.slug === "bespoke-workspace"
-  );
+  return isPlatformBundleAddon(addon.slug) || addon.slug === "bespoke-workspace";
 }
 
 export function isVerticalBundleAddon(addon: Pick<AddonItem, "slug">, vertical: MarketplaceBrowseVertical): boolean {
@@ -132,7 +159,10 @@ export function isVerticalWorkspaceAddon(
 
 export function formatMarketplaceBundlePrice(scope: MarketplaceLicenseScope, bundle: "platform" | "vertical", seats = 5): string {
   if (bundle === "platform") {
-    return scope === "tenant" ? "Free for tenant" : `$${(MARKETPLACE_PLATFORM_BUNDLE_USER_PRICE_CENTS / 100).toFixed(2)}/mo for all 6 tools`;
+    const toolCount = MARKETPLACE_PLATFORM_BUNDLE_SLUGS.length;
+    return scope === "tenant"
+      ? "Free for tenant"
+      : `$${(MARKETPLACE_PLATFORM_BUNDLE_USER_PRICE_CENTS / 100).toFixed(2)}/mo for all ${toolCount} tools`;
   }
   if (scope === "tenant") {
     const unit = MARKETPLACE_VERTICAL_BUNDLE_TENANT_SEAT_PRICE_CENTS / 100;
@@ -143,8 +173,15 @@ export function formatMarketplaceBundlePrice(scope: MarketplaceLicenseScope, bun
 
 export function formatMarketplaceAddonPrice(addon: AddonItem, scope: MarketplaceLicenseScope): string {
   if (!addon.isPaid) return "Included in bundle";
+  if (addon.slug === JOB_HUNTER_ADDON_SLUG) {
+    return `$${(JOB_HUNTER_STANDALONE_USER_PRICE_CENTS / 100).toFixed(2)}/mo per user · auto-renews monthly`;
+  }
+  if (isPlatformBundleAddon(addon.slug)) {
+    return "Included in Platform bundle";
+  }
   if (addon.addonKind === "platform") {
-    return formatMarketplaceBundlePrice(scope, "platform");
+    const cents = scope === "user" ? addon.priceCents : addon.tenantPriceCents;
+    return `$${(cents / 100).toFixed(2)}/mo per user`;
   }
   if (addon.addonKind === "vertical") {
     return formatMarketplaceBundlePrice(scope, "vertical");

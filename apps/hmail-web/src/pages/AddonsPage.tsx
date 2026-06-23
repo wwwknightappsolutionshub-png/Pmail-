@@ -9,6 +9,8 @@ import {
   formatMarketplaceBundlePrice,
   isPlatformWorkspaceAddon,
   isVerticalWorkspaceAddon,
+  JOB_HUNTER_STANDALONE_USER_PRICE_CENTS,
+  MARKETPLACE_PLATFORM_BUNDLE_SLUGS,
   MARKETPLACE_VERTICAL_LABELS,
   MARKETPLACE_VERTICAL_ORDER,
   type MarketplaceBrowseVertical,
@@ -20,15 +22,20 @@ import "./AddonsPage.css";
 
 type MarketplaceStep = 1 | 2 | 3 | 4;
 
+const PLATFORM_BUNDLE_TOOL_COUNT = MARKETPLACE_PLATFORM_BUNDLE_SLUGS.length;
+
 const PLATFORM_ADDON_SLUG_ORDER = [
+  ...MARKETPLACE_PLATFORM_BUNDLE_SLUGS,
   "whatsapp-functionality",
   "mail2pdf-functionality",
   "full-calendar-functionality",
   "scheduled-send",
-  "open-tracking",
   "auto-reply-functionality",
   "bespoke-workspace",
 ] as const;
+
+const PLATFORM_BUNDLE_FEATURE_COPY =
+  "Open & link tracking, file vault, multiple inboxes, inbox cleanup, attachment auto-categorize, e-sign from email, and Job Hunter career workspace — plus the included Bespoke Workspace shell.";
 
 const VERTICAL_COPY: Record<MarketplaceBrowseVertical, string> = {
   legal: "Matter, compliance, client portal, and IRCC-focused tools for regulated practices.",
@@ -64,12 +71,26 @@ function formatTotal(cents: number): string {
   return `$${(cents / 100).toFixed(2)}/month`;
 }
 
+function hasMarketplaceCartSelection(input: {
+  includePlatformBundle: boolean;
+  includeVerticalBundle: boolean;
+  includeJobHunterStandalone: boolean;
+}): boolean {
+  return (
+    input.includePlatformBundle ||
+    input.includeVerticalBundle ||
+    (input.includeJobHunterStandalone && !input.includePlatformBundle)
+  );
+}
+
 export function AddonsPage() {
   const navigate = useNavigate();
   const { user, logout, setUser } = useAuth();
-  const { addons, loading, error, quoteMarketplace, startMarketplaceCheckout, refresh } = useAddons();
+  const { addons, loading, error, quoteMarketplace, startMarketplaceCheckout, startTrial, refresh } =
+    useAddons();
   const [checkoutError, setCheckoutError] = useState("");
   const [paying, setPaying] = useState(false);
+  const [trialStarting, setTrialStarting] = useState<string | null>(null);
   const [activatingStandard, setActivatingStandard] = useState(false);
   const [searchParams] = useSearchParams();
   const highlight = searchParams.get("highlight");
@@ -84,6 +105,7 @@ export function AddonsPage() {
   const [marketplaceStep, setMarketplaceStep] = useState<MarketplaceStep>(initialWorkspace ? 2 : 1);
   const [includePlatformBundle, setIncludePlatformBundle] = useState(true);
   const [includeVerticalBundle, setIncludeVerticalBundle] = useState(true);
+  const [includeJobHunterStandalone, setIncludeJobHunterStandalone] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [checkoutQuote, setCheckoutQuote] = useState<Awaited<ReturnType<typeof quoteMarketplace>> | null>(null);
 
@@ -107,7 +129,7 @@ export function AddonsPage() {
       setCheckoutQuote(null);
       return;
     }
-    if (!includePlatformBundle && !includeVerticalBundle) {
+    if (!hasMarketplaceCartSelection({ includePlatformBundle, includeVerticalBundle, includeJobHunterStandalone })) {
       setCheckoutQuote(null);
       return;
     }
@@ -121,6 +143,7 @@ export function AddonsPage() {
           scope: licenseScope,
           includePlatformBundle,
           includeVerticalBundle,
+          includeJobHunterStandalone,
         });
         if (!cancelled) setCheckoutQuote(quote);
       } catch (err) {
@@ -141,8 +164,15 @@ export function AddonsPage() {
     licenseScope,
     includePlatformBundle,
     includeVerticalBundle,
+    includeJobHunterStandalone,
     quoteMarketplace,
   ]);
+
+  useEffect(() => {
+    if (includePlatformBundle && includeJobHunterStandalone) {
+      setIncludeJobHunterStandalone(false);
+    }
+  }, [includePlatformBundle, includeJobHunterStandalone]);
 
   const platformAddons = useMemo(
     () => sortPlatformAddons(addons.filter((addon) => isPlatformWorkspaceAddon(addon))),
@@ -153,6 +183,32 @@ export function AddonsPage() {
     if (!selectedWorkspace) return [];
     return sortVerticalAddons(addons.filter((addon) => isVerticalWorkspaceAddon(addon, selectedWorkspace)));
   }, [addons, selectedWorkspace]);
+
+  const jobHunterAddon = useMemo(
+    () => addons.find((addon) => addon.slug === "job-hunter-functionality") ?? null,
+    [addons],
+  );
+
+  const onStartJobHunterTrial = async (slug: string) => {
+    setCheckoutError("");
+    setTrialStarting(slug);
+    try {
+      await startTrial(slug);
+    } catch (err) {
+      setCheckoutError(err instanceof ApiError ? err.message : "Could not start trial");
+    } finally {
+      setTrialStarting(null);
+    }
+  };
+
+  const jobHunterInCart = includeJobHunterStandalone && !includePlatformBundle;
+  const jobHunterStandaloneSubscribed = Boolean(jobHunterAddon?.hasDirectSubscription);
+
+  const toggleJobHunterCart = () => {
+    if (jobHunterStandaloneSubscribed || jobHunterAddon?.comingSoon) return;
+    setIncludeJobHunterStandalone((current) => !current);
+    setCheckoutError("");
+  };
 
   const activeCount = useMemo(() => {
     const relevant = [...platformAddons, ...verticalAddons];
@@ -186,8 +242,8 @@ export function AddonsPage() {
 
   const onPay = async () => {
     if (!selectedWorkspace || !licenseScope) return;
-    if (!includePlatformBundle && !includeVerticalBundle) {
-      setCheckoutError("Select at least one bundle to continue.");
+    if (!hasMarketplaceCartSelection({ includePlatformBundle, includeVerticalBundle, includeJobHunterStandalone })) {
+      setCheckoutError("Select at least one add-on or bundle to continue.");
       return;
     }
 
@@ -199,6 +255,7 @@ export function AddonsPage() {
         scope: licenseScope,
         includePlatformBundle,
         includeVerticalBundle,
+        includeJobHunterStandalone,
         seats: checkoutQuote?.seats,
       });
     } catch (err) {
@@ -262,6 +319,7 @@ export function AddonsPage() {
             {marketplaceStep >= 3 ? (
               <p className="addons-workspace-meta">
                 {activeCount} active tools across platform and vertical bundles.
+                {jobHunterInCart ? " Job Hunter added to cart." : ""}
               </p>
             ) : null}
             <button type="button" className="addons-refresh" onClick={() => void refresh()} disabled={loading}>
@@ -413,8 +471,11 @@ export function AddonsPage() {
                 <strong>Per user</strong>
                 <p>Best for solo operators subscribing on their own account.</p>
                 <ul>
-                  <li>Platform bundle (6 tools): $15.00/mo</li>
-                  <li>Vertical bundle (4 tools): $30.00/mo</li>
+                  <li>
+                    Platform bundle ({PLATFORM_BUNDLE_TOOL_COUNT} tools):{" "}
+                    {formatMarketplaceBundlePrice("user", "platform")}
+                  </li>
+                  <li>Vertical bundle (4 tools): {formatMarketplaceBundlePrice("user", "vertical")}</li>
                 </ul>
               </button>
               <button
@@ -426,8 +487,8 @@ export function AddonsPage() {
                 <strong>Per seat</strong>
                 <p>Best for firms rolling out bundles across a team with centralized billing.</p>
                 <ul>
-                  <li>Platform bundle (6 tools): Free</li>
-                  <li>Vertical bundle (4 tools): $20.00/mo per seat (minimum 5 seats)</li>
+                  <li>Platform bundle ({PLATFORM_BUNDLE_TOOL_COUNT} tools): Free</li>
+                  <li>Vertical bundle (4 tools): {formatMarketplaceBundlePrice("tenant", "vertical")}</li>
                 </ul>
               </button>
             </div>
@@ -439,20 +500,71 @@ export function AddonsPage() {
           </section>
         ) : marketplaceStep === 3 && selectedWorkspace && licenseScope ? (
           <>
+            {jobHunterAddon ? (
+              <section className="addons-category addons-category--standalone">
+                <header className="addons-category-head">
+                  <div>
+                    <p className="addons-category-kicker">Career workspace — standalone add-on</p>
+                    <h2>Job Hunter</h2>
+                    <p>
+                      Subscribe to Job Hunter alone, or get it with the Platform workspace bundle below. Start a
+                      30-day Marketplace trial, or unlock Career in mail to begin your complimentary career trial
+                      automatically.
+                    </p>
+                  </div>
+                  <aside className="addons-pricing-band" aria-label="Job Hunter pricing">
+                    <span>Standalone pricing ({licenseScope === "user" ? "individual" : "tenant"})</span>
+                    <strong>
+                      {licenseScope === "user"
+                        ? `$${(JOB_HUNTER_STANDALONE_USER_PRICE_CENTS / 100).toFixed(2)}/mo per user`
+                        : `$${(jobHunterAddon.tenantPriceCents / 100).toFixed(2)}/mo per seat`}
+                    </strong>
+                    <small>Auto-renews monthly · 30-day full-access trial · Tier B consent required</small>
+                    {jobHunterStandaloneSubscribed ? (
+                      <span className="addons-pricing-band-pill">Subscribed</span>
+                    ) : jobHunterAddon.comingSoon ? (
+                      <span className="addons-pricing-band-pill addons-pricing-band-pill--muted">Coming soon</span>
+                    ) : (
+                      <button
+                        type="button"
+                        className={`addons-pricing-band-cta ${jobHunterInCart ? "addons-pricing-band-cta--selected" : ""}`}
+                        aria-pressed={jobHunterInCart}
+                        onClick={toggleJobHunterCart}
+                      >
+                        {jobHunterInCart ? "Added to cart" : "Subscribe"}
+                      </button>
+                    )}
+                  </aside>
+                </header>
+                <div className="addons-grid addons-grid--single">
+                  <div
+                    id={`addon-${jobHunterAddon.slug}`}
+                    className={highlight === jobHunterAddon.slug ? "addons-highlight" : undefined}
+                  >
+                    <AddonCard
+                      addon={jobHunterAddon}
+                      starting={trialStarting === jobHunterAddon.slug}
+                      onStartTrial={onStartJobHunterTrial}
+                      preferredLicenseScope={licenseScope}
+                      suppressPrice
+                      hideSubscribe
+                    />
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
             <section className="addons-category">
               <header className="addons-category-head">
                 <div>
                   <p className="addons-category-kicker">Platform workspace tools</p>
-                  <h2>All 6 tools in one bundle</h2>
-                  <p>
-                    WhatsApp, Mail2PDF, Full Calendar, Scheduled Send, Open Tracking, and Auto Reply — plus the
-                    included Bespoke Workspace shell.
-                  </p>
+                  <h2>All {PLATFORM_BUNDLE_TOOL_COUNT} platform tools in one bundle</h2>
+                  <p>{PLATFORM_BUNDLE_FEATURE_COPY}</p>
                 </div>
                 <aside className="addons-pricing-band" aria-label="Platform bundle pricing">
                   <span>Bundle pricing ({licenseScope === "user" ? "individual" : "tenant"})</span>
                   <strong>{formatMarketplaceBundlePrice(licenseScope, "platform")}</strong>
-                  <small>One price unlocks all six platform workspace tools.</small>
+                  <small>One price unlocks all {PLATFORM_BUNDLE_TOOL_COUNT} platform workspace tools.</small>
                 </aside>
               </header>
               <div className="addons-grid">
@@ -510,12 +622,39 @@ export function AddonsPage() {
             <header className="addons-panel-head">
               <h2>Final selection and payment</h2>
               <p>
-                Confirm which workspace bundles you want for {MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]} under your{" "}
-                {licenseScope === "user" ? "individual" : "tenant"} license.
+                Confirm which add-ons you want for {MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]} under your{" "}
+                {licenseScope === "user" ? "individual" : "tenant"} license. You can subscribe to Job Hunter alone or
+                combine it with workspace bundles.
               </p>
             </header>
 
             <div className="addons-checkout-options">
+              <label
+                className={`addons-checkout-option ${jobHunterInCart ? "addons-checkout-option--selected" : ""} ${includePlatformBundle || jobHunterStandaloneSubscribed ? "addons-checkout-option--disabled" : ""}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={jobHunterInCart}
+                  disabled={includePlatformBundle || jobHunterStandaloneSubscribed}
+                  onChange={() => toggleJobHunterCart()}
+                />
+                <div>
+                  <strong>Job Hunter (standalone)</strong>
+                  <p>Career workspace — CV Hub, scanner, apply assist, and mail-based career intelligence.</p>
+                  <span>
+                    {licenseScope === "user"
+                      ? `$${(JOB_HUNTER_STANDALONE_USER_PRICE_CENTS / 100).toFixed(2)}/mo per user`
+                      : `$${((jobHunterAddon?.tenantPriceCents ?? JOB_HUNTER_STANDALONE_USER_PRICE_CENTS) / 100).toFixed(2)}/mo per seat`}
+                  </span>
+                  {includePlatformBundle ? (
+                    <small className="addons-checkout-option-note">Included when the platform bundle is selected.</small>
+                  ) : null}
+                  {jobHunterStandaloneSubscribed ? (
+                    <small className="addons-checkout-option-note">Already subscribed on your account.</small>
+                  ) : null}
+                </div>
+              </label>
+
               <label className={`addons-checkout-option ${includePlatformBundle ? "addons-checkout-option--selected" : ""}`}>
                 <input
                   type="checkbox"
@@ -524,7 +663,7 @@ export function AddonsPage() {
                 />
                 <div>
                   <strong>Platform workspace bundle</strong>
-                  <p>WhatsApp, Mail2PDF, Full Calendar, Scheduled Send, Open Tracking, Auto Reply</p>
+                  <p>{PLATFORM_BUNDLE_FEATURE_COPY.replace(/ — plus.*/, "")}</p>
                   <span>{formatMarketplaceBundlePrice(licenseScope, "platform")}</span>
                 </div>
               </label>
@@ -566,7 +705,7 @@ export function AddonsPage() {
                   ) : null}
                 </>
               ) : (
-                <p className="addons-empty">Select at least one bundle to see your total.</p>
+                <p className="addons-empty">Select at least one add-on or bundle to see your total.</p>
               )}
             </aside>
 
@@ -581,7 +720,11 @@ export function AddonsPage() {
                   paying ||
                   quoteLoading ||
                   !checkoutQuote ||
-                  (!includePlatformBundle && !includeVerticalBundle)
+                  !hasMarketplaceCartSelection({
+                    includePlatformBundle,
+                    includeVerticalBundle,
+                    includeJobHunterStandalone,
+                  })
                 }
                 onClick={() => void onPay()}
               >

@@ -34,6 +34,7 @@ const marketplaceQuoteSchema = z.object({
   scope: z.enum(["user", "tenant"]),
   includePlatformBundle: z.boolean(),
   includeVerticalBundle: z.boolean(),
+  includeJobHunterStandalone: z.boolean().optional().default(false),
   seats: z.coerce.number().int().min(1).optional(),
 });
 
@@ -82,6 +83,7 @@ addonRouter.post("/marketplace/checkout", async (req, res, next) => {
         scope: body.scope,
         includePlatformBundle: body.includePlatformBundle,
         includeVerticalBundle: body.includeVerticalBundle,
+        includeJobHunterStandalone: body.includeJobHunterStandalone,
         seats: body.seats,
       },
       successUrl: body.successUrl,
@@ -111,8 +113,15 @@ addonRouter.get("/", async (req, res, next) => {
 addonRouter.get("/entitlements", async (req, res, next) => {
   try {
     const tenantId = req.auth!.user.tenant.id;
-    const slugs = await getActiveAddonSlugs(tenantId, req.auth!.user.id);
-    res.json({ slugs });
+    const userId = req.auth!.user.id;
+    const slugs = await getActiveAddonSlugs(tenantId, userId);
+    const { getJobHunterEntitlement } = await import("../services/job-hunter-entitlement.service.js");
+    const { getPanelWorkspaceTrialStatus } = await import("../services/panel-workspace-trial.service.js");
+    const [jobHunter, panelWorkspaceTrial] = await Promise.all([
+      getJobHunterEntitlement(tenantId, userId),
+      getPanelWorkspaceTrialStatus(userId),
+    ]);
+    res.json({ slugs, jobHunter, panelWorkspaceTrial });
   } catch (err) {
     next(err);
   }

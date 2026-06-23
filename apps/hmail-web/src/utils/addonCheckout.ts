@@ -43,6 +43,7 @@ export async function startMarketplaceCheckout(input: {
   scope: MarketplaceLicenseScope;
   includePlatformBundle: boolean;
   includeVerticalBundle: boolean;
+  includeJobHunterStandalone?: boolean;
   seats?: number;
   returnPath?: string;
 }) {
@@ -54,6 +55,7 @@ export async function startMarketplaceCheckout(input: {
     scope: input.scope,
     includePlatformBundle: input.includePlatformBundle,
     includeVerticalBundle: input.includeVerticalBundle,
+    includeJobHunterStandalone: input.includeJobHunterStandalone,
     seats: input.seats,
     provider,
     successUrl: `${origin}${returnPath}?subscribed=marketplace`,

@@ -1,0 +1,202 @@
+.inbox-switcher {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
+.inbox-switcher--header {
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.inbox-switcher-trigger--header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: auto;
+  max-width: min(18rem, 42vw);
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+.inbox-switcher-header-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.inbox-switcher-header-email {
+  font-size: 0.8rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-switcher-header-chevron {
+  font-size: 0.62rem;
+  opacity: 0.75;
+}
+
+.inbox-switcher-panel--header {
+  left: auto;
+  right: 0;
+  min-width: 18rem;
+}
+
+.inbox-switcher-form-intro {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+.inbox-switcher-trigger {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  color: inherit;
+  cursor: pointer;
+}
+
+.inbox-switcher-kicker {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.7;
+  margin-bottom: 0.15rem;
+}
+
+.inbox-switcher-email {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.inbox-switcher-panel--header.inbox-switcher-panel--fixed {
+  position: fixed;
+  left: auto;
+  right: auto;
+  top: auto;
+  min-width: 20rem;
+  max-height: min(70vh, 32rem);
+  overflow: auto;
+}
+
+.inbox-switcher-panel {
+  position: absolute;
+  z-index: 1500;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #111827;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.inbox-switcher-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.inbox-switcher-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.inbox-switcher-list li.is-active .inbox-switcher-item {
+  border-color: var(--brand-accent, #6366f1);
+}
+
+.inbox-switcher-item {
+  flex: 1;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: inherit;
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.55rem;
+  cursor: pointer;
+}
+
+.inbox-switcher-item strong {
+  display: block;
+  font-size: 0.85rem;
+}
+
+.inbox-switcher-item span {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  word-break: break-all;
+}
+
+.inbox-switcher-item em {
+  font-style: normal;
+  font-size: 0.68rem;
+  opacity: 0.65;
+}
+
+.inbox-switcher-remove {
+  border: none;
+  background: transparent;
+  color: #fca5a5;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.inbox-switcher-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.inbox-switcher-form label span {
+  display: block;
+  font-size: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+
+.inbox-switcher-form input {
+  width: 100%;
+}
+
+.inbox-switcher-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.inbox-switcher-add {
+  width: 100%;
+  margin-top: 0.35rem;
+}
+
+.inbox-switcher-muted,
+.inbox-switcher-error {
+  font-size: 0.78rem;
+  margin: 0 0 0.5rem;
+}
+
+.inbox-switcher-error {
+  color: #fca5a5;
+}
+
+.mail-app--light .inbox-switcher-panel {
+  background: #fff;
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+.mail-app--light .inbox-switcher-trigger {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: rgba(15, 23, 42, 0.12);
+}

@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { logComplianceEvent } from "./compliance.service.js";
+import { createCalendarEvent } from "./workspace.service.js";
 
 const LISTING_STATUSES = new Set(["active", "pending", "sold", "withdrawn"]);
 const SHOWING_STATUSES = new Set(["scheduled", "completed", "cancelled", "no_show"]);
@@ -243,6 +244,15 @@ export async function createReShowing(
     entityType: "re_showing",
     entityId: showing.id,
     metadata: { listingId: input.listingId, scheduledAt: scheduledAt.toISOString() },
+  });
+
+  const endAt = new Date(scheduledAt.getTime() + 60 * 60 * 1000);
+  await createCalendarEvent(tenantId, userId, {
+    title: `Showing: ${listing.address}`,
+    startAt: scheduledAt.toISOString(),
+    endAt: endAt.toISOString(),
+    location: `${listing.address}, ${listing.city}`,
+    notes: showing.notes ?? `Buyer showing at ${listing.address}`,
   });
 
   return formatShowing(showing);

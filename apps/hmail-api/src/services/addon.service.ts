@@ -2,9 +2,14 @@ import { prisma } from "../lib/prisma.js";
 import { getEnv } from "../config/env.js";
 import {
   ADDON_CATALOG,
+  JOB_HUNTER_ADDON_SLUG,
+  JOB_HUNTER_TRIAL_DAYS,
   TRIAL_DAYS,
   getCatalogEntry,
-  PLATFORM_SPECIFIC_PAID_ADDON_SLUGS,
+  getPlatformBundleAnchorSlug,
+  MARKETPLACE_PLATFORM_BUNDLE_SLUGS,
+  MARKETPLACE_PLATFORM_BUNDLE_SLUG_SET,
+  PANEL_WORKSPACE_WELCOME_TRIAL_SLUG_SET,
   resolveAddonIsPaid,
   resolveAddonKind,
   resolveAddonMinTenantSeats,
@@ -27,6 +32,8 @@ export interface AddonWithAccess extends AddonCatalogEntry {
   trialEndsAt?: string;
   trialDaysLeft?: number;
   canStartTrial: boolean;
+  /** Active user/tenant subscription on this add-on (not bundle-included access). */
+  hasDirectSubscription: boolean;
   releasePhase: AddonReleasePhase;
   comingSoon: boolean;
 }
@@ -109,24 +116,38 @@ function isActiveSub(sub: { status: string; currentPeriodEnd?: Date | null } | n
 }
 
 export async function listAddonsForTenant(tenantId: string, userId?: string): Promise<AddonWithAccess[]> {
-  const [addons, trials, subscriptions, userSubscriptions, user] = await Promise.all([
+  const [addons, trials, subscriptions, userSubscriptions, user, panelWelcomeTrialActive] = await Promise.all([
     prisma.addon.findMany({ where: { isActive: true, deletedAt: null }, orderBy: { sortOrder: "asc" } }),
     prisma.tenantAddonTrial.findMany({ where: { tenantId } }),
     prisma.tenantAddonSubscription.findMany({ where: { tenantId } }),
     userId ? prisma.userAddonSubscription.findMany({ where: { tenantId, userId } }) : Promise.resolve([]),
     userId ? prisma.user.findUnique({ where: { id: userId }, select: { email: true } }) : Promise.resolve(null),
+    userId
+      ? import("./panel-workspace-trial.service.js").then((m) => m.hasActivePanelWorkspaceWelcomeTrial(userId))
+      : Promise.resolve(false),
   ]);
 
-  const testerUnlocked = user?.email.toLowerCase() === getEnv().PMAIL_TESTER_EMAIL.toLowerCase();
+  const env = getEnv();
+  const testerUnlocked =
+    env.PMAIL_TESTER_UNLOCK_ALL_ADDONS &&
+    user?.email.toLowerCase() === env.PMAIL_TESTER_EMAIL.toLowerCase();
   const trialByAddon = new Map(trials.map((t) => [t.addonId, t]));
   const subByAddon = new Map(subscriptions.map((s) => [s.addonId, s]));
   const userSubByAddon = new Map(userSubscriptions.map((s) => [s.addonId, s]));
   const activeVerticals = new Set<string>();
-  const activePlatformBundle = PLATFORM_SPECIFIC_PAID_ADDON_SLUGS.some((slug) => {
-    const addon = addons.find((entry) => entry.slug === slug);
-    if (!addon) return false;
-    return isActiveSub(subByAddon.get(addon.id)) || (userId ? isActiveSub(userSubByAddon.get(addon.id)) : false);
-  });
+  const anchorSlug = getPlatformBundleAnchorSlug();
+  const anchorAddon = addons.find((entry) => entry.slug === anchorSlug);
+  const activePlatformBundle =
+    (anchorAddon &&
+      (isActiveSub(subByAddon.get(anchorAddon.id)) ||
+        (userId ? isActiveSub(userSubByAddon.get(anchorAddon.id)) : false))) ||
+    MARKETPLACE_PLATFORM_BUNDLE_SLUGS.some((slug) => {
+      const addon = addons.find((entry) => entry.slug === slug);
+      if (!addon) return false;
+      return (
+        isActiveSub(subByAddon.get(addon.id)) || (userId ? isActiveSub(userSubByAddon.get(addon.id)) : false)
+      );
+    });
 
   for (const addon of addons) {
     if (addon.addonKind !== "vertical") continue;
@@ -138,11 +159,20 @@ export async function listAddonsForTenant(tenantId: string, userId?: string): Pr
   return addons.map((addon) => {
     const trial = trialByAddon.get(addon.id) ?? null;
     const subscription = subByAddon.get(addon.id) ?? userSubByAddon.get(addon.id) ?? null;
+    const tenantSubscription = subByAddon.get(addon.id) ?? null;
+    const userSubscription = userId ? userSubByAddon.get(addon.id) ?? null : null;
+    const hasDirectSubscription =
+      isActiveSub(tenantSubscription) || isActiveSub(userSubscription);
     const directAccess = resolveAccess(trial, subscription);
     const verticalBundleAccess = addon.addonKind === "vertical" && activeVerticals.has(addon.vertical);
-    const platformBundleAccess = addon.addonKind === "platform" && activePlatformBundle;
+    const platformBundleAccess =
+      addon.addonKind === "platform" &&
+      MARKETPLACE_PLATFORM_BUNDLE_SLUG_SET.has(addon.slug) &&
+      activePlatformBundle;
+    const panelWelcomeTrialAccess =
+      panelWelcomeTrialActive && PANEL_WORKSPACE_WELCOME_TRIAL_SLUG_SET.has(addon.slug);
     const access =
-      testerUnlocked || verticalBundleAccess || platformBundleAccess
+      testerUnlocked || verticalBundleAccess || platformBundleAccess || panelWelcomeTrialAccess
         ? { status: "active" as const }
         : directAccess;
     const hadTrial = Boolean(trial);
@@ -169,19 +199,35 @@ export async function listAddonsForTenant(tenantId: string, userId?: string): Pr
       trialEndsAt: access.trialEndsAt,
       trialDaysLeft: access.trialDaysLeft,
       canStartTrial: !comingSoon && !hadTrial && access.status !== "active",
+      hasDirectSubscription,
     };
   });
 }
 
-export async function getActiveAddonSlugs(tenantId: string, userId?: string): Promise<string[]> {
+export async function getMarketplaceActiveAddonSlugs(tenantId: string, userId?: string): Promise<string[]> {
   const addons = await listAddonsForTenant(tenantId, userId);
   return addons
     .filter((a) => a.accessStatus === "trial" || a.accessStatus === "active")
     .map((a) => a.slug);
 }
 
+export async function getActiveAddonSlugs(tenantId: string, userId?: string): Promise<string[]> {
+  const slugs = await getMarketplaceActiveAddonSlugs(tenantId, userId);
+  if (!userId) return slugs;
+
+  const { hasJobHunterReadAccess } = await import("./job-hunter-entitlement.service.js");
+  if (!slugs.includes(JOB_HUNTER_ADDON_SLUG) && (await hasJobHunterReadAccess(tenantId, userId))) {
+    return [...slugs, JOB_HUNTER_ADDON_SLUG];
+  }
+  return slugs;
+}
+
 export async function tenantHasAddonAccess(tenantId: string, slug: string, userId?: string): Promise<boolean> {
-  const slugs = await getActiveAddonSlugs(tenantId, userId);
+  if (slug === JOB_HUNTER_ADDON_SLUG && userId) {
+    const { hasJobHunterReadAccess } = await import("./job-hunter-entitlement.service.js");
+    return hasJobHunterReadAccess(tenantId, userId);
+  }
+  const slugs = await getMarketplaceActiveAddonSlugs(tenantId, userId);
   return slugs.includes(slug);
 }
 
@@ -293,7 +339,8 @@ export async function startAddonTrial(
   }
 
   const endsAt = new Date();
-  endsAt.setDate(endsAt.getDate() + TRIAL_DAYS);
+  const trialDays = slug === JOB_HUNTER_ADDON_SLUG ? JOB_HUNTER_TRIAL_DAYS : TRIAL_DAYS;
+  endsAt.setDate(endsAt.getDate() + trialDays);
 
   await prisma.tenantAddonTrial.create({
     data: {

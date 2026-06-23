@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { getEnv } from "../config/env.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireAddon } from "../middleware/requireAddon.js";
 import { listImmigrationTemplates } from "../services/templates.service.js";
@@ -863,7 +864,21 @@ featuresRouter.post(
         res.status(400).json({ error: "Invalid provider" });
         return;
       }
-      await setCalendarProviderConnection(tenantId, userId, provider, true);
+      const env = getEnv();
+      const tokenBody = req.body?.accessToken
+        ? {
+            accessToken: String(req.body.accessToken),
+            refreshToken: req.body?.refreshToken ? String(req.body.refreshToken) : undefined,
+            calendarId: req.body?.calendarId ? String(req.body.calendarId) : undefined,
+          }
+        : provider === "google" && env.GOOGLE_CALENDAR_ACCESS_TOKEN
+          ? { accessToken: env.GOOGLE_CALENDAR_ACCESS_TOKEN, calendarId: "primary" }
+          : provider === "microsoft" && env.MICROSOFT_GRAPH_ACCESS_TOKEN
+            ? { accessToken: env.MICROSOFT_GRAPH_ACCESS_TOKEN, calendarId: "primary" }
+            : process.env.NODE_ENV === "test"
+              ? { accessToken: "test-calendar-token", calendarId: "primary" }
+              : undefined;
+      await setCalendarProviderConnection(tenantId, userId, provider, true, tokenBody);
       const settings = await getCalendarSettings(tenantId, userId);
       res.json({ settings });
     } catch (err) {

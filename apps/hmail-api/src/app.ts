@@ -8,6 +8,7 @@ import { authRouter } from "./routes/auth.routes.js";
 import { mailRouter } from "./routes/mail.routes.js";
 import { addonRouter } from "./routes/addon.routes.js";
 import { featuresRouter } from "./routes/features.routes.js";
+import { pwaRouter } from "./routes/pwa.routes.js";
 import { growthRouter } from "./routes/growth.routes.js";
 import { publicRouter } from "./routes/public.routes.js";
 import { adminRouter } from "./routes/admin.routes.js";
@@ -15,6 +16,7 @@ import { panelRouter } from "./routes/panel.routes.js";
 import { paymentRouter, paystackWebhookHandler, stripeWebhookHandler } from "./routes/payment.routes.js";
 import { contactRouter } from "./routes/contact.routes.js";
 import { platformRouter } from "./routes/platform.routes.js";
+import { jobHunterRouter } from "./routes/job-hunter.routes.js";
 import { referralRouter } from "./routes/referral.routes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { requestLogger } from "./middleware/request-logger.middleware.js";
@@ -96,6 +98,9 @@ export function createApp() {
   app.use("/api/public/onboarding", publicWriteLimiter);
   app.use("/api/public/bespoke-demo", publicWriteLimiter);
   app.use("/api/public/track", trackingLimiter);
+  app.use("/api/public/vault", trackingLimiter);
+  app.use("/api/public/esign", trackingLimiter);
+  app.use("/api/public/sla-report", trackingLimiter);
   app.use("/api/payments", paymentRouter);
   app.use("/api/public", publicRouter);
   app.use("/api/admin", adminRouter);
@@ -103,11 +108,13 @@ export function createApp() {
   app.use("/api/growth", growthRouter);
   app.use("/api/auth", authRouter);
   app.use("/api/mail", mailRouter);
+  app.use("/api/job-hunter", jobHunterRouter);
   app.use("/api/referrals", referralRouter);
   app.use("/api/contacts", contactRouter);
   app.use("/api/addons", addonRouter);
   app.use("/api/platform", platformRouter);
   app.use("/api/features", featuresRouter);
+  app.use("/api/pwa", pwaRouter);
 
   app.use(errorHandler);
 

@@ -55,30 +55,21 @@ export async function seedDefaultAutoReplies(userId: string, businessVertical: s
 
 export async function ensureAutoReplyComplimentary(userId: string, businessVertical: string | null | undefined): Promise<void> {
   const existing = await prisma.userComposeSettings.findUnique({ where: { userId } });
-  const now = new Date();
 
   if (!existing) {
     await prisma.userComposeSettings.create({
       data: {
         userId,
-        autoReplyEnabled: true,
-        autoReplyComplimentaryStartedAt: now,
+        autoReplyEnabled: false,
       },
     });
     await seedDefaultAutoReplies(userId, businessVertical);
     return;
   }
 
-  if (!existing.autoReplyComplimentaryStartedAt) {
-    await prisma.userComposeSettings.update({
-      where: { userId },
-      data: {
-        autoReplyComplimentaryStartedAt: now,
-        autoReplyEnabled: existing.autoReplyEnabled || true,
-      },
-    });
-    await seedDefaultAutoReplies(userId, businessVertical);
-  }
+  if (existing.autoReplyComplimentaryStartedAt) return;
+
+  await seedDefaultAutoReplies(userId, businessVertical);
 }
 
 export async function getAutoReplyEntitlement(userId: string, tenantId: string): Promise<AutoReplyEntitlement> {

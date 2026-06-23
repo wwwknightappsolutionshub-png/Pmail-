@@ -1,18 +1,50 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useRegisterBespokeCompose } from "../context/BespokeComposeBridge";
 import { useAddons } from "../context/AddonContext";
 import { AddonUpsellPanel } from "../components/AddonUpsellPanel";
 import { ComposeModal, type ComposeInitial } from "../components/ComposeModal";
+import { UndoSendToast, type PendingUndoSend } from "../components/UndoSendToast";
+import { CvScannerToast } from "../components/CvScannerToast";
+import type { CareerScannerPreload } from "../components/CareerScannerPanel";
+import {
+  canShowCvScannerToast,
+  recordCvScannerToastShown,
+  setCvScannerDontAskAgain,
+} from "../lib/cvScannerToastPrefs";
+import { InboxSwitcher, type InboxSwitcherHandle } from "../components/InboxSwitcher";
+import { MultiInboxConnectToast } from "../components/MultiInboxConnectToast";
+import { PaidAddonToast } from "../components/PaidAddonToast";
+import { MessageUnsubscribeButton } from "../components/MessageUnsubscribeButton";
+import {
+  DeleteIcon,
+  ForwardIcon,
+  MarkUnreadIcon,
+  PdfIcon,
+  PrintIcon,
+  ReadActionButton,
+  ReplyAllIcon,
+  ReplyIcon,
+  TrashIcon,
+  WhatsAppIcon,
+} from "../components/ReadActionButton";
+import { AttachmentCategoryBadges } from "../components/AttachmentCategoryBadges";
+import { SendForSignatureButton } from "../components/SendForSignatureButton";
+import {
+  isMultiInboxPromptDismissed,
+  setMultiInboxPromptDismissed,
+} from "../lib/multiInboxPromptPrefs";
 import { resolveInboxPath } from "../components/DocumentsPanel";
 import { FolderNav, folderDisplayLabel, resolveFolderKind, sortFolders } from "../components/FolderNav";
+import { MailBespokeChrome } from "../components/MailBespokeChrome";
 import { HMailLogo } from "../components/HMailLogo";
 import { MailBulkActions } from "../components/MailBulkActions";
 import { MailFilterBar } from "../components/MailFilterBar";
 import { MailOrderBar } from "../components/MailOrderBar";
 import { MailPaginationBar } from "../components/MailPaginationBar";
-import { MailSearchPanel } from "../components/MailSearchPanel";
+import { GmailMailSearch, isGmailStyleQuery } from "../components/GmailMailSearch";
 import { NewFolderModal } from "../components/NewFolderModal";
 import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
 import { SenderGroupedMessageList } from "../components/SenderGroupedMessageList";
@@ -22,6 +54,7 @@ import {
   isVirtualView,
   virtualViewTitle,
   VIEW_CONTACTS,
+  VIEW_CAREER_SCANNER,
   type MailSearchState,
   type MailStatusFilter,
 } from "../constants/mailViews";
@@ -30,6 +63,22 @@ import "./MailPage.css";
 import "../components/ContactsPanel.css";
 
 const PAGE_SIZE = 30;
+const MAIL_SIDEBAR_COLLAPSED_KEY = "pmail-mail-sidebar-collapsed-v3";
+
+function readSidebarCollapsedPreference(): boolean | null {
+  try {
+    const stored = localStorage.getItem(MAIL_SIDEBAR_COLLAPSED_KEY);
+    if (stored === "1") return true;
+    if (stored === "0") return false;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function defaultSidebarCollapsed(): boolean {
+  return true;
+}
 
 function extractEmailFromHeader(value: string): string {
   const match = value.match(/<([^>]+)>/);
@@ -98,6 +147,30 @@ const ADDON_UPSELL_COPY: Record<string, { name: string; description: string }> =
     name: "Open Tracking",
     description: "Track when recipients open your sent messages.",
   },
+  "file-vault-functionality": {
+    name: "File Vault",
+    description: "Send large files via secure download links and manage your vault.",
+  },
+  "multi-inbox-functionality": {
+    name: "Multiple Inboxes",
+    description: "Connect additional mailboxes and switch between them in your workspace.",
+  },
+  "inbox-cleanup-functionality": {
+    name: "Inbox Cleanup",
+    description: "Bulk clean high-volume senders and one-click unsubscribe from marketing mail.",
+  },
+  "attachment-categorize-functionality": {
+    name: "Attachment Categories",
+    description: "Auto-classify inbox attachments and export categorized files to vault for compose.",
+  },
+  "esign-from-email-functionality": {
+    name: "E-Sign from Email",
+    description: "Send PDF and Word attachments for e-signature via Dropbox Sign with secure download links.",
+  },
+  "email-sla-tracker-functionality": {
+    name: "Email SLA Tracker",
+    description: "Track inbound thread response times with at-risk and breach alerts, plus compose reply handoff.",
+  },
   "full-calendar-functionality": {
     name: "Full Calendar",
     description: "Month and week calendar views with workspace events.",
@@ -107,8 +180,8 @@ const ADDON_UPSELL_COPY: Record<string, { name: string; description: string }> =
     description: "Send message summaries to WhatsApp from the read pane.",
   },
   "mail2pdf-functionality": {
-    name: "Mail2PDF",
-    description: "Export the open message to a downloadable PDF.",
+    name: "Mail 2 PDF",
+    description: "Export mailbox messages to PDF from the sidebar tool or the read-pane action.",
   },
   "re-listing-board": {
     name: "Listing Board",
@@ -132,6 +205,7 @@ function renderGatedView(
   view: string,
   hasAddon: (slug: string) => boolean,
   panel: React.ReactNode,
+  panelWorkspaceTrial?: import("../types/addon").PanelWorkspaceTrialStatus | null,
 ) {
   const slug = toolAddonSlug(view);
   if (slug && !hasAddon(slug)) {
@@ -140,17 +214,44 @@ function renderGatedView(
       <AddonUpsellPanel
         addonSlug={slug}
         addonName={copy?.name ?? "Add-on"}
-        description={copy?.description ?? "Start a free trial from the marketplace."}
+        description={copy?.description ?? "Subscribe from the Add-ons marketplace to unlock this tool."}
+        panelWorkspaceTrial={panelWorkspaceTrial}
       />
     );
   }
   return panel;
 }
 
-export function MailPage() {
-  const { user, logout } = useAuth();
-  const { hasAddon } = useAddons();
+export type MailPageProps = {
+  embedded?: boolean;
+  shellThemeVersion?: "dark" | "light";
+  searchDraft?: MailSearchState;
+  onSearchDraftChange?: (next: MailSearchState) => void;
+  appliedSearch?: MailSearchState;
+  onAppliedSearchChange?: (next: MailSearchState) => void;
+  /** When set, navigates mail to this folder/view (`null` = return to inbox). */
+  requestedFolder?: string | null;
+  onRequestedFolderHandled?: () => void;
+  onActiveFolderChange?: (folder: string) => void;
+  onCareerNavUnlockedChange?: (unlocked: boolean) => void;
+};
+
+export function MailPage({
+  embedded = false,
+  shellThemeVersion,
+  searchDraft: externalSearchDraft,
+  onSearchDraftChange,
+  appliedSearch: externalAppliedSearch,
+  onAppliedSearchChange,
+  requestedFolder,
+  onRequestedFolderHandled,
+  onActiveFolderChange,
+  onCareerNavUnlockedChange,
+}: MailPageProps = {}) {
+  const { user, logout, refresh } = useAuth();
+  const { hasAddon, hasJobHunterAccess, panelWorkspaceTrial } = useAddons();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const branding = user?.tenant.branding;
   const productName = branding?.productName ?? "PMail+";
   const tenantName = user?.tenant.name ?? "Prohost Cloud";
@@ -170,23 +271,73 @@ export function MailPage() {
   const [selectedUids, setSelectedUids] = useState<number[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<MailMessageDetail | null>(null);
   const [mailFilter, setMailFilter] = useState<MailStatusFilter>("all");
-  const [searchDraft, setSearchDraft] = useState<MailSearchState>({ field: "subject", query: "" });
-  const [appliedSearch, setAppliedSearch] = useState<MailSearchState>({ field: "subject", query: "" });
+  const [internalSearchDraft, setInternalSearchDraft] = useState<MailSearchState>({ field: "subject", query: "" });
+  const [internalAppliedSearch, setInternalAppliedSearch] = useState<MailSearchState>({ field: "subject", query: "" });
+  const searchDraft = externalSearchDraft ?? internalSearchDraft;
+  const setSearchDraft = onSearchDraftChange ?? setInternalSearchDraft;
+  const appliedSearch = externalAppliedSearch ?? internalAppliedSearch;
+  const setAppliedSearch = onAppliedSearchChange ?? setInternalAppliedSearch;
   const [loadingFolders, setLoadingFolders] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(false);
-  const [error, setError] = useState("");
+  const [listError, setListError] = useState("");
+  const [messageError, setMessageError] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeInitial, setComposeInitial] = useState<ComposeInitial | undefined>();
+  const [pendingUndoSend, setPendingUndoSend] = useState<PendingUndoSend | null>(null);
+  const [cvScannerToastFile, setCvScannerToastFile] = useState<File | null>(null);
+  const [careerScannerPreload, setCareerScannerPreload] = useState<CareerScannerPreload | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    () => readSidebarCollapsedPreference() ?? defaultSidebarCollapsed(),
+  );
   const [mobilePane, setMobilePane] = useState<MobilePane>("list");
   const [expandedSenderEmail, setExpandedSenderEmail] = useState<string | null>(null);
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
     (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
   );
+  const activeThemeVersion = embedded && shellThemeVersion ? shellThemeVersion : uiThemeVersion;
   const [platformNotice, setPlatformNotice] = useState("");
+  const [careerNavUnlocked, setCareerNavUnlocked] = useState(false);
+  const [referBusy, setReferBusy] = useState(false);
+  const [paidAddonGate, setPaidAddonGate] = useState<{ slug: string; name: string } | null>(null);
+  const [multiInboxPromptOpen, setMultiInboxPromptOpen] = useState(false);
+  const [mailAccountCount, setMailAccountCount] = useState<number | null>(null);
+  const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
+  const hasMultiInboxAddon = hasAddon("multi-inbox-functionality");
+
+  useEffect(() => {
+    if (!platformNotice) return;
+    const timer = window.setTimeout(() => setPlatformNotice(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [platformNotice]);
+
+  const openPaidAddonGate = useCallback((slug: string, label?: string) => {
+    const copy = ADDON_UPSELL_COPY[slug];
+    setPaidAddonGate({ slug, name: copy?.name ?? label ?? "Add-on" });
+  }, []);
+
+  const openAddonMarketplace = useCallback(
+    (highlightSlug?: string) => {
+      navigate(highlightSlug ? `/addons?highlight=${highlightSlug}` : "/addons");
+    },
+    [navigate],
+  );
+
+  const toggleSidebarCollapsed = useCallback(() => {
+    setSidebarCollapsed((current) => {
+      const next = !current;
+      try {
+        localStorage.setItem(MAIL_SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
 
   const businessVertical = user?.businessVertical ?? null;
+  const hasJobHunterAddon = hasJobHunterAccess();
   const inboxPath = useMemo(() => resolveInboxPath(folders), [folders]);
   const useSenderGrouping =
     !isVirtualView(activeFolder) &&
@@ -210,6 +361,28 @@ export function MailPage() {
   const activeFolderKind = isVirtual ? null : resolveFolderKind(activeFolderMeta);
   const showBulkBar = activeFolderKind ? folderSupportsBulkActions(activeFolderKind) : false;
   const activeFolderLabel = getFolderTitle(activeFolder, activeFolderMeta);
+  const showInboxSwitcher = activeFolderKind === "inbox" && !isVirtual;
+
+  useEffect(() => {
+    if (requestedFolder === undefined) return;
+    const target = requestedFolder ?? inboxPath ?? "INBOX";
+    setActiveFolder(target);
+    setSelectedUid(null);
+    setSelectedMessage(null);
+    setMobilePane("list");
+    onRequestedFolderHandled?.();
+  }, [requestedFolder, inboxPath, onRequestedFolderHandled]);
+
+  useEffect(() => {
+    onActiveFolderChange?.(activeFolder);
+  }, [activeFolder, onActiveFolderChange]);
+
+  useEffect(() => {
+    if (!showInboxSwitcher || !hasMultiInboxAddon) return;
+    if (mailAccountCount === null || mailAccountCount > 1) return;
+    if (isMultiInboxPromptDismissed()) return;
+    setMultiInboxPromptOpen(true);
+  }, [showInboxSwitcher, hasMultiInboxAddon, mailAccountCount]);
   const contentPane = isVirtual || !selectedUid ? "list" : "read";
 
   const loadFolders = useCallback(async () => {
@@ -217,33 +390,102 @@ export function MailPage() {
     try {
       const { folders: data } = await api.folders();
       setFolders(data);
+      setListError("");
       if (!isVirtualView(activeFolder) && !data.some((f) => f.path === activeFolder) && data[0]) {
         setActiveFolder(data[0].path);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load folders");
+      setListError(err instanceof Error ? err.message : "Failed to load folders");
     } finally {
       setLoadingFolders(false);
     }
   }, [activeFolder]);
 
+  useEffect(() => {
+    const mailFolder = searchParams.get("mailFolder");
+    const uidParam = searchParams.get("uid");
+    const view = searchParams.get("view");
+
+    if (mailFolder && uidParam) {
+      const uid = Number(uidParam);
+      if (Number.isFinite(uid)) {
+        setActiveFolder(mailFolder);
+        setSelectedUid(uid);
+        setMobilePane("read");
+      }
+    } else if (view && isVirtualView(view)) {
+      setActiveFolder(view);
+    }
+
+    if (mailFolder || uidParam || view) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    api
+      .getJobHunterSettings()
+      .then((res) => {
+        setCareerNavUnlocked(res.settings.careerNavUnlocked);
+        onCareerNavUnlockedChange?.(res.settings.careerNavUnlocked);
+      })
+      .catch(() => {
+        setCareerNavUnlocked(false);
+        onCareerNavUnlockedChange?.(false);
+      });
+  }, [onCareerNavUnlockedChange]);
+
+  const refreshCareerNav = useCallback(() => {
+    api
+      .getJobHunterSettings()
+      .then((res) => {
+        setCareerNavUnlocked(res.settings.careerNavUnlocked);
+        onCareerNavUnlockedChange?.(res.settings.careerNavUnlocked);
+      })
+      .catch(() => {
+        setCareerNavUnlocked(false);
+        onCareerNavUnlockedChange?.(false);
+      });
+  }, [onCareerNavUnlockedChange]);
+
+  const handleMailboxSwitch = useCallback(async () => {
+    setActiveFolder("INBOX");
+    setSelectedUid(null);
+    setSelectedMessage(null);
+    setSelectedUids([]);
+    setMessagePage(1);
+    setAppliedSearch({ field: "subject", query: "" });
+    setSearchDraft({ field: "subject", query: "" });
+    setMailFilter("all");
+    await refresh();
+    await loadFolders();
+  }, [refresh, loadFolders]);
+
   const loadMessages = useCallback(async () => {
     if (isVirtualView(activeFolder)) return;
 
     setLoadingMessages(true);
-    setError("");
+    setListError("");
     try {
+      const searchText = appliedSearch.query.trim();
+      const gmailSearch =
+        isGmailStyleQuery(searchText) ||
+        (appliedSearch.scope != null && appliedSearch.scope !== "all");
       const result = await api.messages(activeFolder, {
         page: messagePage,
         pageSize: PAGE_SIZE,
-        searchField: appliedSearch.query ? appliedSearch.field : undefined,
-        searchQuery: appliedSearch.query || undefined,
+        searchField: searchText && !gmailSearch ? appliedSearch.field : undefined,
+        searchQuery: searchText || undefined,
         filter: mailFilter,
         sortBy,
         sortOrder,
       });
       setMessages(result.messages);
       setMessageTotal(result.total);
+      const normalizedFolder = activeFolder.trim().toLowerCase();
+      if (normalizedFolder === "inbox" || normalizedFolder === "sent") {
+        refreshCareerNav();
+      }
       setSelectedUids((prev) => prev.filter((uid) => result.messages.some((m) => m.uid === uid)));
       if (selectedUid && !result.messages.some((m) => m.uid === selectedUid)) {
         setSelectedUid(null);
@@ -251,11 +493,46 @@ export function MailPage() {
         setMobilePane("list");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load messages");
+      setListError(err instanceof Error ? err.message : "Failed to load messages");
     } finally {
       setLoadingMessages(false);
     }
-  }, [activeFolder, appliedSearch, mailFilter, selectedUid, messagePage, sortBy, sortOrder]);
+  }, [activeFolder, appliedSearch, mailFilter, selectedUid, messagePage, sortBy, sortOrder, refreshCareerNav]);
+
+  const refreshAfterSend = useCallback(
+    async (sentFolderPath?: string) => {
+      const sentPath = sentFolderPath ?? sortedFolders.find((f) => resolveFolderKind(f) === "sent")?.path;
+
+      await loadFolders();
+
+      if (sentPath) {
+        setActiveFolder(sentPath);
+        setSelectedUid(null);
+        setSelectedMessage(null);
+        setMobilePane("list");
+        setLoadingMessages(true);
+        try {
+          const result = await api.messages(sentPath, {
+            filter: mailFilter,
+            page: 1,
+            pageSize: PAGE_SIZE,
+            sortBy,
+            sortOrder,
+          });
+          setMessages(result.messages);
+          setMessageTotal(result.total);
+          setMessagePage(1);
+        } catch (err) {
+          setListError(err instanceof Error ? err.message : "Failed to load sent messages");
+        } finally {
+          setLoadingMessages(false);
+        }
+      } else {
+        await loadMessages();
+      }
+    },
+    [sortedFolders, loadFolders, mailFilter, sortBy, sortOrder, loadMessages],
+  );
 
   useEffect(() => {
     const inboxPath = folders.find((f) => resolveFolderKind(f) === "inbox")?.path;
@@ -273,12 +550,13 @@ export function MailPage() {
   const loadMessage = useCallback(
     async (uid: number) => {
       setLoadingMessage(true);
+      setMessageError("");
       try {
         const { message } = await api.message(activeFolder, uid);
         setSelectedMessage(message);
         setMessages((prev) => prev.map((m) => (m.uid === uid ? { ...m, seen: true } : m)));
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load message");
+        setMessageError(err instanceof Error ? err.message : "Failed to load message");
       } finally {
         setLoadingMessage(false);
       }
@@ -319,6 +597,7 @@ export function MailPage() {
   const clearSelectedMessage = () => {
     setSelectedUid(null);
     setSelectedMessage(null);
+    setMessageError("");
     setMobilePane("list");
   };
 
@@ -387,10 +666,12 @@ export function MailPage() {
     await loadFolders();
   };
 
-  const openCompose = (initial?: ComposeInitial) => {
+  const openCompose = useCallback((initial?: ComposeInitial) => {
     setComposeInitial(initial);
     setComposeOpen(true);
-  };
+  }, []);
+
+  useRegisterBespokeCompose(openCompose, embedded);
 
   const quotedBodyHtml = (message: MailMessageDetail) => {
     const body = message.html ?? `<pre>${message.text ?? ""}</pre>`;
@@ -477,7 +758,7 @@ export function MailPage() {
       URL.revokeObjectURL(url);
       setStatusMessage("PDF exported");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "PDF export failed");
+      setMessageError(err instanceof Error ? err.message : "PDF export failed");
     }
   };
 
@@ -497,16 +778,19 @@ export function MailPage() {
       });
       setStatusMessage("WhatsApp message queued");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "WhatsApp send failed");
+      setMessageError(err instanceof Error ? err.message : "WhatsApp send failed");
     }
   };
 
   const onReferFriend = async () => {
+    setReferBusy(true);
     try {
       const result = await api.referralInvite();
       setPlatformNotice(result.rewardToast ?? result.message ?? "Referral invite sent.");
     } catch (err) {
       setPlatformNotice(err instanceof Error ? err.message : "Referral failed");
+    } finally {
+      setReferBusy(false);
     }
   };
 
@@ -533,14 +817,34 @@ export function MailPage() {
     setActiveFolder(folder.path);
   };
 
+  const handleCvAttachmentAdded = (file: File) => {
+    if (!hasJobHunterAddon || !canShowCvScannerToast()) return;
+    recordCvScannerToastShown();
+    setCvScannerToastFile(file);
+  };
+
+  const openCvScannerFromToast = () => {
+    if (!cvScannerToastFile) return;
+    setCareerScannerPreload({ file: cvScannerToastFile, fromToastOptIn: true });
+    setCvScannerToastFile(null);
+    setActiveFolder(VIEW_CAREER_SCANNER);
+    setMobilePane("list");
+  };
+
   const renderMainContent = () => {
     const virtualView = renderProductionVirtualView(activeFolder, {
-      renderGatedView: (view, panel) => renderGatedView(view, hasAddon, panel),
+      renderGatedView: (view, panel) => renderGatedView(view, hasAddon, panel, panelWorkspaceTrial),
       openCompose,
       contactsPrefillEmail,
       onContactsMessage: setStatusMessage,
       inboxPath,
       onOpenMessage: openMessageFromDocuments,
+      businessVertical,
+      onSelectView: setActiveFolder,
+      careerScannerPreload,
+      onCareerScannerPreloadConsumed: () => setCareerScannerPreload(null),
+      jobHunterEnabled: hasJobHunterAddon,
+      onComposeTemplateApplied: setPlatformNotice,
     });
     if (virtualView) return virtualView;
 
@@ -548,41 +852,50 @@ export function MailPage() {
 
     return (
       <>
-        <MailSearchPanel
-          value={searchDraft}
-          onChange={setSearchDraft}
-          onSearch={() => {
-            setAppliedSearch(searchDraft);
-            setMessagePage(1);
-          }}
-          onClear={() => {
-            setSearchDraft({ field: "subject", query: "" });
-            setAppliedSearch({ field: "subject", query: "" });
-            setMessagePage(1);
-          }}
-        />
+        {!embedded ? (
+        <div className="mail-list-search">
+          <GmailMailSearch
+            value={searchDraft}
+            onChange={setSearchDraft}
+            onSearch={() => {
+              setAppliedSearch(searchDraft);
+              setMessagePage(1);
+            }}
+            onClear={() => {
+              const empty = { field: "subject" as const, query: "", scope: "all" as const };
+              setSearchDraft(empty);
+              setAppliedSearch(empty);
+              setMessagePage(1);
+            }}
+          />
+        </div>
+        ) : null}
 
-        <MailFilterBar
-          value={mailFilter}
-          onChange={(value) => {
-            setMailFilter(value);
-            setMessagePage(1);
-          }}
-        />
+        {!embedded ? (
+          <>
+            <MailFilterBar
+              value={mailFilter}
+              onChange={(value) => {
+                setMailFilter(value);
+                setMessagePage(1);
+              }}
+            />
 
-        <MailOrderBar
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          onChange={(nextSortBy, nextSortOrder) => {
-            setSortBy(nextSortBy);
-            setSortOrder(nextSortOrder);
-            setMessagePage(1);
-          }}
-        />
+            <MailOrderBar
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onChange={(nextSortBy, nextSortOrder) => {
+                setSortBy(nextSortBy);
+                setSortOrder(nextSortOrder);
+                setMessagePage(1);
+              }}
+            />
+          </>
+        ) : null}
 
         {statusMessage ? <div className="pane-status">{statusMessage}</div> : null}
 
-        {visibleSuggestions.length > 0 ? (
+        {!embedded && visibleSuggestions.length > 0 ? (
           <div className="contact-suggest-banner">
             <span>Add new senders to contacts?</span>
             {visibleSuggestions.slice(0, 3).map((email) => (
@@ -627,7 +940,7 @@ export function MailPage() {
             onMarkRead={() => runBulkAction("markRead")}
             onReportSpam={() => {
               if (!junkFolder) {
-                setError("Spam folder not found on this mailbox.");
+                setListError("Spam folder not found on this mailbox.");
                 return;
               }
               runBulkAction("reportSpam", junkFolder.path);
@@ -638,7 +951,7 @@ export function MailPage() {
           />
         ) : null}
 
-        {error ? <div className="pane-error">{error}</div> : null}
+        {listError ? <div className="pane-error">{listError}</div> : null}
 
         <div className="message-list message-list--table">
           {loadingMessages ? (
@@ -721,12 +1034,15 @@ export function MailPage() {
 
   return (
     <div
-      className={`mail-app ${uiThemeVersion === "light" ? "mail-app--light" : ""}`}
+      className={`mail-app ${activeThemeVersion === "light" ? "mail-app--light" : ""}${
+        embedded ? " mail-app--embedded-in-bespoke" : ""
+      }`}
       data-mobile-pane={mobilePane}
       data-virtual-view={isVirtual ? "true" : "false"}
       data-content-pane={contentPane}
+      data-sidebar-collapsed={sidebarCollapsed ? "true" : "false"}
       style={
-        branding
+        !embedded && branding
           ? ({
               "--brand-primary": branding.primaryColor,
               "--brand-accent": branding.accentColor,
@@ -734,6 +1050,7 @@ export function MailPage() {
           : undefined
       }
     >
+      {!embedded ? (
       <header className="mail-mobile-topbar">
         <div className="mail-mobile-topbar-start">
           {mobilePane !== "list" ? (
@@ -770,59 +1087,150 @@ export function MailPage() {
           ✎
         </button>
       </header>
+      ) : null}
+
+      {!embedded ? (
+      <div className="mail-bespoke-chrome">
+        <MailBespokeChrome
+          productName={productName}
+          displayName={user?.displayName?.trim() || user?.email?.split("@")[0] || "User"}
+          displayEmail={user?.activeMailAccount?.email ?? user?.email ?? ""}
+          activeFolder={activeFolder}
+          inboxPath={inboxPath || "INBOX"}
+          businessVertical={businessVertical}
+          uiThemeVersion={uiThemeVersion}
+          hasAddon={hasAddon}
+          careerNavUnlocked={careerNavUnlocked}
+          referBusy={referBusy}
+          searchDraft={searchDraft}
+          onSearchDraftChange={setSearchDraft}
+          onSearch={() => {
+            setAppliedSearch(searchDraft);
+            setMessagePage(1);
+          }}
+          onSearchClear={() => {
+            setSearchDraft({ field: "subject", query: "" });
+            setAppliedSearch({ field: "subject", query: "" });
+            setMessagePage(1);
+          }}
+          onSelectView={(view) => {
+            setActiveFolder(view);
+            setSelectedUid(null);
+            setMobilePane("list");
+          }}
+          onOpenCareer={() => navigate("/career")}
+          onOpenAddons={(highlightSlug) =>
+            navigate(highlightSlug ? `/addons?highlight=${highlightSlug}` : "/addons")
+          }
+          onReferFriend={() => void onReferFriend()}
+          onThemeToggle={() => void onThemeToggle()}
+        />
+      </div>
+      ) : null}
 
       <div className="mail-layout">
         <div className="mail-sidebar-backdrop" onClick={() => setMobilePane("list")} aria-hidden="true" />
 
-        <aside className="mail-sidebar">
-          <div className="mail-sidebar-head">
-            <HMailLogo size="sm" showWordmark subtitle={tenantName} productName={productName} className="mail-brand-logo" />
-            <button type="button" className="mail-sidebar-close" onClick={() => setMobilePane("list")}>
-              Close
+        <aside className={`mail-sidebar${sidebarCollapsed ? " mail-sidebar--collapsed" : ""}`}>
+          <div className="mail-sidebar-rail-head">
+            <button
+              type="button"
+              className="mail-sidebar-toggle"
+              onClick={toggleSidebarCollapsed}
+              aria-expanded={!sidebarCollapsed}
+              aria-label={sidebarCollapsed ? "Expand mail folders" : "Collapse mail folders"}
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <span className="folder-nav-flyout" role="tooltip">
+                {sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              </span>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                {sidebarCollapsed ? (
+                  <path
+                    fill="currentColor"
+                    d="M10 6 8.6 7.4 13.2 12l-4.6 4.6L10 18l6-6-6-6z"
+                  />
+                ) : (
+                  <path
+                    fill="currentColor"
+                    d="M14 6 15.4 7.4 10.8 12l4.6 4.6L14 18l-6-6 6-6z"
+                  />
+                )}
+              </svg>
             </button>
+            {!embedded ? (
+              <div className="mail-sidebar-head">
+                <HMailLogo size="sm" showWordmark subtitle={tenantName} productName={productName} className="mail-brand-logo" />
+                <button type="button" className="mail-sidebar-close" onClick={() => setMobilePane("list")}>
+                  Close
+                </button>
+              </div>
+            ) : null}
           </div>
 
-          <FolderNav
-            folders={folders}
-            activeFolder={activeFolder}
-            loading={loadingFolders}
-            businessVertical={businessVertical}
-            onSelect={selectFolder}
-            onNewFolder={() => setNewFolderOpen(true)}
-            onCompose={() => openCompose({ mode: "new" })}
-            hasAddon={hasAddon}
-            onOpenAddons={(highlightSlug) =>
-              navigate(highlightSlug ? `/addons?highlight=${highlightSlug}` : "/addons")
-            }
-          />
+          <div className="mail-sidebar-body">
+            <FolderNav
+              folders={folders}
+              activeFolder={activeFolder}
+              loading={loadingFolders}
+              businessVertical={businessVertical}
+              onSelect={selectFolder}
+              onNewFolder={() => setNewFolderOpen(true)}
+              onCompose={() => openCompose({ mode: "new" })}
+              hasAddon={hasAddon}
+              hideIndustryTools={embedded}
+              onPaidAddonGate={openPaidAddonGate}
+              onOpenAddons={(highlightSlug) => openAddonMarketplace(highlightSlug)}
+            />
+          </div>
 
           <div className="sidebar-footer">
             {platformNotice ? <div className="pane-status">{platformNotice}</div> : null}
-            <div className="user-chip">
-              <span>{user?.email}</span>
-            </div>
-            <button type="button" className="ghost-btn" onClick={() => void onReferFriend()}>
-              Refer a friend
-            </button>
-            <button type="button" className="ghost-btn" onClick={() => void onThemeToggle()}>
-              {uiThemeVersion === "dark" ? "Light theme" : "Dark theme"}
-            </button>
-            <button type="button" className="ghost-btn" onClick={() => logout()}>
-              Sign out
-            </button>
+            {!embedded ? (
+              <>
+                <div className="user-chip">
+                  <span>{user?.activeMailAccount?.email ?? user?.email}</span>
+                </div>
+                <button type="button" className="ghost-btn" onClick={() => void onReferFriend()}>
+                  Refer a friend
+                </button>
+                <button type="button" className="ghost-btn" onClick={() => void onThemeToggle()}>
+                  {uiThemeVersion === "dark" ? "Light theme" : "Dark theme"}
+                </button>
+                <button type="button" className="ghost-btn" onClick={() => logout()}>
+                  Sign out
+                </button>
+              </>
+            ) : null}
           </div>
         </aside>
 
         <section className="mail-list-pane">
           <header className={`list-header ${isVirtual ? "list-header--virtual" : ""}`}>
-            <h2>{activeFolderLabel}</h2>
+            <div className="list-header-main">
+              <h2>{activeFolderLabel}</h2>
+            </div>
+            {showInboxSwitcher ? (
+              <div className="list-header-switcher">
+                <InboxSwitcher
+                  ref={inboxSwitcherRef}
+                  variant="header"
+                  activeAccount={user?.activeMailAccount ?? null}
+                  onSwitched={() => void handleMailboxSwitch()}
+                  onPaidAddonGate={() => openPaidAddonGate("multi-inbox-functionality", "Multiple Inboxes")}
+                  onAccountCountChange={setMailAccountCount}
+                />
+              </div>
+            ) : null}
             <div className="list-header-actions">
               <button type="button" className="free-addon-btn" onClick={() => navigate("/addons")}>
                 Free Addon
               </button>
-              <button type="button" className="signout-btn" onClick={() => logout()}>
-                Sign out
-              </button>
+              {!embedded ? (
+                <button type="button" className="signout-btn" onClick={() => logout()}>
+                  Sign out
+                </button>
+              ) : null}
             </div>
           </header>
           {renderMainContent()}
@@ -839,6 +1247,7 @@ export function MailPage() {
             <div className="muted pad">Loading message…</div>
           ) : (
             <>
+              {messageError ? <div className="pane-error">{messageError}</div> : null}
               <header className="read-header">
                 <div>
                   <button type="button" className="read-back-btn" onClick={clearSelectedMessage}>
@@ -854,48 +1263,64 @@ export function MailPage() {
                   <p className="read-date">{formatDate(selectedMessage.date)}</p>
                 </div>
                 <div className="read-actions">
-                  <button type="button" onClick={onReply}>
-                    Reply
-                  </button>
-                  <button type="button" onClick={onReplyAll}>
-                    Reply all
-                  </button>
-                  <button type="button" onClick={onForward}>
-                    Forward
-                  </button>
-                  <button type="button" onClick={() => void onMarkUnread()}>
-                    Mark unread
-                  </button>
-                  <button type="button" onClick={onPrintMessage}>
-                    Print
-                  </button>
-                  <button type="button" onClick={() => void onMailToPdf()}>
-                    PDF
-                  </button>
-                  <button type="button" onClick={() => void onWhatsappSend()}>
-                    WhatsApp
-                  </button>
-                  <button type="button" onClick={onMoveToTrash}>
-                    Trash
-                  </button>
-                  <button type="button" className="danger" onClick={onDelete}>
-                    Delete
-                  </button>
+                  <ReadActionButton label="Reply" icon={ReplyIcon} onClick={onReply} />
+                  <ReadActionButton label="Reply all" icon={ReplyAllIcon} onClick={onReplyAll} />
+                  <ReadActionButton label="Forward" icon={ForwardIcon} onClick={onForward} />
+                  <ReadActionButton label="Mark unread" icon={MarkUnreadIcon} onClick={() => void onMarkUnread()} />
+                  <MessageUnsubscribeButton
+                    folder={activeFolder}
+                    uid={selectedMessage.uid}
+                    enabled={hasAddon("inbox-cleanup-functionality")}
+                    iconOnly
+                  />
+                  <ReadActionButton label="Print" icon={PrintIcon} onClick={onPrintMessage} />
+                  <ReadActionButton label="PDF" icon={PdfIcon} onClick={() => void onMailToPdf()} />
+                  <ReadActionButton label="WhatsApp" onClick={() => void onWhatsappSend()}>
+                    <WhatsAppIcon width={18} height={18} />
+                  </ReadActionButton>
+                  <ReadActionButton label="Trash" icon={TrashIcon} onClick={onMoveToTrash} />
+                  <ReadActionButton label="Delete" icon={DeleteIcon} onClick={onDelete} variant="danger" />
                 </div>
               </header>
 
               {selectedMessage.attachments.length > 0 ? (
                 <div className="attachments">
                   {selectedMessage.attachments.map((att) => (
-                    <a
-                      key={att.partId}
-                      href={api.attachmentUrl(activeFolder, selectedMessage.uid, att.partId)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {att.filename} ({Math.round(att.size / 1024)} KB)
-                    </a>
+                    <span key={att.partId} className="attachment-row">
+                      <a
+                        href={api.attachmentUrl(activeFolder, selectedMessage.uid, att.partId)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {att.filename} ({Math.round(att.size / 1024)} KB)
+                      </a>
+                      <SendForSignatureButton
+                        folder={activeFolder}
+                        uid={selectedMessage.uid}
+                        messageSubject={selectedMessage.subject}
+                        attachment={{ partId: att.partId, filename: att.filename, contentType: att.contentType }}
+                        enabled={hasAddon("esign-from-email-functionality")}
+                        onCreated={(handoff) =>
+                          openCompose({
+                            mode: "new",
+                            to: handoff.to,
+                            subject: handoff.subject,
+                            html: handoff.html,
+                            text: handoff.text,
+                          })
+                        }
+                      />
+                    </span>
                   ))}
+                  <AttachmentCategoryBadges
+                    folder={activeFolder}
+                    uid={selectedMessage.uid}
+                    enabled={hasAddon("attachment-categorize-functionality")}
+                    attachments={selectedMessage.attachments}
+                    onVaultExported={(vaultFileId) =>
+                      openCompose({ mode: "new", vaultFileIds: [vaultFileId] })
+                    }
+                  />
                 </div>
               ) : null}
 
@@ -938,34 +1363,68 @@ export function MailPage() {
           setComposeOpen(false);
           setComposeInitial(undefined);
         }}
-        onSent={async (sentFolderPath) => {
-          const sentPath =
-            sentFolderPath ?? sortedFolders.find((f) => resolveFolderKind(f) === "sent")?.path;
-
-          await loadFolders();
-
-          if (sentPath) {
-            setActiveFolder(sentPath);
-            setSelectedUid(null);
-            setSelectedMessage(null);
-            setMobilePane("list");
-            setLoadingMessages(true);
-            try {
-              const result = await api.messages(sentPath, { filter: mailFilter, page: 1, pageSize: PAGE_SIZE, sortBy, sortOrder });
-              setMessages(result.messages);
-              setMessageTotal(result.total);
-              setMessagePage(1);
-            } catch (err) {
-              setError(err instanceof Error ? err.message : "Failed to load sent messages");
-            } finally {
-              setLoadingMessages(false);
-            }
-          } else {
-            await loadMessages();
+        onSent={async (result) => {
+          if (result?.pendingUndo) {
+            setPendingUndoSend(result.pendingUndo);
+            return;
           }
+          await refreshAfterSend(result?.sentFolder);
         }}
         initial={composeInitial}
+        jobHunterEnabled={hasJobHunterAddon}
+        themeVersion={activeThemeVersion}
+        onCvAttachmentAdded={handleCvAttachmentAdded}
       />
+
+      {cvScannerToastFile ? (
+        <CvScannerToast
+          fileName={cvScannerToastFile.name}
+          onRate={openCvScannerFromToast}
+          onDismiss={() => setCvScannerToastFile(null)}
+          onDontAskAgain={() => {
+            setCvScannerDontAskAgain();
+            setCvScannerToastFile(null);
+          }}
+        />
+      ) : null}
+
+      {pendingUndoSend ? (
+        <UndoSendToast
+          pending={pendingUndoSend}
+          onUndone={() => setPendingUndoSend(null)}
+          onSent={(sentFolderPath) => {
+            setPendingUndoSend(null);
+            void refreshAfterSend(sentFolderPath);
+          }}
+        />
+      ) : null}
+
+      {paidAddonGate ? (
+        <PaidAddonToast
+          addonName={paidAddonGate.name}
+          panelWorkspaceTrial={panelWorkspaceTrial}
+          onOpenMarketplace={() => {
+            const slug = paidAddonGate.slug;
+            setPaidAddonGate(null);
+            openAddonMarketplace(slug);
+          }}
+          onDismiss={() => setPaidAddonGate(null)}
+        />
+      ) : null}
+
+      {multiInboxPromptOpen ? (
+        <MultiInboxConnectToast
+          onConnectMailbox={() => {
+            setMultiInboxPromptOpen(false);
+            inboxSwitcherRef.current?.openWithAddForm();
+          }}
+          onDismiss={() => setMultiInboxPromptOpen(false)}
+          onDontAskAgain={() => {
+            setMultiInboxPromptDismissed();
+            setMultiInboxPromptOpen(false);
+          }}
+        />
+      ) : null}
 
       <NewFolderModal
         open={newFolderOpen}

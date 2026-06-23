@@ -1,0 +1,73 @@
+.multi-inbox-toast-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1390;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(2, 8, 23, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.multi-inbox-toast {
+  width: min(100%, 32rem);
+  padding: 1.4rem 1.3rem;
+  border-radius: 16px;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  background: rgba(10, 18, 32, 0.98);
+  color: #e8eef8;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+.pmail-demo-shell--light .multi-inbox-toast,
+.mail-app--light .multi-inbox-toast {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(13, 148, 136, 0.28);
+}
+
+.multi-inbox-toast-copy strong {
+  display: block;
+  font-size: 1.08rem;
+}
+
+.multi-inbox-toast-subtitle {
+  margin: 0.6rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  opacity: 0.9;
+}
+
+.multi-inbox-toast-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.1rem;
+}
+
+.multi-inbox-toast-primary {
+  border: none;
+  border-radius: 999px;
+  padding: 0.58rem 1.05rem;
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.multi-inbox-toast-btn {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  background: transparent;
+  color: inherit;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.multi-inbox-toast-btn--subtle {
+  opacity: 0.82;
+}

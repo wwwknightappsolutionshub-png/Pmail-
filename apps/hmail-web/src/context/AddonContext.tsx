@@ -2,14 +2,19 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { api } from "../api/client";
 import { startAddonCheckout, startMarketplaceCheckout } from "../utils/addonCheckout";
 import { useAuth } from "./AuthContext";
-import type { AddonItem, MarketplaceBrowseVertical, MarketplaceLicenseScope } from "../types/addon";
+import type { AddonItem, JobHunterEntitlement, MarketplaceBrowseVertical, MarketplaceLicenseScope, PanelWorkspaceTrialStatus } from "../types/addon";
 
 interface AddonContextValue {
   addons: AddonItem[];
   entitledSlugs: string[];
+  jobHunterEntitlement: JobHunterEntitlement | null;
+  panelWorkspaceTrial: PanelWorkspaceTrialStatus | null;
   loading: boolean;
   error: string;
   hasAddon: (slug: string) => boolean;
+  hasJobHunterAccess: () => boolean;
+  jobHunterCanWrite: () => boolean;
+  jobHunterReadOnly: () => boolean;
   refresh: () => Promise<void>;
   startTrial: (slug: string) => Promise<AddonItem>;
   startSubscription: (slug: string, scope: "user" | "tenant", seats?: number) => Promise<AddonItem | undefined>;
@@ -27,6 +32,7 @@ interface AddonContextValue {
     scope: MarketplaceLicenseScope;
     includePlatformBundle: boolean;
     includeVerticalBundle: boolean;
+    includeJobHunterStandalone?: boolean;
     seats?: number;
   }) => Promise<{
     vertical: MarketplaceBrowseVertical;
@@ -37,7 +43,7 @@ interface AddonContextValue {
     amountCents: number;
     label: string;
     lines: Array<{
-      bundle: "platform" | "vertical";
+      bundle: "platform" | "vertical" | "job-hunter";
       label: string;
       addonSlugs: string[];
       anchorSlug: string;
@@ -51,6 +57,7 @@ interface AddonContextValue {
     scope: MarketplaceLicenseScope;
     includePlatformBundle: boolean;
     includeVerticalBundle: boolean;
+    includeJobHunterStandalone?: boolean;
     seats?: number;
   }) => Promise<{ mode: "checkout" | "activated" }>;
 }
@@ -61,6 +68,8 @@ export function AddonProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [addons, setAddons] = useState<AddonItem[]>([]);
   const [entitledSlugs, setEntitledSlugs] = useState<string[]>([]);
+  const [jobHunterEntitlement, setJobHunterEntitlement] = useState<JobHunterEntitlement | null>(null);
+  const [panelWorkspaceTrial, setPanelWorkspaceTrial] = useState<PanelWorkspaceTrialStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -68,6 +77,8 @@ export function AddonProvider({ children }: { children: React.ReactNode }) {
     if (!user) {
       setAddons([]);
       setEntitledSlugs([]);
+      setJobHunterEntitlement(null);
+      setPanelWorkspaceTrial(null);
       return;
     }
 
@@ -77,6 +88,8 @@ export function AddonProvider({ children }: { children: React.ReactNode }) {
       const [addonRes, entRes] = await Promise.all([api.addons(), api.addonEntitlements()]);
       setAddons(addonRes.addons);
       setEntitledSlugs(entRes.slugs);
+      setJobHunterEntitlement(entRes.jobHunter ?? null);
+      setPanelWorkspaceTrial(entRes.panelWorkspaceTrial ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load add-ons");
     } finally {
@@ -119,12 +132,28 @@ export function AddonProvider({ children }: { children: React.ReactNode }) {
     [entitledSlugs],
   );
 
+  const hasJobHunterAccess = useCallback(
+    () => hasAddon("job-hunter-functionality") || Boolean(jobHunterEntitlement?.hasAccess),
+    [hasAddon, jobHunterEntitlement],
+  );
+
+  const jobHunterCanWrite = useCallback(
+    () => jobHunterEntitlement?.canWrite ?? hasAddon("job-hunter-functionality"),
+    [jobHunterEntitlement, hasAddon],
+  );
+
+  const jobHunterReadOnly = useCallback(
+    () => Boolean(jobHunterEntitlement?.readOnly),
+    [jobHunterEntitlement],
+  );
+
   const quoteMarketplace = useCallback(
     async (input: {
       vertical: MarketplaceBrowseVertical;
       scope: MarketplaceLicenseScope;
       includePlatformBundle: boolean;
       includeVerticalBundle: boolean;
+      includeJobHunterStandalone?: boolean;
       seats?: number;
     }) => {
       const { quote } = await api.marketplaceQuote(input);
@@ -139,6 +168,7 @@ export function AddonProvider({ children }: { children: React.ReactNode }) {
       scope: MarketplaceLicenseScope;
       includePlatformBundle: boolean;
       includeVerticalBundle: boolean;
+      includeJobHunterStandalone?: boolean;
       seats?: number;
     }) => {
       const result = await startMarketplaceCheckout({ ...input, returnPath: "/addons" });
@@ -154,9 +184,14 @@ export function AddonProvider({ children }: { children: React.ReactNode }) {
     () => ({
       addons,
       entitledSlugs,
+      jobHunterEntitlement,
+      panelWorkspaceTrial,
       loading,
       error,
       hasAddon,
+      hasJobHunterAccess,
+      jobHunterCanWrite,
+      jobHunterReadOnly,
       refresh,
       startTrial,
       startSubscription,
@@ -167,9 +202,14 @@ export function AddonProvider({ children }: { children: React.ReactNode }) {
     [
       addons,
       entitledSlugs,
+      jobHunterEntitlement,
+      panelWorkspaceTrial,
       loading,
       error,
       hasAddon,
+      hasJobHunterAccess,
+      jobHunterCanWrite,
+      jobHunterReadOnly,
       refresh,
       startTrial,
       startSubscription,

@@ -337,6 +337,11 @@ export function ClientWorkspacesPanel() {
                     {workspace.milestoneCount} milestones · {workspace.deliverableCount} deliverables · {workspace.proposalCount} proposals · {workspace.slaCaseCount} SLA cases
                   </p>
                   {workspace.routingDomain ? <p>Routing: {workspace.routingDomain}</p> : null}
+                  {workspace.routingMailbox ? <p>Mailbox: {workspace.routingMailbox}</p> : null}
+                  {workspace.routingStatus ? <p>Routing status: {workspace.routingStatus}</p> : null}
+                  <button type="button" className="mail-toolbar-btn" onClick={() => void api.provisionB2bRouting(workspace.id).then(refreshWorkspaces)}>
+                    Provision routing
+                  </button>
                   <select defaultValue={workspace.status} onChange={(e) => void updateStatus(workspace.id, e.target.value)}>
                     <option value="active">Active</option>
                     <option value="paused">Paused</option>
@@ -631,7 +636,11 @@ export function ProjectTrackerPanel() {
   );
 }
 
-export function ProposalDeskPanel({ onUseTemplate }: { onUseTemplate: (t: { subject: string; html: string }) => void }) {
+export function ProposalDeskPanel({
+  onUseTemplate,
+}: {
+  onUseTemplate: (t: { subject: string; html: string; label?: string }) => void;
+}) {
   const { data: templates, loading: templatesLoading, error: templatesError } = useLoad(() => api.b2bTemplates().then((r) => r.templates));
   const { data: workspaces } = useLoad(() => api.b2bWorkspaces().then((r) => r.workspaces));
   const { data: proposals, refresh: refreshProposals } = useLoad(() => api.b2bProposals().then((r) => r.proposals));
@@ -773,7 +782,13 @@ export function ProposalDeskPanel({ onUseTemplate }: { onUseTemplate: (t: { subj
                 <button
                   type="button"
                   className="mail-toolbar-btn industry-ws-action-btn"
-                  onClick={() => onUseTemplate({ subject: template.subject, html: template.bodyHtml })}
+                  onClick={() =>
+                    onUseTemplate({
+                      subject: template.subject,
+                      html: template.bodyHtml,
+                      label: template.name,
+                    })
+                  }
                 >
                   Use template
                 </button>

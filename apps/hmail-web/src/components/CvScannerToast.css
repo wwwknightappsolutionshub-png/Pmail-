@@ -1,0 +1,52 @@
+.cv-scanner-toast {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 5.5rem;
+  z-index: 1290;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: min(440px, calc(100vw - 2rem));
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.cv-scanner-toast p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.cv-scanner-toast-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cv-scanner-btn {
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #f9fafb;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.cv-scanner-btn.primary {
+  background: #0d9488;
+  border-color: #0d9488;
+  font-weight: 600;
+}
+
+.cv-scanner-btn.subtle {
+  opacity: 0.75;
+}
+
+.cv-scanner-btn:hover {
+  opacity: 0.95;
+}

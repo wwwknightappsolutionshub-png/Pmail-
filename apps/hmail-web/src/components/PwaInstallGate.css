@@ -1,0 +1,105 @@
+.pwa-install-root {
+  min-height: 100dvh;
+}
+
+.pwa-install-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at top, rgba(13, 148, 136, 0.22), transparent 55%),
+    linear-gradient(180deg, #0f2744 0%, #0b1220 100%);
+}
+
+.pwa-install-card {
+  width: min(100%, 26rem);
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(17, 26, 46, 0.92);
+  box-shadow: 0 24px 60px rgba(2, 8, 23, 0.45);
+}
+
+.pwa-install-brand {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.pwa-install-logo {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 0.75rem;
+}
+
+.pwa-install-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fa3bf;
+}
+
+.pwa-install-card h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.35rem;
+  line-height: 1.25;
+  color: #e8eef8;
+}
+
+.pwa-install-lead {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #b8c7da;
+}
+
+.pwa-install-btn {
+  display: block;
+  width: 100%;
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 0;
+  border-radius: 0.85rem;
+  background: linear-gradient(135deg, #0d9488, #0d4f6c);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.pwa-install-btn:disabled {
+  opacity: 0.7;
+}
+
+.pwa-install-error {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.pwa-install-steps {
+  margin: 0 0 1rem;
+  padding-left: 1.15rem;
+  color: #dbe7f5;
+  line-height: 1.55;
+}
+
+.pwa-install-steps li + li {
+  margin-top: 0.55rem;
+}
+
+.pwa-install-note {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #8fa3bf;
+  text-align: center;
+}

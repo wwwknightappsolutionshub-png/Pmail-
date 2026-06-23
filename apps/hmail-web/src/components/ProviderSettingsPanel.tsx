@@ -8,7 +8,7 @@ import {
 } from "../constants/mailProviders";
 import { ProviderPresetPicker } from "./ProviderPresetPicker";
 import "./ProviderPresetPicker.css";
-import "./MailViews.css";
+import "./ProviderSettingsPanel.css";
 
 export function ProviderSettingsPanel() {
   const [mailConfig, setMailConfig] = useState<MailConfigValues>(defaultMailConfig());
@@ -70,86 +70,97 @@ export function ProviderSettingsPanel() {
   if (loading) return <p className="mail-view-empty">Loading provider settings…</p>;
 
   return (
-    <div className="mail-view-panel">
-      <header className="mail-view-header">
+    <div className="provider-settings mail-view-panel">
+      <header className="provider-settings-hero">
+        <p className="provider-settings-kicker">Mail connection</p>
         <h2>Provider settings</h2>
         <p>Change your mail service provider or custom IMAP/SMTP connection.</p>
       </header>
 
-      <form className="feature-form" onSubmit={(e) => void onSubmit(e)}>
-        <ProviderPresetPicker value={mailConfig.providerPreset} onChange={applyPreset} idPrefix="settings-provider" />
+      <form className="provider-settings-form" onSubmit={(e) => void onSubmit(e)}>
+        <section className="provider-settings-section" aria-label="Mail provider">
+          <ProviderPresetPicker value={mailConfig.providerPreset} onChange={applyPreset} idPrefix="settings-provider" />
+        </section>
 
         {mailConfig.providerPreset === "custom" ? (
-          <div className="mail-onboarding-custom-grid">
-            <label>
-              IMAP host
-              <input
-                value={mailConfig.imapHost}
-                onChange={(e) => setMailConfig({ ...mailConfig, imapHost: e.target.value })}
-                required
-              />
-            </label>
-            <label>
-              IMAP port
-              <input
-                type="number"
-                value={mailConfig.imapPort}
-                onChange={(e) => setMailConfig({ ...mailConfig, imapPort: Number(e.target.value) })}
-                required
-              />
-            </label>
-            <label>
-              SMTP host
-              <input
-                value={mailConfig.smtpHost}
-                onChange={(e) => setMailConfig({ ...mailConfig, smtpHost: e.target.value })}
-                required
-              />
-            </label>
-            <label>
-              SMTP port
-              <input
-                type="number"
-                value={mailConfig.smtpPort}
-                onChange={(e) => setMailConfig({ ...mailConfig, smtpPort: Number(e.target.value) })}
-                required
-              />
-            </label>
-            <label className="feature-toggle">
-              <input
-                type="checkbox"
-                checked={mailConfig.imapSecure}
-                onChange={(e) => setMailConfig({ ...mailConfig, imapSecure: e.target.checked })}
-              />
-              IMAP SSL/TLS
-            </label>
-            <label className="feature-toggle">
-              <input
-                type="checkbox"
-                checked={mailConfig.smtpSecure}
-                onChange={(e) => setMailConfig({ ...mailConfig, smtpSecure: e.target.checked })}
-              />
-              SMTP SSL/TLS
-            </label>
-          </div>
+          <section className="provider-settings-section" aria-labelledby="provider-custom-title">
+            <h3 id="provider-custom-title">Custom server</h3>
+            <div className="provider-settings-server-grid">
+              <label className="provider-settings-field">
+                <span>IMAP host</span>
+                <input
+                  value={mailConfig.imapHost}
+                  onChange={(e) => setMailConfig({ ...mailConfig, imapHost: e.target.value })}
+                  required
+                />
+              </label>
+              <label className="provider-settings-field">
+                <span>IMAP port</span>
+                <input
+                  type="number"
+                  value={mailConfig.imapPort}
+                  onChange={(e) => setMailConfig({ ...mailConfig, imapPort: Number(e.target.value) })}
+                  required
+                />
+              </label>
+              <label className="provider-settings-field">
+                <span>SMTP host</span>
+                <input
+                  value={mailConfig.smtpHost}
+                  onChange={(e) => setMailConfig({ ...mailConfig, smtpHost: e.target.value })}
+                  required
+                />
+              </label>
+              <label className="provider-settings-field">
+                <span>SMTP port</span>
+                <input
+                  type="number"
+                  value={mailConfig.smtpPort}
+                  onChange={(e) => setMailConfig({ ...mailConfig, smtpPort: Number(e.target.value) })}
+                  required
+                />
+              </label>
+            </div>
+            <div className="provider-settings-toggles">
+              <label className="provider-settings-check">
+                <input
+                  type="checkbox"
+                  checked={mailConfig.imapSecure}
+                  onChange={(e) => setMailConfig({ ...mailConfig, imapSecure: e.target.checked })}
+                />
+                IMAP SSL/TLS
+              </label>
+              <label className="provider-settings-check">
+                <input
+                  type="checkbox"
+                  checked={mailConfig.smtpSecure}
+                  onChange={(e) => setMailConfig({ ...mailConfig, smtpSecure: e.target.checked })}
+                />
+                SMTP SSL/TLS
+              </label>
+            </div>
+          </section>
         ) : null}
 
-        <label>
-          Mailbox password (required to verify connection)
-          <input
-            type="password"
-            value={testPassword}
-            onChange={(e) => setTestPassword(e.target.value)}
-            placeholder="Enter password to test and save"
-            required
-            autoComplete="current-password"
-          />
-        </label>
+        <section className="provider-settings-section" aria-labelledby="provider-password-title">
+          <label className="provider-settings-field" id="provider-password-title">
+            <span>Mailbox password</span>
+            <span className="provider-settings-hint">Required to verify connection when saving</span>
+            <input
+              type="password"
+              value={testPassword}
+              onChange={(e) => setTestPassword(e.target.value)}
+              placeholder="Enter password to test and save"
+              required
+              autoComplete="current-password"
+            />
+          </label>
+        </section>
 
-        {error ? <p className="mail-view-error">{error}</p> : null}
-        {status ? <p className="pane-status">{status}</p> : null}
+        {error ? <p className="provider-settings-error">{error}</p> : null}
+        {status ? <p className="provider-settings-status">{status}</p> : null}
 
-        <button type="submit" className="mail-toolbar-btn" disabled={saving}>
+        <button type="submit" className="provider-settings-btn provider-settings-btn--primary" disabled={saving}>
           {saving ? "Saving…" : "Save provider settings"}
         </button>
       </form>

@@ -16,6 +16,8 @@ import {
   listAcFilingDeadlines,
   updateAcDocumentRequestStatus,
   updateAcFilingDeadlineStatus,
+  uploadAcExchangeDocument,
+  readAcExchangeDocument,
 } from "../services/accounting.service.js";
 import { listAccountingTemplates } from "../services/accounting-templates.service.js";
 import {
@@ -88,6 +90,9 @@ import {
   updateHcPatientChartStatus,
 } from "../services/healthcare.service.js";
 import { listHealthcareTemplates } from "../services/healthcare-templates.service.js";
+import { requireHealthcareAddon } from "../middleware/requireHealthcareAccess.js";
+import { sendOutreachCampaign, searchRcTalentViaMail } from "../services/recruitment-outreach.service.js";
+import { provisionB2bRouting } from "../services/b2b-routing.service.js";
 
 type RouteCtx = (req: Parameters<typeof requireAuth>[0]) => {
   tenantId: string;
@@ -301,6 +306,46 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     } catch (err) {
       if (err instanceof Error) {
         res.status(400).json({ error: err.message });
+        return;
+      }
+      next(err);
+    }
+  });
+
+  router.post("/accounting/exchange-records/:id/upload", requireAddon("ac-secure-exchange"), async (req, res, next) => {
+    try {
+      const { tenantId, userId, userEmail } = ctx(req);
+      const exchangeRecord = await uploadAcExchangeDocument(
+        tenantId,
+        userId,
+        userEmail,
+        String(req.params.id),
+        {
+          fileName: String(req.body?.fileName ?? "document"),
+          mimeType: String(req.body?.mimeType ?? "application/pdf"),
+          dataBase64: String(req.body?.dataBase64 ?? ""),
+        },
+      );
+      res.json({ exchangeRecord });
+    } catch (err) {
+      if (err instanceof Error) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      next(err);
+    }
+  });
+
+  router.get("/accounting/exchange-records/:id/download", requireAddon("ac-secure-exchange"), async (req, res, next) => {
+    try {
+      const { tenantId } = ctx(req);
+      const file = await readAcExchangeDocument(tenantId, String(req.params.id));
+      res.setHeader("Content-Type", file.mimeType);
+      res.setHeader("Content-Disposition", `attachment; filename="${file.fileName}"`);
+      res.send(file.buffer);
+    } catch (err) {
+      if (err instanceof Error) {
+        res.status(404).json({ error: err.message });
         return;
       }
       next(err);
@@ -642,6 +687,9 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
         channel: req.body?.channel ? String(req.body.channel) : undefined,
         status: req.body?.status ? String(req.body.status) : undefined,
         audience: req.body?.audience ? String(req.body.audience) : undefined,
+        subject: req.body?.subject ? String(req.body.subject) : undefined,
+        bodyHtml: req.body?.bodyHtml ? String(req.body.bodyHtml) : undefined,
+        scheduledFor: req.body?.scheduledFor ? String(req.body.scheduledFor) : undefined,
       });
       res.status(201).json({ campaign });
     } catch (err) {
@@ -662,8 +710,45 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
         userEmail,
         String(req.params.id),
         String(req.body?.status ?? ""),
+        {
+          subject: req.body?.subject ? String(req.body.subject) : undefined,
+          bodyHtml: req.body?.bodyHtml ? String(req.body.bodyHtml) : undefined,
+          scheduledFor: req.body?.scheduledFor ? String(req.body.scheduledFor) : undefined,
+        },
       );
       res.json({ campaign });
+    } catch (err) {
+      if (err instanceof Error) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      next(err);
+    }
+  });
+
+  router.post("/recruitment/campaigns/:id/launch", requireAddon("rc-bulk-outreach"), async (req, res, next) => {
+    try {
+      const { tenantId, userId, userEmail } = ctx(req);
+      const sent = await sendOutreachCampaign(String(req.params.id), tenantId, userId, userEmail);
+      res.json({ sent });
+    } catch (err) {
+      if (err instanceof Error) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      next(err);
+    }
+  });
+
+  router.get("/recruitment/talent-search/mail", requireAddon("rc-talent-search"), async (req, res, next) => {
+    try {
+      const { tenantId, userId } = ctx(req);
+      const results = await searchRcTalentViaMail(
+        tenantId,
+        userId,
+        req.query.q ? String(req.query.q) : "",
+      );
+      res.json({ results });
     } catch (err) {
       if (err instanceof Error) {
         res.status(400).json({ error: err.message });
@@ -920,6 +1005,22 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
           renewalDate: req.body?.renewalDate ? String(req.body.renewalDate) : undefined,
         },
       );
+      res.json({ workspace });
+    } catch (err) {
+      if (err instanceof Error) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      next(err);
+    }
+  });
+
+  router.post("/b2b/workspaces/:id/provision-routing", requireAddon("b2b-client-workspaces"), async (req, res, next) => {
+    try {
+      const { tenantId } = ctx(req);
+      await provisionB2bRouting(String(req.params.id), tenantId);
+      const workspaces = await listB2bWorkspaces(tenantId);
+      const workspace = workspaces.find((w) => w.id === String(req.params.id));
       res.json({ workspace });
     } catch (err) {
       if (err instanceof Error) {
@@ -1232,7 +1333,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
   });
 
   // ── Healthcare: Patient Registry (hc-patient-registry) ──────────
-  router.get("/healthcare/contacts", requireAddon("hc-patient-registry"), async (req, res, next) => {
+  router.get("/healthcare/contacts", requireAddon("hc-patient-registry"), requireHealthcareAddon("hc-patient-registry"), async (req, res, next) => {
     try {
       const contacts = await listHcContacts(
         ctx(req).tenantId,
@@ -1244,7 +1345,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.post("/healthcare/contacts", requireAddon("hc-patient-registry"), async (req, res, next) => {
+  router.post("/healthcare/contacts", requireAddon("hc-patient-registry"), requireHealthcareAddon("hc-patient-registry"), async (req, res, next) => {
     try {
       const { tenantId, userId, userEmail } = ctx(req);
       const contact = await createHcContact(tenantId, userId, userEmail, {
@@ -1267,7 +1368,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.get(["/healthcare/charts", "/healthcare/patient-charts"], requireAddon("hc-patient-registry"), async (req, res, next) => {
+  router.get(["/healthcare/charts", "/healthcare/patient-charts"], requireAddon("hc-patient-registry"), requireHealthcareAddon("hc-patient-registry"), async (req, res, next) => {
     try {
       const charts = await listHcPatientCharts(
         ctx(req).tenantId,
@@ -1279,7 +1380,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.post(["/healthcare/charts", "/healthcare/patient-charts"], requireAddon("hc-patient-registry"), async (req, res, next) => {
+  router.post(["/healthcare/charts", "/healthcare/patient-charts"], requireAddon("hc-patient-registry"), requireHealthcareAddon("hc-patient-registry"), async (req, res, next) => {
     try {
       const { tenantId, userId, userEmail } = ctx(req);
       const chart = await createHcPatientChart(tenantId, userId, userEmail, {
@@ -1303,7 +1404,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.patch(["/healthcare/charts/:id", "/healthcare/patient-charts/:id"], requireAddon("hc-patient-registry"), async (req, res, next) => {
+  router.patch(["/healthcare/charts/:id", "/healthcare/patient-charts/:id"], requireAddon("hc-patient-registry"), requireHealthcareAddon("hc-patient-registry"), async (req, res, next) => {
     try {
       const { tenantId, userId, userEmail } = ctx(req);
       const chart = await updateHcPatientChartStatus(
@@ -1331,7 +1432,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
   });
 
   // ── Healthcare: Appointment Desk (hc-appointment-desk) ────────────
-  router.get("/healthcare/appointments", requireAddon("hc-appointment-desk"), async (req, res, next) => {
+  router.get("/healthcare/appointments", requireAddon("hc-appointment-desk"), requireHealthcareAddon("hc-appointment-desk"), async (req, res, next) => {
     try {
       const appointments = await listHcAppointments(
         ctx(req).tenantId,
@@ -1343,7 +1444,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.post("/healthcare/appointments", requireAddon("hc-appointment-desk"), async (req, res, next) => {
+  router.post("/healthcare/appointments", requireAddon("hc-appointment-desk"), requireHealthcareAddon("hc-appointment-desk"), async (req, res, next) => {
     try {
       const { tenantId, userId, userEmail } = ctx(req);
       const appointment = await createHcAppointment(tenantId, userId, userEmail, {
@@ -1370,7 +1471,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
 
   router.patch(
     "/healthcare/appointments/:id",
-    requireAddon("hc-appointment-desk"),
+    requireAddon("hc-appointment-desk"), requireHealthcareAddon("hc-appointment-desk"),
     async (req, res, next) => {
       try {
         const { tenantId, userId, userEmail } = ctx(req);
@@ -1397,7 +1498,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
   );
 
   // ── Healthcare: Referral Tracker (hc-referral-tracker) ──────────
-  router.get("/healthcare/templates", requireAddon("hc-referral-tracker"), async (req, res, next) => {
+  router.get("/healthcare/templates", requireAddon("hc-referral-tracker"), requireHealthcareAddon("hc-referral-tracker"), async (req, res, next) => {
     try {
       const templates = await listHealthcareTemplates(ctx(req).tenantId);
       res.json({ templates });
@@ -1406,7 +1507,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.get("/healthcare/referrals", requireAddon("hc-referral-tracker"), async (req, res, next) => {
+  router.get("/healthcare/referrals", requireAddon("hc-referral-tracker"), requireHealthcareAddon("hc-referral-tracker"), async (req, res, next) => {
     try {
       const referrals = await listHcReferrals(
         ctx(req).tenantId,
@@ -1418,7 +1519,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.post("/healthcare/referrals", requireAddon("hc-referral-tracker"), async (req, res, next) => {
+  router.post("/healthcare/referrals", requireAddon("hc-referral-tracker"), requireHealthcareAddon("hc-referral-tracker"), async (req, res, next) => {
     try {
       const { tenantId, userId, userEmail } = ctx(req);
       const referral = await createHcReferral(tenantId, userId, userEmail, {
@@ -1444,7 +1545,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.patch("/healthcare/referrals/:id", requireAddon("hc-referral-tracker"), async (req, res, next) => {
+  router.patch("/healthcare/referrals/:id", requireAddon("hc-referral-tracker"), requireHealthcareAddon("hc-referral-tracker"), async (req, res, next) => {
     try {
       const { tenantId, userId, userEmail } = ctx(req);
       const referral = await updateHcReferralStatus(
@@ -1465,7 +1566,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
   });
 
   // ── Healthcare: HIPAA Audit (hc-hipaa-audit) ──────────────────────
-  router.get("/healthcare/audit-cases", requireAddon("hc-hipaa-audit"), async (req, res, next) => {
+  router.get("/healthcare/audit-cases", requireAddon("hc-hipaa-audit"), requireHealthcareAddon("hc-hipaa-audit"), async (req, res, next) => {
     try {
       const auditCases = await listHcAuditCases(
         ctx(req).tenantId,
@@ -1477,7 +1578,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.post("/healthcare/audit-cases", requireAddon("hc-hipaa-audit"), async (req, res, next) => {
+  router.post("/healthcare/audit-cases", requireAddon("hc-hipaa-audit"), requireHealthcareAddon("hc-hipaa-audit"), async (req, res, next) => {
     try {
       const { tenantId, userId, userEmail } = ctx(req);
       const auditCase = await createHcAuditCase(tenantId, userId, userEmail, {
@@ -1498,7 +1599,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.patch("/healthcare/audit-cases/:id", requireAddon("hc-hipaa-audit"), async (req, res, next) => {
+  router.patch("/healthcare/audit-cases/:id", requireAddon("hc-hipaa-audit"), requireHealthcareAddon("hc-hipaa-audit"), async (req, res, next) => {
     try {
       const { tenantId, userId, userEmail } = ctx(req);
       const auditCase = await updateHcAuditCaseStatus(
@@ -1524,7 +1625,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
 
   router.get(
     "/healthcare/audit-cases/:id/notes",
-    requireAddon("hc-hipaa-audit"),
+    requireAddon("hc-hipaa-audit"), requireHealthcareAddon("hc-hipaa-audit"),
     async (req, res, next) => {
       try {
         const notes = await listHcAuditNotes(ctx(req).tenantId, String(req.params.id));
@@ -1541,7 +1642,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
 
   router.post(
     "/healthcare/audit-cases/:id/notes",
-    requireAddon("hc-hipaa-audit"),
+    requireAddon("hc-hipaa-audit"), requireHealthcareAddon("hc-hipaa-audit"),
     async (req, res, next) => {
       try {
         const { tenantId, userId, userEmail } = ctx(req);
@@ -1563,7 +1664,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     },
   );
 
-  router.get("/healthcare/access-logs", requireAddon("hc-hipaa-audit"), async (req, res, next) => {
+  router.get("/healthcare/access-logs", requireAddon("hc-hipaa-audit"), requireHealthcareAddon("hc-hipaa-audit"), async (req, res, next) => {
     try {
       const logs = await listHcAccessLogs(
         ctx(req).tenantId,
@@ -1575,7 +1676,7 @@ export function registerIndustryVerticalRoutes(router: Router, ctx: RouteCtx): v
     }
   });
 
-  router.post("/healthcare/access-logs", requireAddon("hc-hipaa-audit"), async (req, res, next) => {
+  router.post("/healthcare/access-logs", requireAddon("hc-hipaa-audit"), requireHealthcareAddon("hc-hipaa-audit"), async (req, res, next) => {
     try {
       const { tenantId, userId, userEmail } = ctx(req);
       const log = await createHcAccessLog(tenantId, userId, userEmail, {

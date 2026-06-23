@@ -14,7 +14,10 @@ import {
   getTenantMailOnboardingStatus,
   testMailProviderConnection,
 } from "../services/mail-onboarding.service.js";
-import { recordTrackingOpen } from "../services/tracking.service.js";
+import { recordTrackingOpen, recordLinkClick } from "../services/tracking.service.js";
+import { recordVaultDownload } from "../services/file-vault.service.js";
+import { recordEsignDownload } from "../services/esign.service.js";
+import { recordSlaReportDownload } from "../services/email-sla.service.js";
 import { markReferralLeadBounced } from "../services/referral-lead.service.js";
 import { getEnv } from "../config/env.js";
 import { getPublicPrivacyNotices } from "../services/privacy.service.js";
@@ -346,6 +349,75 @@ publicRouter.get("/track/:token.gif", async (req, res, next) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
     res.setHeader("X-Tracking-Notice", "Open-tracking pixel; see /api/public/privacy");
     res.send(TRACKING_GIF);
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/track/link/:token", async (req, res, next) => {
+  try {
+    const destination = await recordLinkClick(String(req.params.token));
+    if (!destination) {
+      res.status(404).json({ error: "Link not found" });
+      return;
+    }
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("X-Tracking-Notice", "Link-click redirect; see /api/public/privacy");
+    res.redirect(302, destination);
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/vault/:token", async (req, res, next) => {
+  try {
+    const file = await recordVaultDownload(String(req.params.token));
+    if (!file) {
+      res.status(404).json({ error: "Download link not found or expired" });
+      return;
+    }
+    const safeName = file.originalName.replace(/[^\w.\-()+\s]/g, "_");
+    res.setHeader("Content-Type", file.mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("X-Tracking-Notice", "File vault download; see /api/public/privacy");
+    res.send(file.buffer);
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/esign/:token", async (req, res, next) => {
+  try {
+    const file = await recordEsignDownload(String(req.params.token));
+    if (!file) {
+      res.status(404).json({ error: "Download link not found or expired" });
+      return;
+    }
+    const safeName = file.documentName.replace(/[^\w.\-()+\s]/g, "_");
+    res.setHeader("Content-Type", file.mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("X-Tracking-Notice", "E-sign document download; see /api/public/privacy");
+    res.send(file.buffer);
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/sla-report/:token", async (req, res, next) => {
+  try {
+    const file = await recordSlaReportDownload(String(req.params.token));
+    if (!file) {
+      res.status(404).json({ error: "Download link not found or expired" });
+      return;
+    }
+    const safeName = file.fileName.replace(/[^\w.\-()+\s]/g, "_");
+    res.setHeader("Content-Type", file.mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("X-Tracking-Notice", "Email SLA report download; see /api/public/privacy");
+    res.send(file.buffer);
   } catch (err) {
     next(err);
   }

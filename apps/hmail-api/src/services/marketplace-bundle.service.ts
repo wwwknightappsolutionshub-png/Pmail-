@@ -3,11 +3,14 @@ import {
   getPlatformBundleAnchorSlug,
   getVerticalBundleAnchorSlug,
   getVerticalBundleSlugs,
+  JOB_HUNTER_ADDON_SLUG,
+  JOB_HUNTER_STANDALONE_USER_PRICE_CENTS,
   MARKETPLACE_PLATFORM_BUNDLE_USER_PRICE_CENTS,
   MARKETPLACE_VERTICAL_BUNDLE_MIN_TENANT_SEATS,
   MARKETPLACE_VERTICAL_BUNDLE_TENANT_SEAT_PRICE_CENTS,
   MARKETPLACE_VERTICAL_BUNDLE_USER_PRICE_CENTS,
   PLATFORM_WORKSPACE_BUNDLE_SLUGS,
+  resolveAddonMinTenantSeats,
 } from "../data/addon-catalog.js";
 import { prisma } from "../lib/prisma.js";
 import type { AddonSubscriptionScope } from "./addon.service.js";
@@ -18,11 +21,12 @@ export type MarketplaceBundleSelection = {
   scope: AddonSubscriptionScope;
   includePlatformBundle: boolean;
   includeVerticalBundle: boolean;
+  includeJobHunterStandalone?: boolean;
   seats?: number;
 };
 
 export type MarketplaceBundleLine = {
-  bundle: "platform" | "vertical";
+  bundle: "platform" | "vertical" | "job-hunter";
   label: string;
   addonSlugs: readonly string[];
   anchorSlug: string;
@@ -52,22 +56,26 @@ function formatMoney(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+function wantsJobHunterStandalone(selection: MarketplaceBundleSelection): boolean {
+  return Boolean(selection.includeJobHunterStandalone && !selection.includePlatformBundle);
+}
+
 export async function quoteMarketplaceSelection(
   tenantId: string,
   selection: MarketplaceBundleSelection,
 ): Promise<MarketplaceSelectionQuote> {
-  if (!selection.includePlatformBundle && !selection.includeVerticalBundle) {
-    throw new Error("Select at least one workspace bundle to continue");
+  const includeJobHunter = wantsJobHunterStandalone(selection);
+  if (!selection.includePlatformBundle && !selection.includeVerticalBundle && !includeJobHunter) {
+    throw new Error("Select at least one add-on or bundle to continue");
   }
 
   const tenantMemberCount = await countTenantBillableUsers(tenantId);
+  const minSeats = selection.includeVerticalBundle
+    ? MARKETPLACE_VERTICAL_BUNDLE_MIN_TENANT_SEATS
+    : resolveAddonMinTenantSeats({ slug: JOB_HUNTER_ADDON_SLUG, vertical: "platform" });
   const seats =
     selection.scope === "tenant"
-      ? resolveTenantSeats(
-          MARKETPLACE_VERTICAL_BUNDLE_MIN_TENANT_SEATS,
-          tenantMemberCount,
-          selection.seats,
-        )
+      ? resolveTenantSeats(minSeats, tenantMemberCount, selection.seats)
       : 1;
 
   const lines: MarketplaceBundleLine[] = [];
@@ -110,11 +118,28 @@ export async function quoteMarketplaceSelection(
     });
   }
 
+  if (includeJobHunter) {
+    const unitPriceCents = JOB_HUNTER_STANDALONE_USER_PRICE_CENTS;
+    const amountCents = selection.scope === "tenant" ? unitPriceCents * seats : unitPriceCents;
+    lines.push({
+      bundle: "job-hunter",
+      label:
+        selection.scope === "tenant"
+          ? `Job Hunter — ${formatMoney(unitPriceCents)}/month × ${seats} seats`
+          : `Job Hunter — ${formatMoney(unitPriceCents)}/month`,
+      addonSlugs: [JOB_HUNTER_ADDON_SLUG],
+      anchorSlug: JOB_HUNTER_ADDON_SLUG,
+      unitPriceCents,
+      amountCents,
+      isFree: false,
+    });
+  }
+
   const amountCents = lines.reduce((sum, line) => sum + line.amountCents, 0);
   const label =
     amountCents === 0
-      ? "Workspace bundles — included for tenant"
-      : `Workspace bundles — ${formatMoney(amountCents)}/month`;
+      ? "Marketplace selection — included for tenant"
+      : `Marketplace selection — ${formatMoney(amountCents)}/month`;
 
   return {
     vertical: selection.vertical,

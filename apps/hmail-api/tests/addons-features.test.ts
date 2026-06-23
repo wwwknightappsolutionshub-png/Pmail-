@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
-import { ADDON_CATALOG, ACCOUNTING_PHASE_1_SLUGS, B2B_PHASE_1_SLUGS, HEALTHCARE_PHASE_1_SLUGS, REAL_ESTATE_PHASE_1_SLUGS, RECRUITMENT_PHASE_1_SLUGS } from "../src/data/addon-catalog.js";
+import { ADDON_CATALOG, ACCOUNTING_PHASE_1_SLUGS, B2B_PHASE_1_SLUGS, HEALTHCARE_PHASE_1_SLUGS, MARKETPLACE_PLATFORM_BUNDLE_SLUGS, REAL_ESTATE_PHASE_1_SLUGS, RECRUITMENT_PHASE_1_SLUGS } from "../src/data/addon-catalog.js";
 import { createApp } from "../src/app.js";
 import {
   createAuthenticatedAgent,
@@ -318,8 +318,46 @@ describe("addons and features e2e", () => {
     expect(res.body.mode).toBe("activated");
 
     const entitled = await agent.get("/api/addons/entitlements");
-    expect(entitled.body.slugs).toContain("whatsapp-functionality");
-    expect(entitled.body.slugs).toContain("open-tracking");
+    for (const slug of MARKETPLACE_PLATFORM_BUNDLE_SLUGS) {
+      expect(entitled.body.slugs).toContain(slug);
+    }
+    expect(entitled.body.slugs).not.toContain("whatsapp-functionality");
+    expect(entitled.body.slugs).not.toContain("email-sla-tracker-functionality");
+  });
+
+  it("marketplace platform bundle quote lists all Phase 1.1–1.6 slugs", async () => {
+    const { agent } = await createAuthenticatedAgent(app);
+    const res = await agent.post("/api/addons/marketplace/quote").send({
+      vertical: "legal",
+      scope: "user",
+      includePlatformBundle: true,
+      includeVerticalBundle: false,
+    });
+    expect(res.status).toBe(200);
+    const platformLine = res.body.quote.lines.find((line: { bundle: string }) => line.bundle === "platform");
+    expect(platformLine).toBeTruthy();
+    expect(platformLine.addonSlugs).toEqual([...MARKETPLACE_PLATFORM_BUNDLE_SLUGS]);
+    expect(platformLine.addonSlugs).not.toContain("email-sla-tracker-functionality");
+  });
+
+  it("quotes Job Hunter standalone without platform or vertical bundles", async () => {
+    const { agent } = await createAuthenticatedAgent(app);
+    const res = await agent.post("/api/addons/marketplace/quote").send({
+      vertical: "b2b-services",
+      scope: "user",
+      includePlatformBundle: false,
+      includeVerticalBundle: false,
+      includeJobHunterStandalone: true,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.quote.amountCents).toBe(1000);
+    expect(res.body.quote.lines).toEqual([
+      expect.objectContaining({
+        bundle: "job-hunter",
+        anchorSlug: "job-hunter-functionality",
+        amountCents: 1000,
+      }),
+    ]);
   });
 
   it("renders PMail+ referral invitation template for super admin editing", async () => {

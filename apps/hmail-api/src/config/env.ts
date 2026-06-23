@@ -48,6 +48,28 @@ const envSchema = z.object({
   PAYMENT_CANCEL_URL: z.string().default("http://localhost:5174/checkout/cancel"),
   HOSTNET_WEB_URL: z.string().default("http://localhost:5174"),
   PUBLIC_API_URL: z.string().optional(),
+  FILE_VAULT_UPLOAD_ROOT: z.string().optional(),
+  FILE_VAULT_MAX_BYTES: z.coerce.number().int().positive().default(100 * 1024 * 1024),
+  FILE_VAULT_LINK_TTL_DAYS: z.coerce.number().int().positive().default(30),
+  MULTI_INBOX_MAX_ACCOUNTS: z.coerce.number().int().positive().default(5),
+  INBOX_CLEANUP_MAX_SCAN: z.coerce.number().int().positive().default(500),
+  INBOX_CLEANUP_SENDERS_LIMIT: z.coerce.number().int().positive().default(25),
+  ATTACHMENT_CATEGORIZE_MAX_SCAN: z.coerce.number().int().positive().default(200),
+  DROPBOX_SIGN_API_KEY: z.string().optional(),
+  DROPBOX_SIGN_TEST_MODE: z
+    .string()
+    .transform((v) => v === "true")
+    .default("false"),
+  ESIGN_MAX_BYTES: z.coerce.number().int().positive().default(25 * 1024 * 1024),
+  ESIGN_LINK_TTL_DAYS: z.coerce.number().int().positive().default(30),
+  EMAIL_SLA_DEFAULT_HOURS: z.coerce.number().int().positive().default(24),
+  EMAIL_SLA_MAX_SCAN: z.coerce.number().int().positive().default(200),
+  EMAIL_SLA_AT_RISK_RATIO: z.coerce.number().min(0.1).max(0.99).default(0.8),
+  EMAIL_SLA_REPORT_LINK_TTL_DAYS: z.coerce.number().int().positive().default(7),
+  JOB_HUNTER_CV_MAX_BYTES: z.coerce.number().int().positive().default(5 * 1024 * 1024),
+  JOB_HUNTER_MAX_SCAN: z.coerce.number().int().positive().default(200),
+  /** QA override: career trial length in minutes (e.g. 1 for fast expiry tests). */
+  JOB_HUNTER_TRIAL_MINUTES: z.coerce.number().int().positive().optional(),
   WHATSAPP_PROVIDER: z.enum(["twilio", "meta"]).optional(),
   TWILIO_ACCOUNT_SID: z.string().optional(),
   TWILIO_AUTH_TOKEN: z.string().optional(),
@@ -65,6 +87,18 @@ const envSchema = z.object({
   PMAIL_TESTER_EMAIL: z.string().email().default("pmailtester@gmail.com"),
   PMAIL_TESTER_PASSWORD: z.string().min(8).default("mailtester1234"),
   PMAIL_TESTER_TENANT_SLUG: z.string().default("pmail-tester"),
+  PMAIL_TESTER_UNLOCK_ALL_ADDONS: z
+    .string()
+    .optional()
+    .transform((v) => {
+      if (v === "true") return true;
+      if (v === "false") return false;
+      return false;
+    }),
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  GOOGLE_CALENDAR_ACCESS_TOKEN: z.string().optional(),
+  MICROSOFT_GRAPH_ACCESS_TOKEN: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -10,6 +10,9 @@ interface AddonCardProps {
   pricingQuote?: string;
   preferredLicenseScope?: "user" | "tenant";
   browseMode?: boolean;
+  suppressPrice?: boolean;
+  /** When true, paid subscribe actions are hidden (e.g. pricing band owns checkout). */
+  hideSubscribe?: boolean;
 }
 
 function statusLabel(addon: AddonItem): string {
@@ -45,6 +48,8 @@ export function AddonCard({
   pricingQuote,
   preferredLicenseScope,
   browseMode,
+  suppressPrice,
+  hideSubscribe,
 }: AddonCardProps) {
   const isEntitled = addon.accessStatus === "trial" || addon.accessStatus === "active";
   const isComingSoon = addon.comingSoon;
@@ -72,10 +77,12 @@ export function AddonCard({
       </ul>
 
       <footer className="addon-card-foot">
-        <div className="addon-card-price">
-          <strong>{scopedPrice ?? priceLabel(addon)}</strong>
-          {pricingQuote && !preferredLicenseScope ? <span className="addon-card-quote">{pricingQuote}</span> : null}
-        </div>
+        {!browseMode && !suppressPrice ? (
+          <div className="addon-card-price">
+            <strong>{scopedPrice ?? priceLabel(addon)}</strong>
+            {pricingQuote && !preferredLicenseScope ? <span className="addon-card-quote">{pricingQuote}</span> : null}
+          </div>
+        ) : null}
 
         {browseMode ? (
           <span className="addon-card-pill addon-card-pill--muted">Included in bundle</span>
@@ -85,7 +92,7 @@ export function AddonCard({
           <span className="addon-card-pill">Included</span>
         ) : addon.accessStatus === "trial" ? (
           <span className="addon-card-pill addon-card-pill--trial">On trial</span>
-        ) : addon.isPaid ? (
+        ) : addon.isPaid && !hideSubscribe ? (
           <div className="addon-card-checkout-actions">
             {preferredLicenseScope ? (
               <button
