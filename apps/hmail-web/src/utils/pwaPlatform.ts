@@ -1,4 +1,5 @@
 const MOBILE_MAX_WIDTH_PX = 767;
+const PWA_INSTALL_SESSION_BYPASS_KEY = "pmail:pwa-install-session-bypass";
 
 export function isMobileScreen(): boolean {
   if (typeof window === "undefined") return false;
@@ -38,7 +39,26 @@ export function isLoginPath(pathname: string): boolean {
   return pathname === "/login" || pathname.startsWith("/login/");
 }
 
+/** User accepted install or confirmed manual add — allow this browser session to continue. */
+export function markPwaInstallAcceptedForSession(): void {
+  try {
+    sessionStorage.setItem(PWA_INSTALL_SESSION_BYPASS_KEY, "1");
+  } catch {
+    // Storage may be blocked in private mode; gate dismissal also uses in-memory state.
+  }
+}
+
+export function hasPwaInstallSessionBypass(): boolean {
+  try {
+    return sessionStorage.getItem(PWA_INSTALL_SESSION_BYPASS_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function shouldRequirePwaInstall(pathname = "/"): boolean {
   if (isLoginPath(pathname)) return false;
-  return isPwaInstallGateEnabled() && isMobileScreen() && !isStandaloneDisplayMode();
+  if (isStandaloneDisplayMode()) return false;
+  if (hasPwaInstallSessionBypass()) return false;
+  return isPwaInstallGateEnabled() && isMobileScreen();
 }

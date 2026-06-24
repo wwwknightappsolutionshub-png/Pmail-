@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
+  hasPwaInstallSessionBypass,
   isAndroidDevice,
   isIosDevice,
   isMobileScreen,
   isStandaloneDisplayMode,
+  markPwaInstallAcceptedForSession,
   shouldRequirePwaInstall,
 } from "../utils/pwaPlatform";
 
@@ -15,24 +17,40 @@ type BeforeInstallPromptEvent = Event & {
 
 export function usePwaInstall() {
   const location = useLocation();
-  const [gateActive, setGateActive] = useState(() => shouldRequirePwaInstall(location.pathname));
+  const [sessionBypass, setSessionBypass] = useState(() => hasPwaInstallSessionBypass());
+  const [gateActive, setGateActive] = useState(
+    () => !hasPwaInstallSessionBypass() && shouldRequirePwaInstall(location.pathname),
+  );
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installing, setInstalling] = useState(false);
   const [installError, setInstallError] = useState("");
 
+  const releaseInstallGate = useCallback(() => {
+    markPwaInstallAcceptedForSession();
+    setSessionBypass(true);
+    setInstallError("");
+    setGateActive(false);
+  }, []);
+
   const refreshGate = useCallback(() => {
+    if (sessionBypass || hasPwaInstallSessionBypass()) {
+      setGateActive(false);
+      return;
+    }
     setGateActive(shouldRequirePwaInstall(location.pathname));
-  }, [location.pathname]);
+  }, [location.pathname, sessionBypass]);
 
   useEffect(() => {
     refreshGate();
 
     const mobileQuery = window.matchMedia("(max-width: 767px)");
     const standaloneQuery = window.matchMedia("(display-mode: standalone)");
+    const fullscreenQuery = window.matchMedia("(display-mode: fullscreen)");
 
     const onViewportChange = () => refreshGate();
     mobileQuery.addEventListener("change", onViewportChange);
     standaloneQuery.addEventListener("change", onViewportChange);
+    fullscreenQuery.addEventListener("change", onViewportChange);
     window.addEventListener("resize", onViewportChange);
     window.addEventListener("orientationchange", onViewportChange);
     document.addEventListener("visibilitychange", onViewportChange);
@@ -44,8 +62,7 @@ export function usePwaInstall() {
 
     const onAppInstalled = () => {
       setInstallPrompt(null);
-      setInstallError("");
-      refreshGate();
+      releaseInstallGate();
     };
 
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
@@ -54,13 +71,14 @@ export function usePwaInstall() {
     return () => {
       mobileQuery.removeEventListener("change", onViewportChange);
       standaloneQuery.removeEventListener("change", onViewportChange);
+      fullscreenQuery.removeEventListener("change", onViewportChange);
       window.removeEventListener("resize", onViewportChange);
       window.removeEventListener("orientationchange", onViewportChange);
       document.removeEventListener("visibilitychange", onViewportChange);
       window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
       window.removeEventListener("appinstalled", onAppInstalled);
     };
-  }, [refreshGate]);
+  }, [refreshGate, releaseInstallGate]);
 
   const triggerInstall = useCallback(async () => {
     if (!installPrompt) {
@@ -76,7 +94,7 @@ export function usePwaInstall() {
       const choice = await installPrompt.userChoice;
       if (choice.outcome === "accepted") {
         setInstallPrompt(null);
-        refreshGate();
+        releaseInstallGate();
       } else {
         setInstallError("Install PMail+ from your home screen to continue on mobile.");
       }
@@ -85,7 +103,7 @@ export function usePwaInstall() {
     } finally {
       setInstalling(false);
     }
-  }, [installPrompt, refreshGate]);
+  }, [installPrompt, releaseInstallGate]);
 
   return {
     gateActive,
@@ -97,6 +115,7 @@ export function usePwaInstall() {
     isMobile: isMobileScreen(),
     isStandalone: isStandaloneDisplayMode(),
     triggerInstall,
+    continueAfterInstall: releaseInstallGate,
     refreshGate,
   };
 }

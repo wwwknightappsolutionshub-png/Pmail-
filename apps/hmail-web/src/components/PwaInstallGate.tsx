@@ -15,6 +15,7 @@ export function PwaInstallGate({ children }: PwaInstallGateProps) {
     isIos,
     isAndroid,
     triggerInstall,
+    continueAfterInstall,
   } = usePwaInstall();
 
   if (!gateActive) {
@@ -41,6 +42,12 @@ export function PwaInstallGate({ children }: PwaInstallGateProps) {
             </button>
           ) : null}
 
+          {!canPromptInstall ? (
+            <button type="button" className="pwa-install-btn pwa-install-btn--continue" onClick={continueAfterInstall}>
+              {isIos ? "I've added PMail+ — continue" : "Continue to PMail+"}
+            </button>
+          ) : null}
+
           {installError ? <p className="pwa-install-error">{installError}</p> : null}
 
           {isIos ? (
@@ -63,7 +70,9 @@ export function PwaInstallGate({ children }: PwaInstallGateProps) {
           )}
 
           <p className="pwa-install-note">
-            After you sign in, install PMail+ and reopen it from your home screen to access mail and workspace tools.
+            {canPromptInstall
+              ? "After installing, you'll continue in this browser. Open PMail+ from your home screen next time for the full-screen app."
+              : "Add PMail+ to your home screen, then tap continue. For the best experience, open PMail+ from your home screen icon."}
           </p>
         </div>
       </div>

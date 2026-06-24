@@ -75,6 +75,16 @@
   opacity: 0.7;
 }
 
+.pwa-install-btn--continue {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  margin-top: 0.5rem;
+}
+
+.pwa-install-btn--continue:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .pwa-install-error {
   margin: 0 0 1rem;
   padding: 0.75rem 0.85rem;
