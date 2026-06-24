@@ -194,3 +194,36 @@ export function resolveMailConfigFromPreset(
 export function defaultMailConfig(): MailConfigValues {
   return resolveMailConfigFromPreset("microsoft");
 }
+
+const EMAIL_DOMAIN_PROVIDER_MAP: Record<string, MailProviderPresetKey> = {
+  "gmail.com": "google",
+  "googlemail.com": "google",
+  "outlook.com": "microsoft",
+  "hotmail.com": "microsoft",
+  "live.com": "microsoft",
+  "msn.com": "microsoft",
+  "office365.com": "microsoft",
+  "yahoo.com": "yahoo",
+  "ymail.com": "yahoo",
+  "rocketmail.com": "yahoo",
+  "icloud.com": "apple",
+  "me.com": "apple",
+  "mac.com": "apple",
+  "zoho.com": "zoho",
+  "aol.com": "aol",
+  "proton.me": "proton",
+  "protonmail.com": "proton",
+  "fastmail.com": "fastmail",
+};
+
+export function inferProviderPresetFromEmail(email: string): MailProviderPresetKey | null {
+  const domain = email.trim().toLowerCase().split("@")[1];
+  if (!domain) return null;
+  return EMAIL_DOMAIN_PROVIDER_MAP[domain] ?? null;
+}
+
+export function formatMailConfigSummary(config: MailConfigValues): string {
+  const preset = MAIL_PROVIDER_LIST.find((entry) => entry.key === config.providerPreset);
+  const label = preset?.label ?? "Custom";
+  return `${label} · IMAP ${config.imapHost}:${config.imapPort} · SMTP ${config.smtpHost}:${config.smtpPort}`;
+}

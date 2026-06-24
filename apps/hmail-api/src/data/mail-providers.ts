@@ -170,3 +170,85 @@ export function resolveMailConfigFromPreset(
     smtpSecure: preset.smtpSecure,
   };
 }
+
+const EMAIL_DOMAIN_PROVIDER_MAP: Record<string, MailProviderPresetKey> = {
+  "gmail.com": "google",
+  "googlemail.com": "google",
+  "outlook.com": "microsoft",
+  "hotmail.com": "microsoft",
+  "live.com": "microsoft",
+  "msn.com": "microsoft",
+  "office365.com": "microsoft",
+  "yahoo.com": "yahoo",
+  "ymail.com": "yahoo",
+  "rocketmail.com": "yahoo",
+  "icloud.com": "apple",
+  "me.com": "apple",
+  "mac.com": "apple",
+  "zoho.com": "zoho",
+  "aol.com": "aol",
+  "proton.me": "proton",
+  "protonmail.com": "proton",
+  "fastmail.com": "fastmail",
+};
+
+export function inferProviderPresetFromEmail(email: string): MailProviderPresetKey | null {
+  const domain = email.trim().toLowerCase().split("@")[1];
+  if (!domain) return null;
+  return EMAIL_DOMAIN_PROVIDER_MAP[domain] ?? null;
+}
+
+export function matchProviderPresetFromHosts(
+  config: Pick<MailConfigInput, "imapHost" | "imapPort" | "imapSecure" | "smtpHost" | "smtpPort" | "smtpSecure">,
+): MailProviderPresetKey {
+  for (const key of MAIL_PROVIDER_PRESET_KEYS) {
+    const preset = MAIL_PROVIDER_PRESETS[key];
+    if (
+      preset.imapHost === config.imapHost &&
+      preset.imapPort === config.imapPort &&
+      preset.imapSecure === config.imapSecure &&
+      preset.smtpHost === config.smtpHost &&
+      preset.smtpPort === config.smtpPort &&
+      preset.smtpSecure === config.smtpSecure
+    ) {
+      return key;
+    }
+  }
+  return "custom";
+}
+
+export function resolveSuggestedMailConfigForLogin(
+  email: string,
+  tenantMail?: {
+    imapHost: string;
+    imapPort: number;
+    imapSecure: boolean;
+    smtpHost: string;
+    smtpPort: number;
+    smtpSecure: boolean;
+    mailOnboardingComplete: boolean;
+  } | null,
+): MailConfigInput | null {
+  if (tenantMail?.mailOnboardingComplete) {
+    const preset = matchProviderPresetFromHosts(tenantMail);
+    if (preset !== "custom") {
+      return resolveMailConfigFromPreset(preset);
+    }
+    return {
+      providerPreset: "custom",
+      imapHost: tenantMail.imapHost,
+      imapPort: tenantMail.imapPort,
+      imapSecure: tenantMail.imapSecure,
+      smtpHost: tenantMail.smtpHost,
+      smtpPort: tenantMail.smtpPort,
+      smtpSecure: tenantMail.smtpSecure,
+    };
+  }
+
+  const inferred = inferProviderPresetFromEmail(email);
+  if (inferred) {
+    return resolveMailConfigFromPreset(inferred);
+  }
+
+  return null;
+}

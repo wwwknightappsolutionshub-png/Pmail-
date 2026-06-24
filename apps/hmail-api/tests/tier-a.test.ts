@@ -79,6 +79,62 @@ describe("Tier A production APIs", () => {
     expect(loginRes.body.error).toMatch(/provider/i);
   });
 
+  it("login preflight suggests tenant mail provider for first-time users", async () => {
+    const tenant = await testPrisma.tenant.create({
+      data: {
+        slug: "hostinger-firm",
+        name: "Hostinger Firm",
+        branding: { create: { productName: "PMail+" } },
+        mail: {
+          create: {
+            imapHost: "imap.hostinger.com",
+            imapPort: 993,
+            imapSecure: true,
+            smtpHost: "smtp.hostinger.com",
+            smtpPort: 465,
+            smtpSecure: true,
+            mailOnboardingComplete: true,
+          },
+        },
+      },
+    });
+    await testPrisma.user.create({
+      data: { tenantId: tenant.id, email: "user@custom-domain.test" },
+    });
+
+    const preflight = await request(app).get("/api/auth/login-preflight").query({
+      tenantSlug: "hostinger-firm",
+      email: "user@custom-domain.test",
+    });
+    expect(preflight.status).toBe(200);
+    expect(preflight.body.needsProviderSetup).toBe(true);
+    expect(preflight.body.suggestedMailConfig?.providerPreset).toBe("hostinger");
+  });
+
+  it("first login with provider preset saves user mail config", async () => {
+    const tenant = await testPrisma.tenant.create({
+      data: {
+        slug: "first-login-co",
+        name: "First Login Co",
+        branding: { create: { productName: "PMail+" } },
+        mail: { create: { mailOnboardingComplete: false } },
+      },
+    });
+    await testPrisma.user.create({
+      data: { tenantId: tenant.id, email: "newuser@first-login-co.test" },
+    });
+
+    const loginRes = await request(app).post("/api/auth/login").send({
+      tenantSlug: "first-login-co",
+      email: "newuser@first-login-co.test",
+      password: "secret",
+      providerPreset: "hostinger",
+    });
+    expect(loginRes.status).toBe(200);
+    expect(loginRes.body.user.mailConfig?.providerPreset).toBe("hostinger");
+    expect(loginRes.body.user.mailConfig?.imapHost).toBe("imap.hostinger.com");
+  });
+
   it("PUT /api/public/onboarding/:slug/mail completes setup with test credentials", async () => {
     await testPrisma.tenant.create({
       data: {

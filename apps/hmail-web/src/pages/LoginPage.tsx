@@ -6,6 +6,7 @@ import type { TenantBranding } from "../types/mail";
 import { DEFAULT_TENANT_SLUG, PMAIL_TESTER_TENANT_SLUG } from "../constants/tenant";
 import {
   defaultMailConfig,
+  formatMailConfigSummary,
   resolveMailConfigFromPreset,
   type MailConfigValues,
   type MailProviderPresetKey,
@@ -40,8 +41,9 @@ export function LoginPage() {
   const [branding, setBranding] = useState<TenantBranding>(defaultBranding);
   const [email, setEmail] = useState(isTesterRoute ? "pmailtester@gmail.com" : "");
   const [password, setPassword] = useState("");
-  const [mailConfig, setMailConfig] = useState<MailConfigValues>(defaultMailConfig);
+  const [mailConfig, setMailConfig] = useState<MailConfigValues>(() => defaultMailConfig());
   const [needsProviderSetup, setNeedsProviderSetup] = useState<boolean | null>(isTesterRoute ? false : null);
+  const [providerPresetTouched, setProviderPresetTouched] = useState(false);
   const [testerBypass, setTesterBypass] = useState(isTesterRoute);
   const [suggestedTenantSlug, setSuggestedTenantSlug] = useState<string | null>(null);
   const [greetingName, setGreetingName] = useState<string | null>(isTesterRoute ? "PMail Tester" : null);
@@ -104,6 +106,17 @@ export function LoginPage() {
           setTesterBypass(Boolean(result.testerBypass));
           setSuggestedTenantSlug(result.suggestedTenantSlug ?? null);
           setGreetingName(result.displayName);
+          if (result.needsProviderSetup && result.suggestedMailConfig && !providerPresetTouched) {
+            setMailConfig({
+              providerPreset: result.suggestedMailConfig.providerPreset as MailProviderPresetKey,
+              imapHost: result.suggestedMailConfig.imapHost,
+              imapPort: result.suggestedMailConfig.imapPort,
+              imapSecure: result.suggestedMailConfig.imapSecure,
+              smtpHost: result.suggestedMailConfig.smtpHost,
+              smtpPort: result.suggestedMailConfig.smtpPort,
+              smtpSecure: result.suggestedMailConfig.smtpSecure,
+            });
+          }
         }
       })
       .catch(() => {
@@ -121,11 +134,12 @@ export function LoginPage() {
     return () => {
       cancelled = true;
     };
-  }, [email, tenantSlug, isTesterRoute]);
+  }, [email, tenantSlug, isTesterRoute, providerPresetTouched]);
 
   if (user) return <Navigate to="/" replace />;
 
   const applyPreset = (key: MailProviderPresetKey) => {
+    setProviderPresetTouched(true);
     setMailConfig((current) =>
       resolveMailConfigFromPreset(key, key === "custom" ? current : undefined),
     );
@@ -228,7 +242,7 @@ export function LoginPage() {
                 {isTesterRoute
                   ? "Demo workspace login — no mail provider setup required. Use the seeded tester credentials to explore all paid add-ons."
                   : showProviderSetup
-                  ? "Because this is your first time here, you will need to select your current mail provider, then the sytem will auto fill their server config, then you will login with your email ID and Password from the mail provider to enjoy here special addon's that promotes productivity."
+                  ? "Because this is your first time here, select your mail provider (we auto-detect from your email when possible), then sign in with your mailbox password."
                   : "Access your firm mailbox and immigration add-ons"}
               </p>
             </div>
@@ -240,6 +254,19 @@ export function LoginPage() {
                   <Link to={`/login/${suggestedTenantSlug}`}>Sign in on the tester workspace</Link> instead.
                 </div>
               ) : null}
+
+              <label>
+                Work email
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  required
+                  autoComplete="username"
+                />
+              </label>
+
               {showProviderSetup ? (
                 <div className="login-provider-section">
                   <span className="login-provider-label">Mail provider</span>
@@ -248,6 +275,7 @@ export function LoginPage() {
                     onChange={applyPreset}
                     idPrefix="login-provider"
                   />
+                  <p className="login-provider-summary">{formatMailConfigSummary(mailConfig)}</p>
                   {preflightLoading ? (
                     <p className="login-provider-hint">Checking mailbox setup…</p>
                   ) : null}
@@ -308,18 +336,6 @@ export function LoginPage() {
                   </label>
                 </div>
               ) : null}
-
-              <label>
-                Work email
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@company.com"
-                  required
-                  autoComplete="username"
-                />
-              </label>
 
               <label>
                 Password

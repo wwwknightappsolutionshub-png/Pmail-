@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma.js";
 import {
   isMailProviderPresetKey,
   resolveMailConfigFromPreset,
+  resolveSuggestedMailConfigForLogin,
   type MailConfigInput,
   type MailProviderPresetKey,
 } from "../data/mail-providers.js";
@@ -63,7 +64,7 @@ export async function getLoginPreflight(tenantSlug: string, email: string) {
   const normalizedEmail = email.trim().toLowerCase();
   const tenant = await prisma.tenant.findFirst({
     where: { slug: tenantSlug.trim().toLowerCase(), isActive: true },
-    select: { id: true },
+    select: { id: true, mail: true },
   });
   if (!tenant) throw new Error("Organization not found");
 
@@ -83,6 +84,8 @@ export async function getLoginPreflight(tenantSlug: string, email: string) {
   const isTesterTenant = tenantSlug.trim().toLowerCase() === env.PMAIL_TESTER_TENANT_SLUG;
   const testerBypass = isPmailTesterBypassEnabled() && isTesterEmail && isTesterTenant;
 
+  const suggestedMailConfig = resolveSuggestedMailConfigForLogin(normalizedEmail, tenant.mail);
+
   return {
     needsProviderSetup: testerBypass ? false : !user?.mailConfig,
     displayName: displayName ?? (isTesterEmail ? "PMail Tester" : null),
@@ -91,6 +94,7 @@ export async function getLoginPreflight(tenantSlug: string, email: string) {
       isPmailTesterBypassEnabled() && isTesterEmail && !isTesterTenant
         ? env.PMAIL_TESTER_TENANT_SLUG
         : null,
+    suggestedMailConfig,
   };
 }
 

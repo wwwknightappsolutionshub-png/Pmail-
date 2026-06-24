@@ -250,6 +250,15 @@ export const api = {
       displayName: string | null;
       testerBypass?: boolean;
       suggestedTenantSlug?: string | null;
+      suggestedMailConfig?: {
+        providerPreset: string;
+        imapHost: string;
+        imapPort: number;
+        imapSecure: boolean;
+        smtpHost: string;
+        smtpPort: number;
+        smtpSecure: boolean;
+      } | null;
     }>(`/api/auth/login-preflight?tenantSlug=${encodeURIComponent(tenantSlug)}&email=${encodeURIComponent(email)}`),
   testerLogin: (body: { email: string; password: string }) =>
     request<{ token: string; user: import("../types/mail").AuthUser }>("/api/auth/tester/login", {

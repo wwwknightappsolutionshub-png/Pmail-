@@ -227,6 +227,18 @@
   color: var(--login-muted, #64748b);
 }
 
+.login-provider-summary {
+  margin: 0.35rem 0 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--login-border, #dbe3ec);
+  background: #f8fafc;
+  color: var(--login-muted, #64748b);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
 .login-check-row {
   display: flex !important;
   align-items: center;
