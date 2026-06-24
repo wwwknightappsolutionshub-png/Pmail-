@@ -48,7 +48,7 @@ export function ProspectAccessForm({
 
   if (submitted) {
     return (
-      <div className={`prospect-access-card${className ? ` ${className}` : ""}`}>
+      <div className={`login-form-card prospect-access-card${className ? ` ${className}` : ""}`}>
         <h2 className="prospect-access-title">Request received</h2>
         <p className="prospect-access-lead">
           Thanks for your interest in {productName}. Our team will review your request and follow up by email.
@@ -64,7 +64,7 @@ export function ProspectAccessForm({
   }
 
   return (
-    <div className={`prospect-access-card${className ? ` ${className}` : ""}`}>
+    <div className={`login-form-card prospect-access-card${className ? ` ${className}` : ""}`}>
       <h2 className="prospect-access-title">Request workspace access</h2>
       <p className="prospect-access-lead">
         Not ready to connect a mailbox? Tell us about your team and we&apos;ll reach out with next steps.

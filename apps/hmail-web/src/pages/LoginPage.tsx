@@ -37,12 +37,12 @@ export function LoginPage() {
             onBackToSignIn={() => setAccessMode("signin")}
           />
         ) : (
-          <>
-            <LoginFormCard {...loginForm} loadError={loadError} exploreHref={exploreHref} />
-            <button type="button" className="prospect-access-toggle" onClick={() => setAccessMode("prospect")}>
-              Request workspace access without connecting mail
-            </button>
-          </>
+          <LoginFormCard
+            {...loginForm}
+            loadError={loadError}
+            exploreHref={exploreHref}
+            onRequestWorkspaceAccess={() => setAccessMode("prospect")}
+          />
         )
       }
       overlay={

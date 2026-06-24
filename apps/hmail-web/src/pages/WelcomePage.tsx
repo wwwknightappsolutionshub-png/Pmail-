@@ -114,12 +114,12 @@ export function WelcomePage() {
             onBackToSignIn={() => setAccessMode("signin")}
           />
         ) : (
-          <>
-            <LoginFormCard {...loginForm} loadError={loadError} showExploreLink={false} />
-            <button type="button" className="prospect-access-toggle" onClick={() => setAccessMode("prospect")}>
-              Request workspace access without connecting mail
-            </button>
-          </>
+          <LoginFormCard
+            {...loginForm}
+            loadError={loadError}
+            showExploreLink={false}
+            onRequestWorkspaceAccess={() => setAccessMode("prospect")}
+          />
         )
       }
       overlay={

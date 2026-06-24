@@ -3456,6 +3456,21 @@ html:has(.pmail-demo-shell--light) body {
     display: none;
   }
 
+  .pmail-demo-shell .bespoke-demo-topbar-signout.bespoke-demo-topbar-btn {
+    color: #fca5a5;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar-signout.bespoke-demo-topbar-btn:hover {
+    background: rgba(248, 113, 113, 0.12);
+    border-color: rgba(248, 113, 113, 0.35);
+  }
+
+  /* De-clutter mobile topbar — keep theme + sign out */
+  .pmail-demo-shell .bespoke-demo-topbar-actions > .bespoke-demo-topbar-btn:first-child,
+  .pmail-demo-shell .bespoke-demo-topbar-actions > a.bespoke-demo-topbar-btn {
+    display: none;
+  }
+
   .pmail-demo-shell .bespoke-demo-topbar-center {
     flex: 1 1 auto;
     min-width: 0;
@@ -3499,6 +3514,35 @@ html:has(.pmail-demo-shell--light) body {
   .pmail-demo-shell .bespoke-demo-inbox-production-mount {
     flex: 1 1 auto;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .pmail-demo-shell .bespoke-demo-inbox-production-mount .mail-app--embedded-in-bespoke {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .pmail-demo-shell .bespoke-demo-inbox-production-mount .mail-app--embedded-in-bespoke .mail-layout,
+  .pmail-demo-shell .bespoke-demo-inbox-production-mount .mail-app--embedded-in-bespoke .mail-list-pane,
+  .pmail-demo-shell .bespoke-demo-inbox-production-mount .mail-app--embedded-in-bespoke .mail-list-scroll-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pmail-demo-shell .bespoke-demo-inbox-production-mount .mail-app--embedded-in-bespoke .message-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   .pmail-demo-shell .mail-app--embedded-in-bespoke {
@@ -3508,10 +3552,28 @@ html:has(.pmail-demo-shell--light) body {
     height: 100%;
     overflow: hidden;
   }
+
+  .pmail-demo-shell .bespoke-demo-production-workspace:not(.bespoke-demo-production-workspace--settings) {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pmail-demo-shell .bespoke-demo-production-workspace .platform-tools-panel,
+  .pmail-demo-shell .bespoke-demo-production-workspace .mail-view-panel,
+  .pmail-demo-shell .bespoke-demo-production-workspace .bespoke-demo-industry-shell {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
 }
 
 /* PWA / mobile: pin shell to visual viewport — stops rubber-band black bleed */
-@media (max-width: 767px), (display-mode: standalone) {
+@media (max-width: 767px) {
   html:has(.pmail-demo-shell),
   html:has(.pmail-demo-shell) body,
   html:has(.pmail-demo-shell) #root {

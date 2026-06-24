@@ -12,6 +12,7 @@ type LoginFormCardProps = LoginFormState & {
   exploreHref?: string;
   formId?: string;
   className?: string;
+  onRequestWorkspaceAccess?: () => void;
 };
 
 export function LoginFormCard({
@@ -36,6 +37,7 @@ export function LoginFormCard({
   exploreHref = "/welcome",
   formId = "pmail-login-form",
   className = "",
+  onRequestWorkspaceAccess,
 }: LoginFormCardProps) {
   return (
     <div className={`login-form-card${className ? ` ${className}` : ""}`}>
@@ -165,6 +167,12 @@ export function LoginFormCard({
           <Link className="login-create-account" to={exploreHref}>
             New here? Explore PMail+
           </Link>
+        ) : null}
+
+        {onRequestWorkspaceAccess ? (
+          <button type="button" className="login-prospect-cta" onClick={onRequestWorkspaceAccess}>
+            Request workspace access without connecting mail
+          </button>
         ) : null}
       </form>
     </div>

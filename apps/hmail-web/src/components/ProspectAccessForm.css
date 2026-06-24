@@ -1,5 +1,10 @@
 .prospect-access-card {
   width: 100%;
+  max-width: 420px;
+}
+
+.prospect-access-card.login-form-card {
+  margin: 0 auto;
 }
 
 .prospect-access-title {

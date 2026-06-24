@@ -2113,15 +2113,26 @@ export function BespokeMailDemo({
                 <span>{uiThemeVersion === "light" ? "Dark UI" : "Light UI"}</span>
               </button>
             ) : null}
+            {onLogout ? (
+              <button
+                type="button"
+                className="bespoke-demo-topbar-btn bespoke-demo-topbar-signout"
+                onClick={onLogout}
+                aria-label="Sign out"
+              >
+                <TopbarIcon>
+                  <path
+                    fill="currentColor"
+                    d="M10.09 15.59 11.5 17l5-5-5-5-1.41 1.41L12.17 11H3v2h9.17l-2.08 2.59zM19 3H9c-1.1 0-2 .9-2 2v4h2V5h10v14H9v-4H7v4c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                  />
+                </TopbarIcon>
+                <span>Sign out</span>
+              </button>
+            ) : null}
           </div>
           <span className="bespoke-demo-user" title={displayEmail}>
             {displayName} &lt;{displayEmail}&gt;
           </span>
-          {onLogout ? (
-            <button type="button" className="bespoke-demo-topbar-signout" onClick={onLogout}>
-              Sign out
-            </button>
-          ) : null}
         </div>
       </header>
 

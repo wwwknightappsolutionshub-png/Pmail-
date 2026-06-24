@@ -48,9 +48,9 @@ import { GmailMailSearch, isGmailStyleQuery } from "../components/GmailMailSearc
 import { NewFolderModal } from "../components/NewFolderModal";
 import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
 import { SenderGroupedMessageList } from "../components/SenderGroupedMessageList";
-import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
-import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { isMobileScreen } from "../utils/pwaPlatform";
+import { usePullToRefresh } from "../hooks/usePullToRefresh";
+import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
 import { toolAddonSlug } from "../constants/addonTools";
 import {
   folderSupportsBulkActions,
@@ -600,7 +600,7 @@ export function MailPage({
   );
 
   useEffect(() => {
-    if (!embedded || !onMessageListScroll) return;
+    if (!embedded || !onMessageListScroll || !isMobileScreen()) return;
     const element = messageListRef.current;
     if (!element) return;
 
