@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { resolveDatabaseUrl } from "../src/lib/database-url.js";
 
 const monorepoRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "../../..");
+const apiRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 config({ path: resolve(monorepoRoot, ".env") });
 resolveDatabaseUrl();
 
@@ -15,11 +16,12 @@ const args = process.argv.slice(2);
 const hasSchema = args.some((a) => a === "--schema" || a.startsWith("--schema="));
 const prismaArgs = hasSchema ? args : ["--schema", defaultSchema, ...args];
 
-const result = spawnSync("npx", ["prisma", ...prismaArgs], {
+const prismaBin = resolve(monorepoRoot, "node_modules/prisma/build/index.js");
+
+const result = spawnSync(process.execPath, [prismaBin, ...prismaArgs], {
   stdio: "inherit",
-  shell: true,
   env: process.env,
-  cwd: resolve(fileURLToPath(new URL(".", import.meta.url)), ".."),
+  cwd: apiRoot,
 });
 
 process.exit(result.status ?? 1);

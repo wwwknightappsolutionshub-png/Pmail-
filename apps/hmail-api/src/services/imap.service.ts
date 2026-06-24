@@ -70,6 +70,20 @@ function buildImapClient(credentials: MailCredentials): ImapFlow {
   });
 }
 
+/** Permanently remove a message; retries with sequence EXPUNGE when UID EXPUNGE is unsupported. */
+async function permanentlyDeleteMessage(client: ImapFlow, uid: number): Promise<void> {
+  const deletedByUid = await client.messageDelete(uid, { uid: true });
+  if (deletedByUid) return;
+
+  const message = await client.fetchOne(uid, { uid: true }, { uid: true });
+  if (!message) return;
+
+  const deletedBySeq = await client.messageDelete(message.seq, { uid: false });
+  if (!deletedBySeq) {
+    throw new Error("Could not permanently delete message");
+  }
+}
+
 async function findSentFolderPath(client: ImapFlow): Promise<string | null> {
   const mailboxes = await client.list();
   const bySpecial = mailboxes.find((box) => box.specialUse === "\\Sent");
@@ -534,7 +548,7 @@ export async function deleteMessage(
   try {
     await client.connect();
     await client.mailboxOpen(folder);
-    await client.messageDelete(uid, { uid: true });
+    await permanentlyDeleteMessage(client, uid);
   } finally {
     await client.logout().catch(() => undefined);
   }
@@ -605,7 +619,7 @@ export async function bulkMessageAction(
           await client.messageFlagsRemove(uid, ["\\Seen"], { uid: true });
           break;
         case "delete":
-          await client.messageDelete(uid, { uid: true });
+          await permanentlyDeleteMessage(client, uid);
           break;
         case "move":
           if (!targetFolder) throw new Error("Target folder required");
@@ -866,7 +880,7 @@ export async function performSenderCleanup(
           await client.messageFlagsAdd(uid, ["\\Seen"], { uid: true });
           break;
         case "delete":
-          await client.messageDelete(uid, { uid: true });
+          await permanentlyDeleteMessage(client, uid);
           break;
         case "archive":
           if (!archiveFolder) throw new Error("Archive folder required");

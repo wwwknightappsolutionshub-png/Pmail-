@@ -626,29 +626,40 @@ export function MailPage({
   };
 
   const junkFolder = folders.find((f) => resolveFolderKind(f) === "junk");
+  const isTrashFolder = activeFolderKind === "trash";
 
   const runBulkAction = async (
     action: "markRead" | "markUnread" | "delete" | "move" | "reportSpam",
     targetFolder?: string,
   ) => {
     if (selectedUids.length === 0) return;
-    await api.bulkAction(activeFolder, selectedUids, action, targetFolder);
-    setSelectedUids([]);
-    setSelectedUid(null);
-    setSelectedMessage(null);
-    setMobilePane("list");
-    await loadMessages();
-    await loadFolders();
+    setListError("");
+    try {
+      await api.bulkAction(activeFolder, selectedUids, action, targetFolder);
+      setSelectedUids([]);
+      setSelectedUid(null);
+      setSelectedMessage(null);
+      setMobilePane("list");
+      await loadMessages();
+      await loadFolders();
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Bulk action failed");
+    }
   };
 
   const onDelete = async () => {
     if (!selectedUid) return;
-    await api.deleteMessage(activeFolder, selectedUid);
-    setSelectedUid(null);
-    setSelectedMessage(null);
-    setMobilePane("list");
-    await loadMessages();
-    await loadFolders();
+    setListError("");
+    try {
+      await api.deleteMessage(activeFolder, selectedUid);
+      setSelectedUid(null);
+      setSelectedMessage(null);
+      setMobilePane("list");
+      await loadMessages();
+      await loadFolders();
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Could not delete message");
+    }
   };
 
   const onMoveToTrash = async () => {
@@ -946,6 +957,7 @@ export function MailPage({
               runBulkAction("reportSpam", junkFolder.path);
             }}
             onDelete={() => runBulkAction("delete")}
+            deleteLabel={isTrashFolder ? "Delete permanently" : "Delete"}
             onMove={(targetFolder) => runBulkAction("move", targetFolder)}
             onClearSelection={() => setSelectedUids([])}
           />
@@ -1278,8 +1290,15 @@ export function MailPage({
                   <ReadActionButton label="WhatsApp" onClick={() => void onWhatsappSend()}>
                     <WhatsAppIcon width={18} height={18} />
                   </ReadActionButton>
-                  <ReadActionButton label="Trash" icon={TrashIcon} onClick={onMoveToTrash} />
-                  <ReadActionButton label="Delete" icon={DeleteIcon} onClick={onDelete} variant="danger" />
+                  {!isTrashFolder ? (
+                    <ReadActionButton label="Trash" icon={TrashIcon} onClick={onMoveToTrash} />
+                  ) : null}
+                  <ReadActionButton
+                    label={isTrashFolder ? "Delete permanently" : "Delete"}
+                    icon={DeleteIcon}
+                    onClick={onDelete}
+                    variant="danger"
+                  />
                 </div>
               </header>
 

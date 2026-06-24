@@ -9,6 +9,7 @@ interface MailBulkActionsProps {
   onMarkRead: () => void;
   onReportSpam: () => void;
   onDelete: () => void;
+  deleteLabel?: string;
   onMove: (targetFolder: string) => void;
   onClearSelection: () => void;
 }
@@ -20,6 +21,7 @@ export function MailBulkActions({
   onMarkRead,
   onReportSpam,
   onDelete,
+  deleteLabel = "Delete",
   onMove,
   onClearSelection,
 }: MailBulkActionsProps) {
@@ -37,7 +39,7 @@ export function MailBulkActions({
         Report spam
       </button>
       <button type="button" className="mail-toolbar-btn mail-toolbar-btn--danger" onClick={onDelete}>
-        Delete
+        {deleteLabel}
       </button>
       <label className="mail-bulk-move">
         <span className="sr-only">Move to folder</span>
