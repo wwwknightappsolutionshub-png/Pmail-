@@ -7,7 +7,9 @@ import {
   type MailConfigValues,
 } from "../constants/mailProviders";
 import { ProviderPresetPicker } from "./ProviderPresetPicker";
+import { Mails } from "lucide-react";
 import "./InboxSwitcher.css";
+import "./MailBottomNavButton.css";
 
 export type MailAccountSummary = {
   id: string;
@@ -244,7 +246,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
     return null;
   }
 
-  const shortEmail = displayEmail.includes("@") ? displayEmail.split("@")[0] : displayEmail;
+  const mailboxTooltip = isBottomNav ? `Mailboxes: ${displayEmail}` : undefined;
 
   return (
     <div className={`inbox-switcher inbox-switcher--${variant}`} ref={rootRef}>
@@ -257,15 +259,12 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
         onClick={handleTriggerClick}
         aria-expanded={open}
         aria-haspopup="dialog"
-        aria-label={isBottomNav ? `Mailboxes: ${displayEmail}` : undefined}
+        aria-label={isBottomNav ? mailboxTooltip : undefined}
+        title={mailboxTooltip}
+        data-tooltip={isBottomNav ? "Mailboxes" : undefined}
       >
         {isBottomNav ? (
-          <>
-            <span className="inbox-switcher-bottom-icon" aria-hidden="true">
-              ✉
-            </span>
-            <span className="inbox-switcher-bottom-label">{shortEmail || "Mail"}</span>
-          </>
+          <Mails className="mail-bottom-nav-icon" strokeWidth={2} aria-hidden />
         ) : isHeader ? (
           <>
             <span className="inbox-switcher-header-label">Mailboxes</span>

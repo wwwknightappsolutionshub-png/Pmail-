@@ -59,14 +59,14 @@
 }
 
 .inbox-switcher-trigger--bottom-nav {
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
   width: 100%;
   min-height: 2.85rem;
-  padding: 0.25rem 0.15rem;
+  min-width: 2.85rem;
+  padding: 0.35rem;
   border: none;
   background: transparent;
   color: inherit;
@@ -74,19 +74,9 @@
   cursor: pointer;
 }
 
-.inbox-switcher-bottom-icon {
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.inbox-switcher-bottom-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  line-height: 1.1;
-  max-width: 4.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.inbox-switcher-trigger--bottom-nav .mail-bottom-nav-icon {
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
 .inbox-switcher-panel--bottom-nav {

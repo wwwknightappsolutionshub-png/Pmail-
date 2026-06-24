@@ -1,0 +1,54 @@
+.mail-bottom-nav-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: inherit;
+  border-radius: 10px;
+  min-height: 2.85rem;
+  min-width: 2.85rem;
+  padding: 0.35rem;
+  cursor: pointer;
+}
+
+.mail-bottom-nav-btn .mail-bottom-nav-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex-shrink: 0;
+}
+
+.mail-bottom-nav-btn[data-tooltip]::after,
+.inbox-switcher-trigger--bottom-nav[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.35rem);
+  transform: translateX(-50%);
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease, visibility 0.12s ease;
+  z-index: 30;
+}
+
+.mail-bottom-nav-btn:is(:hover, :focus-visible):not(:disabled)::after,
+.inbox-switcher-trigger--bottom-nav:is(:hover, :focus-visible):not(:disabled)::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mail-bottom-nav-btn:active:not(:disabled)::after,
+.inbox-switcher-trigger--bottom-nav:active:not(:disabled)::after {
+  opacity: 1;
+  visibility: visible;
+}

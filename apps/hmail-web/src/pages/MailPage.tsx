@@ -48,6 +48,8 @@ import { GmailMailSearch, isGmailStyleQuery } from "../components/GmailMailSearc
 import { NewFolderModal } from "../components/NewFolderModal";
 import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
 import { SenderGroupedMessageList } from "../components/SenderGroupedMessageList";
+import { MailBottomNavButton } from "../components/MailBottomNavButton";
+import { Folder, Inbox, SquarePen } from "lucide-react";
 import { isMobileScreen } from "../utils/pwaPlatform";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
@@ -1456,20 +1458,18 @@ export function MailPage({
         className={`mail-bottom-nav${showInboxSwitcher ? " mail-bottom-nav--with-switcher" : ""}`}
         aria-label="Mobile navigation"
       >
-        <button
-          type="button"
-          className={mobilePane === "menu" ? "is-active" : ""}
+        <MailBottomNavButton
+          label="Folders"
+          icon={Folder}
+          active={mobilePane === "menu"}
           onClick={() => setMobilePane("menu")}
-        >
-          <span>Folders</span>
-        </button>
-        <button
-          type="button"
-          className={mobilePane === "list" ? "is-active" : ""}
+        />
+        <MailBottomNavButton
+          label="Messages"
+          icon={Inbox}
+          active={mobilePane === "list"}
           onClick={() => setMobilePane("list")}
-        >
-          <span>Messages</span>
-        </button>
+        />
         {showInboxSwitcher ? (
           <InboxSwitcher
             ref={inboxSwitcherRef}
@@ -1480,9 +1480,7 @@ export function MailPage({
             onAccountCountChange={setMailAccountCount}
           />
         ) : null}
-        <button type="button" onClick={() => openCompose({ mode: "new" })}>
-          <span>New mail</span>
-        </button>
+        <MailBottomNavButton label="New mail" icon={SquarePen} onClick={() => openCompose({ mode: "new" })} />
       </nav>
 
       <ComposeModal
