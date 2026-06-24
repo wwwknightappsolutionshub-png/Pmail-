@@ -41,6 +41,7 @@ import type { BusinessVertical } from "../types/mail";
 import type { ReactNode } from "react";
 import { useAddons } from "../context/AddonContext";
 import { shouldHideVerticalIndustryRibbon } from "../utils/verticalIndustryRibbon";
+import { PmailLoadingScreen } from "../components/PmailLoadingScreen";
 import "./VerticalBespokeMailDemoPage.css";
 
 type AutoReplyEntitlementState = {
@@ -225,6 +226,7 @@ export function VerticalBespokeMailDemoPage({
         mailWorkspaceViews={mailWorkspaceViews}
         activeMailWorkspaceView={activeMailWorkspaceView}
         onMailWorkspaceView={onMailWorkspaceView}
+        renderLoading={<PmailLoadingScreen subtitle="Loading your workspace…" />}
         renderIndustryTool={({ demo: currentDemo, toolId, applyComposeTemplate }) => {
           if (currentDemo.useCaseId === "legal") {
             if (toolId === "matters") return <ImmigrationDeskPanel />;

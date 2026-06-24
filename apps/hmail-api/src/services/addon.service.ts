@@ -9,6 +9,7 @@ import {
   getPlatformBundleAnchorSlug,
   MARKETPLACE_PLATFORM_BUNDLE_SLUGS,
   MARKETPLACE_PLATFORM_BUNDLE_SLUG_SET,
+  PANEL_WORKSPACE_WELCOME_TRIAL_SLUGS,
   PANEL_WORKSPACE_WELCOME_TRIAL_SLUG_SET,
   resolveAddonIsPaid,
   resolveAddonKind,
@@ -212,10 +213,18 @@ export async function getMarketplaceActiveAddonSlugs(tenantId: string, userId?: 
 }
 
 export async function getActiveAddonSlugs(tenantId: string, userId?: string): Promise<string[]> {
-  const slugs = await getMarketplaceActiveAddonSlugs(tenantId, userId);
+  let slugs = await getMarketplaceActiveAddonSlugs(tenantId, userId);
   if (!userId) return slugs;
 
-  const { hasJobHunterReadAccess } = await import("./job-hunter-entitlement.service.js");
+  const [{ hasJobHunterReadAccess }, { hasActivePanelWorkspaceWelcomeTrial }] = await Promise.all([
+    import("./job-hunter-entitlement.service.js"),
+    import("./panel-workspace-trial.service.js"),
+  ]);
+
+  if (await hasActivePanelWorkspaceWelcomeTrial(userId)) {
+    slugs = [...new Set([...slugs, ...PANEL_WORKSPACE_WELCOME_TRIAL_SLUGS])];
+  }
+
   if (!slugs.includes(JOB_HUNTER_ADDON_SLUG) && (await hasJobHunterReadAccess(tenantId, userId))) {
     return [...slugs, JOB_HUNTER_ADDON_SLUG];
   }

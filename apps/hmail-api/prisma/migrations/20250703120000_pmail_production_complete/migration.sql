@@ -15,12 +15,12 @@ ALTER TABLE "WorkspaceCalendarSettings" ADD COLUMN "microsoftCalendarId" TEXT;
 -- AlterTable
 ALTER TABLE "B2bWorkspace" ADD COLUMN "routingStatus" TEXT NOT NULL DEFAULT 'pending';
 ALTER TABLE "B2bWorkspace" ADD COLUMN "routingMailbox" TEXT;
-ALTER TABLE "B2bWorkspace" ADD COLUMN "routingActivatedAt" DATETIME;
+ALTER TABLE "B2bWorkspace" ADD COLUMN "routingActivatedAt" TIMESTAMP(3);
 
 -- AlterTable
 ALTER TABLE "RcOutreachCampaign" ADD COLUMN "subject" TEXT;
 ALTER TABLE "RcOutreachCampaign" ADD COLUMN "bodyHtml" TEXT;
-ALTER TABLE "RcOutreachCampaign" ADD COLUMN "scheduledFor" DATETIME;
+ALTER TABLE "RcOutreachCampaign" ADD COLUMN "scheduledFor" TIMESTAMP(3);
 
 -- CreateTable
 CREATE TABLE "PwaPushSubscription" (
@@ -29,7 +29,7 @@ CREATE TABLE "PwaPushSubscription" (
     "endpoint" TEXT NOT NULL,
     "p256dh" TEXT NOT NULL,
     "auth" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "PwaPushSubscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 

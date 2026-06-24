@@ -12,6 +12,7 @@ import {
 } from "../constants/mailProviders";
 import { ProviderPresetPicker } from "../components/ProviderPresetPicker";
 import { HMailLogo } from "../components/HMailLogo";
+import { PmailLoadingScreen } from "../components/PmailLoadingScreen";
 import "../components/ProviderPresetPicker.css";
 import "./LoginPage.css";
 
@@ -351,6 +352,13 @@ export function LoginPage() {
           </div>
         </section>
       </main>
+      {submitting ? (
+        <PmailLoadingScreen
+          productName={branding.productName}
+          subtitle="Signing you in…"
+          className="pmail-loading-screen--overlay"
+        />
+      ) : null}
     </div>
   );
 }

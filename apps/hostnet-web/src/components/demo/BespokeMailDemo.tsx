@@ -163,6 +163,8 @@ type Props = {
   mailWorkspaceViews?: Partial<Record<"contacts" | "crm" | "reminders" | "calendar", string>>;
   activeMailWorkspaceView?: string | null;
   onMailWorkspaceView?: (view: string | null) => void;
+  /** Branded splash while demo workspace hydrates (production PMail+ shell). */
+  renderLoading?: ReactNode;
 };
 
 function htmlToComposeText(html: string): string {
@@ -497,6 +499,7 @@ export function BespokeMailDemo({
   mailWorkspaceViews,
   activeMailWorkspaceView = null,
   onMailWorkspaceView,
+  renderLoading,
 }: Props) {
   const composeSeed = useMemo(() => getComposeSettings(demo.useCaseId), [demo.useCaseId]);
   const displayName = viewerName?.trim() || viewerEmail?.split("@")[0] || "there";
@@ -2002,9 +2005,12 @@ export function BespokeMailDemo({
   }
 
   if (!workspaceReady) {
+    if (renderLoading) {
+      return <>{renderLoading}</>;
+    }
     return (
       <div className="bespoke-demo bespoke-demo--loading">
-        <p className="muted">Loading workspace…</p>
+        <p className="muted">Loading {demo.brandName}…</p>
       </div>
     );
   }

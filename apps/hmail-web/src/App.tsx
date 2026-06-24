@@ -12,10 +12,11 @@ import { CareerApplyAssistPanel } from "./components/CareerApplyAssistPanel";
 import { JobHunterPanel } from "./components/JobHunterPanel";
 import { AddonsPage } from "./pages/AddonsPage";
 import { BusinessVerticalPage } from "./pages/BusinessVerticalPage";
+import { PmailLoadingScreen } from "./components/PmailLoadingScreen";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="app-loading">Loading PMail+…</div>;
+  if (loading) return <PmailLoadingScreen subtitle="Signing you in…" />;
   if (!user) return <Navigate to="/login" replace />;
   if (!user.businessVertical) return <BusinessVerticalPage />;
   return <>{children}</>;

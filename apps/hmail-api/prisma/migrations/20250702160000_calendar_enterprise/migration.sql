@@ -5,10 +5,10 @@ CREATE TABLE IF NOT EXISTS "WorkspaceCalendarSettings" (
     "userId" TEXT NOT NULL PRIMARY KEY,
     "googleConnected" BOOLEAN NOT NULL DEFAULT false,
     "microsoftConnected" BOOLEAN NOT NULL DEFAULT false,
-    "lastSyncAt" DATETIME,
+    "lastSyncAt" TIMESTAMP(3),
     "capacityHoursPerWeek" INTEGER NOT NULL DEFAULT 40,
     "reminderSequencesJson" TEXT NOT NULL DEFAULT '[]',
-    "updatedAt" DATETIME NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "WorkspaceCalendarSettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 

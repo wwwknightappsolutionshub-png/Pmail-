@@ -1241,7 +1241,7 @@ export function MailPage({
           {!selectedMessage ? (
             <div className="read-empty">
               <h3>Select a message</h3>
-              <p>Your imported and new Hostinger mail appears here.</p>
+              <p>Choose a message from your inbox to read it here.</p>
             </div>
           ) : loadingMessage ? (
             <div className="muted pad">Loading message…</div>

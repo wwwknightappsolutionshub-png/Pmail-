@@ -67,6 +67,11 @@ export async function ensurePrimaryMailAccount(
     where: { userId: user.id, isPrimary: true },
   });
   if (existing) {
+    // Keep stored IMAP password in sync with the current login session (password changes, key rotation).
+    await prisma.userMailAccount.update({
+      where: { id: existing.id },
+      data: { encryptedMailPassword: encryptSecret(sessionPassword) },
+    });
     return existing;
   }
 
