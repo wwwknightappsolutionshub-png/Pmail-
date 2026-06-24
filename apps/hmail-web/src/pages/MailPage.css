@@ -2057,14 +2057,16 @@
 }
 
 @media (max-width: 767px) {
-  .mail-app {
+  .mail-app:not(.mail-app--embedded-in-bespoke) {
     --mail-bottom-nav-h: 3.5rem;
     min-height: 100dvh;
   }
 
   .mail-app--embedded-in-bespoke {
     min-height: 0;
+    max-height: 100%;
     height: 100%;
+    overflow: hidden;
   }
 
   .mail-mobile-topbar {
