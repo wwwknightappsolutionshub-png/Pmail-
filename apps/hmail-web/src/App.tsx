@@ -1,6 +1,7 @@
-import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { Navigate, Route, Routes, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
+import { WelcomePage } from "./pages/WelcomePage";
 import { BespokeMailShellPage } from "./pages/BespokeMailShellPage";
 import { MailPage } from "./pages/MailPage";
 import { CareerWorkspacePage } from "./pages/CareerWorkspacePage";
@@ -27,11 +28,23 @@ function CareerCvLegacyRedirect() {
   return <Navigate to={id ? `/career/build/${id}` : "/career/build"} replace />;
 }
 
+function DiscoverRedirect() {
+  const { tenantSlug } = useParams<{ tenantSlug?: string }>();
+  const [searchParams] = useSearchParams();
+  const query = searchParams.toString();
+  const target = tenantSlug ? `/welcome/${tenantSlug}` : "/welcome";
+  return <Navigate to={query ? `${target}?${query}` : target} replace />;
+}
+
 export function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/login/:tenantSlug" element={<LoginPage />} />
+      <Route path="/welcome" element={<WelcomePage />} />
+      <Route path="/welcome/:tenantSlug" element={<WelcomePage />} />
+      <Route path="/discover" element={<DiscoverRedirect />} />
+      <Route path="/discover/:tenantSlug" element={<DiscoverRedirect />} />
       <Route
         path="/"
         element={

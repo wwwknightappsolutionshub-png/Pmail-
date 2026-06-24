@@ -218,7 +218,7 @@ export async function buildReferralCompose(input: {
   displayName: string | null;
   credentials?: MailCredentials | null;
 }): Promise<ReferralComposeResult> {
-  const referralUrl = `${resolveAppOrigin()}/login?ref=${encodeURIComponent(input.email)}`;
+  const referralUrl = `${resolveAppOrigin()}/welcome?ref=${encodeURIComponent(input.email)}`;
   const senderName = input.displayName?.trim() || input.email.split("@")[0] || "A PMail+ user";
 
   const signatureFooter = await resolveSignatureFooter(input.userId, input.displayName, input.email);

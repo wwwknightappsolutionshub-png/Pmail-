@@ -366,7 +366,7 @@ describe("addons and features e2e", () => {
     const rendered = await renderEmailTemplate("pmail-refer-friend", {
       senderName: "Jordan Lee",
       senderEmail: "jordan@example.com",
-      referralUrl: "http://localhost:5174/login?ref=jordan%40example.com",
+      referralUrl: "http://localhost:5174/welcome?ref=jordan%40example.com",
       productName: "PMail+",
       signatureFooter: "Jordan Lee\njordan@example.com",
     });

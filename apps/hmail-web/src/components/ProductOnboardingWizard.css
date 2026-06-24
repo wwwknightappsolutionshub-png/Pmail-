@@ -1,0 +1,208 @@
+.product-onboarding-wizard {
+  --pow-accent: var(--brand-accent, #0d9488);
+  --pow-primary: var(--brand-primary, #0d4f6c);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  color: #f8fafc;
+}
+
+.product-onboarding-wizard-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0 1rem;
+}
+
+.product-onboarding-wizard-brand {
+  font-family: "Anek", "Anek Latin", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(248, 250, 252, 0.72);
+}
+
+.product-onboarding-wizard-skip {
+  border: none;
+  background: transparent;
+  color: #99f6e4;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.35rem 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.product-onboarding-wizard-stage {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.product-onboarding-wizard-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.28s ease;
+  will-change: transform;
+}
+
+.product-onboarding-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.5rem 0 1rem;
+}
+
+.product-onboarding-slide-icon {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--pow-accent) 28%, transparent);
+  font-size: 1.35rem;
+  margin-bottom: 1rem;
+}
+
+.product-onboarding-slide-eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #99f6e4;
+}
+
+.product-onboarding-slide-title {
+  margin: 0;
+  font-family: "Anek", "Anek Latin", sans-serif;
+  font-size: clamp(1.55rem, 5.5vw, 2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.product-onboarding-slide-lead {
+  margin: 0.75rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(248, 250, 252, 0.82);
+  max-width: 28rem;
+}
+
+.product-onboarding-slide-bullets {
+  margin: 1.1rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.product-onboarding-slide-bullets li {
+  position: relative;
+  padding-left: 1.35rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(248, 250, 252, 0.88);
+}
+
+.product-onboarding-slide-bullets li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0.05rem;
+  color: #5eead4;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.product-onboarding-wizard-footer {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.product-onboarding-wizard-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.product-onboarding-wizard-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+  transition: width 0.2s ease, background 0.2s ease;
+}
+
+.product-onboarding-wizard-dot.is-active {
+  width: 1.35rem;
+  background: #99f6e4;
+}
+
+.product-onboarding-wizard-dot.is-done {
+  background: color-mix(in srgb, var(--pow-accent) 65%, #fff);
+}
+
+.product-onboarding-wizard-nav {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.product-onboarding-wizard-nav-btn {
+  flex: 1;
+  min-height: 2.75rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  background: #fff;
+  color: var(--pow-primary);
+}
+
+.product-onboarding-wizard-nav-btn.subtle {
+  flex: 0 0 auto;
+  min-width: 5.5rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.product-onboarding-wizard-nav-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.product-onboarding-wizard--desktop .product-onboarding-slide {
+  justify-content: flex-start;
+  padding-top: 0.25rem;
+}
+
+.product-onboarding-wizard--desktop .product-onboarding-wizard-nav-btn:not(.subtle) {
+  background: var(--pow-accent);
+  color: #fff;
+}
+
+@media (min-width: 768px) {
+  .product-onboarding-wizard-top {
+    padding-bottom: 1.25rem;
+  }
+
+  .product-onboarding-slide-title {
+    font-size: clamp(1.75rem, 2.4vw, 2.15rem);
+  }
+}
