@@ -48,6 +48,9 @@ import { GmailMailSearch, isGmailStyleQuery } from "../components/GmailMailSearc
 import { NewFolderModal } from "../components/NewFolderModal";
 import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
 import { SenderGroupedMessageList } from "../components/SenderGroupedMessageList";
+import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
+import { usePullToRefresh } from "../hooks/usePullToRefresh";
+import { isMobileScreen } from "../utils/pwaPlatform";
 import { toolAddonSlug } from "../constants/addonTools";
 import {
   folderSupportsBulkActions,
@@ -279,6 +282,7 @@ export function MailPage({
   const setAppliedSearch = onAppliedSearchChange ?? setInternalAppliedSearch;
   const [loadingFolders, setLoadingFolders] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [listRefreshing, setListRefreshing] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(false);
   const [listError, setListError] = useState("");
   const [messageError, setMessageError] = useState("");
@@ -304,6 +308,7 @@ export function MailPage({
   const [multiInboxPromptOpen, setMultiInboxPromptOpen] = useState(false);
   const [mailAccountCount, setMailAccountCount] = useState<number | null>(null);
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
+  const messageListRef = useRef<HTMLDivElement>(null);
   const hasMultiInboxAddon = hasAddon("multi-inbox-functionality");
 
   useEffect(() => {
@@ -461,10 +466,15 @@ export function MailPage({
     await loadFolders();
   }, [refresh, loadFolders]);
 
-  const loadMessages = useCallback(async () => {
+  const loadMessages = useCallback(async (options?: { silent?: boolean }) => {
     if (isVirtualView(activeFolder)) return;
 
-    setLoadingMessages(true);
+    const silent = options?.silent === true;
+    if (silent) {
+      setListRefreshing(true);
+    } else {
+      setLoadingMessages(true);
+    }
     setListError("");
     try {
       const searchText = appliedSearch.query.trim();
@@ -495,7 +505,11 @@ export function MailPage({
     } catch (err) {
       setListError(err instanceof Error ? err.message : "Failed to load messages");
     } finally {
-      setLoadingMessages(false);
+      if (silent) {
+        setListRefreshing(false);
+      } else {
+        setLoadingMessages(false);
+      }
     }
   }, [activeFolder, appliedSearch, mailFilter, selectedUid, messagePage, sortBy, sortOrder, refreshCareerNav]);
 
@@ -563,6 +577,33 @@ export function MailPage({
     },
     [activeFolder],
   );
+
+  const refreshMailInbox = useCallback(async () => {
+    await loadFolders();
+    await loadMessages({ silent: true });
+    if (selectedUid && !isVirtualView(activeFolder)) {
+      await loadMessage(selectedUid);
+    }
+  }, [loadFolders, loadMessages, loadMessage, selectedUid, activeFolder]);
+
+  const canRefreshMailList = !isVirtualView(activeFolder);
+  const enablePullToRefresh = canRefreshMailList && isMobileScreen();
+
+  useForegroundRefresh(refreshMailInbox, canRefreshMailList);
+
+  const { pullDistance, isRefreshing: pullRefreshing, threshold: pullThreshold } = usePullToRefresh(
+    messageListRef,
+    refreshMailInbox,
+    enablePullToRefresh,
+  );
+
+  const showPullIndicator = enablePullToRefresh && (pullDistance > 0 || pullRefreshing || listRefreshing);
+  const pullIndicatorHeight = pullRefreshing || listRefreshing ? pullThreshold : pullDistance;
+  const pullIndicatorLabel = pullRefreshing || listRefreshing
+    ? "Refreshing…"
+    : pullDistance >= pullThreshold
+      ? "Release to refresh"
+      : "Pull to refresh";
 
   useEffect(() => {
     loadFolders();
@@ -965,8 +1006,21 @@ export function MailPage({
 
         {listError ? <div className="pane-error">{listError}</div> : null}
 
-        <div className="message-list message-list--table">
-          {loadingMessages ? (
+        <div className="mail-list-scroll-wrap">
+          {showPullIndicator ? (
+            <div
+              className={`mail-list-pull-indicator${pullRefreshing || listRefreshing ? " is-refreshing" : ""}${
+                pullDistance >= pullThreshold ? " is-ready" : ""
+              }`}
+              style={{ height: `${pullIndicatorHeight}px` }}
+              aria-live="polite"
+            >
+              <span>{pullIndicatorLabel}</span>
+            </div>
+          ) : null}
+
+          <div className="message-list message-list--table" ref={messageListRef}>
+          {loadingMessages && messages.length === 0 ? (
             <div className="muted pad">Loading messages…</div>
           ) : messages.length === 0 ? (
             <div className="muted pad">No messages in this folder.</div>
@@ -1039,6 +1093,7 @@ export function MailPage({
               />
             </>
           )}
+          </div>
         </div>
       </>
     );

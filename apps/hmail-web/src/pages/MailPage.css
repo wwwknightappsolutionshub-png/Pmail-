@@ -881,7 +881,49 @@
 .message-list {
   overflow: auto;
   flex: 1;
+  min-height: 0;
   -webkit-overflow-scrolling: touch;
+}
+
+.mail-list-scroll-wrap {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.mail-list-pull-indicator {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: #64748b;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: height 0.15s ease;
+}
+
+.mail-list-pull-indicator span {
+  padding-bottom: 0.35rem;
+}
+
+.mail-list-pull-indicator.is-ready {
+  color: var(--brand-accent, #14b8a6);
+}
+
+.mail-list-pull-indicator.is-refreshing {
+  color: var(--brand-primary, #0d4f6c);
+}
+
+.mail-app:not(.mail-app--light) .mail-list-pull-indicator {
+  color: #8ba3c7;
+}
+
+.mail-app:not(.mail-app--light) .mail-list-pull-indicator.is-ready,
+.mail-app:not(.mail-app--light) .mail-list-pull-indicator.is-refreshing {
+  color: #99f6e4;
 }
 
 .message-select-all {
