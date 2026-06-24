@@ -3772,6 +3772,14 @@
   cursor: pointer;
 }
 
+.bespoke-demo-inbox-production-mount {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .bespoke-demo-inbox-production-mount--hidden {
   position: absolute;
   width: 1px;

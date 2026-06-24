@@ -3068,7 +3068,7 @@ html:has(.pmail-demo-shell--light) body {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  height: calc(100vh - 11.5rem);
+  height: auto;
   background: transparent;
   color: var(--text);
 }
@@ -3411,4 +3411,72 @@ html:has(.pmail-demo-shell--light) body {
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-summary,
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-actions span {
   color: var(--muted);
+}
+
+/* ─── Mobile / PWA shell ─────────────────────────────────── */
+@media (max-width: 767px) {
+  .pmail-demo-shell .bespoke-demo-topbar {
+    gap: 0.55rem;
+    padding: max(0.55rem, env(safe-area-inset-top)) 0.75rem 0.55rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar-left .bespoke-demo-kicker {
+    display: none;
+  }
+
+  .pmail-demo-shell .bespoke-demo-brand {
+    font-size: 0.92rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 10rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-user {
+    display: none;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar-actions .bespoke-demo-topbar-btn span:not(.bespoke-demo-topbar-btn-icon) {
+    display: none;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar-center {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0.35rem;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-toolbar:has(.bespoke-demo-toolbar-block--tools:empty) {
+    display: none;
+  }
+
+  .pmail-demo-shell .bespoke-demo-inbox-production-mount {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .pmail-demo-shell .mail-app--embedded-in-bespoke {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+  }
 }

@@ -433,6 +433,11 @@
   font-weight: 600;
 }
 
+.mail-sidebar-close--embedded {
+  display: none;
+  margin-left: auto;
+}
+
 .mail-brand-logo .hmail-wordmark,
 .mail-brand-logo .hmail-logo-text strong {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -1456,42 +1461,6 @@
   .bespoke-prod-tool-chip {
     min-width: 7.5rem;
   }
-
-  .mail-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-  }
-
-  .mail-sidebar {
-    position: static;
-    width: auto;
-    transform: none;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    box-shadow: none;
-  }
-
-  .mail-list-pane {
-    display: flex !important;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    max-height: 42vh;
-  }
-
-  .mail-app[data-virtual-view="true"] .mail-list-pane {
-    max-height: none;
-    flex: 1;
-    min-height: 0;
-  }
-
-  .mail-read-pane {
-    display: flex !important;
-  }
-
-  .mail-app[data-virtual-view="true"] .mail-read-pane {
-    display: none !important;
-  }
 }
 
 @media (min-width: 768px) {
@@ -2037,6 +2006,90 @@
 }
 
 @media (max-width: 767px) {
+  .mail-app {
+    --mail-bottom-nav-h: 3.5rem;
+    min-height: 100dvh;
+  }
+
+  .mail-app--embedded-in-bespoke {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .mail-mobile-topbar {
+    display: grid;
+  }
+
+  .mail-bottom-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    position: sticky;
+    flex-shrink: 0;
+  }
+
+  .mail-layout {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .mail-app[data-mobile-pane="read"] .mail-list-pane {
+    display: none !important;
+  }
+
+  .mail-app[data-mobile-pane="list"] .mail-read-pane,
+  .mail-app[data-mobile-pane="menu"] .mail-read-pane {
+    display: none !important;
+  }
+
+  .mail-app--embedded-in-bespoke .mail-sidebar-close--embedded {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .mail-app--embedded-in-bespoke .mail-sidebar-rail-head {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .mail-app--embedded-in-bespoke .mail-sidebar-toggle {
+    display: none;
+  }
+
+  .mail-list-pane .list-header-main h2 {
+    display: none;
+  }
+
+  .mail-app:not(.mail-app--light) .mail-mobile-topbar {
+    background: rgba(8, 14, 26, 0.94);
+    border-bottom-color: rgba(148, 163, 184, 0.22);
+    color: #e8eef8;
+  }
+
+  .mail-app:not(.mail-app--light) .mail-mobile-kicker {
+    color: #8ba3c7;
+  }
+
+  .mail-app:not(.mail-app--light) .mail-icon-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #e8eef8;
+  }
+
+  .mail-app:not(.mail-app--light) .mail-bottom-nav {
+    background: rgba(8, 14, 26, 0.94);
+    border-top-color: rgba(148, 163, 184, 0.22);
+  }
+
+  .mail-app:not(.mail-app--light) .mail-bottom-nav button {
+    color: #8ba3c7;
+  }
+
+  .mail-app:not(.mail-app--light) .mail-bottom-nav button.is-active {
+    color: #fff;
+    background: color-mix(in srgb, var(--brand-accent, #14b8a6) 14%, transparent);
+  }
+
   .mail-app .mail-view-panel:not(.platform-tools-panel) {
     padding: 0.75rem;
     overflow-x: auto;

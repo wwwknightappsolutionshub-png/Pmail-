@@ -1062,7 +1062,6 @@ export function MailPage({
           : undefined
       }
     >
-      {!embedded ? (
       <header className="mail-mobile-topbar">
         <div className="mail-mobile-topbar-start">
           {mobilePane !== "list" ? (
@@ -1099,7 +1098,6 @@ export function MailPage({
           ✎
         </button>
       </header>
-      ) : null}
 
       {!embedded ? (
       <div className="mail-bespoke-chrome">
@@ -1177,7 +1175,16 @@ export function MailPage({
                   Close
                 </button>
               </div>
-            ) : null}
+            ) : (
+              <button
+                type="button"
+                className="mail-sidebar-close mail-sidebar-close--embedded"
+                onClick={() => setMobilePane("list")}
+                aria-label="Close folders"
+              >
+                Close
+              </button>
+            )}
           </div>
 
           <div className="mail-sidebar-body">
