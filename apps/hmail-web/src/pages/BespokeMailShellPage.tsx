@@ -58,6 +58,7 @@ function BespokeMailShellContent() {
   const [mailFolderRequest, setMailFolderRequest] = useState<string | null | undefined>(undefined);
   const [contactSyncNotice, setContactSyncNotice] = useState<number | null>(null);
   const [careerNavUnlocked, setCareerNavUnlocked] = useState(false);
+  const [mobileTopbarSearchCollapsed, setMobileTopbarSearchCollapsed] = useState(false);
 
   const mailWorkspaceViews = useMemo(
     () => ({
@@ -278,6 +279,7 @@ function BespokeMailShellContent() {
           setMailWorkspaceView(null);
         }}
         onCareerNavUnlockedChange={setCareerNavUnlocked}
+        onMessageListScroll={setMobileTopbarSearchCollapsed}
       />
     ),
     [searchDraft, appliedSearch, uiThemeVersion, mailFolderRequest],
@@ -313,6 +315,7 @@ function BespokeMailShellContent() {
         mailWorkspaceViews={mailWorkspaceViews}
         activeMailWorkspaceView={mailWorkspaceView}
         onMailWorkspaceView={navigateMailWorkspaceView}
+        mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         showCareerTab={careerNavUnlocked}
         onCareerTabClick={() => navigate("/career")}
         requestedWorkspace={requestedWorkspace}

@@ -25,7 +25,7 @@ export type InboxSwitcherHandle = {
 interface InboxSwitcherProps {
   activeAccount: MailAccountSummary | null;
   onSwitched: () => void;
-  variant?: "sidebar" | "header";
+  variant?: "sidebar" | "header" | "bottom-nav";
   onPaidAddonGate?: () => void;
   onAccountCountChange?: (count: number) => void;
 }
@@ -60,6 +60,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
 
   const entitled = hasAddon("multi-inbox-functionality");
   const isHeader = variant === "header";
+  const isBottomNav = variant === "bottom-nav";
 
   const loadAccounts = useCallback(async () => {
     if (!entitled) return;
@@ -123,7 +124,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
   }, [open]);
 
   useLayoutEffect(() => {
-    if (!open || !isHeader || !triggerRef.current) {
+    if (!open || (!isHeader && !isBottomNav) || !triggerRef.current) {
       setPanelStyle({});
       return;
     }
@@ -131,6 +132,19 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
     const updatePosition = () => {
       const trigger = triggerRef.current;
       if (!trigger) return;
+      if (isBottomNav) {
+        const panelWidth = Math.min(22 * 16, window.innerWidth - 24);
+        setPanelStyle({
+          position: "fixed",
+          bottom: "calc(var(--mail-bottom-nav-h, 3.5rem) + env(safe-area-inset-bottom) + 0.5rem)",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: panelWidth,
+          zIndex: 1500,
+        });
+        return;
+      }
+
       const rect = trigger.getBoundingClientRect();
       const panelWidth = Math.min(Math.max(20 * 16, rect.width + 48), window.innerWidth - 24);
       const left = Math.min(Math.max(12, rect.right - panelWidth), window.innerWidth - panelWidth - 12);
@@ -150,7 +164,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [open, isHeader, showAddForm, accounts.length, loading]);
+  }, [open, isHeader, isBottomNav, showAddForm, accounts.length, loading]);
 
   const displayEmail = activeAccount?.email ?? "Primary mailbox";
   const hasMultipleAccounts = accounts.length > 1;
@@ -226,21 +240,33 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
     }
   };
 
-  if (!entitled && !isHeader) {
+  if (!entitled && !isHeader && !isBottomNav) {
     return null;
   }
+
+  const shortEmail = displayEmail.includes("@") ? displayEmail.split("@")[0] : displayEmail;
 
   return (
     <div className={`inbox-switcher inbox-switcher--${variant}`} ref={rootRef}>
       <button
         ref={triggerRef}
         type="button"
-        className={`inbox-switcher-trigger${isHeader ? " inbox-switcher-trigger--header" : ""}`}
+        className={`inbox-switcher-trigger${isHeader ? " inbox-switcher-trigger--header" : ""}${
+          isBottomNav ? " inbox-switcher-trigger--bottom-nav" : ""
+        }`}
         onClick={handleTriggerClick}
         aria-expanded={open}
         aria-haspopup="dialog"
+        aria-label={isBottomNav ? `Mailboxes: ${displayEmail}` : undefined}
       >
-        {isHeader ? (
+        {isBottomNav ? (
+          <>
+            <span className="inbox-switcher-bottom-icon" aria-hidden="true">
+              ✉
+            </span>
+            <span className="inbox-switcher-bottom-label">{shortEmail || "Mail"}</span>
+          </>
+        ) : isHeader ? (
           <>
             <span className="inbox-switcher-header-label">Mailboxes</span>
             <span className="inbox-switcher-header-email">{displayEmail}</span>
@@ -257,8 +283,10 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
       </button>
       {open && entitled ? (
         <div
-          className={`inbox-switcher-panel${isHeader ? " inbox-switcher-panel--header inbox-switcher-panel--fixed" : ""}`}
-          style={isHeader ? panelStyle : undefined}
+          className={`inbox-switcher-panel${
+            isHeader || isBottomNav ? " inbox-switcher-panel--header inbox-switcher-panel--fixed" : ""
+          }${isBottomNav ? " inbox-switcher-panel--bottom-nav" : ""}`}
+          style={isHeader || isBottomNav ? panelStyle : undefined}
         >
           {loading ? <p className="inbox-switcher-muted">Loading accounts…</p> : null}
           {error ? <p className="inbox-switcher-error">{error}</p> : null}

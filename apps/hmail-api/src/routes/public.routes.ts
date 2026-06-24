@@ -19,6 +19,7 @@ import { recordVaultDownload } from "../services/file-vault.service.js";
 import { recordEsignDownload } from "../services/esign.service.js";
 import { recordSlaReportDownload } from "../services/email-sla.service.js";
 import { markReferralLeadBounced } from "../services/referral-lead.service.js";
+import { registerPmailProspect } from "../services/pmail-prospect.service.js";
 import { getEnv } from "../config/env.js";
 import { getPublicPrivacyNotices } from "../services/privacy.service.js";
 import { getActivePublicForms } from "../services/form-definition.service.js";
@@ -250,6 +251,29 @@ publicRouter.post("/leads", async (req, res, next) => {
       consentContact: Boolean(req.body?.consentContact),
     });
     res.status(201).json({ lead: { id: lead.id } });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+publicRouter.post("/prospects/register", async (req, res, next) => {
+  try {
+    const attribution = parseAttribution((req.body ?? {}) as Record<string, unknown>);
+    const referrerEmail =
+      attribution.referralRef?.includes("@") ? attribution.referralRef : undefined;
+    const prospect = await registerPmailProspect({
+      tenantSlug: req.body?.tenantSlug ? String(req.body.tenantSlug) : undefined,
+      fullName: String(req.body?.fullName ?? ""),
+      email: String(req.body?.email ?? ""),
+      company: req.body?.company ? String(req.body.company) : undefined,
+      referrerEmail,
+      consentPrivacy: Boolean(req.body?.consentPrivacy),
+    });
+    res.status(201).json({ prospect });
   } catch (err) {
     if (err instanceof Error) {
       res.status(400).json({ error: err.message });

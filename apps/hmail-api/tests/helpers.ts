@@ -71,6 +71,11 @@ export async function resetTestDatabase(): Promise<void> {
   } catch {
     await prisma.$executeRawUnsafe('DELETE FROM "PmailReferralLead"');
   }
+  try {
+    await prisma.pmailProspect.deleteMany();
+  } catch {
+    await prisma.$executeRawUnsafe('DELETE FROM "PmailProspect"');
+  }
   await prisma.userSignature.deleteMany();
   await prisma.userAutoReply.deleteMany();
   await prisma.userComposeSettings.deleteMany();

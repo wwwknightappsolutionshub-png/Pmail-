@@ -462,6 +462,15 @@
   .list-header .signout-btn {
     display: none;
   }
+
+  .list-header-switcher,
+  .list-header-actions .free-addon-btn {
+    display: none !important;
+  }
+
+  .mail-bottom-nav--with-switcher {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .user-chip {

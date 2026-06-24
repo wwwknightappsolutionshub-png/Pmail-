@@ -208,7 +208,8 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
           </div>
         </section>
 
-        <section className="brand-settings-card" aria-labelledby="brand-undo-title">
+        <section className="brand-settings-card" aria-labelledby="brand-undo-title" hidden>
+          {/* Undo send disabled until PMail+ operates as a full ESP — see UNDO_SEND_ENABLED in mail.routes.ts */}
           <div className="brand-settings-card-head">
             <span className="brand-settings-icon" aria-hidden="true">
               UNDO
@@ -219,18 +220,8 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
             </div>
           </div>
           <div className="brand-settings-field">
-            <select
-              value={data.undoSendSeconds ?? 10}
-              aria-label="Undo send delay"
-              onChange={(e) =>
-                void api.updateComposeSettings({ undoSendSeconds: Number(e.target.value) }).then(refresh)
-              }
-            >
-              <option value={0}>Off — send immediately</option>
-              <option value={5}>5 seconds</option>
-              <option value={10}>10 seconds</option>
-              <option value={20}>20 seconds</option>
-              <option value={30}>30 seconds</option>
+            <select value={0} aria-label="Undo send delay" disabled>
+              <option value={0}>Unavailable</option>
             </select>
           </div>
         </section>

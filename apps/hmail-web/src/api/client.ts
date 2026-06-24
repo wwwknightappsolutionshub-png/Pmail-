@@ -244,6 +244,23 @@ export const api = {
       method: "PUT",
       body: JSON.stringify(body),
     }),
+  registerPmailProspect: (body: {
+    tenantSlug: string;
+    fullName: string;
+    email: string;
+    company?: string;
+    referrerEmail?: string;
+    consentPrivacy: boolean;
+  }) =>
+    request<{
+      prospect: {
+        id: string;
+        fullName: string;
+        email: string;
+        company: string | null;
+        status: string;
+      };
+    }>("/api/public/prospects/register", { method: "POST", body: JSON.stringify(body) }),
   loginPreflight: (tenantSlug: string, email: string) =>
     request<{
       needsProviderSetup: boolean;

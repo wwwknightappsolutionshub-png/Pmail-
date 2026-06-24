@@ -237,6 +237,7 @@ export type MailPageProps = {
   onRequestedFolderHandled?: () => void;
   onActiveFolderChange?: (folder: string) => void;
   onCareerNavUnlockedChange?: (unlocked: boolean) => void;
+  onMessageListScroll?: (collapsed: boolean) => void;
 };
 
 export function MailPage({
@@ -250,6 +251,7 @@ export function MailPage({
   onRequestedFolderHandled,
   onActiveFolderChange,
   onCareerNavUnlockedChange,
+  onMessageListScroll,
 }: MailPageProps = {}) {
   const { user, logout, refresh } = useAuth();
   const { hasAddon, hasJobHunterAccess, panelWorkspaceTrial } = useAddons();
@@ -596,6 +598,38 @@ export function MailPage({
     refreshMailInbox,
     enablePullToRefresh,
   );
+
+  useEffect(() => {
+    if (!embedded || !onMessageListScroll) return;
+    const element = messageListRef.current;
+    if (!element) return;
+
+    const collapseThreshold = 12;
+    let lastTop = element.scrollTop;
+    let collapsed = false;
+
+    const onScroll = () => {
+      const top = element.scrollTop;
+      const delta = top - lastTop;
+
+      if (delta > 0 && top > collapseThreshold && !collapsed) {
+        collapsed = true;
+        onMessageListScroll(true);
+      } else if ((delta < -collapseThreshold || top <= 8) && collapsed) {
+        collapsed = false;
+        onMessageListScroll(false);
+      }
+
+      lastTop = top;
+    };
+
+    onMessageListScroll(false);
+    element.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      element.removeEventListener("scroll", onScroll);
+      onMessageListScroll(false);
+    };
+  }, [embedded, onMessageListScroll, activeFolder, messages.length]);
 
   const showPullIndicator = enablePullToRefresh && (pullDistance > 0 || pullRefreshing || listRefreshing);
   const pullIndicatorHeight = pullRefreshing || listRefreshing ? pullThreshold : pullDistance;
@@ -1418,7 +1452,10 @@ export function MailPage({
         ) : null}
       </div>
 
-      <nav className="mail-bottom-nav" aria-label="Mobile navigation">
+      <nav
+        className={`mail-bottom-nav${showInboxSwitcher ? " mail-bottom-nav--with-switcher" : ""}`}
+        aria-label="Mobile navigation"
+      >
         <button
           type="button"
           className={mobilePane === "menu" ? "is-active" : ""}
@@ -1433,6 +1470,16 @@ export function MailPage({
         >
           <span>Messages</span>
         </button>
+        {showInboxSwitcher ? (
+          <InboxSwitcher
+            ref={inboxSwitcherRef}
+            variant="bottom-nav"
+            activeAccount={user?.activeMailAccount ?? null}
+            onSwitched={() => void handleMailboxSwitch()}
+            onPaidAddonGate={() => openPaidAddonGate("multi-inbox-functionality", "Multiple Inboxes")}
+            onAccountCountChange={setMailAccountCount}
+          />
+        ) : null}
         <button type="button" onClick={() => openCompose({ mode: "new" })}>
           <span>New mail</span>
         </button>

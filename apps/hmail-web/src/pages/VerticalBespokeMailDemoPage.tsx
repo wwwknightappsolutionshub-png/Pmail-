@@ -121,6 +121,7 @@ type VerticalBespokeMailDemoPageProps = {
   mailWorkspaceViews?: Partial<Record<"contacts" | "crm" | "reminders" | "calendar", string>>;
   activeMailWorkspaceView?: string | null;
   onMailWorkspaceView?: (view: string | null) => void;
+  mobileTopbarSearchCollapsed?: boolean;
 };
 
 export function VerticalBespokeMailDemoPage({
@@ -157,6 +158,7 @@ export function VerticalBespokeMailDemoPage({
   mailWorkspaceViews,
   activeMailWorkspaceView,
   onMailWorkspaceView,
+  mobileTopbarSearchCollapsed = false,
 }: VerticalBespokeMailDemoPageProps) {
   const { hasAddon } = useAddons();
   const resolvedHideIndustryTools =
@@ -226,6 +228,7 @@ export function VerticalBespokeMailDemoPage({
         mailWorkspaceViews={mailWorkspaceViews}
         activeMailWorkspaceView={activeMailWorkspaceView}
         onMailWorkspaceView={onMailWorkspaceView}
+        mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         renderLoading={<PmailLoadingScreen subtitle="Loading your workspace…" />}
         renderIndustryTool={({ demo: currentDemo, toolId, applyComposeTemplate }) => {
           if (currentDemo.useCaseId === "legal") {

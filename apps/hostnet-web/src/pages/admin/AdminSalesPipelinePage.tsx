@@ -9,11 +9,12 @@ import type {
 } from "../../types/site";
 import { AdminLeadsPanel } from "./AdminLeadsPanel";
 import { AdminReferralLeadsPanel } from "./AdminReferralLeadsPanel";
+import { AdminPmailProspectsPanel } from "./AdminPmailProspectsPanel";
 import { FormFieldsEditor } from "./FormFieldsEditor";
 import { AdminTrendCharts } from "./AdminTrendCharts";
 import "./AdminDashboard.css";
 
-type SalesSubTab = "overview" | "leads" | "referral-leads" | "membership" | "inquiries" | "forms";
+type SalesSubTab = "overview" | "leads" | "referral-leads" | "pmail-prospects" | "membership" | "inquiries" | "forms";
 
 const BUILTIN_FORM_KEYS = new Set(["membership", "inquiry"]);
 
@@ -52,6 +53,7 @@ const SUBTAB_LABELS: Record<SalesSubTab, string> = {
   overview: "Overview",
   leads: "Leads",
   "referral-leads": "PMail+ Referral leads",
+  "pmail-prospects": "PMail+ Prospects",
   membership: "Membership",
   inquiries: "Inquiries",
   forms: "Forms",
@@ -78,7 +80,7 @@ export function AdminSalesPipelinePage({
 }) {
   const [subTab, setSubTab] = useState<SalesSubTab>("overview");
   const visibleTabs = (Object.keys(SUBTAB_LABELS) as SalesSubTab[]).filter(
-    (tab) => tab !== "referral-leads" || isSuperAdmin,
+    (tab) => (tab !== "referral-leads" && tab !== "pmail-prospects") || isSuperAdmin,
   );
 
   return (
@@ -104,6 +106,9 @@ export function AdminSalesPipelinePage({
       )}
       {subTab === "referral-leads" && isSuperAdmin ? (
         <AdminReferralLeadsPanel pollKey={pollKey} onError={onError} />
+      ) : null}
+      {subTab === "pmail-prospects" && isSuperAdmin ? (
+        <AdminPmailProspectsPanel pollKey={pollKey} onError={onError} />
       ) : null}
       {subTab === "membership" && (
         <MembershipTab onError={onError} onMessage={onMessage} />

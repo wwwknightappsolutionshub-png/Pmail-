@@ -53,6 +53,47 @@
   opacity: 0.85;
 }
 
+.inbox-switcher--bottom-nav {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.inbox-switcher-trigger--bottom-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  width: 100%;
+  min-height: 2.85rem;
+  padding: 0.25rem 0.15rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.inbox-switcher-bottom-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.inbox-switcher-bottom-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.1;
+  max-width: 4.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-switcher-panel--bottom-nav {
+  max-height: min(24rem, 55vh);
+  overflow: auto;
+}
+
 .inbox-switcher-trigger {
   width: 100%;
   text-align: left;

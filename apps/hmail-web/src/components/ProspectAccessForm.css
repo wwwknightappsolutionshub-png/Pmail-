@@ -1,0 +1,89 @@
+.prospect-access-card {
+  width: 100%;
+}
+
+.prospect-access-title {
+  margin: 0;
+  font-family: "Anek", "Anek Latin", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.prospect-access-lead {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  color: var(--login-muted, #64748b);
+  line-height: 1.5;
+}
+
+.prospect-access-form {
+  display: grid;
+  gap: 0.95rem;
+  margin-top: 1.2rem;
+}
+
+.prospect-access-form label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--login-slate, #475569);
+}
+
+.prospect-access-form input[type="text"],
+.prospect-access-form input[type="email"] {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid var(--login-border, #dbe3ec);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  font-size: 1rem;
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
+.prospect-access-optional {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--login-muted, #64748b);
+}
+
+.prospect-access-check-row {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 0.55rem;
+  text-transform: none;
+  font-size: 0.84rem !important;
+  font-weight: 500 !important;
+  letter-spacing: normal !important;
+}
+
+.prospect-access-link-btn {
+  justify-self: center;
+  border: none;
+  background: transparent;
+  color: var(--brand-primary, #0d4f6c);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0.25rem 0;
+}
+
+.prospect-access-toggle {
+  justify-self: center;
+  margin-top: 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--brand-primary, #0d4f6c);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

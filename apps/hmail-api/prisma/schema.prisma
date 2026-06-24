@@ -2481,6 +2481,24 @@ model PmailReferralLead {
   @@index([convertedAt])
 }
 
+model PmailProspect {
+  id            String    @id @default(uuid())
+  tenantSlug    String?
+  fullName      String
+  email         String
+  company       String?
+  referrerEmail String?
+  status        String    @default("interested")
+  notes         String?
+  convertedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}
+
 model MembershipApplication {
   id               String   @id @default(uuid())
   fullName         String

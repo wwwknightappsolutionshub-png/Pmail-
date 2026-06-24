@@ -431,6 +431,24 @@ export const api = {
     request<{
       stats: { total: number; delivered: number; read: number; bounced: number; pending: number; converted: number };
     }>("/api/admin/referral-leads/stats"),
+  adminPmailProspects: (params?: { status?: string; q?: string }) => {
+    const search = new URLSearchParams();
+    if (params?.status) search.set("status", params.status);
+    if (params?.q) search.set("q", params.q);
+    const qs = search.toString();
+    return request<{ prospects: import("../pages/admin/AdminPmailProspectsPanel").PmailProspectRow[] }>(
+      `/api/admin/pmail-prospects${qs ? `?${qs}` : ""}`,
+    );
+  },
+  adminPmailProspectStats: () =>
+    request<{
+      stats: {
+        total: number;
+        funnel: Record<string, number>;
+        newThisWeek: number;
+        unconverted: number;
+      };
+    }>("/api/admin/pmail-prospects/stats"),
   updateAdminLead: (id: string, body: { status?: import("../types/site").MarketingLead["status"]; notes?: string | null }) =>
     request<{ lead: import("../types/site").MarketingLead }>(`/api/admin/leads/${id}`, {
       method: "PATCH",

@@ -215,6 +215,9 @@ mailRouter.get("/messages/:uid", async (req, res, next) => {
   }
 });
 
+/** Undo-send queue is disabled until PMail+ operates as a full ESP. */
+const UNDO_SEND_ENABLED = false;
+
 const sendSchema = z.object({
   to: z.string().min(3),
   cc: z.string().optional(),
@@ -290,7 +293,7 @@ mailRouter.post("/send", async (req, res, next) => {
       }
     }
 
-    const undoSeconds = await getUndoSendSeconds(auth.user.id);
+    const undoSeconds = UNDO_SEND_ENABLED ? await getUndoSendSeconds(auth.user.id) : 0;
     if (undoSeconds > 0) {
       const queued = await queueUndoOutgoingMail({
         tenantId: auth.user.tenant.id,

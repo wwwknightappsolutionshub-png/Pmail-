@@ -163,6 +163,8 @@ type Props = {
   mailWorkspaceViews?: Partial<Record<"contacts" | "crm" | "reminders" | "calendar", string>>;
   activeMailWorkspaceView?: string | null;
   onMailWorkspaceView?: (view: string | null) => void;
+  /** Collapse topbar search on mobile when message list scrolls down (production PMail+). */
+  mobileTopbarSearchCollapsed?: boolean;
   /** Branded splash while demo workspace hydrates (production PMail+ shell). */
   renderLoading?: ReactNode;
 };
@@ -499,6 +501,7 @@ export function BespokeMailDemo({
   mailWorkspaceViews,
   activeMailWorkspaceView = null,
   onMailWorkspaceView,
+  mobileTopbarSearchCollapsed = false,
   renderLoading,
 }: Props) {
   const composeSeed = useMemo(() => getComposeSettings(demo.useCaseId), [demo.useCaseId]);
@@ -2036,7 +2039,11 @@ export function BespokeMailDemo({
 
   return (
     <div className={bespokeDemoClassName}>
-      <header className="bespoke-demo-topbar">
+      <header
+        className={`bespoke-demo-topbar${
+          mobileTopbarSearchCollapsed ? " bespoke-demo-topbar--search-collapsed" : ""
+        }`}
+      >
         <div className="bespoke-demo-topbar-left">
           <div>
             <p className="bespoke-demo-kicker">PMail+ Workspace</p>

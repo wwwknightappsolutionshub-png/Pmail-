@@ -60,6 +60,12 @@ import { adminSalesRouter } from "./admin-sales.routes.js";
 import { adminMarketingRouter } from "./admin-marketing.routes.js";
 import { listMarketingLeads, updateMarketingLead, getMarketingLeadStats } from "../services/marketing-leads.service.js";
 import { getPmailReferralLeadStats, listPmailReferralLeads } from "../services/referral-lead.service.js";
+import {
+  getPmailProspectStats,
+  listPmailProspects,
+  updatePmailProspect,
+  type PmailProspectStatus,
+} from "../services/pmail-prospect.service.js";
 import { provisionTenantFromLead, ProvisioningError } from "../services/provisioning.service.js";
 
 const loginSchema = z.object({
@@ -623,6 +629,51 @@ adminRouter.get("/referral-leads", requireSuperAdmin, async (req, res, next) => 
     const leads = await listPmailReferralLeads({ emailStatus, q });
     res.json({ leads });
   } catch (err) {
+    next(err);
+  }
+});
+
+const prospectUpdateSchema = z.object({
+  status: z.enum(["interested", "contacted", "invited", "converted", "closed"]).optional(),
+  notes: z.string().nullable().optional(),
+});
+
+adminRouter.get("/pmail-prospects/stats", requireSuperAdmin, async (_req, res, next) => {
+  try {
+    const stats = await getPmailProspectStats();
+    res.json({ stats });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.get("/pmail-prospects", requireSuperAdmin, async (req, res, next) => {
+  try {
+    const status = typeof req.query.status === "string" ? (req.query.status as PmailProspectStatus) : undefined;
+    const q = typeof req.query.q === "string" ? req.query.q : undefined;
+    const prospects = await listPmailProspects({ status, q });
+    res.json({ prospects });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch("/pmail-prospects/:id", requireSuperAdmin, async (req, res, next) => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const body = prospectUpdateSchema.parse(req.body);
+    const prospect = await updatePmailProspect(id, body);
+    await auditAdminMutation(req, "pmail_prospect.update", "pmail_prospect", id);
+    res.json({ prospect });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ error: err.flatten() });
+      return;
+    }
+    if (err instanceof Error && err.message === "Invalid prospect status") {
+      res.status(400).json({ error: err.message });
+      return;
+    }
     next(err);
   }
 });

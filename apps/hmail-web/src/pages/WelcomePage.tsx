@@ -11,6 +11,7 @@ import { LoginFormCard } from "../components/LoginFormCard";
 import { buildLoginPath, LoginShell, useTenantBranding } from "../components/LoginShell";
 import { ProductOnboardingWizard } from "../components/ProductOnboardingWizard";
 import { PmailLoadingScreen } from "../components/PmailLoadingScreen";
+import { ProspectAccessForm } from "../components/ProspectAccessForm";
 import { useLoginForm } from "../hooks/useLoginForm";
 import { persistReferralRef } from "../utils/referralStorage";
 import {
@@ -18,6 +19,7 @@ import {
   markWelcomeOnboardingSeen,
 } from "../utils/welcomeOnboardingPrefs";
 import "./WelcomePage.css";
+import "../components/ProspectAccessForm.css";
 
 function useIsWideLayout() {
   const [wide, setWide] = useState(() =>
@@ -49,6 +51,7 @@ export function WelcomePage() {
   const [slideIndex, setSlideIndex] = useState(0);
   const [mobileShowLogin, setMobileShowLogin] = useState(false);
   const [wizardDismissed, setWizardDismissed] = useState(false);
+  const [accessMode, setAccessMode] = useState<"signin" | "prospect">("signin");
 
   useEffect(() => {
     persistReferralRef(referralRef);
@@ -104,11 +107,20 @@ export function WelcomePage() {
         )
       }
       rightPanel={
-        <LoginFormCard
-          {...loginForm}
-          loadError={loadError}
-          showExploreLink={false}
-        />
+        accessMode === "prospect" ? (
+          <ProspectAccessForm
+            tenantSlug={tenantSlug}
+            productName={branding.productName}
+            onBackToSignIn={() => setAccessMode("signin")}
+          />
+        ) : (
+          <>
+            <LoginFormCard {...loginForm} loadError={loadError} showExploreLink={false} />
+            <button type="button" className="prospect-access-toggle" onClick={() => setAccessMode("prospect")}>
+              Request workspace access without connecting mail
+            </button>
+          </>
+        )
       }
       overlay={
         loginForm.submitting ? (

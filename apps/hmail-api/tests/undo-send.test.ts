@@ -42,45 +42,51 @@ describe("undo send", () => {
     expect(res.status).toBe(401);
   });
 
-  it("POST /api/mail/send queues message when undoSendSeconds > 0", async () => {
+  it("POST /api/mail/send sends immediately while undo send is disabled", async () => {
     const { agent, user } = await createAuthenticatedAgent(app);
     await setUndoSendSeconds(user.id, 10);
 
     const res = await agent.post("/api/mail/send").send({
       to: "client@example.com",
-      subject: "Queued hello",
+      subject: "Immediate while disabled",
       text: "Body text",
     });
 
-    expect(res.status).toBe(202);
-    expect(res.body.queued).toBe(true);
-    expect(res.body.pendingId).toBeTruthy();
-    expect(res.body.undoSeconds).toBe(10);
-    expect(res.body.subject).toBe("Queued hello");
-    expect(res.body.to).toBe("client@example.com");
+    expect(res.status).toBe(201);
+    expect(res.body.messageId).toBeTruthy();
+    expect(res.body.queued).toBeUndefined();
 
-    const row = await testPrisma.scheduledMessage.findUnique({ where: { id: res.body.pendingId } });
-    expect(row?.status).toBe("pending");
-    expect(row?.sendKind).toBe("undo_send");
+    const rows = await testPrisma.scheduledMessage.findMany({ where: { userId: user.id } });
+    expect(rows).toHaveLength(0);
   });
 
-  it("POST /api/mail/send/:pendingId/undo cancels a pending send", async () => {
-    const { agent, user } = await createAuthenticatedAgent(app);
-    await setUndoSendSeconds(user.id, 10);
+  it("POST /api/mail/send/:pendingId/undo cancels a legacy pending send", async () => {
+    const { agent, user, tenant } = await createAuthenticatedAgent(app);
 
-    const queued = await agent.post("/api/mail/send").send({
-      to: "client@example.com",
-      subject: "Cancel me",
-      text: "Body text",
+    const row = await testPrisma.scheduledMessage.create({
+      data: {
+        tenantId: tenant.id,
+        userId: user.id,
+        to: "client@example.com",
+        subject: "Cancel me",
+        text: "Body text",
+        scheduledFor: new Date(Date.now() + 60_000),
+        status: "pending",
+        sendKind: "undo_send",
+        payloadJson: JSON.stringify({
+          to: "client@example.com",
+          subject: "Cancel me",
+          text: "Body text",
+        }),
+      },
     });
-    expect(queued.status).toBe(202);
 
-    const undo = await agent.post(`/api/mail/send/${queued.body.pendingId}/undo`);
+    const undo = await agent.post(`/api/mail/send/${row.id}/undo`);
     expect(undo.status).toBe(200);
     expect(undo.body.cancelled).toBe(true);
 
-    const row = await testPrisma.scheduledMessage.findUnique({ where: { id: queued.body.pendingId } });
-    expect(row?.status).toBe("cancelled");
+    const updated = await testPrisma.scheduledMessage.findUnique({ where: { id: row.id } });
+    expect(updated?.status).toBe("cancelled");
   });
 
   it("POST /api/mail/send sends immediately when undoSendSeconds is 0", async () => {

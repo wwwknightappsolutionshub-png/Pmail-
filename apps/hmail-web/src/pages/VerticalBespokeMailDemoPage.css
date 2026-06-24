@@ -3443,6 +3443,17 @@ html:has(.pmail-demo-shell--light) body {
   .pmail-demo-shell .bespoke-demo-topbar-center {
     flex: 1 1 auto;
     min-width: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease, opacity 0.2s ease, margin 0.2s ease;
+    max-height: 3.25rem;
+    opacity: 1;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--search-collapsed .bespoke-demo-topbar-center {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+    pointer-events: none;
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-tabs {
