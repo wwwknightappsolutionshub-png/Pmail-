@@ -14,7 +14,8 @@ const defaultSchema = url.startsWith("file:") ? "prisma/schema.sqlite.prisma" : 
 
 const args = process.argv.slice(2);
 const hasSchema = args.some((a) => a === "--schema" || a.startsWith("--schema="));
-const prismaArgs = hasSchema ? args : ["--schema", defaultSchema, ...args];
+// Prisma expects --schema after the subcommand (e.g. `migrate deploy --schema …`), not before it.
+const prismaArgs = hasSchema ? args : [...args, "--schema", defaultSchema];
 
 const prismaBin = resolve(monorepoRoot, "node_modules/prisma/build/index.js");
 
