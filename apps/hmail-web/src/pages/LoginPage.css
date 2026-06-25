@@ -120,6 +120,10 @@
   padding: 1.5rem 1.15rem 1.35rem;
 }
 
+.login-form-header {
+  padding: 0.35rem 0.15rem 0.5rem;
+}
+
 .login-form-header h2,
 .login-signin-title {
   margin: 0;
@@ -129,22 +133,55 @@
 }
 
 .login-form-header .login-welcome {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.55rem;
   color: var(--brand-primary, #0d4f6c);
   font-size: 0.9rem;
   font-weight: 700;
 }
 
 .login-form-header p {
-  margin: 0.4rem 0 0;
+  margin: 0.75rem 0 0;
+  padding: 0 0.1rem;
   font-size: 0.9rem;
+  line-height: 1.65;
   color: var(--login-muted);
+}
+
+.login-form-card > .login-form-divider {
+  margin: 1.1rem 0 0;
+}
+
+.login-form-divider {
+  margin: 0;
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--login-border) 12%,
+    color-mix(in srgb, var(--brand-accent, #0d9488) 42%, var(--login-border)) 50%,
+    var(--login-border) 88%,
+    transparent 100%
+  );
 }
 
 .login-form {
   display: grid;
+  gap: 1.15rem;
+  margin-top: 1.15rem;
+}
+
+.login-form-section {
+  display: grid;
   gap: 1rem;
-  margin-top: 1.35rem;
+}
+
+.login-form-section--actions {
+  gap: 0.85rem;
+}
+
+.login-form-section--prospect {
+  gap: 0;
 }
 
 .login-form label {
@@ -214,7 +251,7 @@
 .login-prospect-cta {
   width: 100%;
   min-height: 2.75rem;
-  margin-top: 0.15rem;
+  margin: 0;
   border: 1px solid color-mix(in srgb, var(--brand-accent, #0d9488) 45%, var(--login-border, #dbe3ec));
   border-radius: 10px;
   padding: 0.72rem 0.9rem;
@@ -231,10 +268,6 @@
 .login-prospect-cta:hover {
   background: color-mix(in srgb, var(--brand-accent, #0d9488) 16%, #ffffff);
   border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 60%, var(--login-border, #dbe3ec));
-}
-
-.login-form .login-create-account + .login-prospect-cta {
-  margin-top: 0.65rem;
 }
 
 /* Mobile login — compact layout, scrollable form panel */
@@ -273,6 +306,19 @@
     text-align: center;
     line-height: 1.4;
     max-width: 20rem;
+  }
+
+  .login-form-header {
+    padding: 0.5rem 0.25rem 0.65rem;
+  }
+
+  .login-form-header p {
+    margin-top: 0.85rem;
+    line-height: 1.7;
+  }
+
+  .login-form-card > .login-form-divider {
+    margin-top: 1.25rem;
   }
 
   .login-prospect-cta {
@@ -388,6 +434,19 @@
 
   .login-form-card {
     padding: 2rem 1.75rem;
+  }
+
+  .login-form-header {
+    padding: 0.5rem 0.35rem 0.75rem;
+  }
+
+  .login-form-header p {
+    margin-top: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .login-form-card > .login-form-divider {
+    margin-top: 1.35rem;
   }
 
   .login-signin-title {

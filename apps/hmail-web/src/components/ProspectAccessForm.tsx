@@ -19,7 +19,7 @@ export function ProspectAccessForm({
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
-  const [consentPrivacy, setConsentPrivacy] = useState(false);
+  const [consentPrivacy, setConsentPrivacy] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -67,7 +67,7 @@ export function ProspectAccessForm({
     <div className={`login-form-card prospect-access-card${className ? ` ${className}` : ""}`}>
       <h2 className="prospect-access-title">Request workspace access</h2>
       <p className="prospect-access-lead">
-        Not ready to connect a mailbox? Tell us about your team and we&apos;ll reach out with next steps.
+        Not ready to connect your mailbox? It&apos;s okay to just look at what you may be missing.
       </p>
 
       <form className="prospect-access-form" onSubmit={onSubmit}>

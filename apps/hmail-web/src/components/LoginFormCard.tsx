@@ -48,10 +48,12 @@ export function LoginFormCard({
           {isTesterRoute
             ? "Demo workspace login — no mail provider setup required. Use the seeded tester credentials to explore all paid add-ons."
             : showProviderSetup
-              ? "Because this is your first time here, select your mail provider (we auto-detect from your email when possible), then sign in with your mailbox password."
+              ? "For your first sign-in, confirm your organization's mail provider. We apply recommended settings from your email domain where supported, then authenticate with your mailbox credentials."
               : "Connect your existing mailbox to access workspace tools and add-ons."}
         </p>
       </div>
+
+      <hr className="login-form-divider" aria-hidden="true" />
 
       <form id={formId} onSubmit={onSubmit} className="login-form">
         {suggestedTenantSlug ? (
@@ -61,33 +63,68 @@ export function LoginFormCard({
           </div>
         ) : null}
 
-        <label>
-          Work email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@company.com"
-            required
-            autoComplete="username"
-          />
-        </label>
-
-        {showProviderSetup ? (
-          <div className="login-provider-section">
-            <span className="login-provider-label">Mail provider</span>
-            <ProviderPresetPicker
-              value={mailConfig.providerPreset}
-              onChange={applyPreset}
-              idPrefix="login-provider"
-            />
-            <p className="login-provider-summary">{formatMailConfigSummary(mailConfig)}</p>
-            {preflightLoading ? <p className="login-provider-hint">Checking mailbox setup…</p> : null}
-          </div>
+        {onRequestWorkspaceAccess ? (
+          <section className="login-form-section login-form-section--prospect" aria-label="Workspace access">
+            <button type="button" className="login-prospect-cta" onClick={onRequestWorkspaceAccess}>
+              Request workspace access without connecting mail
+            </button>
+          </section>
         ) : null}
 
+        {onRequestWorkspaceAccess ? <hr className="login-form-divider" aria-hidden="true" /> : null}
+
+        <section className="login-form-section login-form-section--credentials" aria-label="Mailbox credentials">
+          <label>
+            Your Email
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@company.com"
+              required
+              autoComplete="username"
+            />
+          </label>
+
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your mailbox password"
+              required
+              autoComplete="current-password"
+            />
+          </label>
+
+          {showProviderSetup ? (
+            <p className="login-provider-hint">Use an app password if your provider requires it.</p>
+          ) : null}
+        </section>
+
+        {showProviderSetup ? <hr className="login-form-divider" aria-hidden="true" /> : null}
+
+        {showProviderSetup ? (
+          <section className="login-form-section login-form-section--provider" aria-label="Mail provider">
+            <div className="login-provider-section">
+              <span className="login-provider-label">Mail provider</span>
+              <ProviderPresetPicker
+                value={mailConfig.providerPreset}
+                onChange={applyPreset}
+                idPrefix="login-provider"
+              />
+              <p className="login-provider-summary">{formatMailConfigSummary(mailConfig)}</p>
+              {preflightLoading ? <p className="login-provider-hint">Checking mailbox setup…</p> : null}
+            </div>
+          </section>
+        ) : null}
+
+        {showProviderSetup && showCustomFields ? <hr className="login-form-divider" aria-hidden="true" /> : null}
+
         {showProviderSetup && showCustomFields ? (
-          <div className="mail-onboarding-custom-grid">
+          <section className="login-form-section login-form-section--server" aria-label="Server settings">
+            <div className="mail-onboarding-custom-grid">
             <label>
               IMAP host
               <input
@@ -139,41 +176,24 @@ export function LoginFormCard({
               SMTP SSL/TLS
             </label>
           </div>
+          </section>
         ) : null}
 
-        <label>
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your mailbox password"
-            required
-            autoComplete="current-password"
-          />
-        </label>
+        <hr className="login-form-divider" aria-hidden="true" />
 
-        {showProviderSetup ? (
-          <p className="login-provider-hint">Use an app password if your provider requires it.</p>
-        ) : null}
+        <section className="login-form-section login-form-section--actions" aria-label="Sign in">
+          {loadError || loginError ? <div className="login-error">{loginError || loadError}</div> : null}
 
-        {loadError || loginError ? <div className="login-error">{loginError || loadError}</div> : null}
-
-        <button type="submit" disabled={submitting || preflightLoading} className="login-submit">
-          {submitting ? "Authenticating…" : isTesterRoute ? "Sign in to tester workspace" : "Sign in to mailbox"}
-        </button>
-
-        {showExploreLink ? (
-          <Link className="login-create-account" to={exploreHref}>
-            New here? Explore PMail+
-          </Link>
-        ) : null}
-
-        {onRequestWorkspaceAccess ? (
-          <button type="button" className="login-prospect-cta" onClick={onRequestWorkspaceAccess}>
-            Request workspace access without connecting mail
+          <button type="submit" disabled={submitting || preflightLoading} className="login-submit">
+            {submitting ? "Authenticating…" : isTesterRoute ? "Sign in to tester workspace" : "Sign in to mailbox"}
           </button>
-        ) : null}
+
+          {showExploreLink ? (
+            <Link className="login-create-account" to={exploreHref}>
+              New here? Explore PMail+
+            </Link>
+          ) : null}
+        </section>
       </form>
     </div>
   );
