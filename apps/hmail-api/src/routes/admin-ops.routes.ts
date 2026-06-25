@@ -38,6 +38,10 @@ import {
   GrowthAdminOpsError,
   revokeTenantAddonSubscription,
 } from "../services/growth-admin-ops.service.js";
+import {
+  getPmailPlatformConfig,
+  updatePmailPlatformConfig,
+} from "../services/pmail-platform-config.service.js";
 
 const brandingSchema = z.object({
   productName: z.string().optional(),
@@ -80,6 +84,12 @@ const subscriptionGrantSchema = z.object({
 const growthPlanTierSchema = z.object({
   planSlug: z.enum(["starter", "pro", "agency"]),
   planTierOverride: z.boolean().optional(),
+});
+
+const pmailPlatformConfigSchema = z.object({
+  mailPushEnabled: z.boolean().optional(),
+  mailPushDefaultForUsers: z.boolean().optional(),
+  pwaPushAutoSubscribe: z.boolean().optional(),
 });
 
 const vpsSchema = z.object({
@@ -400,6 +410,26 @@ adminOpsRouter.delete("/platform-admins/:id", requireSuperAdmin, async (req, res
       res.status(400).json({ error: err.message });
       return;
     }
+    next(err);
+  }
+});
+
+adminOpsRouter.get("/pmail-platform-config", requireSuperAdmin, async (_req, res, next) => {
+  try {
+    const config = await getPmailPlatformConfig();
+    res.json({ config });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.patch("/pmail-platform-config", requireSuperAdmin, async (req, res, next) => {
+  try {
+    const body = pmailPlatformConfigSchema.parse(req.body);
+    const config = await updatePmailPlatformConfig(body);
+    await auditAdminMutation(req, "pmail_platform_config.update", "pmail_platform_config", "default", body);
+    res.json({ config });
+  } catch (err) {
     next(err);
   }
 });

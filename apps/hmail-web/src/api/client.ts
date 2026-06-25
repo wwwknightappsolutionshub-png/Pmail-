@@ -645,6 +645,19 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ uiThemeVersion }),
     }),
+  updateMailPushPreference: (enabled: boolean) =>
+    request<{ user: import("../types/mail").AuthUser }>("/api/auth/me/mail-push", {
+      method: "PATCH",
+      body: JSON.stringify({ enabled }),
+    }),
+  pwaPushPolicy: () =>
+    request<{
+      mailPushEnabled: boolean;
+      platformMailPushEnabled: boolean;
+      userMailPushEnabled: boolean;
+      autoSubscribe: boolean;
+      vapidConfigured: boolean;
+    }>("/api/pwa/push-policy"),
   featureTemplates: () =>
     request<{ templates: Array<{ id: string; name: string; subject: string; bodyHtml: string; description: string }> }>(
       "/api/features/templates",

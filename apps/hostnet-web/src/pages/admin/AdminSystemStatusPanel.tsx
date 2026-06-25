@@ -1,20 +1,28 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api/client";
-import type { AdminPollSnapshot, AdminSystemStatus } from "../../types/site";
+import type { AdminPollSnapshot, AdminSystemStatus, PmailPlatformConfig } from "../../types/site";
 import "./AdminDashboard.css";
 
 type Props = {
   poll?: AdminPollSnapshot | null;
+  isSuperAdmin?: boolean;
 };
 
-export function AdminSystemStatusPanel({ poll }: Props) {
+export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
   const [status, setStatus] = useState<AdminSystemStatus | null>(null);
+  const [pushConfig, setPushConfig] = useState<PmailPlatformConfig | null>(null);
+  const [pushSaving, setPushSaving] = useState(false);
+  const [pushError, setPushError] = useState("");
   const [loading, setLoading] = useState(true);
 
   async function load() {
     try {
       const data = await api.adminSystemStatus();
       setStatus(data);
+      if (isSuperAdmin) {
+        const { config } = await api.adminPmailPlatformConfig();
+        setPushConfig(config);
+      }
     } finally {
       setLoading(false);
     }
@@ -22,16 +30,38 @@ export function AdminSystemStatusPanel({ poll }: Props) {
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [isSuperAdmin]);
 
   useEffect(() => {
     if (poll) void load();
-  }, [poll?.polledAt]);
+  }, [poll?.polledAt, isSuperAdmin]);
+
+  async function updatePushConfig(patch: Partial<Pick<PmailPlatformConfig, "mailPushEnabled" | "mailPushDefaultForUsers" | "pwaPushAutoSubscribe">>) {
+    if (!pushConfig) return;
+    setPushSaving(true);
+    setPushError("");
+    try {
+      const { config } = await api.updateAdminPmailPlatformConfig(patch);
+      setPushConfig(config);
+      const data = await api.adminSystemStatus();
+      setStatus(data);
+    } catch (err) {
+      setPushError(err instanceof Error ? err.message : "Failed to update push settings");
+    } finally {
+      setPushSaving(false);
+    }
+  }
 
   if (loading && !status) return <p className="muted">Loading system status…</p>;
   if (!status) return <div className="admin-alert admin-alert-error">Failed to load system status.</div>;
 
   const checks = Object.entries(status.readiness.checks);
+  const push = status.push ?? {
+    vapidConfigured: false,
+    mailPushEnabled: true,
+    mailPushDefaultForUsers: true,
+    pwaPushAutoSubscribe: true,
+  };
 
   return (
     <div className="admin-status-grid">
@@ -44,6 +74,54 @@ export function AdminSystemStatusPanel({ poll }: Props) {
           API uptime {Math.floor(status.readiness.uptimeSeconds / 3600)}h · Polled every 30s
           {poll ? ` · Last ${new Date(poll.polledAt).toLocaleTimeString()}` : ""}
         </p>
+      </section>
+
+      <section className="card">
+        <h3>PMail+ push notifications</h3>
+        <dl className="admin-status-dl">
+          <div><dt>VAPID keys</dt><dd>{push.vapidConfigured ? "Configured" : "Not configured"}</dd></div>
+          <div><dt>Platform mail push</dt><dd>{push.mailPushEnabled ? "Enabled" : "Disabled"}</dd></div>
+          <div><dt>Default for users</dt><dd>{push.mailPushDefaultForUsers ? "On" : "Off"}</dd></div>
+          <div><dt>PWA auto-subscribe</dt><dd>{push.pwaPushAutoSubscribe ? "On" : "Off"}</dd></div>
+        </dl>
+        {!push.vapidConfigured ? (
+          <p className="muted" style={{ marginTop: "0.75rem" }}>
+            Set <code className="admin-status-mono">VAPID_PUBLIC_KEY</code> and{" "}
+            <code className="admin-status-mono">VAPID_PRIVATE_KEY</code> in the API environment to deliver push notifications.
+          </p>
+        ) : null}
+        {isSuperAdmin && pushConfig ? (
+          <div className="admin-status-push-controls">
+            <label className="admin-toggle">
+              <input
+                type="checkbox"
+                checked={pushConfig.mailPushEnabled}
+                disabled={pushSaving}
+                onChange={(e) => void updatePushConfig({ mailPushEnabled: e.target.checked })}
+              />
+              Enable mail push platform-wide
+            </label>
+            <label className="admin-toggle">
+              <input
+                type="checkbox"
+                checked={pushConfig.mailPushDefaultForUsers}
+                disabled={pushSaving || !pushConfig.mailPushEnabled}
+                onChange={(e) => void updatePushConfig({ mailPushDefaultForUsers: e.target.checked })}
+              />
+              Default mail push on for all users
+            </label>
+            <label className="admin-toggle">
+              <input
+                type="checkbox"
+                checked={pushConfig.pwaPushAutoSubscribe}
+                disabled={pushSaving || !pushConfig.mailPushEnabled}
+                onChange={(e) => void updatePushConfig({ pwaPushAutoSubscribe: e.target.checked })}
+              />
+              Auto-subscribe PWA on login
+            </label>
+            {pushError ? <p className="admin-alert admin-alert-error">{pushError}</p> : null}
+          </div>
+        ) : null}
       </section>
 
       <section className="card">

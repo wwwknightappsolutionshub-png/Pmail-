@@ -35,6 +35,7 @@ export interface AuthUser {
     isActive: boolean;
   } | null;
   mailAccountCount?: number;
+  mailPushEnabled?: boolean;
 }
 
 export type BusinessVertical =

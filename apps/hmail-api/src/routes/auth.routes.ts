@@ -9,6 +9,7 @@ import {
   logoutSession,
   resolveTenantBySlug,
   sanitizeUser,
+  updateUserMailPushEnabled,
   updateUserThemeVersion,
 } from "../services/auth.service.js";
 import { isPmailTesterBypassEnabled } from "../services/pmail-tester.service.js";
@@ -59,6 +60,10 @@ const businessVerticalSchema = z.object({
 
 const themeSchema = z.object({
   uiThemeVersion: z.enum(["dark", "light"]),
+});
+
+const mailPushSchema = z.object({
+  enabled: z.boolean(),
 });
 
 export const authRouter = Router();
@@ -236,6 +241,16 @@ authRouter.patch("/me/theme", requireAuth, async (req, res, next) => {
   try {
     const body = themeSchema.parse(req.body);
     const user = await updateUserThemeVersion(req.auth!.user.id, body.uiThemeVersion);
+    res.json({ user });
+  } catch (err) {
+    next(err);
+  }
+});
+
+authRouter.patch("/me/mail-push", requireAuth, async (req, res, next) => {
+  try {
+    const body = mailPushSchema.parse(req.body);
+    const user = await updateUserMailPushEnabled(req.auth!.user.id, body.enabled);
     res.json({ user });
   } catch (err) {
     next(err);

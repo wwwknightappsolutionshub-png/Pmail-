@@ -586,6 +586,7 @@ export function BespokeMailDemo({
     },
   ]);
   const [activeThreadId, setActiveThreadId] = useState(`${demo.useCaseId}-org-general`);
+  const [messagingMobilePane, setMessagingMobilePane] = useState<"list" | "chat">("list");
   const [messageDraft, setMessageDraft] = useState({
     body: "",
     channel: "internal" as "internal" | "whatsapp",
@@ -662,6 +663,12 @@ export function BespokeMailDemo({
     const timer = window.setTimeout(() => setMailNotice(null), 5000);
     return () => window.clearTimeout(timer);
   }, [mailNotice]);
+
+  useEffect(() => {
+    if (activeWorkspace !== "messaging") {
+      setMessagingMobilePane("list");
+    }
+  }, [activeWorkspace]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -1723,6 +1730,10 @@ export function BespokeMailDemo({
     }
   }
 
+  function focusMessagingChatPane() {
+    setMessagingMobilePane("chat");
+  }
+
   function openOrganizationThread(member: { id: string; email: string; displayName: string }) {
     const threadId = `org-${member.id}`;
     setMessagingThreads((current) => {
@@ -1742,6 +1753,7 @@ export function BespokeMailDemo({
     });
     setActiveThreadId(threadId);
     setMessageDraft((current) => ({ ...current, channel: "internal" }));
+    focusMessagingChatPane();
   }
 
   function openWhatsappThread(contact: DemoCrmContact) {
@@ -1764,6 +1776,7 @@ export function BespokeMailDemo({
     });
     setActiveThreadId(threadId);
     setMessageDraft((current) => ({ ...current, channel: "whatsapp" }));
+    focusMessagingChatPane();
   }
 
   function sendWorkspaceMessage(event: FormEvent) {
@@ -2019,15 +2032,12 @@ export function BespokeMailDemo({
   }
 
   function renderProductionWorkspacePanel(workspaceKey: BespokeWorkspace, demoPanel: ReactNode) {
-    const panel = renderWorkspace?.(workspaceKey);
-    if (panel) {
-      return (
-        <div className={`bespoke-demo-production-workspace bespoke-demo-production-workspace--${workspaceKey}`}>
-          {panel}
-        </div>
-      );
-    }
-    return demoPanel;
+    const panel = renderWorkspace?.(workspaceKey) ?? demoPanel;
+    return (
+      <div className={`bespoke-demo-production-workspace bespoke-demo-production-workspace--${workspaceKey}`}>
+        {panel}
+      </div>
+    );
   }
 
   const bespokeDemoClassName = [
@@ -3425,7 +3435,10 @@ export function BespokeMailDemo({
       {activeWorkspace === "messaging" ? (
         renderProductionWorkspacePanel(
           "messaging",
-          <div className="bespoke-demo-messaging-shell">
+          <div
+            className="bespoke-demo-messaging-shell"
+            data-mobile-messaging-pane={messagingMobilePane}
+          >
           <aside className="bespoke-demo-messaging-directory">
             <div className="bespoke-demo-module-head">
               <div>
@@ -3434,6 +3447,7 @@ export function BespokeMailDemo({
               </div>
             </div>
 
+            <div className="bespoke-demo-messaging-directory__scroll">
             <section className="bespoke-demo-messaging-section">
               <p className="bespoke-demo-sidebar-title">Organization users</p>
               <button
@@ -3444,6 +3458,7 @@ export function BespokeMailDemo({
                 onClick={() => {
                   setActiveThreadId(`${demo.useCaseId}-org-general`);
                   setMessageDraft((current) => ({ ...current, channel: "internal" }));
+                  focusMessagingChatPane();
                 }}
               >
                 <span>{demo.brandName} Team</span>
@@ -3497,19 +3512,38 @@ export function BespokeMailDemo({
                 ))
               )}
             </section>
+            </div>
           </aside>
 
           <section className="bespoke-demo-chat-panel">
             {activeMessagingThread ? (
               <>
                 <header className="bespoke-demo-chat-head">
-                  <div>
-                    <h2>{activeMessagingThread.participantName}</h2>
-                    <p className="muted">
-                      {activeMessagingThread.participantType === "contact"
-                        ? `WhatsApp contact · ${activeMessagingThread.participantPhone}`
-                        : `Internal organization chat · ${activeMessagingThread.participantEmail}`}
-                    </p>
+                  <div className="bespoke-demo-chat-head-main">
+                    <button
+                      type="button"
+                      className="bespoke-demo-messaging-back-btn"
+                      aria-label="Back to conversations"
+                      onClick={() => setMessagingMobilePane("list")}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path
+                          d="M15 18l-6-6 6-6"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                    <div className="bespoke-demo-chat-head-copy">
+                      <h2>{activeMessagingThread.participantName}</h2>
+                      <p className="muted">
+                        {activeMessagingThread.participantType === "contact"
+                          ? `WhatsApp contact · ${activeMessagingThread.participantPhone}`
+                          : `Internal organization chat · ${activeMessagingThread.participantEmail}`}
+                      </p>
+                    </div>
                   </div>
                   <span className={`bespoke-demo-feature-badge${
                     activeMessagingThread.participantType === "contact" && !whatsappEnabled

@@ -385,6 +385,20 @@ export type AdminSystemStatus = {
   counts: { tenants: number; leads: number; completedCheckouts: number; webhookEvents: number };
   payments: { mockMode: boolean; providers: string[] };
   config: { nodeEnv: string; cookieSecure: boolean; auditAdminActions: boolean; publicApiUrl: string | null };
+  push: {
+    vapidConfigured: boolean;
+    mailPushEnabled: boolean;
+    mailPushDefaultForUsers: boolean;
+    pwaPushAutoSubscribe: boolean;
+  };
+};
+
+export type PmailPlatformConfig = {
+  mailPushEnabled: boolean;
+  mailPushDefaultForUsers: boolean;
+  pwaPushAutoSubscribe: boolean;
+  vapidConfigured: boolean;
+  updatedAt: string;
 };
 
 export type AdminPollSnapshot = {

@@ -1266,6 +1266,15 @@
   font-weight: 600;
 }
 
+.admin-status-push-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--admin-border);
+}
+
 .admin-sections-form {
   max-width: 640px;
 }

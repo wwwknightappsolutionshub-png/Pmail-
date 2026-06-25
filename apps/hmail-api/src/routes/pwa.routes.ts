@@ -5,6 +5,7 @@ import {
   removePushSubscription,
   savePushSubscription,
 } from "../services/pwa-push.service.js";
+import { getPmailPlatformConfig, resolveUserMailPushPreference } from "../services/pmail-platform-config.service.js";
 
 export const pwaRouter = Router();
 
@@ -21,6 +22,25 @@ pwaRouter.get("/vapid-public-key", (_req, res) => {
     return;
   }
   res.json({ publicKey });
+});
+
+pwaRouter.get("/push-policy", async (req, res, next) => {
+  try {
+    const { userId } = ctx(req);
+    const [platform, preference] = await Promise.all([
+      getPmailPlatformConfig(),
+      resolveUserMailPushPreference(userId),
+    ]);
+    res.json({
+      mailPushEnabled: preference.active,
+      platformMailPushEnabled: platform.mailPushEnabled,
+      userMailPushEnabled: preference.userEnabled,
+      autoSubscribe: preference.autoSubscribe,
+      vapidConfigured: platform.vapidConfigured,
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
 pwaRouter.post("/push-subscriptions", async (req, res, next) => {

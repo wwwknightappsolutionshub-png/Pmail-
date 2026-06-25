@@ -10,6 +10,7 @@ import { ContactSyncToast } from "../components/ContactSyncToast";
 import { SignatureReminderToast } from "../components/SignatureReminderToast";
 import { renderBespokeProductionWorkspace } from "../components/BespokeProductionWorkspaces";
 import { useInboxContactSync } from "../hooks/useInboxContactSync";
+import { useAutoMailPush } from "../hooks/useAutoMailPush";
 import { useMobileTopbarChromeCollapse } from "../hooks/useMobileTopbarChromeCollapse";
 import { useSignatureReminder } from "../hooks/useSignatureReminder";
 import {
@@ -84,6 +85,8 @@ function BespokeMailShellContent() {
     enabled: Boolean(user),
     onNewContacts: (addedCount) => setContactSyncNotice(addedCount),
   });
+
+  useAutoMailPush(user?.id);
 
   const navigateMailWorkspaceView = useCallback((view: string | null) => {
     setMailWorkspaceView(view);

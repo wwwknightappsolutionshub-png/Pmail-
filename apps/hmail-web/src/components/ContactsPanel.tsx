@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronUp } from "lucide-react";
 import { api, ApiError } from "../api/client";
 import type { MailContact, MailContactCollection } from "../types/contact";
 import "./ContactsPanel.css";
@@ -58,6 +59,25 @@ export function ContactsPanel({
   const [contactSearch, setContactSearch] = useState("");
   const [showContactForm, setShowContactForm] = useState(Boolean(initialEmail));
   const [showCollectionForm, setShowCollectionForm] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const scrollPanelToTop = useCallback((behavior: ScrollBehavior = "smooth") => {
+    scrollRef.current?.scrollTo({ top: 0, behavior });
+  }, []);
+
+  useEffect(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+
+    const onScroll = () => {
+      setShowScrollTop(node.scrollTop > 120);
+    };
+
+    onScroll();
+    node.addEventListener("scroll", onScroll, { passive: true });
+    return () => node.removeEventListener("scroll", onScroll);
+  }, [tab, showContactForm, showCollectionForm]);
 
   async function reload() {
     setLoading(true);
@@ -122,6 +142,7 @@ export function ContactsPanel({
       notes: contact.notes ?? "",
     });
     setShowContactForm(true);
+    scrollPanelToTop();
   }
 
   function resetCollectionForm() {
@@ -191,6 +212,7 @@ export function ContactsPanel({
               onClick={() => {
                 setTab(t);
                 resetCollectionForm();
+                scrollPanelToTop("auto");
               }}
             >
               {TAB_LABELS[t]}
@@ -198,19 +220,35 @@ export function ContactsPanel({
           ))}
         </nav>
         {tab === "contacts" && !showContactForm ? (
-          <button type="button" className="contacts-primary-btn" onClick={() => setShowContactForm(true)}>
+          <button
+            type="button"
+            className="contacts-primary-btn"
+            onClick={() => {
+              setShowContactForm(true);
+              scrollPanelToTop();
+            }}
+          >
             New contact
           </button>
         ) : null}
         {tab !== "contacts" && !showCollectionForm ? (
-          <button type="button" className="contacts-primary-btn" onClick={() => setShowCollectionForm(true)}>
+          <button
+            type="button"
+            className="contacts-primary-btn"
+            onClick={() => {
+              setShowCollectionForm(true);
+              scrollPanelToTop();
+            }}
+          >
             {tab === "lists" ? "New list" : "New group"}
           </button>
         ) : null}
       </header>
 
       {error ? <div className="contacts-error">{error}</div> : null}
-      {loading ? <p className="contacts-muted">Loading…</p> : null}
+
+      <div className="contacts-panel__scroll" ref={scrollRef}>
+        {loading ? <p className="contacts-muted">Loading…</p> : null}
 
       {tab === "contacts" ? (
         <div className="contacts-section">
@@ -463,6 +501,20 @@ export function ContactsPanel({
             </div>
           ) : null}
         </div>
+      ) : null}
+
+        <div className="contacts-panel__footer-spacer" aria-hidden="true" />
+      </div>
+
+      {showScrollTop ? (
+        <button
+          type="button"
+          className="contacts-scroll-top"
+          aria-label="Scroll to top"
+          onClick={() => scrollPanelToTop()}
+        >
+          <ChevronUp strokeWidth={2} aria-hidden />
+        </button>
       ) : null}
     </div>
   );

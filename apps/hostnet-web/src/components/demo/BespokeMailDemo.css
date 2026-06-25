@@ -3791,3 +3791,185 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* Back control is mobile-only; desktop keeps the original two-column messaging shell. */
+.bespoke-demo-messaging-back-btn {
+  display: none;
+}
+
+.bespoke-demo-chat-head-main {
+  display: block;
+  min-width: 0;
+}
+
+.bespoke-demo-chat-head-copy {
+  min-width: 0;
+}
+
+.bespoke-demo-chat-head-copy h2 {
+  margin: 0 0 0.2rem;
+}
+
+.bespoke-demo-chat-head-copy p {
+  margin: 0;
+}
+
+.bespoke-demo-messaging-directory__scroll {
+  display: grid;
+  gap: 0.55rem;
+}
+
+@media (max-width: 767px) {
+  .bespoke-demo-production-workspace--messaging {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .bespoke-demo-messaging-shell {
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bespoke-demo-messaging-shell[data-mobile-messaging-pane="list"] .bespoke-demo-chat-panel {
+    display: none;
+  }
+
+  .bespoke-demo-messaging-shell[data-mobile-messaging-pane="chat"] .bespoke-demo-messaging-directory {
+    display: none;
+  }
+
+  .bespoke-demo-messaging-shell[data-mobile-messaging-pane="list"] .bespoke-demo-messaging-directory,
+  .bespoke-demo-messaging-shell[data-mobile-messaging-pane="chat"] .bespoke-demo-chat-panel {
+    display: flex;
+    flex-direction: column;
+    grid-row: 1;
+    grid-column: 1;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    border-right: none;
+    padding: 0.75rem 0.85rem 0;
+  }
+
+  .bespoke-demo-messaging-directory .bespoke-demo-module-head {
+    flex-shrink: 0;
+    margin-bottom: 0.65rem;
+  }
+
+  .bespoke-demo-messaging-shell[data-mobile-messaging-pane="list"] .bespoke-demo-messaging-directory {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bespoke-demo-messaging-directory__scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bespoke-demo-messaging-shell[data-mobile-messaging-pane="chat"] .bespoke-demo-chat-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bespoke-demo-chat-head {
+    flex-shrink: 0;
+    align-items: center;
+    margin-bottom: 0;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-detail);
+  }
+
+  .bespoke-demo-chat-head-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .bespoke-demo-messaging-back-btn {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-top: 0.1rem;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-chip);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .bespoke-demo-messaging-back-btn:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    outline-offset: 2px;
+  }
+
+  .bespoke-demo-chat-history {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.7rem;
+    padding: 0.65rem 0 0.75rem;
+  }
+
+  .bespoke-demo-chat-message {
+    max-width: 92%;
+  }
+
+  .bespoke-demo-chat-composer {
+    flex-shrink: 0;
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface-detail);
+  }
+
+  .bespoke-demo-chat-composer .btn.btn-primary {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .bespoke-demo-thread-chip {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .bespoke-demo-messaging-section {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  .bespoke-demo-module-head h2 {
+    font-size: 1.05rem;
+  }
+
+  .bespoke-demo-module-head p {
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
+}

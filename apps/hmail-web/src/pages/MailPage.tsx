@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useAutoMailPush } from "../hooks/useAutoMailPush";
 import { useRegisterBespokeCompose } from "../context/BespokeComposeBridge";
 import { useAddons } from "../context/AddonContext";
 import { AddonUpsellPanel } from "../components/AddonUpsellPanel";
@@ -322,6 +323,8 @@ export function MailPage({
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
   const hasMultiInboxAddon = hasAddon("multi-inbox-functionality");
+
+  useAutoMailPush(user?.id);
 
   useEffect(() => {
     if (mobilePane !== "menu") {

@@ -6,6 +6,9 @@
   --ps-muted: var(--text-muted, #64748b);
   --ps-accent: var(--brand-accent, #0d9488);
   --ps-primary: var(--brand-primary, #0d4f6c);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 0;
   background: transparent;
 }
@@ -158,6 +161,28 @@
 
 .provider-settings .provider-preset-picker {
   margin: 0;
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .provider-settings .provider-preset-picker {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.4rem;
+    width: 100%;
+  }
+
+  .provider-settings .provider-preset-picker__item {
+    min-width: 0;
+    width: 100%;
+    padding: 0.4rem 0.2rem;
+  }
+
+  .provider-settings .provider-preset-picker__label {
+    max-width: none;
+    font-size: 0.56rem;
+  }
 }
 
 @media (max-width: 720px) {

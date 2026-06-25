@@ -126,6 +126,7 @@ model User {
   businessVertical String?
   healthcareAccessRole String?
   uiThemeVersion String @default("dark")
+  mailPushEnabled Boolean @default(true)
   isActive    Boolean  @default(true)
   lastLoginAt DateTime?
   inboxContactsSyncedAt DateTime?
@@ -2605,6 +2606,14 @@ model MarketingPlatformConfig {
   aiBaseUrl    String?
   settingsJson String?
   updatedAt    DateTime @updatedAt
+}
+
+model PmailPlatformConfig {
+  id                      String   @id @default("default")
+  mailPushEnabled         Boolean  @default(true)
+  mailPushDefaultForUsers Boolean  @default(true)
+  pwaPushAutoSubscribe    Boolean  @default(true)
+  updatedAt               DateTime @updatedAt
 }
 
 model MarketingAiSession {

@@ -51,3 +51,10 @@
   font-size: 0.78rem;
   color: #b91c1c;
 }
+
+.pwa-push-settings-note {
+  margin: 0.85rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-muted, #64748b);
+}

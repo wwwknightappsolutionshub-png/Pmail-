@@ -12,6 +12,7 @@ import type {
   PanelDashboard,
   PlatformAdmin,
   PlatformAdminRecord,
+  PmailPlatformConfig,
   PublicSitePayload,
   SiteSection,
   TenantAdmin,
@@ -119,6 +120,16 @@ export const api = {
   adminPoll: () => request<AdminPollSnapshot>("/api/admin/poll"),
   adminDashboard: () => request<{ dashboard: AdminDashboardPayload }>("/api/admin/dashboard"),
   adminSystemStatus: () => request<AdminSystemStatus>("/api/admin/system-status"),
+  adminPmailPlatformConfig: () => request<{ config: PmailPlatformConfig }>("/api/admin/pmail-platform-config"),
+  updateAdminPmailPlatformConfig: (body: {
+    mailPushEnabled?: boolean;
+    mailPushDefaultForUsers?: boolean;
+    pwaPushAutoSubscribe?: boolean;
+  }) =>
+    request<{ config: PmailPlatformConfig }>("/api/admin/pmail-platform-config", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
   adminTrends: (days = 30) => request<{ trends: AdminTrends }>(`/api/admin/analytics/trends?days=${days}`),
   adminBillingRevenue: () => request<{ revenue: BillingRevenueDashboard }>("/api/admin/billing/revenue"),
   adminAuditLog: (limit = 50) =>

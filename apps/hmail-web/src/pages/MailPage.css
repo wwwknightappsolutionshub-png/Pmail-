@@ -1521,6 +1521,7 @@
 .mail-app .feature-list-card,
 .mail-app .workspace-detail,
 .mail-app .contacts-panel,
+.mail-app .brand-settings,
 .mail-app .contacts-toolbar,
 .mail-app .contact-card,
 .mail-app .contact-form,
@@ -1650,6 +1651,38 @@
 }
 
 .mail-app.mail-app--light[data-virtual-view="true"] .mail-list-pane:has(.platform-tools-panel) {
+  background: #ffffff;
+}
+
+.mail-app[data-virtual-view="true"] .mail-list-pane > .contacts-panel {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mail-app[data-virtual-view="true"] .mail-list-pane:has(.contacts-panel) {
+  background: var(--list-chrome-bg);
+}
+
+.mail-app.mail-app--light[data-virtual-view="true"] .mail-list-pane:has(.contacts-panel) {
+  background: #ffffff;
+}
+
+.mail-app[data-virtual-view="true"] .mail-list-pane > .brand-settings {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+}
+
+.mail-app[data-virtual-view="true"] .mail-list-pane:has(.brand-settings) {
+  background: var(--list-chrome-bg);
+}
+
+.mail-app.mail-app--light[data-virtual-view="true"] .mail-list-pane:has(.brand-settings) {
   background: #ffffff;
 }
 

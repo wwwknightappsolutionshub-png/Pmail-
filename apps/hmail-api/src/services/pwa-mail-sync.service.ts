@@ -2,10 +2,15 @@ import { prisma } from "../lib/prisma.js";
 import { getLatestMailCredentials } from "./mail-credentials.service.js";
 import { listMessages } from "./imap.service.js";
 import { notifyUsersOfNewMail } from "./pwa-push.service.js";
+import { isMailPushPlatformEnabled } from "./pmail-platform-config.service.js";
 
 const lastUnreadByUser = new Map<string, number>();
 
 export async function syncMailForPwaUsers(): Promise<number> {
+  if (!(await isMailPushPlatformEnabled())) {
+    return 0;
+  }
+
   const users = await prisma.pwaPushSubscription.findMany({
     select: { userId: true },
     distinct: ["userId"],

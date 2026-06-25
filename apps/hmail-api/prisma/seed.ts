@@ -16,6 +16,7 @@ import { seedDemoVps } from "../src/services/vps.service.js";
 import { seedEmailTemplates } from "../src/services/email-template.service.js";
 import { seedPublicFormDefinitions } from "../src/services/form-definition.service.js";
 import { seedTestimonials } from "../src/services/testimonial.service.js";
+import { ensurePmailPlatformConfig } from "../src/services/pmail-platform-config.service.js";
 
 resolveDatabaseUrl();
 
@@ -179,6 +180,7 @@ async function main() {
   await seedHostingPlans();
   await seedAddonMarketing();
   await seedTestimonials();
+  await ensurePmailPlatformConfig();
   const tester = await seedPmailTesterTenant();
 
   const businessPlan = await prisma.hostingPlan.findFirst({ where: { slug: "business" } });

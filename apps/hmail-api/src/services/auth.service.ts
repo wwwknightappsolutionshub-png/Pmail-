@@ -311,6 +311,7 @@ export function sanitizeUser(
     displayName: user.displayName,
     businessVertical: user.businessVertical,
     uiThemeVersion: user.uiThemeVersion,
+    mailPushEnabled: user.mailPushEnabled,
     tenant: {
       id: user.tenant.id,
       slug: user.tenant.slug,
@@ -339,6 +340,23 @@ export async function updateUserThemeVersion(userId: string, uiThemeVersion: "da
       tenant: { include: { branding: true, mail: true } },
     },
   });
+
+  return sanitizeUser(user);
+}
+
+export async function updateUserMailPushEnabled(userId: string, mailPushEnabled: boolean) {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { mailPushEnabled },
+    include: {
+      mailConfig: true,
+      tenant: { include: { branding: true, mail: true } },
+    },
+  });
+
+  if (!mailPushEnabled) {
+    await prisma.pwaPushSubscription.deleteMany({ where: { userId } });
+  }
 
   return sanitizeUser(user);
 }

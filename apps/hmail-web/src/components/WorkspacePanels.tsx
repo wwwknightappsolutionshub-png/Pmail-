@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
+import { ChevronUp } from "lucide-react";
 import { api } from "../api/client";
 import { useAddons } from "../context/AddonContext";
 import type { ComposeInitial } from "./ComposeModal";
@@ -64,6 +65,25 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [replyForm, setReplyForm] = useState({ id: "", name: "", subject: "", body: "", enabled: true });
   const [saving, setSaving] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const scrollPanelToTop = useCallback((behavior: ScrollBehavior = "smooth") => {
+    scrollRef.current?.scrollTo({ top: 0, behavior });
+  }, []);
+
+  useEffect(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+
+    const onScroll = () => {
+      setShowScrollTop(node.scrollTop > 120);
+    };
+
+    onScroll();
+    node.addEventListener("scroll", onScroll, { passive: true });
+    return () => node.removeEventListener("scroll", onScroll);
+  }, [data?.signatures.length, data?.autoReplies.length, sigForm.id, replyForm.id]);
 
   useEffect(() => {
     if (data?.displayName) setDisplayName(data.displayName);
@@ -179,6 +199,7 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
         <p>Sender display name, send delays, signatures, and vacation auto-replies for your workspace.</p>
       </header>
 
+      <div className="brand-settings__scroll" ref={scrollRef}>
       <div className="brand-settings-quick-grid">
         <section className="brand-settings-card" aria-labelledby="brand-sender-title">
           <div className="brand-settings-card-head">
@@ -442,6 +463,7 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
                     setAvatarFileName(sig.avatarUrl ? "Saved image" : "");
                     setSigError("");
                     setSigNotice("");
+                    scrollPanelToTop();
                   }}
                 >
                   Edit
@@ -530,15 +552,16 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
                 <button
                   type="button"
                   className="brand-settings-btn brand-settings-btn--ghost"
-                  onClick={() =>
+                  onClick={() => {
                     setReplyForm({
                       id: rule.id,
                       name: rule.name,
                       subject: rule.subject,
                       body: rule.body,
                       enabled: rule.enabled,
-                    })
-                  }
+                    });
+                    scrollPanelToTop();
+                  }}
                 >
                   Edit
                 </button>
@@ -568,6 +591,20 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
           ))}
         </div>
       </section>
+
+        <div className="brand-settings__footer-spacer" aria-hidden="true" />
+      </div>
+
+      {showScrollTop ? (
+        <button
+          type="button"
+          className="brand-settings-scroll-top"
+          aria-label="Scroll to top"
+          onClick={() => scrollPanelToTop()}
+        >
+          <ChevronUp strokeWidth={2} aria-hidden />
+        </button>
+      ) : null}
     </div>
   );
 }

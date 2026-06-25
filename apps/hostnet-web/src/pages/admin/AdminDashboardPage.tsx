@@ -344,7 +344,7 @@ export function AdminDashboardPage() {
 
           {tab === "billing" && <AdminBillingPanel />}
 
-          {tab === "system" && <AdminSystemStatusPanel poll={poll} />}
+          {tab === "system" && <AdminSystemStatusPanel poll={poll} isSuperAdmin={admin?.role === "super_admin"} />}
 
           {tab === "vps" && (
             <AdminVpsPanel
