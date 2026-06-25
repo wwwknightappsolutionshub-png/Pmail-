@@ -3,20 +3,43 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0.35rem;
   border: none;
+  border-radius: 0;
   background: transparent;
   color: inherit;
-  border-radius: 10px;
-  min-height: 2.85rem;
-  min-width: 2.85rem;
-  padding: 0.35rem;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
 }
 
 .mail-bottom-nav-btn .mail-bottom-nav-icon {
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.3rem;
+  height: 1.3rem;
   flex-shrink: 0;
+  display: block;
+}
+
+.mail-bottom-nav-btn.is-active .mail-bottom-nav-icon {
+  stroke: currentColor;
+}
+
+.mail-bottom-nav-btn.is-active::before,
+.inbox-switcher-trigger--bottom-nav[aria-expanded="true"]::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0.05rem;
+  width: 0.28rem;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: currentColor;
+  transform: translateX(-50%);
 }
 
 .mail-bottom-nav-btn[data-tooltip]::after,

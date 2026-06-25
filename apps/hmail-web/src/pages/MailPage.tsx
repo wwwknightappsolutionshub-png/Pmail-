@@ -49,7 +49,12 @@ import { NewFolderModal } from "../components/NewFolderModal";
 import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
 import { SenderGroupedMessageList } from "../components/SenderGroupedMessageList";
 import { MailBottomNavButton } from "../components/MailBottomNavButton";
-import { Folder, Inbox, SquarePen } from "lucide-react";
+import {
+  MobileDrawerTooltip,
+  mobileDrawerTooltipHandlers,
+  type MobileDrawerTooltipState,
+} from "../components/MobileDrawerTooltip";
+import { Folder, Inbox, SquarePen, X } from "lucide-react";
 import { isMobileScreen } from "../utils/pwaPlatform";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
@@ -239,7 +244,6 @@ export type MailPageProps = {
   onRequestedFolderHandled?: () => void;
   onActiveFolderChange?: (folder: string) => void;
   onCareerNavUnlockedChange?: (unlocked: boolean) => void;
-  onMessageListScroll?: (collapsed: boolean) => void;
 };
 
 export function MailPage({
@@ -253,7 +257,6 @@ export function MailPage({
   onRequestedFolderHandled,
   onActiveFolderChange,
   onCareerNavUnlockedChange,
-  onMessageListScroll,
 }: MailPageProps = {}) {
   const { user, logout, refresh } = useAuth();
   const { hasAddon, hasJobHunterAccess, panelWorkspaceTrial } = useAddons();
@@ -300,11 +303,16 @@ export function MailPage({
     () => readSidebarCollapsedPreference() ?? defaultSidebarCollapsed(),
   );
   const [mobilePane, setMobilePane] = useState<MobilePane>("list");
+  const [closeDrawerTooltip, setCloseDrawerTooltip] = useState<MobileDrawerTooltipState>(null);
   const [expandedSenderEmail, setExpandedSenderEmail] = useState<string | null>(null);
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
     (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
   );
   const activeThemeVersion = embedded && shellThemeVersion ? shellThemeVersion : uiThemeVersion;
+  const mobileDrawerMenuOpen = mobilePane === "menu";
+  const closeDrawerTooltipProps = mobileDrawerMenuOpen
+    ? mobileDrawerTooltipHandlers("Close", setCloseDrawerTooltip)
+    : {};
   const [platformNotice, setPlatformNotice] = useState("");
   const [careerNavUnlocked, setCareerNavUnlocked] = useState(false);
   const [referBusy, setReferBusy] = useState(false);
@@ -314,6 +322,12 @@ export function MailPage({
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
   const hasMultiInboxAddon = hasAddon("multi-inbox-functionality");
+
+  useEffect(() => {
+    if (mobilePane !== "menu") {
+      setCloseDrawerTooltip(null);
+    }
+  }, [mobilePane]);
 
   useEffect(() => {
     if (!platformNotice) return;
@@ -368,8 +382,9 @@ export function MailPage({
     } as MailFolder);
 
   const activeFolderKind = isVirtual ? null : resolveFolderKind(activeFolderMeta);
-  const showBulkBar = activeFolderKind ? folderSupportsBulkActions(activeFolderKind) : false;
   const activeFolderLabel = getFolderTitle(activeFolder, activeFolderMeta);
+  const listUserDisplayName = user?.displayName?.trim() || user?.email?.split("@")[0] || "User";
+  const showBulkBar = activeFolderKind ? folderSupportsBulkActions(activeFolderKind) : false;
   const showInboxSwitcher = activeFolderKind === "inbox" && !isVirtual;
 
   useEffect(() => {
@@ -600,38 +615,6 @@ export function MailPage({
     refreshMailInbox,
     enablePullToRefresh,
   );
-
-  useEffect(() => {
-    if (!embedded || !onMessageListScroll || !isMobileScreen()) return;
-    const element = messageListRef.current;
-    if (!element) return;
-
-    const collapseThreshold = 12;
-    let lastTop = element.scrollTop;
-    let collapsed = false;
-
-    const onScroll = () => {
-      const top = element.scrollTop;
-      const delta = top - lastTop;
-
-      if (delta > 0 && top > collapseThreshold && !collapsed) {
-        collapsed = true;
-        onMessageListScroll(true);
-      } else if ((delta < -collapseThreshold || top <= 8) && collapsed) {
-        collapsed = false;
-        onMessageListScroll(false);
-      }
-
-      lastTop = top;
-    };
-
-    onMessageListScroll(false);
-    element.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      element.removeEventListener("scroll", onScroll);
-      onMessageListScroll(false);
-    };
-  }, [embedded, onMessageListScroll, activeFolder, messages.length]);
 
   const showPullIndicator = enablePullToRefresh && (pullDistance > 0 || pullRefreshing || listRefreshing);
   const pullIndicatorHeight = pullRefreshing || listRefreshing ? pullThreshold : pullDistance;
@@ -1262,8 +1245,14 @@ export function MailPage({
             {!embedded ? (
               <div className="mail-sidebar-head">
                 <HMailLogo size="sm" showWordmark subtitle={tenantName} productName={productName} className="mail-brand-logo" />
-                <button type="button" className="mail-sidebar-close" onClick={() => setMobilePane("list")}>
-                  Close
+                <button
+                  type="button"
+                  className="mail-sidebar-close"
+                  onClick={() => setMobilePane("list")}
+                  aria-label="Close"
+                  {...(mobileDrawerMenuOpen ? closeDrawerTooltipProps : { "data-tooltip": "Close" })}
+                >
+                  <X className="mail-sidebar-close-icon" aria-hidden="true" />
                 </button>
               </div>
             ) : (
@@ -1271,9 +1260,10 @@ export function MailPage({
                 type="button"
                 className="mail-sidebar-close mail-sidebar-close--embedded"
                 onClick={() => setMobilePane("list")}
-                aria-label="Close folders"
+                aria-label="Close"
+                {...(mobileDrawerMenuOpen ? closeDrawerTooltipProps : { "data-tooltip": "Close" })}
               >
-                Close
+                <X className="mail-sidebar-close-icon" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -1289,6 +1279,8 @@ export function MailPage({
               onCompose={() => openCompose({ mode: "new" })}
               hasAddon={hasAddon}
               hideIndustryTools={embedded}
+              iconOnlyRail={mobileDrawerMenuOpen}
+              tooltipTheme={activeThemeVersion}
               onPaidAddonGate={openPaidAddonGate}
               onOpenAddons={(highlightSlug) => openAddonMarketplace(highlightSlug)}
             />
@@ -1316,6 +1308,15 @@ export function MailPage({
         </aside>
 
         <section className="mail-list-pane">
+          {embedded ? (
+            <p className="mail-list-breadcrumb" aria-label={`Welcome back, ${listUserDisplayName}, ${activeFolderLabel}`}>
+              <span className="mail-list-breadcrumb-welcome">Welcome back, {listUserDisplayName}</span>
+              <span className="mail-list-breadcrumb-sep" aria-hidden="true">
+                |
+              </span>
+              <span className="mail-list-breadcrumb-current">{activeFolderLabel}</span>
+            </p>
+          ) : null}
           <header className={`list-header ${isVirtual ? "list-header--virtual" : ""}`}>
             <div className="list-header-main">
               <h2>{activeFolderLabel}</h2>
@@ -1552,6 +1553,9 @@ export function MailPage({
         />
       ) : null}
 
+      {mobileDrawerMenuOpen ? (
+        <MobileDrawerTooltip state={closeDrawerTooltip} theme={activeThemeVersion} />
+      ) : null}
       <NewFolderModal
         open={newFolderOpen}
         onClose={() => setNewFolderOpen(false)}

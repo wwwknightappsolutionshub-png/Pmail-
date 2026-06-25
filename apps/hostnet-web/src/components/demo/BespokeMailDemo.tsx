@@ -2081,7 +2081,7 @@ export function BespokeMailDemo({
               </TopbarIcon>
               <span>{referBusy ? "Sending invitations…" : "Refer a friend"}</span>
             </button>
-            <Link to={addonsHref} className="bespoke-demo-topbar-btn">
+            <Link to={addonsHref} className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons" aria-label="View addons">
               <TopbarIcon>
                 <path
                   fill="currentColor"

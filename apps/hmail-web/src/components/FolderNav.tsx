@@ -1,5 +1,6 @@
 import type { MailFolder } from "../types/mail";
 import type { BusinessVertical } from "../types/mail";
+import { useEffect, useState } from "react";
 import {
   ACCOUNTING_NAV,
   B2B_NAV,
@@ -14,6 +15,11 @@ import {
 } from "../constants/addonTools";
 import { VIEW_DOCUMENTS, VIEW_INDUSTRY_TOOLS } from "../constants/mailViews";
 import { FolderNavIcon } from "./FolderNavIcons";
+import {
+  MobileDrawerTooltip,
+  mobileDrawerTooltipHandlers,
+  type MobileDrawerTooltipState,
+} from "./MobileDrawerTooltip";
 import "./FolderNav.css";
 
 export type FolderKind =
@@ -204,6 +210,8 @@ interface FolderNavProps {
   onPaidAddonGate?: (slug: string, label: string) => void;
   hasAddon: (slug: string) => boolean;
   hideIndustryTools?: boolean;
+  iconOnlyRail?: boolean;
+  tooltipTheme?: "light" | "dark";
 }
 
 function renderSpecialItem(
@@ -212,17 +220,25 @@ function renderSpecialItem(
   path: string,
   activeFolder: string,
   onSelect: (path: string) => void,
-  options?: { locked?: boolean; onLocked?: () => void },
+  options?: {
+    locked?: boolean;
+    onLocked?: () => void;
+    iconOnlyRail?: boolean;
+    drawerTooltipProps?: (label: string) => Record<string, unknown>;
+  },
 ) {
   const isActive = activeFolder === path;
   const locked = options?.locked ?? false;
+  const drawerTooltipProps = options?.drawerTooltipProps;
 
   return (
     <button
       key={path}
       type="button"
       className={`folder-nav-item folder-nav-item--${kind} ${isActive ? "is-active" : ""} ${locked ? "is-locked" : ""}`}
-      title={label}
+      aria-label={label}
+      {...(options?.iconOnlyRail ? {} : { "data-tooltip": label })}
+      {...(drawerTooltipProps?.(label) ?? {})}
       onClick={() => {
         if (locked && options?.onLocked) {
           options.onLocked();
@@ -254,7 +270,10 @@ export function FolderNav({
   onPaidAddonGate,
   hasAddon,
   hideIndustryTools = false,
+  iconOnlyRail = false,
+  tooltipTheme = "dark",
 }: FolderNavProps) {
+  const [drawerTooltip, setDrawerTooltip] = useState<MobileDrawerTooltipState>(null);
   const sorted = sortFolders(folders);
   const primary = sorted.filter((f) => resolveFolderKind(f) !== "other");
   const other = sorted.filter((f) => resolveFolderKind(f) === "other");
@@ -263,6 +282,15 @@ export function FolderNav({
   const workspaceNav = platformToolsSidebarNav(
     hideIndustryTools ? WORKSPACE_NAV.filter((item) => item.view !== VIEW_INDUSTRY_TOOLS) : WORKSPACE_NAV,
   );
+
+  useEffect(() => {
+    if (!iconOnlyRail) {
+      setDrawerTooltip(null);
+    }
+  }, [iconOnlyRail]);
+
+  const drawerTooltipProps = (label: string) =>
+    iconOnlyRail ? mobileDrawerTooltipHandlers(label, setDrawerTooltip) : {};
 
   if (loading) {
     return <div className="folder-nav-loading">Loading folders…</div>;
@@ -278,7 +306,9 @@ export function FolderNav({
         key={folder.path}
         type="button"
         className={`folder-nav-item folder-nav-item--${kind} ${isActive ? "is-active" : ""}`}
-        title={folderDisplayLabel(folder)}
+        aria-label={folderDisplayLabel(folder)}
+        {...(iconOnlyRail ? {} : { "data-tooltip": folderDisplayLabel(folder) })}
+        {...drawerTooltipProps(folderDisplayLabel(folder))}
         onClick={() => onSelect(folder.path)}
       >
         <FolderNavFlyout label={folderDisplayLabel(folder)} />
@@ -303,13 +333,22 @@ export function FolderNav({
         }
         onOpenAddons(slug);
       },
+      iconOnlyRail,
+      drawerTooltipProps,
     });
   };
 
   return (
     <nav className="folder-nav" aria-label="Mail folders">
       <div className="folder-nav-group folder-nav-group--compose">
-        <button type="button" className="folder-nav-item folder-nav-item--compose" onClick={onCompose} title="New mail">
+        <button
+          type="button"
+          className="folder-nav-item folder-nav-item--compose"
+          onClick={onCompose}
+          aria-label="New mail"
+          {...(iconOnlyRail ? {} : { "data-tooltip": "New mail" })}
+          {...drawerTooltipProps("New mail")}
+        >
           <FolderNavFlyout label="New mail" />
           <span className="folder-nav-item-accent" aria-hidden="true" />
           <span className="folder-nav-icon folder-nav-icon--compose">
@@ -322,7 +361,10 @@ export function FolderNav({
       <p className="folder-nav-heading">Mailboxes</p>
       <div className="folder-nav-group">
         {primary.map(renderItem)}
-        {renderSpecialItem("documents", "Documents", VIEW_DOCUMENTS, activeFolder, onSelect)}
+        {renderSpecialItem("documents", "Documents", VIEW_DOCUMENTS, activeFolder, onSelect, {
+          iconOnlyRail,
+          drawerTooltipProps,
+        })}
       </div>
 
       <p className="folder-nav-heading folder-nav-heading--secondary folder-nav-heading--platform-tools">Platform tools</p>
@@ -359,7 +401,9 @@ export function FolderNav({
           type="button"
           className="folder-nav-item folder-nav-item--new_folder"
           onClick={onNewFolder}
-          title="New folder"
+          aria-label="New folder"
+          {...(iconOnlyRail ? {} : { "data-tooltip": "New folder" })}
+          {...drawerTooltipProps("New folder")}
         >
           <FolderNavFlyout label="New folder" />
           <span className="folder-nav-item-accent" aria-hidden="true" />
@@ -372,7 +416,14 @@ export function FolderNav({
 
       <p className="folder-nav-heading folder-nav-heading--secondary">Marketplace</p>
       <div className="folder-nav-group">
-        <button type="button" className="folder-nav-item folder-nav-item--addons" onClick={() => onOpenAddons()} title="Add-ons">
+        <button
+          type="button"
+          className="folder-nav-item folder-nav-item--addons"
+          onClick={() => onOpenAddons()}
+          aria-label="Add-ons"
+          {...(iconOnlyRail ? {} : { "data-tooltip": "Add-ons" })}
+          {...drawerTooltipProps("Add-ons")}
+        >
           <FolderNavFlyout label="Add-ons" />
           <span className="folder-nav-item-accent" aria-hidden="true" />
           <span className="folder-nav-icon folder-nav-icon--addons">
@@ -388,6 +439,7 @@ export function FolderNav({
           <div className="folder-nav-group">{other.map(renderItem)}</div>
         </>
       ) : null}
+      {iconOnlyRail ? <MobileDrawerTooltip state={drawerTooltip} theme={tooltipTheme} /> : null}
     </nav>
   );
 }

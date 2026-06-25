@@ -10,6 +10,7 @@ import { ContactSyncToast } from "../components/ContactSyncToast";
 import { SignatureReminderToast } from "../components/SignatureReminderToast";
 import { renderBespokeProductionWorkspace } from "../components/BespokeProductionWorkspaces";
 import { useInboxContactSync } from "../hooks/useInboxContactSync";
+import { useMobileTopbarChromeCollapse } from "../hooks/useMobileTopbarChromeCollapse";
 import { useSignatureReminder } from "../hooks/useSignatureReminder";
 import {
   isVirtualView,
@@ -59,6 +60,8 @@ function BespokeMailShellContent() {
   const [contactSyncNotice, setContactSyncNotice] = useState<number | null>(null);
   const [careerNavUnlocked, setCareerNavUnlocked] = useState(false);
   const [mobileTopbarSearchCollapsed, setMobileTopbarSearchCollapsed] = useState(false);
+
+  useMobileTopbarChromeCollapse(setMobileTopbarSearchCollapsed);
 
   const mailWorkspaceViews = useMemo(
     () => ({
@@ -279,7 +282,6 @@ function BespokeMailShellContent() {
           setMailWorkspaceView(null);
         }}
         onCareerNavUnlockedChange={setCareerNavUnlocked}
-        onMessageListScroll={setMobileTopbarSearchCollapsed}
       />
     ),
     [searchDraft, appliedSearch, uiThemeVersion, mailFolderRequest],

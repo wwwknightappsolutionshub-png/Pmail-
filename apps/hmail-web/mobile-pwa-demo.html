@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#050a12" />
+    <title>PMail+ mobile PWA viewport demo</title>
+    <link rel="stylesheet" href="/src/pages/VerticalBespokeMailDemoPage.css" />
+    <link rel="stylesheet" href="/src/global.css" />
+    <style>
+      /* Minimal shell chrome for demo (production uses BespokeMailDemo.css) */
+      .demo-banner {
+        flex-shrink: 0;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.78rem;
+        line-height: 1.35;
+        color: #94a3b8;
+        background: rgba(13, 148, 136, 0.12);
+        border-bottom: 1px solid rgba(45, 212, 191, 0.25);
+      }
+
+      .demo-banner strong {
+        color: #e2e8f0;
+      }
+
+      .demo-topbar {
+        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 0.75rem;
+        background: rgba(5, 10, 18, 0.92);
+        border-bottom: 1px solid rgba(139, 163, 199, 0.18);
+      }
+
+      .demo-topbar h1 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #f8fafc;
+      }
+
+      .demo-topbar span {
+        font-size: 0.75rem;
+        color: #94a3b8;
+      }
+
+      .demo-inbox {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        background: #050a12;
+      }
+
+      .demo-row {
+        display: grid;
+        gap: 0.15rem;
+        padding: 0.85rem 0.9rem;
+        border-bottom: 1px solid rgba(139, 163, 199, 0.12);
+      }
+
+      .demo-row strong {
+        color: #f1f5f9;
+        font-size: 0.92rem;
+      }
+
+      .demo-row p {
+        margin: 0;
+        color: #94a3b8;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .demo-bottom-nav {
+        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 0.55rem 0.25rem calc(0.55rem + env(safe-area-inset-bottom));
+        background: rgba(8, 14, 26, 0.95);
+        border-top: 1px solid rgba(139, 163, 199, 0.18);
+      }
+
+      .demo-bottom-nav button {
+        border: 0;
+        background: transparent;
+        color: #94a3b8;
+        font: inherit;
+        font-size: 0.72rem;
+        padding: 0.35rem;
+      }
+
+      .demo-bottom-nav button.is-active {
+        color: #2dd4bf;
+      }
+
+      .demo-status {
+        position: fixed;
+        left: 0.5rem;
+        right: 0.5rem;
+        bottom: calc(4.25rem + env(safe-area-inset-bottom));
+        z-index: 20;
+        padding: 0.45rem 0.6rem;
+        border-radius: 0.5rem;
+        font-size: 0.72rem;
+        color: #cbd5e1;
+        background: rgba(15, 23, 42, 0.92);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="pmail-demo-shell" id="shell">
+        <div class="bespoke-demo" style="display: flex; flex-direction: column; min-height: 0; flex: 1">
+          <div class="demo-banner">
+            <strong>Mobile PWA viewport demo</strong> — scroll the inbox and pull past the edges. Background
+            should stay <code>#050a12</code> with no black/gray bleed below or beside the shell.
+          </div>
+          <header class="demo-topbar">
+            <div>☰</div>
+            <div>
+              <h1>Inbox</h1>
+              <span>demo@prohost.cloud</span>
+            </div>
+            <div>✎</div>
+          </header>
+          <main class="demo-inbox" id="inbox">
+            <!-- rows injected -->
+          </main>
+          <nav class="demo-bottom-nav" aria-label="Demo navigation">
+            <button type="button" class="is-active">Inbox</button>
+            <button type="button">Add-ons</button>
+            <button type="button">Settings</button>
+          </nav>
+        </div>
+      </div>
+    </div>
+    <div class="demo-status" id="status" aria-live="polite"></div>
+    <script type="module">
+      const inbox = document.getElementById("inbox");
+      const status = document.getElementById("status");
+      const shell = document.getElementById("shell");
+
+      const subjects = [
+        "Welcome to PMail+",
+        "Your workspace trial ends in 2 days",
+        "Interview follow-up — Senior Developer",
+        "Invoice #1042 attached",
+        "Calendar reminder: Team standup",
+        "New message from support",
+        "Document signed successfully",
+        "Weekly digest",
+      ];
+
+      for (let i = 0; i < 28; i += 1) {
+        const row = document.createElement("article");
+        row.className = "demo-row";
+        row.innerHTML = `<strong>Sender ${i + 1}</strong><p>${subjects[i % subjects.length]}</p>`;
+        inbox.appendChild(row);
+      }
+
+      function updateStatus() {
+        const shellStyle = getComputedStyle(shell);
+        const htmlStyle = getComputedStyle(document.documentElement);
+        const theme = document.querySelector('meta[name="theme-color"]')?.content ?? "n/a";
+        status.textContent = `theme-color ${theme} · shell position ${shellStyle.position} · html overflow ${htmlStyle.overflow} · ${window.innerWidth}×${window.innerHeight}px`;
+      }
+
+      updateStatus();
+      window.addEventListener("resize", updateStatus);
+      window.addEventListener("orientationchange", updateStatus);
+    </script>
+  </body>
+</html>

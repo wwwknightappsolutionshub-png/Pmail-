@@ -138,7 +138,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
         const panelWidth = Math.min(22 * 16, window.innerWidth - 24);
         setPanelStyle({
           position: "fixed",
-          bottom: "calc(var(--mail-bottom-nav-h, 3.5rem) + env(safe-area-inset-bottom) + 0.5rem)",
+          bottom: "calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom) + 0.5rem)",
           left: "50%",
           transform: "translateX(-50%)",
           width: panelWidth,

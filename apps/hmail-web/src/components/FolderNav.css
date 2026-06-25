@@ -325,3 +325,69 @@
     min-height: 2.75rem;
   }
 }
+
+/* Mobile folder drawer — icon rail with flyout tooltips */
+@media (max-width: 767px) {
+  .mail-app[data-mobile-pane="menu"] .folder-nav-group--compose,
+  .mail-app[data-mobile-pane="menu"] .folder-nav-item--inbox {
+    display: none !important;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .folder-nav-heading,
+  .mail-app[data-mobile-pane="menu"] .folder-nav-hint,
+  .mail-app[data-mobile-pane="menu"] .folder-nav-label,
+  .mail-app[data-mobile-pane="menu"] .folder-nav-lock {
+    display: none;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .folder-nav-section-body {
+    padding-left: 0;
+    margin-left: 0;
+    border-left: none;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .folder-nav-item {
+    position: relative;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: 2.75rem;
+    padding: 0.45rem 0.35rem;
+    box-sizing: border-box;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .folder-nav-item-accent {
+    display: none;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .folder-nav-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .folder-nav-icon svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .folder-nav-badge {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.12rem;
+    min-width: 0.45rem;
+    width: 0.45rem;
+    height: 0.45rem;
+    padding: 0;
+    font-size: 0;
+    line-height: 0;
+    overflow: hidden;
+    border-radius: 999px;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .mail-sidebar:not(.mail-sidebar--collapsed) .folder-nav-flyout,
+  .mail-app[data-mobile-pane="menu"] .folder-nav-flyout {
+    display: none !important;
+  }
+}
