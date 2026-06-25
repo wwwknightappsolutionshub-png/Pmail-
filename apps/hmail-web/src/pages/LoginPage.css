@@ -19,6 +19,9 @@
   background: #f1f5f9;
 }
 
+html.login-route,
+html.login-route body,
+html.login-route #root,
 html:has(.login-page),
 html:has(.login-page) body,
 html:has(.login-page) #root {
@@ -291,32 +294,76 @@ html:has(.login-page) #root {
   border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 60%, var(--login-border, #dbe3ec));
 }
 
-/* Mobile login — compact layout, scrollable form panel */
+/* Mobile login — pin to visual viewport, single-column form */
 @media (max-width: 767px) {
-  .login-page .login-brand-panel {
+  html.login-route,
+  html.login-route body,
+  html.login-route #root,
+  html:has(.login-page),
+  html:has(.login-page) body,
+  html:has(.login-page) #root {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: #f1f5f9 !important;
+  }
+
+  .login-page {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    background: #f1f5f9;
+  }
+
+  .login-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: unset !important;
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    padding: 1.1rem 1rem 1rem;
+    flex: 1;
   }
 
-  .login-page .login-headline {
-    font-size: clamp(1.65rem, 8vw, 2.2rem);
+  .login-layout:not(.welcome-layout) .login-brand-panel {
+    display: none;
   }
 
-  .login-page .login-tagline {
-    font-size: 0.88rem;
-    margin-top: 0.45rem;
+  .login-topbar {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
 
   .login-form-panel {
-    align-items: flex-start;
+    flex: 1;
+    align-items: stretch;
     justify-content: flex-start;
-    overflow-x: clip;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: visible;
     padding-top: 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    background: #f1f5f9;
   }
 
   .login-form-card,
@@ -324,6 +371,8 @@ html:has(.login-page) #root {
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    margin: 0;
+    box-sizing: border-box;
   }
 
   .login-page .provider-preset-picker {

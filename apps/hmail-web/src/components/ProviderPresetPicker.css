@@ -69,12 +69,25 @@
   gap: 0.75rem;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
+  .provider-preset-picker {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.4rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-inline: 0;
+  }
+
   .provider-preset-picker__item {
-    min-width: 3.75rem;
+    min-width: 0;
+    width: 100%;
+    padding: 0.4rem 0.2rem;
   }
 
   .provider-preset-picker__label {
-    font-size: 0.58rem;
+    max-width: none;
+    font-size: 0.56rem;
   }
 }

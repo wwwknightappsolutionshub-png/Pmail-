@@ -29,6 +29,23 @@ export function LoginShell({
     "--brand-bg": branding.backgroundColor,
   } as CSSProperties;
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    const previousTheme = themeMeta?.getAttribute("content") ?? null;
+
+    root.classList.add("login-route");
+    themeMeta?.setAttribute("content", "#f1f5f9");
+
+    return () => {
+      root.classList.remove("login-route");
+      if (themeMeta) {
+        if (previousTheme) themeMeta.setAttribute("content", previousTheme);
+        else themeMeta.setAttribute("content", "#050a12");
+      }
+    };
+  }, []);
+
   return (
     <div className="login-page" style={brandStyle}>
       <header className="login-topbar">
