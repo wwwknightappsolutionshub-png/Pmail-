@@ -49,6 +49,9 @@ import {
   MULTI_INBOX_ADDON_SLUG,
   resolveRequestMailCredentials,
 } from "../services/mail-account.service.js";
+import { getMailAccountsUnreadSummary } from "../services/mail-account-unread.service.js";
+import { scheduleAutoReferralForAccount } from "../services/mail-account-referral.service.js";
+import { listRecipientSuggestions } from "../services/recipient-suggestions.service.js";
 import {
   buildVaultDownloadUrl,
   deleteMailVaultFile,
@@ -589,6 +592,36 @@ mailRouter.get("/accounts", requireAddon(MULTI_INBOX_ADDON_SLUG), async (req, re
   }
 });
 
+mailRouter.get("/accounts/unread-summary", requireAddon(MULTI_INBOX_ADDON_SLUG), async (req, res, next) => {
+  try {
+    const auth = req.auth!;
+    await ensurePrimaryMailAccount(auth.user, auth.mailPassword);
+    const summary = await getMailAccountsUnreadSummary(auth.user.id, auth.activeMailAccountId);
+    res.json(summary);
+  } catch (err) {
+    next(err);
+  }
+});
+
+mailRouter.get("/recipient-suggestions", async (req, res, next) => {
+  try {
+    const auth = req.auth!;
+    const credentials = await resolveRequestMailCredentials(req);
+    const query = typeof req.query.q === "string" ? req.query.q : "";
+    const limit = req.query.limit ? Number(req.query.limit) : 20;
+    const suggestions = await listRecipientSuggestions({
+      userId: auth.user.id,
+      credentials,
+      userEmail: credentials.email,
+      query,
+      limit: Number.isFinite(limit) ? limit : 20,
+    });
+    res.json({ suggestions });
+  } catch (err) {
+    next(err);
+  }
+});
+
 mailRouter.post("/accounts", requireAddon(MULTI_INBOX_ADDON_SLUG), async (req, res, next) => {
   try {
     const body = mailAccountSchema.parse(req.body);
@@ -596,6 +629,14 @@ mailRouter.post("/accounts", requireAddon(MULTI_INBOX_ADDON_SLUG), async (req, r
     await ensurePrimaryMailAccount(auth.user, auth.mailPassword);
     const account = await createUserMailAccount(auth.user, body);
     const listed = await listUserMailAccounts(auth.user.id, auth.activeMailAccountId);
+    const apiPublicBase = getPublicApiBaseUrl(req);
+    scheduleAutoReferralForAccount({
+      userId: auth.user.id,
+      tenantId: auth.user.tenant.id,
+      accountId: account.id,
+      displayName: auth.user.displayName,
+      apiPublicBase,
+    });
     res.status(201).json({
       account: listed.accounts.find((row) => row.id === account.id),
       activeMailAccountId: listed.activeMailAccountId,
@@ -626,6 +667,13 @@ mailRouter.post("/accounts/:id/activate", requireAddon(MULTI_INBOX_ADDON_SLUG), 
       res.status(404).json({ error: "Mail account not found" });
       return;
     }
+    scheduleAutoReferralForAccount({
+      userId: auth.user.id,
+      tenantId: auth.user.tenant.id,
+      accountId: account.id,
+      displayName: auth.user.displayName,
+      apiPublicBase: getPublicApiBaseUrl(req),
+    });
     const result = await listUserMailAccounts(auth.user.id, account.id);
     res.json(result);
   } catch (err) {

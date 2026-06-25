@@ -318,6 +318,7 @@ model UserMailAccount {
   encryptedMailPassword String
   isPrimary             Boolean  @default(false)
   sortOrder             Int      @default(0)
+  referralInviteSentAt  DateTime?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 

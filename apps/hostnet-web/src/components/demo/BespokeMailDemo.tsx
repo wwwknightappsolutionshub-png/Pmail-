@@ -96,6 +96,7 @@ type Props = {
   demo: BespokeMailDemoConfig;
   viewerName?: string;
   viewerEmail?: string;
+  viewerAvatarUrl?: string | null;
   addonsHref?: string;
   calendarEnterpriseEnabled?: boolean;
   whatsappEnabled?: boolean;
@@ -468,6 +469,7 @@ export function BespokeMailDemo({
   demo,
   viewerName,
   viewerEmail,
+  viewerAvatarUrl,
   addonsHref = "/#register",
   calendarEnterpriseEnabled = false,
   whatsappEnabled = false,
@@ -507,6 +509,12 @@ export function BespokeMailDemo({
   const composeSeed = useMemo(() => getComposeSettings(demo.useCaseId), [demo.useCaseId]);
   const displayName = viewerName?.trim() || viewerEmail?.split("@")[0] || "there";
   const displayEmail = viewerEmail?.trim() || composeSeed.defaultSenderEmail;
+  const viewerInitials = useMemo(() => {
+    const parts = displayName.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
+    return (parts[0]?.slice(0, 2) ?? "U").toUpperCase();
+  }, [displayName]);
+  const topbarAvatarUrl = viewerAvatarUrl?.trim() || buildDefaultAvatarDataUrl(displayName);
 
   const [workspace, setWorkspace] = useState<Workspace>(forcedWorkspace ?? "inbox");
   const activeWorkspace = forcedWorkspace ?? workspace;
@@ -2077,6 +2085,10 @@ export function BespokeMailDemo({
         </div>
         <div className="bespoke-demo-topbar-right">
           <div className="bespoke-demo-topbar-actions">
+            <div className="bespoke-demo-topbar-avatar" title={`${displayName} <${displayEmail}>`} aria-hidden="true">
+              <span className="bespoke-demo-topbar-avatar-initials">{viewerInitials}</span>
+              <img className="bespoke-demo-topbar-avatar-image" src={topbarAvatarUrl} alt="" />
+            </div>
             <button
               type="button"
               className="bespoke-demo-topbar-btn"

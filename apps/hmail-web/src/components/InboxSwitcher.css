@@ -247,3 +247,44 @@
   border-radius: 0;
   box-shadow: none;
 }
+
+.inbox-switcher-trigger--bottom-nav {
+  position: relative;
+}
+
+.inbox-switcher-unread-badge {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.15rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1rem;
+  text-align: center;
+}
+
+.inbox-switcher-item {
+  position: relative;
+}
+
+.inbox-switcher-item-unread {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: #0d9488;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.15rem;
+  text-align: center;
+  font-style: normal;
+}

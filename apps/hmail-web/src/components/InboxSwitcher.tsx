@@ -17,6 +17,7 @@ export type MailAccountSummary = {
   label: string | null;
   isPrimary: boolean;
   isActive: boolean;
+  unread?: number;
 };
 
 export type InboxSwitcherHandle = {
@@ -59,6 +60,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
+  const [unreadByAccountId, setUnreadByAccountId] = useState<Record<string, number>>({});
 
   const entitled = hasAddon("multi-inbox-functionality");
   const isHeader = variant === "header";
@@ -78,6 +80,27 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
       setLoading(false);
     }
   }, [entitled, onAccountCountChange]);
+
+  useEffect(() => {
+    if (!entitled) return;
+    const loadUnread = async () => {
+      try {
+        const summary = await api.mailAccountsUnreadSummary();
+        const next: Record<string, number> = {};
+        for (const row of summary.accounts) {
+          next[row.id] = row.unread;
+        }
+        setUnreadByAccountId(next);
+      } catch {
+        setUnreadByAccountId({});
+      }
+    };
+    void loadUnread();
+    const timer = window.setInterval(() => {
+      void loadUnread();
+    }, 45_000);
+    return () => window.clearInterval(timer);
+  }, [entitled, accounts.length]);
 
   useImperativeHandle(
     ref,
@@ -170,6 +193,10 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
 
   const displayEmail = activeAccount?.email ?? "Primary mailbox";
   const hasMultipleAccounts = accounts.length > 1;
+  const inactiveUnreadTotal = accounts.reduce((sum, account) => {
+    if (account.isActive) return sum;
+    return sum + (unreadByAccountId[account.id] ?? 0);
+  }, 0);
 
   const handleTriggerClick = () => {
     if (!entitled) {
@@ -264,7 +291,14 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
         data-tooltip={isBottomNav ? "Mailboxes" : undefined}
       >
         {isBottomNav ? (
-          <Mails className="mail-bottom-nav-icon" strokeWidth={2} aria-hidden />
+          <>
+            <Mails className="mail-bottom-nav-icon" strokeWidth={2} aria-hidden />
+            {inactiveUnreadTotal > 0 ? (
+              <span className="inbox-switcher-unread-badge" aria-label={`${inactiveUnreadTotal} unread in other mailboxes`}>
+                {inactiveUnreadTotal > 99 ? "99+" : inactiveUnreadTotal}
+              </span>
+            ) : null}
+          </>
         ) : isHeader ? (
           <>
             <span className="inbox-switcher-header-label">Mailboxes</span>
@@ -301,6 +335,9 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
                   <strong>{account.label || account.email}</strong>
                   <span>{account.email}</span>
                   {account.isPrimary ? <em>Primary</em> : null}
+                  {(unreadByAccountId[account.id] ?? 0) > 0 ? (
+                    <span className="inbox-switcher-item-unread">{unreadByAccountId[account.id]}</span>
+                  ) : null}
                 </button>
                 {!account.isPrimary ? (
                   <button

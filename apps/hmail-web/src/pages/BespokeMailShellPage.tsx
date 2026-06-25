@@ -7,11 +7,13 @@ import { useAddons } from "../context/AddonContext";
 import { BespokeComposeBridgeProvider, useBespokeComposeBridge } from "../context/BespokeComposeBridge";
 import { GmailMailSearch } from "../components/GmailMailSearch";
 import { ContactSyncToast } from "../components/ContactSyncToast";
+import { SecondaryMailboxToast } from "../components/SecondaryMailboxToast";
 import { SignatureReminderToast } from "../components/SignatureReminderToast";
 import { renderBespokeProductionWorkspace } from "../components/BespokeProductionWorkspaces";
 import { useInboxContactSync } from "../hooks/useInboxContactSync";
 import { useAutoMailPush } from "../hooks/useAutoMailPush";
 import { useMobileTopbarChromeCollapse } from "../hooks/useMobileTopbarChromeCollapse";
+import { useSecondaryMailboxNotifications } from "../hooks/useSecondaryMailboxNotifications";
 import { useSignatureReminder } from "../hooks/useSignatureReminder";
 import {
   isVirtualView,
@@ -41,7 +43,7 @@ type LiveComposeSettings = {
 };
 
 function BespokeMailShellContent() {
-  const { user, logout } = useAuth();
+  const { user, logout, refresh } = useAuth();
   const { hasAddon, panelWorkspaceTrial } = useAddons();
   const { openCompose } = useBespokeComposeBridge();
   const navigate = useNavigate();
@@ -53,6 +55,7 @@ function BespokeMailShellContent() {
   const [searchDraft, setSearchDraft] = useState<MailSearchState>({ field: "subject", query: "", scope: "all" });
   const [appliedSearch, setAppliedSearch] = useState<MailSearchState>({ field: "subject", query: "", scope: "all" });
   const [liveComposeSettings, setLiveComposeSettings] = useState<LiveComposeSettings | null>(null);
+  const [viewerAvatarUrl, setViewerAvatarUrl] = useState<string | null>(null);
   const [organizationUsers, setOrganizationUsers] = useState<Array<{ id: string; email: string; displayName: string }>>(
     [],
   );
@@ -88,6 +91,8 @@ function BespokeMailShellContent() {
 
   useAutoMailPush(user?.id);
 
+  const secondaryMailbox = useSecondaryMailboxNotifications(Boolean(user));
+
   const navigateMailWorkspaceView = useCallback((view: string | null) => {
     setMailWorkspaceView(view);
     setMailFolderRequest(view);
@@ -109,6 +114,8 @@ function BespokeMailShellContent() {
       autoReplies: settings.autoReplies,
       autoReplyEntitlement: settings.autoReplyEntitlement,
     });
+    const activeSignature = settings.signatures.find((signature) => signature.id === settings.activeSignatureId);
+    setViewerAvatarUrl(activeSignature?.avatarUrl ?? null);
     await signatureReminder.evaluate();
   }, [signatureReminder.evaluate]);
 
@@ -116,6 +123,20 @@ function BespokeMailShellContent() {
     void refreshComposeSettings().catch(() => setLiveComposeSettings(null));
     void api.organizationUsers().then((response) => setOrganizationUsers(response.users));
   }, [refreshComposeSettings]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const switchMailbox = params.get("switchMailbox");
+    if (!switchMailbox || !user) return;
+    void api
+      .activateMailAccount(switchMailbox)
+      .then(() => refresh())
+      .finally(() => {
+        params.delete("switchMailbox");
+        const next = params.toString();
+        navigate(next ? `/?${next}` : "/", { replace: true });
+      });
+  }, [user?.id, navigate, refresh]);
 
   const onWorkspaceMessage = useCallback(
     (message: string) => {
@@ -296,6 +317,7 @@ function BespokeMailShellContent() {
         businessVertical={user?.businessVertical ?? null}
         userName={displayName}
         userEmail={displayEmail}
+        viewerAvatarUrl={viewerAvatarUrl}
         calendarEnterpriseEnabled={hasAddon("full-calendar-functionality")}
         whatsappEnabled={hasAddon("whatsapp-functionality")}
         mailToPdfEnabled={hasAddon("mail2pdf-functionality")}
@@ -341,6 +363,19 @@ function BespokeMailShellContent() {
             navigateMailWorkspaceView(VIEW_CONTACTS);
           }}
           onDismiss={() => setContactSyncNotice(null)}
+        />
+      ) : null}
+      {secondaryMailbox.notice ? (
+        <SecondaryMailboxToast
+          notice={secondaryMailbox.notice}
+          onDismiss={secondaryMailbox.dismiss}
+          onSwitch={() => {
+            void api.activateMailAccount(secondaryMailbox.notice!.accountId).then(async () => {
+              await refresh();
+              navigateMailWorkspaceView(null);
+              secondaryMailbox.acknowledgeAccount(secondaryMailbox.notice!.accountId);
+            });
+          }}
         />
       ) : null}
     </>

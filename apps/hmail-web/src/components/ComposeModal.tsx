@@ -7,6 +7,7 @@ import { htmlToPlainText, RichTextEditor } from "./RichTextEditor";
 import type { PendingUndoSend } from "./UndoSendToast";
 import { isCvLikeAttachment } from "../lib/cvAttachmentDetect";
 import "@hostnet-demo/components/demo/BespokeMailDemo.css";
+import { RecipientTypeahead } from "./RecipientTypeahead";
 import "./ComposeModal.css";
 
 export type { PendingUndoSend };
@@ -180,7 +181,7 @@ export function ComposeModal({
     }
     setPriority("normal");
     setRequestReadReceipt(false);
-    setTrackingEnabled(hasAddon("open-tracking"));
+    setTrackingEnabled(false);
     setShowSchedule(false);
     setScheduleDate("");
     setScheduleTime("09:00");
@@ -201,6 +202,11 @@ export function ComposeModal({
           if (activeSig?.body) {
             const sigBlock = activeSig.body.trim();
             setBodyHtml(initialHtml ? `${initialHtml}<br><br>${sigBlock}` : sigBlock);
+            return;
+          }
+          if (settings.defaultBrandedSignature?.html) {
+            const sigBlock = settings.defaultBrandedSignature.html.trim();
+            setBodyHtml(initialHtml ? `${initialHtml}${sigBlock}` : sigBlock);
             return;
           }
         }
@@ -553,13 +559,7 @@ export function ComposeModal({
 
         <div className="gmail-compose__row gmail-compose__row--split">
           <span className="gmail-compose__label">To</span>
-          <input
-            className="gmail-compose__input"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            placeholder="Recipients"
-            required
-          />
+          <RecipientTypeahead value={to} onChange={setTo} placeholder="Recipients" />
           {!showCc && !showBcc ? (
             <button type="button" className="gmail-compose__cc-toggle" onClick={() => setShowCc(true)}>
               Cc Bcc

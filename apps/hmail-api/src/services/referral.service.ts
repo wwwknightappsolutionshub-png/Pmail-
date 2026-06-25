@@ -115,7 +115,7 @@ function resolveSentFolder(folders: Awaited<ReturnType<typeof listFolders>>): st
 export async function extractReferralRecipients(
   credentials: MailCredentials,
   userEmail: string,
-): Promise<{ recipients: string[]; inboxCount: number; sentCount: number }> {
+): Promise<{ recipients: string[]; inboxCount: number; sentCount: number; inboxEmails: string[]; sentEmails: string[] }> {
   const excludeEmail = userEmail.trim().toLowerCase();
   const seen = new Set<string>();
   let inboxRecipients: string[] = [];
@@ -149,13 +149,15 @@ export async function extractReferralRecipients(
       sentRecipients = collectUniqueEmails(sentResult.messages, "to", SENT_RECIPIENT_LIMIT, excludeEmail, seen);
     }
   } catch {
-    return { recipients: [], inboxCount: 0, sentCount: 0 };
+    return { recipients: [], inboxCount: 0, sentCount: 0, inboxEmails: [], sentEmails: [] };
   }
 
   return {
     recipients: [...inboxRecipients, ...sentRecipients],
     inboxCount: inboxRecipients.length,
     sentCount: sentRecipients.length,
+    inboxEmails: inboxRecipients,
+    sentEmails: sentRecipients,
   };
 }
 
@@ -225,7 +227,7 @@ export async function buildReferralCompose(input: {
   const [recipientData, rendered] = await Promise.all([
     input.credentials
       ? extractReferralRecipients(input.credentials, input.email)
-      : Promise.resolve({ recipients: [] as string[], inboxCount: 0, sentCount: 0 }),
+      : Promise.resolve({ recipients: [] as string[], inboxCount: 0, sentCount: 0, inboxEmails: [] as string[], sentEmails: [] as string[] }),
     renderReferralTemplate({
       senderName,
       senderEmail: input.email,

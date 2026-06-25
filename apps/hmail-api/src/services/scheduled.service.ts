@@ -8,6 +8,7 @@ import {
 import { logComplianceEvent } from "./compliance.service.js";
 import { appendToSentFolder } from "./imap.service.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
+import { appendOutboundSignature } from "./default-signature.service.js";
 import { sendMail } from "./smtp.service.js";
 
 export async function listScheduledMessages(tenantId: string, userId: string) {
@@ -132,6 +133,12 @@ export async function processDueScheduledMessages(): Promise<number> {
         });
       } else {
         const composeSettings = await getComposeSettingsByUserId(row.userId);
+        const signed = await appendOutboundSignature({
+          userId: row.userId,
+          tenantId: row.tenantId,
+          html: row.html ?? undefined,
+          text: row.text ?? undefined,
+        });
         const result = await sendMail({
           email: creds.email,
           password: creds.password,
@@ -141,8 +148,8 @@ export async function processDueScheduledMessages(): Promise<number> {
           cc: row.cc ?? undefined,
           bcc: row.bcc ?? undefined,
           subject: row.subject,
-          text: row.text ?? undefined,
-          html: row.html ?? undefined,
+          text: signed.text ?? undefined,
+          html: signed.html ?? undefined,
         });
 
         try {
@@ -154,8 +161,8 @@ export async function processDueScheduledMessages(): Promise<number> {
               mailConfig: creds.mailConfig,
               to: row.to,
               subject: row.subject,
-              text: row.text ?? undefined,
-              html: row.html ?? undefined,
+              text: signed.text ?? undefined,
+              html: signed.html ?? undefined,
             },
             result.messageId,
           );

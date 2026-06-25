@@ -1,5 +1,9 @@
 import { prisma } from "../lib/prisma.js";
 import { ensureAutoReplyComplimentary, getAutoReplyEntitlement } from "./auto-reply-entitlement.service.js";
+import {
+  getDefaultBrandedSignatureForTenant,
+  userHasCustomSignature,
+} from "./default-signature.service.js";
 import { normalizeUndoSendSeconds } from "./mail-outgoing.service.js";
 
 export async function getComposeSettingsByUserId(userId: string) {
@@ -30,6 +34,12 @@ export async function getComposeSettings(userId: string, tenantId: string, busin
     signatures,
     autoReplies,
     autoReplyEntitlement,
+    defaultBrandedSignature: userHasCustomSignature({
+      activeSignatureId: settings?.activeSignatureId ?? signatures[0]?.id ?? null,
+      signatures,
+    })
+      ? null
+      : await getDefaultBrandedSignatureForTenant(tenantId),
   };
 }
 

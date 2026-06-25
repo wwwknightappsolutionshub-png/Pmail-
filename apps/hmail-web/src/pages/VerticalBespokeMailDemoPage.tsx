@@ -77,6 +77,7 @@ type VerticalBespokeMailDemoPageProps = {
   businessVertical: BusinessVertical | null | undefined;
   userName?: string;
   userEmail?: string;
+  viewerAvatarUrl?: string | null;
   calendarEnterpriseEnabled?: boolean;
   whatsappEnabled?: boolean;
   mailToPdfEnabled?: boolean;
@@ -128,6 +129,7 @@ export function VerticalBespokeMailDemoPage({
   businessVertical,
   userName,
   userEmail,
+  viewerAvatarUrl,
   calendarEnterpriseEnabled,
   whatsappEnabled,
   mailToPdfEnabled,
@@ -180,6 +182,7 @@ export function VerticalBespokeMailDemoPage({
         demo={demo}
         viewerName={userName}
         viewerEmail={userEmail}
+        viewerAvatarUrl={viewerAvatarUrl}
         addonsHref="/addons"
         calendarEnterpriseEnabled={calendarEnterpriseEnabled}
         whatsappEnabled={whatsappEnabled}

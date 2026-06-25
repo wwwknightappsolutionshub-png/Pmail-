@@ -157,4 +157,33 @@ describe("multi-inbox (Phase 1.3)", () => {
     const row = await testPrisma.userMailAccount.findUnique({ where: { id: secondary.id } });
     expect(row).toBeNull();
   });
+
+  it("GET /api/mail/accounts/unread-summary requires multi-inbox addon", async () => {
+    const { agent } = await createAuthenticatedAgent(app);
+    const res = await agent.get("/api/mail/accounts/unread-summary");
+    expect(res.status).toBe(403);
+  });
+
+  it("GET /api/mail/accounts/unread-summary returns unread counts when entitled", async () => {
+    const { agent, tenant } = await createAuthenticatedAgent(app);
+    await grantAddonTrial(tenant.id, MULTI_INBOX_ADDON_SLUG);
+
+    const res = await agent.get("/api/mail/accounts/unread-summary");
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.accounts)).toBe(true);
+    expect(res.body.accounts[0]).toMatchObject({
+      id: expect.any(String),
+      email: expect.any(String),
+      unread: expect.any(Number),
+      isActive: expect.any(Boolean),
+      isPrimary: expect.any(Boolean),
+    });
+  });
+
+  it("GET /api/mail/recipient-suggestions returns deduped suggestions", async () => {
+    const { agent } = await createAuthenticatedAgent(app);
+    const res = await agent.get("/api/mail/recipient-suggestions?q=a");
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.suggestions)).toBe(true);
+  });
 });

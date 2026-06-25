@@ -58,7 +58,7 @@ export async function removePushSubscription(userId: string, endpoint: string): 
 
 export async function sendPushToUser(
   userId: string,
-  payload: { title: string; body: string; url?: string },
+  payload: { title: string; body: string; url?: string; accountId?: string; accountEmail?: string },
 ): Promise<number> {
   if (!(await isMailPushPlatformEnabled())) {
     return 0;
@@ -97,12 +97,38 @@ export async function sendPushToUser(
   return delivered;
 }
 
-export async function notifyUsersOfNewMail(userIds: string[], unreadCount: number): Promise<void> {
+export async function notifyUsersOfNewMail(
+  userIds: string[],
+  unreadCount: number,
+  account?: {
+    accountId: string;
+    accountEmail: string;
+    accountLabel: string | null;
+    isActiveAccount: boolean;
+  },
+): Promise<void> {
+  const accountLabel = account?.accountLabel?.trim() || account?.accountEmail;
+  const body =
+    account && !account.isActiveAccount
+      ? unreadCount === 1
+        ? `1 new message in ${accountLabel}`
+        : `${unreadCount} new messages in ${accountLabel}`
+      : unreadCount === 1
+        ? "You have 1 new message"
+        : `You have ${unreadCount} new messages`;
+
+  const url =
+    account && !account.isActiveAccount
+      ? `/?switchMailbox=${encodeURIComponent(account.accountId)}`
+      : "/";
+
   for (const userId of userIds) {
     await sendPushToUser(userId, {
       title: "PMail+",
-      body: unreadCount === 1 ? "You have 1 new message" : `You have ${unreadCount} new messages`,
-      url: "/",
+      body,
+      url,
+      accountId: account?.accountId,
+      accountEmail: account?.accountEmail,
     });
   }
 }

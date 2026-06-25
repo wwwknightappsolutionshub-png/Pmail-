@@ -517,6 +517,40 @@
   font-size: 0.86rem;
 }
 
+.bespoke-demo-topbar-avatar {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(13, 148, 136, 0.18);
+}
+
+.bespoke-demo-topbar-avatar-image,
+.bespoke-demo-topbar-avatar-initials {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bespoke-demo-topbar-avatar-initials {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ecfeff;
+  background: linear-gradient(135deg, #0d4f6c, #0d9488);
+}
+
+.bespoke-demo-topbar-avatar-image {
+  display: block;
+}
+
 .bespoke-demo-topbar-signout {
   border: 1px solid var(--border);
   border-radius: 999px;

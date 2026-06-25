@@ -388,7 +388,7 @@ export function MailPage({
   const activeFolderLabel = getFolderTitle(activeFolder, activeFolderMeta);
   const listUserDisplayName = user?.displayName?.trim() || user?.email?.split("@")[0] || "User";
   const showBulkBar = activeFolderKind ? folderSupportsBulkActions(activeFolderKind) : false;
-  const showInboxSwitcher = activeFolderKind === "inbox" && !isVirtual;
+  const showInboxSwitcher = !isVirtual && hasMultiInboxAddon;
 
   useEffect(() => {
     if (requestedFolder === undefined) return;
@@ -687,6 +687,26 @@ export function MailPage({
       setMobilePane("list");
     }
   };
+
+  const openMobileMessages = useCallback(() => {
+    if (mobilePane === "read") {
+      setSelectedUid(null);
+      setSelectedMessage(null);
+      setMessageError("");
+    }
+    setMobilePane("list");
+
+    const targetInbox = inboxPath || "INBOX";
+    if (!isVirtualView(activeFolder) && activeFolder !== targetInbox) {
+      selectFolder(targetInbox);
+      return;
+    }
+
+    if (canRefreshMailList) {
+      messageListRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      void refreshMailInbox();
+    }
+  }, [mobilePane, activeFolder, inboxPath, canRefreshMailList, refreshMailInbox]);
 
   const junkFolder = folders.find((f) => resolveFolderKind(f) === "junk");
   const isTrashFolder = activeFolderKind === "trash";
@@ -1472,7 +1492,7 @@ export function MailPage({
           label="Messages"
           icon={Inbox}
           active={mobilePane === "list"}
-          onClick={() => setMobilePane("list")}
+          onClick={openMobileMessages}
         />
         {showInboxSwitcher ? (
           <InboxSwitcher

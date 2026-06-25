@@ -1748,6 +1748,7 @@ export const api = {
         signatures: Array<{ id: string; name: string; body: string; avatarUrl: string | null; isDefault: boolean }>;
         autoReplies: Array<{ id: string; name: string; subject: string; body: string; enabled: boolean }>;
         undoSendSeconds: number;
+        defaultBrandedSignature: { html: string; text: string } | null;
         autoReplyEntitlement: {
           entitled: boolean;
           gated: boolean;
@@ -1860,6 +1861,26 @@ export const api = {
       }>;
       activeMailAccountId: string | null;
     }>("/api/mail/accounts"),
+  mailAccountsUnreadSummary: () =>
+    request<{
+      accounts: Array<{
+        id: string;
+        email: string;
+        label: string | null;
+        unread: number;
+        isActive: boolean;
+        isPrimary: boolean;
+      }>;
+      activeMailAccountId: string | null;
+    }>("/api/mail/accounts/unread-summary"),
+  recipientSuggestions: (q = "", limit = 20) =>
+    request<{
+      suggestions: Array<{
+        email: string;
+        label: string | null;
+        source: "contact" | "inbox" | "sent";
+      }>;
+    }>(`/api/mail/recipient-suggestions?q=${encodeURIComponent(q)}&limit=${limit}`),
   createMailAccount: (body: {
     email: string;
     password: string;

@@ -1,0 +1,59 @@
+.secondary-mailbox-toast-overlay {
+  position: fixed;
+  inset: auto 1rem calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom) + 1rem) 1rem;
+  z-index: 1600;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.secondary-mailbox-toast {
+  width: min(100%, 420px);
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  background: linear-gradient(135deg, rgba(4, 47, 63, 0.96), rgba(13, 148, 136, 0.92));
+  color: #ecfeff;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+  pointer-events: auto;
+}
+
+.secondary-mailbox-toast-copy p {
+  margin: 0.35rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  opacity: 0.92;
+}
+
+.secondary-mailbox-toast-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.secondary-mailbox-toast-primary,
+.secondary-mailbox-toast-btn {
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary-mailbox-toast-primary {
+  border: 0;
+  background: #fff;
+  color: #0f766e;
+}
+
+.secondary-mailbox-toast-btn {
+  border: 1px solid rgba(236, 254, 255, 0.35);
+  background: transparent;
+  color: #ecfeff;
+}
+
+@media (min-width: 768px) {
+  .secondary-mailbox-toast-overlay {
+    inset: auto 1.5rem 1.5rem auto;
+    justify-content: flex-end;
+  }
+}

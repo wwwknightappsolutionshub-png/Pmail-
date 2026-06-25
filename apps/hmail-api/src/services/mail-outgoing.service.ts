@@ -11,6 +11,7 @@ import { JOB_HUNTER_ADDON_SLUG } from "./job-hunter-settings.service.js";
 import { appendToSentFolder, type MailCredentials } from "./imap.service.js";
 import { markEmailSlaThreadResponded } from "./email-sla.service.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
+import { appendOutboundSignature } from "./default-signature.service.js";
 import { sendMail } from "./smtp.service.js";
 import {
   buildTrackingPixelUrl,
@@ -90,6 +91,15 @@ export async function executeOutgoingMailSend(input: {
       htmlBody = await wrapTrackedLinksInHtml(htmlBody, trackingRecord.id, input.apiPublicBase);
     }
   }
+
+  const signed = await appendOutboundSignature({
+    userId: input.userId,
+    tenantId: input.tenantId,
+    html: htmlBody,
+    text: textBody,
+  });
+  htmlBody = signed.html;
+  textBody = signed.text;
 
   const creds = input.credentials;
 

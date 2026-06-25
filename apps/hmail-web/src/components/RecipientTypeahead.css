@@ -1,0 +1,75 @@
+.recipient-typeahead {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.recipient-typeahead__input {
+  width: 100%;
+}
+
+.recipient-typeahead__list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  margin: 0;
+  padding: 0.35rem 0;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: var(--mail-surface-elevated, #0f172a);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.28);
+}
+
+.recipient-typeahead__option {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.15rem 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.recipient-typeahead__option.is-active,
+.recipient-typeahead__option:hover {
+  background: rgba(13, 148, 136, 0.14);
+}
+
+.recipient-typeahead__email {
+  font-weight: 600;
+}
+
+.recipient-typeahead__label {
+  grid-column: 1;
+  font-size: 0.82rem;
+  opacity: 0.78;
+}
+
+.recipient-typeahead__source {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+}
+
+.recipient-typeahead__status {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.88rem;
+  opacity: 0.75;
+}
+
+.pmail-demo-shell--light .recipient-typeahead__list {
+  background: #fff;
+  border-color: #dbeafe;
+}
