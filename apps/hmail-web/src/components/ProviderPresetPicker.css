@@ -70,7 +70,7 @@
 }
 
 @media (max-width: 767px) {
-  .provider-preset-picker {
+  .provider-settings .provider-preset-picker {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0.4rem;
@@ -80,13 +80,13 @@
     margin-inline: 0;
   }
 
-  .provider-preset-picker__item {
+  .provider-settings .provider-preset-picker__item {
     min-width: 0;
     width: 100%;
     padding: 0.4rem 0.2rem;
   }
 
-  .provider-preset-picker__label {
+  .provider-settings .provider-preset-picker__label {
     max-width: none;
     font-size: 0.56rem;
   }

@@ -303,9 +303,12 @@ html:has(.login-page) #root {
   html:has(.login-page) body,
   html:has(.login-page) #root {
     position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
     min-height: 0;
     max-height: none;
     overflow: hidden;
@@ -315,10 +318,13 @@ html:has(.login-page) #root {
 
   .login-page {
     position: fixed;
-    inset: 0;
-    width: 100%;
-    max-width: 100%;
-    height: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: auto;
+    max-width: none;
+    height: auto;
     min-height: 0;
     max-height: none;
     overflow-x: hidden;
@@ -328,6 +334,15 @@ html:has(.login-page) #root {
     background: #f1f5f9;
   }
 
+  .login-page::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: #f1f5f9;
+    pointer-events: none;
+  }
+
   .login-layout {
     display: flex !important;
     flex-direction: column !important;
@@ -335,7 +350,8 @@ html:has(.login-page) #root {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    flex: 1;
+    flex: 1 0 auto;
+    min-height: calc(100dvh - 3.25rem - env(safe-area-inset-top));
   }
 
   .login-layout:not(.welcome-layout) .login-brand-panel {
@@ -351,19 +367,21 @@ html:has(.login-page) #root {
   }
 
   .login-form-panel {
-    flex: 1;
+    flex: 1 0 auto;
     align-items: stretch;
     justify-content: flex-start;
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: hidden;
+    min-height: calc(100dvh - 3.25rem - env(safe-area-inset-top));
+    overflow-x: clip;
     overflow-y: visible;
     padding-top: 1rem;
     padding-left: max(1rem, env(safe-area-inset-left));
     padding-right: max(1rem, env(safe-area-inset-right));
-    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    padding-bottom: max(2rem, calc(1.25rem + env(safe-area-inset-bottom)));
     background: #f1f5f9;
+    box-sizing: border-box;
   }
 
   .login-form-card,
@@ -373,26 +391,71 @@ html:has(.login-page) #root {
     min-width: 0;
     margin: 0;
     box-sizing: border-box;
+    overflow-x: clip;
+  }
+
+  .login-form,
+  .login-form-section,
+  .login-provider-section {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .login-page .provider-preset-picker {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 0.4rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.45rem;
     width: 100%;
     max-width: 100%;
-    margin-inline: 0;
+    min-width: 0;
+    margin: 0.25rem 0 0.75rem;
+    box-sizing: border-box;
   }
 
   .login-page .provider-preset-picker__item {
+    position: relative;
     min-width: 0;
     width: 100%;
-    padding: 0.4rem 0.2rem;
+    padding: 0.42rem 0.15rem 0.38rem;
+    background: #fff;
+    border-color: var(--login-border, #dbe3ec);
+    box-sizing: border-box;
+  }
+
+  .login-page .provider-preset-picker__item.is-selected {
+    border-color: var(--brand-primary, #0d4f6c);
+    background: color-mix(in srgb, var(--brand-primary, #0d4f6c) 8%, #ffffff);
+    box-shadow: none;
+    outline: 2px solid color-mix(in srgb, var(--brand-primary, #0d4f6c) 55%, transparent);
+    outline-offset: -2px;
+  }
+
+  .login-page .provider-preset-picker__icon {
+    width: 1.65rem;
+    height: 1.65rem;
+  }
+
+  .login-page .provider-preset-picker__icon svg {
+    width: 1.15rem;
+    height: 1.15rem;
   }
 
   .login-page .provider-preset-picker__label {
-    max-width: none;
-    font-size: 0.56rem;
+    max-width: 100%;
+    font-size: 0.54rem;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+
+  .login-page .login-provider-summary {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .login-form-section--actions {
+    padding-bottom: 0.25rem;
   }
 
   .login-page .mail-onboarding-custom-grid {
