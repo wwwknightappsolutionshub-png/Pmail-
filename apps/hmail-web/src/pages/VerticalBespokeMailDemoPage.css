@@ -3847,22 +3847,48 @@ html:has(.pmail-demo-shell--light) body {
     box-sizing: border-box;
     max-width: 100%;
     padding: calc(0.85rem + env(safe-area-inset-top)) clamp(0.75rem, 3.5vw, 1rem) 0.85rem;
-    max-height: calc(3.55rem + env(safe-area-inset-top));
-    overflow: hidden;
-    transition:
-      max-height 0.22s ease,
-      padding 0.22s ease,
-      opacity 0.22s ease,
-      border-color 0.22s ease;
+    min-height: calc(2.75rem + env(safe-area-inset-top));
+    overflow: visible;
   }
 
-  .pmail-demo-shell .bespoke-demo-topbar--search-collapsed {
+  .pmail-demo-shell .bespoke-demo-topbar-center--search-collapsed {
     max-height: 0;
-    padding-top: 0;
-    padding-bottom: 0;
     opacity: 0;
-    border-bottom-color: transparent;
+    overflow: hidden;
     pointer-events: none;
+    margin: 0;
+    min-height: 0;
+    transition:
+      max-height 0.18s ease,
+      opacity 0.18s ease;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) {
+    grid-template-columns: repeat(4, minmax(2rem, auto));
+    justify-content: flex-end;
+    padding-top: max(0.55rem, env(safe-area-inset-top));
+    padding-bottom: 0.55rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) .bespoke-demo-topbar-btn--addons,
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) .bespoke-demo-topbar-actions > a.bespoke-demo-topbar-btn {
+    grid-column: 1;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) .bespoke-demo-topbar-actions > button.bespoke-demo-topbar-btn.bespoke-demo-topbar-btn--theme {
+    grid-column: 2;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) .bespoke-demo-topbar-avatar {
+    grid-column: 3;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) .bespoke-demo-topbar-signout.bespoke-demo-topbar-btn {
+    grid-column: 3;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) .bespoke-demo-topbar-avatar {
+    grid-column: 4;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar-left {
@@ -3914,7 +3940,7 @@ html:has(.pmail-demo-shell--light) body {
 
   .pmail-demo-shell .bespoke-demo-topbar-signout.bespoke-demo-topbar-btn {
     color: #fca5a5;
-    grid-column: 5;
+    grid-column: 4;
     grid-row: 1;
   }
 
@@ -3926,6 +3952,13 @@ html:has(.pmail-demo-shell--light) body {
   /* Mobile topbar — search, addons, theme, avatar, sign out */
   .pmail-demo-shell .bespoke-demo-topbar-btn--refer {
     display: none !important;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar-btn--addons,
+  .pmail-demo-shell .bespoke-demo-topbar-btn--theme,
+  .pmail-demo-shell .bespoke-demo-topbar-signout.bespoke-demo-topbar-btn {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar-btn--addons,
@@ -3944,7 +3977,7 @@ html:has(.pmail-demo-shell--light) body {
   }
 
   .pmail-demo-shell .bespoke-demo-topbar-avatar {
-    grid-column: 4;
+    grid-column: 5;
     grid-row: 1;
     width: 1.85rem;
     height: 1.85rem;
@@ -4021,7 +4054,7 @@ html:has(.pmail-demo-shell--light) body {
     transition: padding-top 0.22s ease;
   }
 
-  .pmail-demo-shell .bespoke-demo-topbar--search-collapsed + .bespoke-demo-workspace-tabs-shell .bespoke-demo-workspace-tabs {
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) + .bespoke-demo-workspace-tabs-shell .bespoke-demo-workspace-tabs {
     padding-top: max(0.45rem, env(safe-area-inset-top));
   }
 

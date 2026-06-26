@@ -33,8 +33,12 @@
 .pmail-loading-screen--read-pane {
   position: absolute;
   inset: 0;
+  flex: 1 1 auto;
   min-height: 0;
   z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--list-chrome-bg, rgba(8, 14, 26, 0.96));
 }
 

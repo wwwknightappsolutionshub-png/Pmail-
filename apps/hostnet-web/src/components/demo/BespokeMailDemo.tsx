@@ -2148,18 +2148,18 @@ export function BespokeMailDemo({
 
   return (
     <div className={bespokeDemoClassName}>
-      <header
-        className={`bespoke-demo-topbar${
-          mobileTopbarSearchCollapsed ? " bespoke-demo-topbar--search-collapsed" : ""
-        }`}
-      >
+      <header className="bespoke-demo-topbar">
         <div className="bespoke-demo-topbar-left">
           <div>
             <p className="bespoke-demo-kicker">PMail+ Workspace</p>
             <strong className="bespoke-demo-brand">Welcome back, {displayName}</strong>
           </div>
         </div>
-        <div className="bespoke-demo-topbar-center">
+        <div
+          className={`bespoke-demo-topbar-center${
+            mobileTopbarSearchCollapsed ? " bespoke-demo-topbar-center--search-collapsed" : ""
+          }`}
+        >
           {renderTopbarSearch ?? (
             <MailSearchBar
               ref={mailSearchRef}
@@ -2175,25 +2175,7 @@ export function BespokeMailDemo({
           )}
         </div>
         <div className="bespoke-demo-topbar-right">
-          <div className="bespoke-demo-topbar-actions">
-            <div className="bespoke-demo-topbar-avatar" title={`${displayName} <${displayEmail}>`} aria-hidden="true">
-              <span className="bespoke-demo-topbar-avatar-initials">{viewerInitials}</span>
-              <img className="bespoke-demo-topbar-avatar-image" src={topbarAvatarUrl} alt="" />
-            </div>
-            <button
-              type="button"
-              className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--refer"
-              onClick={() => void handleReferFriend()}
-              disabled={referBusy}
-            >
-              <TopbarIcon>
-                <path
-                  fill="currentColor"
-                  d="M15 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-9 8.5a5 5 0 0 1 10 0V19H6v-2.5zM19 8.5V7h2V5h-2V3h-2v2h-2v2h2v1.5a3.5 3.5 0 1 1-2 0z"
-                />
-              </TopbarIcon>
-              <span>{referBusy ? "Sending invitations…" : "Refer a friend"}</span>
-            </button>
+          <div className="bespoke-demo-topbar-actions" aria-label="Workspace actions">
             <Link
               to={addonsHref}
               className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons"
@@ -2247,6 +2229,24 @@ export function BespokeMailDemo({
                 <span>Sign out</span>
               </button>
             ) : null}
+            <div className="bespoke-demo-topbar-avatar" title={`${displayName} <${displayEmail}>`} aria-hidden="true">
+              <span className="bespoke-demo-topbar-avatar-initials">{viewerInitials}</span>
+              <img className="bespoke-demo-topbar-avatar-image" src={topbarAvatarUrl} alt="" decoding="async" />
+            </div>
+            <button
+              type="button"
+              className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--refer"
+              onClick={() => void handleReferFriend()}
+              disabled={referBusy}
+            >
+              <TopbarIcon>
+                <path
+                  fill="currentColor"
+                  d="M15 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-9 8.5a5 5 0 0 1 10 0V19H6v-2.5zM19 8.5V7h2V5h-2V3h-2v2h-2v2h2v1.5a3.5 3.5 0 1 1-2 0z"
+                />
+              </TopbarIcon>
+              <span>{referBusy ? "Sending invitations…" : "Refer a friend"}</span>
+            </button>
           </div>
           <span className="bespoke-demo-user" title={displayEmail}>
             {displayName} &lt;{displayEmail}&gt;

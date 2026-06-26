@@ -436,6 +436,10 @@ export function MailPage({
     setMultiInboxPromptOpen(true);
   }, [showInboxSwitcher, hasMultiInboxAddon, mailAccountCount]);
   const contentPane = isVirtual || !selectedUid ? "list" : "read";
+  const isLoadingSelectedMessage = Boolean(
+    selectedUid &&
+      (loadingMessage || !selectedMessage || selectedMessage.uid !== selectedUid),
+  );
 
   const loadFolders = useCallback(async () => {
     setLoadingFolders(true);
@@ -644,6 +648,7 @@ export function MailPage({
     async (uid: number) => {
       setLoadingMessage(true);
       setMessageError("");
+      setSelectedMessage((current) => (current?.uid === uid ? current : null));
       try {
         const { message } = await api.message(activeFolder, uid);
         setSelectedMessage(message);
@@ -713,6 +718,9 @@ export function MailPage({
 
   const selectMessage = (uid: number) => {
     setSelectedUid(uid);
+    setSelectedMessage((current) => (current?.uid === uid ? current : null));
+    setLoadingMessage(true);
+    setMessageError("");
     setMobilePane("read");
   };
 
@@ -1003,6 +1011,9 @@ export function MailPage({
   const openMessageFromDocuments = (folder: string, uid: number) => {
     setActiveFolder(folder);
     setSelectedUid(uid);
+    setSelectedMessage(null);
+    setLoadingMessage(true);
+    setMessageError("");
     setMobilePane("read");
   };
 
@@ -1500,18 +1511,18 @@ export function MailPage({
 
         {!isVirtual ? (
         <section className="mail-read-pane">
-          {!selectedMessage ? (
+          {!selectedUid ? (
             <div className="read-empty">
               <h3>Select a message</h3>
               <p>Choose a message from your inbox to read it here.</p>
             </div>
-          ) : loadingMessage ? (
+          ) : isLoadingSelectedMessage ? (
             <PmailLoadingScreen
               className="pmail-loading-screen--read-pane"
               heading="Centralizing your experience"
               productName={productName}
             />
-          ) : (
+          ) : selectedMessage ? (
             <>
               {messageError ? <div className="pane-error">{messageError}</div> : null}
               <header className="read-header">
@@ -1605,7 +1616,9 @@ export function MailPage({
                 )}
               </article>
             </>
-          )}
+          ) : messageError ? (
+            <div className="pane-error read-pane-error">{messageError}</div>
+          ) : null}
         </section>
         ) : null}
       </div>
