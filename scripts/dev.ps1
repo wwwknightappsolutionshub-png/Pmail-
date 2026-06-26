@@ -2,9 +2,10 @@
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 
-Write-Host "Preparing SQLite database (demo tenant)..."
+Write-Host "Preparing SQLite database (schema sync + demo tenant)..."
 Push-Location "$root\apps\hmail-api"
-npx dotenv-cli -e ../../.env -- npx tsx scripts/prisma-cli.ts db push --schema prisma/schema.sqlite.prisma --skip-generate | Out-Null
+npx dotenv-cli -e ../../.env -- npx tsx scripts/prisma-cli.ts db push --schema prisma/schema.sqlite.prisma --accept-data-loss | Out-Null
+npx dotenv-cli -e ../../.env -- npx tsx scripts/generate-prisma.ts | Out-Null
 npx dotenv-cli -e ../../.env -- npx tsx prisma/seed.ts
 Pop-Location
 

@@ -11,6 +11,7 @@
     "db:migrate:dev": "npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts migrate dev",
     "db:seed": "npx dotenv-cli -e ../../.env -- tsx prisma/seed.ts",
     "db:generate": "npx dotenv-cli -e ../../.env -- tsx scripts/generate-prisma.ts",
+    "db:sqlite:push": "npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts db push --schema prisma/schema.sqlite.prisma",
     "db:sqlite:setup": "npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts generate --schema prisma/schema.sqlite.prisma && npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts db push --schema prisma/schema.sqlite.prisma && npx dotenv-cli -e ../../.env -- tsx prisma/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
-import { formatMailConfigSummary } from "../constants/mailProviders";
+import { formatMailConfigSummary, inferProviderPresetFromEmail } from "../constants/mailProviders";
+import { LoginProviderSelectToast } from "./LoginProviderSelectToast";
+import { GmailConnectWizard } from "./GmailConnectWizard";
 import { ProviderPresetPicker } from "./ProviderPresetPicker";
 import type { useLoginForm } from "../hooks/useLoginForm";
 import "./ProviderPresetPicker.css";
@@ -30,6 +32,8 @@ export function LoginFormCard({
   greetingName,
   preflightLoading,
   loginError,
+  showProviderSelectToast,
+  setShowProviderSelectToast,
   submitting,
   onSubmit,
   loadError = "",
@@ -39,8 +43,14 @@ export function LoginFormCard({
   className = "",
   onRequestWorkspaceAccess,
 }: LoginFormCardProps) {
+  const isGoogleProvider =
+    mailConfig.providerPreset === "google" || inferProviderPresetFromEmail(email) === "google";
+
   return (
     <div className={`login-form-card${className ? ` ${className}` : ""}`}>
+      {showProviderSelectToast ? (
+        <LoginProviderSelectToast onDismiss={() => setShowProviderSelectToast(false)} />
+      ) : null}
       <div className="login-form-header">
         <p className="login-welcome">Welcome {greetingName ?? "Guest"}</p>
         <h2 className="login-signin-title">Sign in</h2>
@@ -80,7 +90,7 @@ export function LoginFormCard({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@company.com"
+              placeholder="Input your email id"
               required
               autoComplete="username"
             />
@@ -92,14 +102,14 @@ export function LoginFormCard({
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your mailbox password"
+              placeholder="Type in your active password"
               required
               autoComplete="current-password"
             />
           </label>
 
-          {showProviderSetup ? (
-            <p className="login-provider-hint">Use an app password if your provider requires it.</p>
+          {showProviderSetup && !isGoogleProvider ? (
+            <p className="login-provider-hint">Use your current mail provider password not a new password</p>
           ) : null}
         </section>
 
@@ -115,6 +125,7 @@ export function LoginFormCard({
                 idPrefix="login-provider"
               />
               <p className="login-provider-summary">{formatMailConfigSummary(mailConfig)}</p>
+              {isGoogleProvider ? <GmailConnectWizard /> : null}
               {preflightLoading ? <p className="login-provider-hint">Checking mailbox setup…</p> : null}
             </div>
           </section>

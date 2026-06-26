@@ -1,8 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type { Request } from "express";
 import type { Tenant, TenantBranding, TenantMailConfig, User, UserMailConfig } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import { decryptSecret, encryptSecret, hashToken } from "../lib/crypto.js";
+import { isGoogleMailbox, normalizeMailboxPassword } from "../lib/mailbox-credentials.js";
 import { verifyImapLogin } from "./imap.service.js";
 import { verifySmtpLogin } from "./smtp.service.js";
 import {
@@ -25,6 +27,31 @@ import {
 } from "./mail-account.service.js";
 
 const SESSION_TTL_HOURS = 12;
+
+function gmailAuthHint(): string {
+  return "Gmail could not sign in. In Gmail go to Settings → Forwarding and POP/IMAP → enable IMAP. If 2-Step Verification is on, create an App Password at myaccount.google.com/apppasswords and use that here (not your regular Gmail password).";
+}
+
+function mailboxAuthErrorMessage(email: string, phase: "imap" | "smtp"): string {
+  if (isGoogleMailbox(email)) {
+    return phase === "smtp"
+      ? "Gmail accepted IMAP but SMTP failed. Use a Google App Password and keep Google selected with smtp.gmail.com:587."
+      : gmailAuthHint();
+  }
+  return "Invalid email or password";
+}
+
+function rethrowLoginSetupError(err: unknown): never {
+  if (err instanceof Prisma.PrismaClientKnownRequestError && (err.code === "P2021" || err.code === "P2022")) {
+    const isSqlite = (process.env.DATABASE_URL ?? "").startsWith("file:");
+    throw new Error(
+      isSqlite
+        ? "Local database schema is out of date. From the project root run: npm run db:local:sync, then restart the API."
+        : "Server database schema is out of date. Run npm run db:migrate -w hmail-api on the server, then restart the API.",
+    );
+  }
+  throw err;
+}
 
 export type UserWithTenant = User & {
   mailConfig: UserMailConfig | null;
@@ -150,22 +177,32 @@ export async function loginUser(input: {
     throw new AuthError("Select your mail provider and sign in to connect your mailbox.");
   }
 
+  const mailPassword = normalizeMailboxPassword(credentialsEmail, input.password);
+
   const credentials = {
     email: credentialsEmail,
-    password: input.password,
+    password: mailPassword,
     mailConfig,
   };
 
   if (!isLocalTester) {
     try {
       await verifyImapLogin(credentials);
+    } catch (err) {
+      console.error("[auth] IMAP verify failed", err);
+      throw new AuthError(mailboxAuthErrorMessage(credentialsEmail, "imap"));
+    }
+    try {
       await verifySmtpLogin(credentials.email, credentials.password, mailConfig);
-    } catch {
-      throw new AuthError("Invalid email or password");
+    } catch (err) {
+      console.error("[auth] SMTP verify failed", err);
+      throw new AuthError(mailboxAuthErrorMessage(credentialsEmail, "smtp"));
     }
   }
 
-  const user = await prisma.user.upsert({
+  let user;
+  try {
+    user = await prisma.user.upsert({
     where: {
       tenantId_email: {
         tenantId: tenant.id,
@@ -185,59 +222,88 @@ export async function loginUser(input: {
       mailConfig: true,
       tenant: { include: { branding: true, mail: true } },
     },
-  });
-
-  if (!user.mailConfig) {
-    if (pendingUserMailConfig) {
-      await saveUserMailConfig(user.id, pendingUserMailConfig);
-    } else if (tenant.mail?.mailOnboardingComplete) {
-      await copyTenantMailConfigToUser(user.id, tenant.mail);
-    }
+    });
+  } catch (err) {
+    rethrowLoginSetupError(err);
   }
 
-  const userWithConfig = await prisma.user.findUniqueOrThrow({
-    where: { id: user.id },
-    include: {
-      mailConfig: true,
-      tenant: { include: { branding: true, mail: true } },
-    },
-  });
+  try {
+    if (!user.mailConfig) {
+      if (pendingUserMailConfig) {
+        await saveUserMailConfig(user.id, pendingUserMailConfig);
+      } else if (tenant.mail?.mailOnboardingComplete) {
+        await copyTenantMailConfigToUser(user.id, tenant.mail);
+      }
+    }
+  } catch (err) {
+    rethrowLoginSetupError(err);
+  }
+
+  let userWithConfig: UserWithTenant;
+  try {
+    userWithConfig = await prisma.user.findUniqueOrThrow({
+      where: { id: user.id },
+      include: {
+        mailConfig: true,
+        tenant: { include: { branding: true, mail: true } },
+      },
+    });
+  } catch (err) {
+    rethrowLoginSetupError(err);
+  }
 
   const token = randomUUID();
   const expiresAt = new Date(Date.now() + SESSION_TTL_HOURS * 60 * 60 * 1000);
 
-  await prisma.session.create({
-    data: {
-      userId: userWithConfig.id,
-      tokenHash: hashToken(token),
-      encryptedMailPassword: encryptSecret(input.password),
-      expiresAt,
-      ipAddress: input.ipAddress,
-      userAgent: input.userAgent,
-    },
-  });
-
-  const { ensureAutoReplyComplimentary } = await import("./auto-reply-entitlement.service.js");
-  await ensureAutoReplyComplimentary(userWithConfig.id, userWithConfig.businessVertical);
-  await ensurePrimaryMailAccount(userWithConfig, input.password);
-
-  const { ensurePanelWorkspaceWelcomeTrial, ensurePmailTesterPanelWorkspaceTrial } = await import(
-    "./panel-workspace-trial.service.js"
-  );
-  await ensurePanelWorkspaceWelcomeTrial(userWithConfig.id);
-
-  if (isPmailTesterEmail(userWithConfig.email)) {
-    await ensurePmailTesterPanelWorkspaceTrial(userWithConfig.id);
-    const { resetPmailTesterCareerState, ensurePmailTesterAccountingWorkspace } = await import(
-      "./pmail-tester-seed.service.js"
-    );
-    await resetPmailTesterCareerState(userWithConfig.id);
-    await ensurePmailTesterAccountingWorkspace(userWithConfig.tenant.id, userWithConfig.id);
-  } else {
-    const { syncCareerMailSignalsForUser } = await import("./job-hunter-applications.service.js");
-    void syncCareerMailSignalsForUser(tenant.id, userWithConfig.id).catch((err) => {
-      console.error("[auth] career signal sync failed", err);
+  try {
+    await prisma.session.create({
+      data: {
+        userId: userWithConfig.id,
+        tokenHash: hashToken(token),
+        encryptedMailPassword: encryptSecret(mailPassword),
+        expiresAt,
+        ipAddress: input.ipAddress,
+        userAgent: input.userAgent,
+      },
     });
+  } catch (err) {
+    rethrowLoginSetupError(err);
+  }
+
+  try {
+    const { ensureAutoReplyComplimentary } = await import("./auto-reply-entitlement.service.js");
+    await ensureAutoReplyComplimentary(userWithConfig.id, userWithConfig.businessVertical);
+  } catch (err) {
+    console.error("[auth] auto-reply setup failed", err);
+  }
+
+  try {
+    await ensurePrimaryMailAccount(userWithConfig, mailPassword);
+  } catch (err) {
+    rethrowLoginSetupError(err);
+  }
+
+  try {
+    const { ensurePanelWorkspaceWelcomeTrial, ensurePmailTesterPanelWorkspaceTrial } = await import(
+      "./panel-workspace-trial.service.js"
+    );
+    await ensurePanelWorkspaceWelcomeTrial(userWithConfig.id);
+
+    if (isPmailTesterEmail(userWithConfig.email)) {
+      await ensurePmailTesterPanelWorkspaceTrial(userWithConfig.id);
+      const { resetPmailTesterCareerState, ensurePmailTesterAccountingWorkspace } = await import(
+        "./pmail-tester-seed.service.js"
+      );
+      await resetPmailTesterCareerState(userWithConfig.id);
+      await ensurePmailTesterAccountingWorkspace(userWithConfig.tenant.id, userWithConfig.id);
+    } else {
+      const { syncCareerMailSignalsForUser } = await import("./job-hunter-applications.service.js");
+      void syncCareerMailSignalsForUser(tenant.id, userWithConfig.id).catch((err) => {
+        console.error("[auth] career signal sync failed", err);
+      });
+    }
+  } catch (err) {
+    console.error("[auth] panel workspace trial setup failed", err);
   }
 
   return { token, user: userWithConfig };

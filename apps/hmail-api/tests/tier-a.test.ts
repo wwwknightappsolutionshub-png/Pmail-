@@ -69,6 +69,7 @@ describe("Tier A production APIs", () => {
     });
     expect(preflight.status).toBe(200);
     expect(preflight.body.needsProviderSetup).toBe(true);
+    expect(preflight.body.suggestedMailConfig?.providerPreset).toBe("hostinger");
 
     const loginRes = await request(app).post("/api/auth/login").send({
       tenantSlug: "new-firm",

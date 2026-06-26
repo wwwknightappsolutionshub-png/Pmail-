@@ -1,5 +1,25 @@
 import nodemailer from "nodemailer";
+import type SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
 import type { TenantMailConfig } from "@prisma/client";
+
+export function buildSmtpTransportOptions(
+  mailConfig: Pick<TenantMailConfig, "smtpHost" | "smtpPort" | "smtpSecure">,
+  auth: { user: string; pass: string },
+): SMTPTransport.Options {
+  const useStartTls = !mailConfig.smtpSecure && mailConfig.smtpPort === 587;
+  return {
+    host: mailConfig.smtpHost,
+    port: mailConfig.smtpPort,
+    secure: mailConfig.smtpSecure,
+    requireTLS: useStartTls,
+    auth,
+    connectionTimeout: 20_000,
+    greetingTimeout: 20_000,
+    tls: {
+      rejectUnauthorized: process.env.NODE_ENV === "production",
+    },
+  };
+}
 
 export interface SendMailInput {
   email: string;
@@ -41,18 +61,12 @@ export function buildMailHeaders(input: SendMailInput): Record<string, string> {
 }
 
 export async function sendMail(input: SendMailInput): Promise<{ messageId: string }> {
-  const transporter = nodemailer.createTransport({
-    host: input.mailConfig.smtpHost,
-    port: input.mailConfig.smtpPort,
-    secure: input.mailConfig.smtpSecure,
-    auth: {
+  const transporter = nodemailer.createTransport(
+    buildSmtpTransportOptions(input.mailConfig, {
       user: input.email,
       pass: input.password,
-    },
-    tls: {
-      rejectUnauthorized: process.env.NODE_ENV === "production",
-    },
-  });
+    }),
+  );
 
   const headers = buildMailHeaders(input);
 
@@ -79,15 +93,9 @@ export async function verifySmtpLogin(
   password: string,
   mailConfig: TenantMailConfig,
 ): Promise<void> {
-  const transporter = nodemailer.createTransport({
-    host: mailConfig.smtpHost,
-    port: mailConfig.smtpPort,
-    secure: mailConfig.smtpSecure,
-    auth: { user: email, pass: password },
-    tls: {
-      rejectUnauthorized: process.env.NODE_ENV === "production",
-    },
-  });
+  const transporter = nodemailer.createTransport(
+    buildSmtpTransportOptions(mailConfig, { user: email, pass: password }),
+  );
 
   await transporter.verify();
 }

@@ -374,6 +374,7 @@ export async function sendPanelWorkspaceTrialEmail(input: {
       host,
       port: Number(process.env.NURTURE_SMTP_PORT ?? 587),
       secure: process.env.NURTURE_SMTP_SECURE === "true",
+      requireTLS: process.env.NURTURE_SMTP_SECURE !== "true" && Number(process.env.NURTURE_SMTP_PORT ?? 587) === 587,
       auth: process.env.NURTURE_SMTP_USER
         ? {
             user: process.env.NURTURE_SMTP_USER,
@@ -382,13 +383,18 @@ export async function sendPanelWorkspaceTrialEmail(input: {
         : undefined,
     });
 
-    await transporter.sendMail({
-      from,
-      to: input.userEmail,
-      subject: content.subject,
-      text: content.text,
-      html: content.html,
-    });
+    try {
+      await transporter.sendMail({
+        from,
+        to: input.userEmail,
+        subject: content.subject,
+        text: content.text,
+        html: content.html,
+      });
+    } catch (err) {
+      console.error("[panel-workspace-trial] nurture SMTP send failed", err);
+      return;
+    }
   } else if (env.NODE_ENV === "development") {
     console.info(`[panel-workspace-trial] ${input.emailType} → ${input.userEmail}: ${content.subject}`);
   }

@@ -228,8 +228,13 @@ export function resolveSuggestedMailConfigForLogin(
     smtpSecure: boolean;
     mailOnboardingComplete: boolean;
   } | null,
-): MailConfigInput | null {
-  if (tenantMail?.mailOnboardingComplete) {
+): MailConfigInput {
+  const inferred = inferProviderPresetFromEmail(email);
+  if (inferred) {
+    return resolveMailConfigFromPreset(inferred);
+  }
+
+  if (tenantMail) {
     const preset = matchProviderPresetFromHosts(tenantMail);
     if (preset !== "custom") {
       return resolveMailConfigFromPreset(preset);
@@ -245,10 +250,5 @@ export function resolveSuggestedMailConfigForLogin(
     };
   }
 
-  const inferred = inferProviderPresetFromEmail(email);
-  if (inferred) {
-    return resolveMailConfigFromPreset(inferred);
-  }
-
-  return null;
+  return resolveMailConfigFromPreset("hostinger");
 }

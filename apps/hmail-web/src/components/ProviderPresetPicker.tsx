@@ -3,7 +3,7 @@ import { MAIL_PROVIDER_LIST } from "../constants/mailProviders";
 import "./ProviderPresetPicker.css";
 
 type Props = {
-  value: MailProviderPresetKey;
+  value: MailProviderPresetKey | null;
   onChange: (key: MailProviderPresetKey) => void;
   idPrefix?: string;
 };

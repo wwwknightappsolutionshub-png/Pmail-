@@ -697,7 +697,7 @@ export function MailPage({
     setMobilePane("list");
 
     const targetInbox = inboxPath || "INBOX";
-    if (!isVirtualView(activeFolder) && activeFolder !== targetInbox) {
+    if (isVirtualView(activeFolder) || activeFolder !== targetInbox) {
       selectFolder(targetInbox);
       return;
     }

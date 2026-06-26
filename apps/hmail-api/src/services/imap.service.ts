@@ -66,6 +66,8 @@ function buildImapClient(credentials: MailCredentials): ImapFlow {
     secure: mailConfig.imapSecure,
     auth: { user: email, pass: password },
     logger: false,
+    connectionTimeout: 20_000,
+    greetingTimeout: 20_000,
     tls: { rejectUnauthorized: process.env.NODE_ENV === "production" },
   });
 }

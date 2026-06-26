@@ -163,6 +163,11 @@ export type MailConfigValues = {
   smtpSecure: boolean;
 };
 
+/** Login form allows no provider until the user picks one. */
+export type LoginMailConfigValues = Omit<MailConfigValues, "providerPreset"> & {
+  providerPreset: MailProviderPresetKey | null;
+};
+
 export function resolveMailConfigFromPreset(
   providerPreset: MailProviderPresetKey,
   custom?: Partial<Omit<MailConfigValues, "providerPreset">>,
@@ -192,7 +197,20 @@ export function resolveMailConfigFromPreset(
 }
 
 export function defaultMailConfig(): MailConfigValues {
-  return resolveMailConfigFromPreset("microsoft");
+  return resolveMailConfigFromPreset("hostinger");
+}
+
+/** Login form starts with no provider selected — user must pick one. */
+export function emptyMailConfig(): LoginMailConfigValues {
+  return {
+    providerPreset: null,
+    imapHost: "",
+    imapPort: 993,
+    imapSecure: true,
+    smtpHost: "",
+    smtpPort: 587,
+    smtpSecure: false,
+  };
 }
 
 const EMAIL_DOMAIN_PROVIDER_MAP: Record<string, MailProviderPresetKey> = {
@@ -222,7 +240,10 @@ export function inferProviderPresetFromEmail(email: string): MailProviderPresetK
   return EMAIL_DOMAIN_PROVIDER_MAP[domain] ?? null;
 }
 
-export function formatMailConfigSummary(config: MailConfigValues): string {
+export function formatMailConfigSummary(config: Pick<LoginMailConfigValues, "providerPreset" | "imapHost" | "imapPort" | "smtpHost" | "smtpPort">): string {
+  if (!config.providerPreset) {
+    return "Select your mail provider above";
+  }
   const preset = MAIL_PROVIDER_LIST.find((entry) => entry.key === config.providerPreset);
   const label = preset?.label ?? "Custom";
   return `${label} · IMAP ${config.imapHost}:${config.imapPort} · SMTP ${config.smtpHost}:${config.smtpPort}`;

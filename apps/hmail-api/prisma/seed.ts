@@ -41,6 +41,7 @@ const prohostTenantData = {
       smtpHost: "smtp.hostinger.com",
       smtpPort: 465,
       smtpSecure: true,
+      mailOnboardingComplete: true,
     },
   },
 };

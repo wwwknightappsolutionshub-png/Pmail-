@@ -1,6 +1,6 @@
 import type { MailFolder } from "../types/mail";
 import type { BusinessVertical } from "../types/mail";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type MouseEvent } from "react";
 import {
   ACCOUNTING_NAV,
   B2B_NAV,
@@ -17,7 +17,6 @@ import { VIEW_DOCUMENTS, VIEW_INDUSTRY_TOOLS } from "../constants/mailViews";
 import { FolderNavIcon } from "./FolderNavIcons";
 import {
   MobileDrawerTooltip,
-  mobileDrawerTooltipHandlers,
   type MobileDrawerTooltipState,
 } from "./MobileDrawerTooltip";
 import "./FolderNav.css";
@@ -224,27 +223,40 @@ function renderSpecialItem(
     locked?: boolean;
     onLocked?: () => void;
     iconOnlyRail?: boolean;
-    drawerTooltipProps?: (label: string) => Record<string, unknown>;
+    armedDrawerKey?: string | null;
+    onDrawerItemPress?: (
+      key: string,
+      label: string,
+      event: MouseEvent<HTMLElement>,
+      action: () => void,
+    ) => void;
   },
 ) {
   const isActive = activeFolder === path;
   const locked = options?.locked ?? false;
-  const drawerTooltipProps = options?.drawerTooltipProps;
+  const onDrawerItemPress = options?.onDrawerItemPress;
+
+  const runAction = () => {
+    if (locked && options?.onLocked) {
+      options.onLocked();
+      return;
+    }
+    onSelect(path);
+  };
 
   return (
     <button
       key={path}
       type="button"
-      className={`folder-nav-item folder-nav-item--${kind} ${isActive ? "is-active" : ""} ${locked ? "is-locked" : ""}`}
+      className={`folder-nav-item folder-nav-item--${kind} ${isActive ? "is-active" : ""} ${locked ? "is-locked" : ""} ${options?.armedDrawerKey === path ? "is-drawer-armed" : ""}`}
       aria-label={label}
       {...(options?.iconOnlyRail ? {} : { "data-tooltip": label })}
-      {...(drawerTooltipProps?.(label) ?? {})}
-      onClick={() => {
-        if (locked && options?.onLocked) {
-          options.onLocked();
+      onClick={(event) => {
+        if (onDrawerItemPress) {
+          onDrawerItemPress(path, label, event, runAction);
           return;
         }
-        onSelect(path);
+        runAction();
       }}
     >
       <FolderNavFlyout label={label} />
@@ -274,6 +286,7 @@ export function FolderNav({
   tooltipTheme = "dark",
 }: FolderNavProps) {
   const [drawerTooltip, setDrawerTooltip] = useState<MobileDrawerTooltipState>(null);
+  const [armedDrawerKey, setArmedDrawerKey] = useState<string | null>(null);
   const sorted = sortFolders(folders);
   const primary = sorted.filter((f) => resolveFolderKind(f) !== "other");
   const other = sorted.filter((f) => resolveFolderKind(f) === "other");
@@ -286,11 +299,35 @@ export function FolderNav({
   useEffect(() => {
     if (!iconOnlyRail) {
       setDrawerTooltip(null);
+      setArmedDrawerKey(null);
     }
   }, [iconOnlyRail]);
 
-  const drawerTooltipProps = (label: string) =>
-    iconOnlyRail ? mobileDrawerTooltipHandlers(label, setDrawerTooltip) : {};
+  const handleDrawerItemPress = useCallback(
+    (key: string, label: string, event: MouseEvent<HTMLElement>, action: () => void) => {
+      if (!iconOnlyRail) {
+        action();
+        return;
+      }
+      if (armedDrawerKey !== key) {
+        setArmedDrawerKey(key);
+        setDrawerTooltip({ label, anchor: event.currentTarget.getBoundingClientRect() });
+        return;
+      }
+      setArmedDrawerKey(null);
+      setDrawerTooltip(null);
+      action();
+    },
+    [armedDrawerKey, iconOnlyRail],
+  );
+
+  const drawerItemOptions = iconOnlyRail
+    ? {
+        iconOnlyRail,
+        armedDrawerKey,
+        onDrawerItemPress: handleDrawerItemPress,
+      }
+    : { iconOnlyRail };
 
   if (loading) {
     return <div className="folder-nav-loading">Loading folders…</div>;
@@ -305,11 +342,17 @@ export function FolderNav({
       <button
         key={folder.path}
         type="button"
-        className={`folder-nav-item folder-nav-item--${kind} ${isActive ? "is-active" : ""}`}
+        className={`folder-nav-item folder-nav-item--${kind} ${isActive ? "is-active" : ""} ${armedDrawerKey === folder.path ? "is-drawer-armed" : ""}`}
         aria-label={folderDisplayLabel(folder)}
         {...(iconOnlyRail ? {} : { "data-tooltip": folderDisplayLabel(folder) })}
-        {...drawerTooltipProps(folderDisplayLabel(folder))}
-        onClick={() => onSelect(folder.path)}
+        onClick={(event) => {
+          const label = folderDisplayLabel(folder);
+          if (iconOnlyRail) {
+            handleDrawerItemPress(folder.path, label, event, () => onSelect(folder.path));
+            return;
+          }
+          onSelect(folder.path);
+        }}
       >
         <FolderNavFlyout label={folderDisplayLabel(folder)} />
         <span className="folder-nav-item-accent" aria-hidden="true" />
@@ -333,8 +376,7 @@ export function FolderNav({
         }
         onOpenAddons(slug);
       },
-      iconOnlyRail,
-      drawerTooltipProps,
+      ...drawerItemOptions,
     });
   };
 
@@ -343,11 +385,16 @@ export function FolderNav({
       <div className="folder-nav-group folder-nav-group--compose">
         <button
           type="button"
-          className="folder-nav-item folder-nav-item--compose"
-          onClick={onCompose}
+          className={`folder-nav-item folder-nav-item--compose ${armedDrawerKey === "compose" ? "is-drawer-armed" : ""}`}
           aria-label="New mail"
           {...(iconOnlyRail ? {} : { "data-tooltip": "New mail" })}
-          {...drawerTooltipProps("New mail")}
+          onClick={(event) => {
+            if (iconOnlyRail) {
+              handleDrawerItemPress("compose", "New mail", event, onCompose);
+              return;
+            }
+            onCompose();
+          }}
         >
           <FolderNavFlyout label="New mail" />
           <span className="folder-nav-item-accent" aria-hidden="true" />
@@ -361,10 +408,7 @@ export function FolderNav({
       <p className="folder-nav-heading">Mailboxes</p>
       <div className="folder-nav-group">
         {primary.map(renderItem)}
-        {renderSpecialItem("documents", "Documents", VIEW_DOCUMENTS, activeFolder, onSelect, {
-          iconOnlyRail,
-          drawerTooltipProps,
-        })}
+        {renderSpecialItem("documents", "Documents", VIEW_DOCUMENTS, activeFolder, onSelect, drawerItemOptions)}
       </div>
 
       <p className="folder-nav-heading folder-nav-heading--secondary folder-nav-heading--platform-tools">Platform tools</p>
@@ -399,11 +443,16 @@ export function FolderNav({
       <div className="folder-nav-group">
         <button
           type="button"
-          className="folder-nav-item folder-nav-item--new_folder"
-          onClick={onNewFolder}
+          className={`folder-nav-item folder-nav-item--new_folder ${armedDrawerKey === "new_folder" ? "is-drawer-armed" : ""}`}
           aria-label="New folder"
           {...(iconOnlyRail ? {} : { "data-tooltip": "New folder" })}
-          {...drawerTooltipProps("New folder")}
+          onClick={(event) => {
+            if (iconOnlyRail) {
+              handleDrawerItemPress("new_folder", "New folder", event, onNewFolder);
+              return;
+            }
+            onNewFolder();
+          }}
         >
           <FolderNavFlyout label="New folder" />
           <span className="folder-nav-item-accent" aria-hidden="true" />
@@ -418,11 +467,16 @@ export function FolderNav({
       <div className="folder-nav-group">
         <button
           type="button"
-          className="folder-nav-item folder-nav-item--addons"
-          onClick={() => onOpenAddons()}
+          className={`folder-nav-item folder-nav-item--addons ${armedDrawerKey === "addons" ? "is-drawer-armed" : ""}`}
           aria-label="Add-ons"
           {...(iconOnlyRail ? {} : { "data-tooltip": "Add-ons" })}
-          {...drawerTooltipProps("Add-ons")}
+          onClick={(event) => {
+            if (iconOnlyRail) {
+              handleDrawerItemPress("addons", "Add-ons", event, () => onOpenAddons());
+              return;
+            }
+            onOpenAddons();
+          }}
         >
           <FolderNavFlyout label="Add-ons" />
           <span className="folder-nav-item-accent" aria-hidden="true" />

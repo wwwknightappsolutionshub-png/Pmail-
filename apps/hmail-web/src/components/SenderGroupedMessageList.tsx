@@ -95,7 +95,9 @@ export function SenderGroupedMessageList({
                   <strong>{group.label}</strong>
                   <small>{group.email}</small>
                 </span>
-                <span>{expanded ? "▾" : "▸"}</span>
+                <span className="message-sender-chevron" aria-hidden="true">
+                  {expanded ? "▾" : "▸"}
+                </span>
               </button>
               {group.unreadCount > 0 ? (
                 <span className="message-sender-unread">{group.unreadCount} unread</span>

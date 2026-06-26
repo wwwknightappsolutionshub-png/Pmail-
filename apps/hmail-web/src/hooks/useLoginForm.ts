@@ -4,9 +4,9 @@ import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { PMAIL_TESTER_TENANT_SLUG } from "../constants/tenant";
 import {
-  defaultMailConfig,
+  emptyMailConfig,
   resolveMailConfigFromPreset,
-  type MailConfigValues,
+  type LoginMailConfigValues,
   type MailProviderPresetKey,
 } from "../constants/mailProviders";
 import { clearReferralRef, persistReferralRef, readReferralRef } from "../utils/referralStorage";
@@ -19,9 +19,9 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
 
   const [email, setEmail] = useState(isTesterRoute ? "pmailtester@gmail.com" : "");
   const [password, setPassword] = useState("");
-  const [mailConfig, setMailConfig] = useState<MailConfigValues>(() => defaultMailConfig());
+  const [mailConfig, setMailConfig] = useState<LoginMailConfigValues>(() => emptyMailConfig());
   const [needsProviderSetup, setNeedsProviderSetup] = useState<boolean | null>(isTesterRoute ? false : null);
-  const [providerPresetTouched, setProviderPresetTouched] = useState(false);
+  const [showProviderSelectToast, setShowProviderSelectToast] = useState(false);
   const [testerBypass, setTesterBypass] = useState(isTesterRoute);
   const [suggestedTenantSlug, setSuggestedTenantSlug] = useState<string | null>(null);
   const [greetingName, setGreetingName] = useState<string | null>(isTesterRoute ? "PMail Tester" : null);
@@ -60,17 +60,6 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
           setTesterBypass(Boolean(result.testerBypass));
           setSuggestedTenantSlug(result.suggestedTenantSlug ?? null);
           setGreetingName(result.displayName);
-          if (result.needsProviderSetup && result.suggestedMailConfig && !providerPresetTouched) {
-            setMailConfig({
-              providerPreset: result.suggestedMailConfig.providerPreset as MailProviderPresetKey,
-              imapHost: result.suggestedMailConfig.imapHost,
-              imapPort: result.suggestedMailConfig.imapPort,
-              imapSecure: result.suggestedMailConfig.imapSecure,
-              smtpHost: result.suggestedMailConfig.smtpHost,
-              smtpPort: result.suggestedMailConfig.smtpPort,
-              smtpSecure: result.suggestedMailConfig.smtpSecure,
-            });
-          }
         }
       })
       .catch(() => {
@@ -88,10 +77,10 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
     return () => {
       cancelled = true;
     };
-  }, [email, tenantSlug, isTesterRoute, providerPresetTouched]);
+  }, [email, tenantSlug, isTesterRoute]);
 
   const applyPreset = useCallback((key: MailProviderPresetKey) => {
-    setProviderPresetTouched(true);
+    setShowProviderSelectToast(false);
     setMailConfig((current) =>
       resolveMailConfigFromPreset(key, key === "custom" ? current : undefined),
     );
@@ -103,16 +92,26 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoginError("");
+
+    if (showProviderSetup && !mailConfig.providerPreset) {
+      setShowProviderSelectToast(true);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const referrerEmail = readReferralRef(searchParams.get("ref"));
+      const mailPayload =
+        showProviderSetup && mailConfig.providerPreset
+          ? { ...mailConfig, providerPreset: mailConfig.providerPreset }
+          : {};
       const result = isTesterRoute
         ? await api.testerLogin({ email, password })
         : await api.login({
             tenantSlug,
             email,
             password,
-            ...(showProviderSetup ? mailConfig : {}),
+            ...mailPayload,
             ...(referrerEmail ? { referrerEmail } : {}),
           });
       sessionStorage.setItem("pmail_tenant_slug", isTesterRoute ? PMAIL_TESTER_TENANT_SLUG : tenantSlug);
@@ -143,6 +142,8 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
     preflightLoading,
     loginError,
     setLoginError,
+    showProviderSelectToast,
+    setShowProviderSelectToast,
     submitting,
     onSubmit,
   };
