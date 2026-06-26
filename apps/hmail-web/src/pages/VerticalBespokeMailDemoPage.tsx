@@ -123,6 +123,12 @@ type VerticalBespokeMailDemoPageProps = {
   activeMailWorkspaceView?: string | null;
   onMailWorkspaceView?: (view: string | null) => void;
   mobileTopbarSearchCollapsed?: boolean;
+  workspaceTabCounts?: {
+    contacts: number;
+    reminders: number;
+    calendar: number;
+    messaging: number;
+  } | null;
 };
 
 export function VerticalBespokeMailDemoPage({
@@ -161,6 +167,7 @@ export function VerticalBespokeMailDemoPage({
   activeMailWorkspaceView,
   onMailWorkspaceView,
   mobileTopbarSearchCollapsed = false,
+  workspaceTabCounts = null,
 }: VerticalBespokeMailDemoPageProps) {
   const { hasAddon } = useAddons();
   const resolvedHideIndustryTools =
@@ -232,6 +239,7 @@ export function VerticalBespokeMailDemoPage({
         activeMailWorkspaceView={activeMailWorkspaceView}
         onMailWorkspaceView={onMailWorkspaceView}
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
+        workspaceTabCounts={workspaceTabCounts}
         renderLoading={<PmailLoadingScreen subtitle="Loading your workspace…" />}
         renderIndustryTool={({ demo: currentDemo, toolId, applyComposeTemplate }) => {
           if (currentDemo.useCaseId === "legal") {

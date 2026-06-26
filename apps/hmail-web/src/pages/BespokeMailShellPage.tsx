@@ -13,6 +13,7 @@ import { renderBespokeProductionWorkspace } from "../components/BespokeProductio
 import { useInboxContactSync } from "../hooks/useInboxContactSync";
 import { useAutoMailPush } from "../hooks/useAutoMailPush";
 import { useMobileTopbarChromeCollapse } from "../hooks/useMobileTopbarChromeCollapse";
+import { useWorkspaceTabCounts } from "../hooks/useWorkspaceTabCounts";
 import { useSecondaryMailboxNotifications } from "../hooks/useSecondaryMailboxNotifications";
 import { useSignatureReminder } from "../hooks/useSignatureReminder";
 import {
@@ -79,6 +80,8 @@ function BespokeMailShellContent() {
 
   const displayName = user?.displayName?.trim() || user?.email?.split("@")[0] || "User";
   const displayEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
+
+  const workspaceTabCounts = useWorkspaceTabCounts(Boolean(user), displayEmail, organizationUsers);
 
   const signatureReminder = useSignatureReminder({
     onOpenBrandSettings: () => setRequestedWorkspace("settings"),
@@ -306,6 +309,7 @@ function BespokeMailShellContent() {
           setMailWorkspaceView(null);
         }}
         onCareerNavUnlockedChange={setCareerNavUnlocked}
+        onEmbeddedShellActivate={() => setRequestedWorkspace("inbox")}
       />
     ),
     [searchDraft, appliedSearch, uiThemeVersion, mailFolderRequest],
@@ -343,6 +347,7 @@ function BespokeMailShellContent() {
         activeMailWorkspaceView={mailWorkspaceView}
         onMailWorkspaceView={navigateMailWorkspaceView}
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
+        workspaceTabCounts={workspaceTabCounts}
         showCareerTab={careerNavUnlocked}
         onCareerTabClick={() => navigate("/career")}
         requestedWorkspace={requestedWorkspace}

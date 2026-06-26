@@ -166,6 +166,13 @@ type Props = {
   onMailWorkspaceView?: (view: string | null) => void;
   /** Collapse topbar search on mobile when message list scrolls down (production PMail+). */
   mobileTopbarSearchCollapsed?: boolean;
+  /** Live workspace tab counts (production PMail+ shell). */
+  workspaceTabCounts?: {
+    contacts: number;
+    reminders: number;
+    calendar: number;
+    messaging: number;
+  } | null;
   /** Branded splash while demo workspace hydrates (production PMail+ shell). */
   renderLoading?: ReactNode;
 };
@@ -504,6 +511,7 @@ export function BespokeMailDemo({
   activeMailWorkspaceView = null,
   onMailWorkspaceView,
   mobileTopbarSearchCollapsed = false,
+  workspaceTabCounts = null,
   renderLoading,
 }: Props) {
   const composeSeed = useMemo(() => getComposeSettings(demo.useCaseId), [demo.useCaseId]);
@@ -978,6 +986,11 @@ export function BespokeMailDemo({
   });
 
   const pendingReminderCount = reminders.filter((reminder) => reminder.status === "pending").length;
+  const useLiveTabCounts = Boolean(renderInboxWorkspace && workspaceTabCounts);
+  const contactsTabCount = useLiveTabCounts ? workspaceTabCounts!.contacts : crmContacts.length;
+  const remindersTabCount = useLiveTabCounts ? workspaceTabCounts!.reminders : pendingReminderCount;
+  const calendarTabCount = useLiveTabCounts ? workspaceTabCounts!.calendar : calendarEvents.length;
+  const messagingTabCount = useLiveTabCounts ? workspaceTabCounts!.messaging : messagingThreads.length;
   const activeToolId = activeTool && demo.tools.some((tool) => tool.id === activeTool) ? activeTool : null;
   const toolPanel = demo.toolPanels[activeToolId ?? demo.defaultToolId] ?? demo.toolPanels[demo.defaultToolId];
   const applyComposeTemplate = (template: { subject: string; html: string; label?: string }) => {
@@ -2185,7 +2198,7 @@ export function BespokeMailDemo({
           onClick={() => openWorkspaceTool("contacts", "Contacts")}
         >
           Contacts
-          <span className="bespoke-demo-tab-count">{crmContacts.length}</span>
+          <span className="bespoke-demo-tab-count">{contactsTabCount}</span>
         </button>
         <button
           type="button"
@@ -2200,7 +2213,7 @@ export function BespokeMailDemo({
           onClick={() => openWorkspaceTool("reminders", "Reminders")}
         >
           Reminders
-          <span className="bespoke-demo-tab-count">{pendingReminderCount}</span>
+          <span className="bespoke-demo-tab-count">{remindersTabCount}</span>
         </button>
         <button
           type="button"
@@ -2208,7 +2221,7 @@ export function BespokeMailDemo({
           onClick={() => openWorkspaceTool("calendar", "Calendar")}
         >
           Calendar
-          <span className="bespoke-demo-tab-count">{calendarEvents.length}</span>
+          <span className="bespoke-demo-tab-count">{calendarTabCount}</span>
         </button>
         <button
           type="button"
@@ -2216,7 +2229,7 @@ export function BespokeMailDemo({
           onClick={() => openWorkspaceTool("messaging", "Messaging")}
         >
           Messaging
-          <span className="bespoke-demo-tab-count">{messagingThreads.length}</span>
+          <span className="bespoke-demo-tab-count">{messagingTabCount}</span>
         </button>
         <button
           type="button"

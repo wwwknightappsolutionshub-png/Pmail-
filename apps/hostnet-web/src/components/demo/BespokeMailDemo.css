@@ -3815,15 +3815,16 @@
 }
 
 .bespoke-demo-inbox-production-mount--hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
   padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
   border: 0;
+  flex: 0 0 auto;
 }
 
 /* Back control is mobile-only; desktop keeps the original two-column messaging shell. */

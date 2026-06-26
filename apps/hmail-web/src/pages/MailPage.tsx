@@ -245,6 +245,8 @@ export type MailPageProps = {
   onRequestedFolderHandled?: () => void;
   onActiveFolderChange?: (folder: string) => void;
   onCareerNavUnlockedChange?: (unlocked: boolean) => void;
+  /** When embedded in the bespoke shell, return to the inbox workspace before footer actions. */
+  onEmbeddedShellActivate?: () => void;
 };
 
 export function MailPage({
@@ -258,6 +260,7 @@ export function MailPage({
   onRequestedFolderHandled,
   onActiveFolderChange,
   onCareerNavUnlockedChange,
+  onEmbeddedShellActivate,
 }: MailPageProps = {}) {
   const { user, logout, refresh } = useAuth();
   const { hasAddon, hasJobHunterAccess, panelWorkspaceTrial } = useAddons();
@@ -688,7 +691,17 @@ export function MailPage({
     }
   };
 
+  const activateEmbeddedShell = useCallback(() => {
+    if (embedded) onEmbeddedShellActivate?.();
+  }, [embedded, onEmbeddedShellActivate]);
+
+  const openMobileFolders = useCallback(() => {
+    activateEmbeddedShell();
+    setMobilePane("menu");
+  }, [activateEmbeddedShell]);
+
   const openMobileMessages = useCallback(() => {
+    activateEmbeddedShell();
     if (mobilePane === "read") {
       setSelectedUid(null);
       setSelectedMessage(null);
@@ -706,7 +719,7 @@ export function MailPage({
       messageListRef.current?.scrollTo({ top: 0, behavior: "smooth" });
       void refreshMailInbox();
     }
-  }, [mobilePane, activeFolder, inboxPath, canRefreshMailList, refreshMailInbox]);
+  }, [mobilePane, activeFolder, inboxPath, canRefreshMailList, refreshMailInbox, activateEmbeddedShell]);
 
   const junkFolder = folders.find((f) => resolveFolderKind(f) === "junk");
   const isTrashFolder = activeFolderKind === "trash";
@@ -1196,6 +1209,7 @@ export function MailPage({
         </button>
       </header>
 
+      <div className="mail-app-main">
       {!embedded ? (
       <div className="mail-bespoke-chrome">
         <MailBespokeChrome
@@ -1477,16 +1491,14 @@ export function MailPage({
         </section>
         ) : null}
       </div>
+      </div>
 
-      <nav
-        className={`mail-bottom-nav${showInboxSwitcher ? " mail-bottom-nav--with-switcher" : ""}`}
-        aria-label="Mobile navigation"
-      >
+      <nav className="mail-bottom-nav mail-bottom-nav--with-switcher" aria-label="Mobile navigation">
         <MailBottomNavButton
           label="Folders"
           icon={Folder}
           active={mobilePane === "menu"}
-          onClick={() => setMobilePane("menu")}
+          onClick={openMobileFolders}
         />
         <MailBottomNavButton
           label="Messages"
@@ -1494,17 +1506,22 @@ export function MailPage({
           active={mobilePane === "list"}
           onClick={openMobileMessages}
         />
-        {showInboxSwitcher ? (
-          <InboxSwitcher
-            ref={inboxSwitcherRef}
-            variant="bottom-nav"
-            activeAccount={user?.activeMailAccount ?? null}
-            onSwitched={() => void handleMailboxSwitch()}
-            onPaidAddonGate={() => openPaidAddonGate("multi-inbox-functionality", "Multiple Inboxes")}
-            onAccountCountChange={setMailAccountCount}
-          />
-        ) : null}
-        <MailBottomNavButton label="New mail" icon={SquarePen} onClick={() => openCompose({ mode: "new" })} />
+        <InboxSwitcher
+          ref={inboxSwitcherRef}
+          variant="bottom-nav"
+          activeAccount={user?.activeMailAccount ?? null}
+          onSwitched={() => void handleMailboxSwitch()}
+          onPaidAddonGate={() => openPaidAddonGate("multi-inbox-functionality", "Multiple Inboxes")}
+          onAccountCountChange={setMailAccountCount}
+        />
+        <MailBottomNavButton
+          label="New mail"
+          icon={SquarePen}
+          onClick={() => {
+            activateEmbeddedShell();
+            openCompose({ mode: "new" });
+          }}
+        />
       </nav>
 
       <ComposeModal

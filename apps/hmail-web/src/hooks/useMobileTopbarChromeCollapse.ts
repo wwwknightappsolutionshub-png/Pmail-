@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { isMobileScreen } from "../utils/pwaPlatform";
 
 const SCROLL_SURFACE_SELECTOR =
-  ".message-list, .platform-tools-panel__scroll, .platform-tools-panel__results-scroll, .contacts-panel__scroll, .brand-settings__scroll, .bespoke-demo-messaging-directory__scroll, .bespoke-demo-chat-history, .bespoke-demo-production-workspace";
+  ".message-list, .platform-tools-panel__scroll, .platform-tools-panel__results-scroll, .contacts-panel__scroll, .brand-settings__scroll, .bespoke-demo-messaging-directory__scroll, .bespoke-demo-chat-history, .bespoke-production-settings-stack, .bespoke-demo-production-workspace";
 
 export function useMobileTopbarChromeCollapse(onCollapse: (collapsed: boolean) => void) {
   useEffect(() => {

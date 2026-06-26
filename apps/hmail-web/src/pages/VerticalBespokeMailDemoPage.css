@@ -3032,9 +3032,9 @@ html:has(.pmail-demo-shell--light) body {
   min-width: 0;
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: transparent;
 }
 
@@ -3075,9 +3075,14 @@ html:has(.pmail-demo-shell--light) body {
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 0.85rem 1rem 1.5rem;
   padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
   overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
 
@@ -3113,15 +3118,15 @@ html:has(.pmail-demo-shell--light) body {
   min-width: 0;
 }
 
-.pmail-demo-shell--light .bespoke-demo-production-workspace--settings {
+.pmail-demo-shell--light .bespoke-production-settings-stack {
   scrollbar-color: #c5d0de #e4e9f0;
 }
 
-.pmail-demo-shell--light .bespoke-demo-production-workspace--settings::-webkit-scrollbar-track {
+.pmail-demo-shell--light .bespoke-production-settings-stack::-webkit-scrollbar-track {
   background: #e4e9f0;
 }
 
-.pmail-demo-shell--light .bespoke-demo-production-workspace--settings::-webkit-scrollbar-thumb {
+.pmail-demo-shell--light .bespoke-production-settings-stack::-webkit-scrollbar-thumb {
   background-color: #c5d0de;
 }
 
@@ -3635,6 +3640,24 @@ html:has(.pmail-demo-shell--light) body {
     --pmail-bespoke-topbar-h: calc(3.55rem + env(safe-area-inset-top));
     --pmail-bespoke-tabs-h: 2.65rem;
     --pmail-bespoke-drawer-top: calc(var(--pmail-bespoke-topbar-h) + var(--pmail-bespoke-tabs-h));
+    --mail-bottom-nav-h: 2.75rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-production-workspace:not(.bespoke-demo-production-workspace--settings) {
+    padding-bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom));
+    box-sizing: border-box;
+  }
+
+  .pmail-demo-shell .bespoke-demo-inbox-production-mount:not(.bespoke-demo-inbox-production-mount--hidden) {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .pmail-demo-shell .bespoke-demo-inbox-production-mount--hidden {
+    flex: 0 0 auto;
+    min-height: 0;
+    overflow: visible;
   }
 
   .pmail-demo-shell .bespoke-demo {

@@ -1645,6 +1645,14 @@
   padding: 1rem;
 }
 
+.mail-app-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* ─── Bottom nav (mobile) ─────────────────────────────────── */
 .mail-bottom-nav {
   position: sticky;
@@ -2354,6 +2362,31 @@
     max-height: 100%;
     height: 100%;
     overflow: hidden;
+  }
+
+  .mail-app--embedded-in-bespoke .mail-app-main {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .bespoke-demo-inbox-production-mount--hidden .mail-app--embedded-in-bespoke {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .bespoke-demo-inbox-production-mount--hidden .mail-app--embedded-in-bespoke .mail-app-main,
+  .bespoke-demo-inbox-production-mount--hidden .mail-app--embedded-in-bespoke .mail-mobile-topbar {
+    display: none !important;
+  }
+
+  .bespoke-demo-inbox-production-mount--hidden .mail-app--embedded-in-bespoke .mail-bottom-nav {
+    display: flex !important;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 45;
   }
 
   .mail-app--embedded-in-bespoke .mail-mobile-topbar {
