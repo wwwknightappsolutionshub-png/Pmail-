@@ -43,6 +43,7 @@ import { resolveInboxPath } from "../components/DocumentsPanel";
 import { FolderNav, folderDisplayLabel, resolveFolderKind, sortFolders } from "../components/FolderNav";
 import { MailBespokeChrome } from "../components/MailBespokeChrome";
 import { HMailLogo } from "../components/HMailLogo";
+import { PmailLoadingScreen } from "../components/PmailLoadingScreen";
 import { MailBulkActions } from "../components/MailBulkActions";
 import { MailFilterBar } from "../components/MailFilterBar";
 import { MailOrderBar } from "../components/MailOrderBar";
@@ -50,7 +51,7 @@ import { MailPaginationBar } from "../components/MailPaginationBar";
 import { GmailMailSearch, isGmailStyleQuery } from "../components/GmailMailSearch";
 import { NewFolderModal } from "../components/NewFolderModal";
 import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
-import { SenderGroupedMessageList } from "../components/SenderGroupedMessageList";
+import { SenderGroupedMessageList, senderLabel } from "../components/SenderGroupedMessageList";
 import { MailBottomNavButton } from "../components/MailBottomNavButton";
 import {
   MobileDrawerTooltip,
@@ -1045,8 +1046,10 @@ export function MailPage({
 
     const visibleSuggestions = contactSuggestions.filter((e) => !dismissedSuggestions.includes(e));
     const usePortaledPagination = embedded && mobileMailViewport;
+    const showPagination = messageTotal > PAGE_SIZE && mobilePane !== "read";
+    const listPrimaryColumnLabel = selectedUid ? "Subject" : "Sender";
     const mailPagination =
-      messageTotal > 0 ? (
+      showPagination ? (
         <MailPaginationBar
           page={messagePage}
           pageSize={PAGE_SIZE}
@@ -1194,6 +1197,7 @@ export function MailPage({
                   onToggleSelectUid={toggleSelectUid}
                   onToggleSelectAll={toggleSelectAll}
                   formatDate={formatDate}
+                  primaryColumnLabel={listPrimaryColumnLabel}
                 />
               ) : (
                 <>
@@ -1206,7 +1210,7 @@ export function MailPage({
                         aria-label="Select all messages"
                       />
                     ) : null}</span>
-                    <span>Subject</span>
+                    <span>{listPrimaryColumnLabel}</span>
                     <span>Excerpt</span>
                     <span>Received</span>
                   </div>
@@ -1226,7 +1230,11 @@ export function MailPage({
                         ) : null}
                       </span>
                       <button type="button" className="message-table-cell message-table-cell--subject" onClick={() => selectMessage(msg.uid)}>
-                        <span className="message-subject-text">{msg.subject || "(No subject)"}</span>
+                        <span className="message-subject-text">
+                          {selectedUid
+                            ? msg.subject || "(No subject)"
+                            : senderLabel(msg.from) || msg.from || "—"}
+                        </span>
                         {msg.flagged ? <span className="message-star" aria-label="Starred">★</span> : null}
                       </button>
                       <button type="button" className="message-table-cell message-table-cell--snippet" onClick={() => selectMessage(msg.uid)}>
@@ -1498,7 +1506,11 @@ export function MailPage({
               <p>Choose a message from your inbox to read it here.</p>
             </div>
           ) : loadingMessage ? (
-            <div className="muted pad">Loading message…</div>
+            <PmailLoadingScreen
+              className="pmail-loading-screen--read-pane"
+              heading="Centralizing your experience"
+              productName={productName}
+            />
           ) : (
             <>
               {messageError ? <div className="pane-error">{messageError}</div> : null}

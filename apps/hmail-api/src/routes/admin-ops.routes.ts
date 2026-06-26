@@ -42,6 +42,11 @@ import {
   getPmailPlatformConfig,
   updatePmailPlatformConfig,
 } from "../services/pmail-platform-config.service.js";
+import {
+  broadcastMailPush,
+  getMailPushAudienceStats,
+  getVapidPublicKey,
+} from "../services/pwa-push.service.js";
 
 const brandingSchema = z.object({
   productName: z.string().optional(),
@@ -90,6 +95,13 @@ const pmailPlatformConfigSchema = z.object({
   mailPushEnabled: z.boolean().optional(),
   mailPushDefaultForUsers: z.boolean().optional(),
   pwaPushAutoSubscribe: z.boolean().optional(),
+});
+
+const pmailPushBroadcastSchema = z.object({
+  title: z.string().min(1).max(80),
+  body: z.string().min(1).max(240),
+  url: z.string().max(500).optional(),
+  tenantId: z.string().uuid().optional(),
 });
 
 const vpsSchema = z.object({
@@ -430,6 +442,38 @@ adminOpsRouter.patch("/pmail-platform-config", requireSuperAdmin, async (req, re
     await auditAdminMutation(req, "pmail_platform_config.update", "pmail_platform_config", "default", body);
     res.json({ config });
   } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.get("/pmail-push/stats", requireSuperAdmin, async (_req, res, next) => {
+  try {
+    const stats = await getMailPushAudienceStats();
+    res.json({
+      ...stats,
+      vapidConfigured: Boolean(getVapidPublicKey()),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.post("/pmail-push/broadcast", requireSuperAdmin, async (req, res, next) => {
+  try {
+    const body = pmailPushBroadcastSchema.parse(req.body);
+    const result = await broadcastMailPush(body);
+    await auditAdminMutation(req, "pmail_push.broadcast", "pmail_push", "broadcast", {
+      title: body.title,
+      targetedUsers: result.targetedUsers,
+      delivered: result.delivered,
+      tenantId: body.tenantId ?? null,
+    });
+    res.json(result);
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
     next(err);
   }
 });

@@ -2182,7 +2182,7 @@ export function BespokeMailDemo({
             </div>
             <button
               type="button"
-              className="bespoke-demo-topbar-btn"
+              className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--refer"
               onClick={() => void handleReferFriend()}
               disabled={referBusy}
             >
@@ -2194,19 +2194,24 @@ export function BespokeMailDemo({
               </TopbarIcon>
               <span>{referBusy ? "Sending invitations…" : "Refer a friend"}</span>
             </button>
-            <Link to={addonsHref} className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons" aria-label="View addons">
+            <Link
+              to={addonsHref}
+              className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons"
+              aria-label="Addon marketplace"
+              title="Addon marketplace"
+            >
               <TopbarIcon>
                 <path
                   fill="currentColor"
-                  d="M4 4h7l2 2h7a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm8 3.5L9.5 6H5v12h14V7.5H12z"
+                  d="M7 4h10l1 4h4v2h-1.05l-1.2 9.5A2 2 0 0 1 17.77 22H8.23a2 2 0 0 1-1.98-1.5L5.05 10H4V8h4l1-4zm2.2 2 .6 2h4.4l.6-2H9.2zm-.62 4 1.1 8h6.64l1.1-8H8.58zM9 12.5a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1zm6 0a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1z"
                 />
               </TopbarIcon>
-              <span>View addons</span>
+              <span>Addon marketplace</span>
             </Link>
             {onThemeChange ? (
               <button
                 type="button"
-                className="bespoke-demo-topbar-btn"
+                className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--theme"
                 onClick={() => void onThemeChange(uiThemeVersion === "light" ? "dark" : "light")}
                 aria-label={uiThemeVersion === "light" ? "Switch to dark UI" : "Switch to light UI"}
               >

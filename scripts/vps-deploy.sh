@@ -13,5 +13,6 @@ npm run db:migrate -w hmail-api
 npm run db:generate -w hmail-api
 npm run build -w hmail-api
 npm run build -w hmail-web
+npm run build -w hostnet-web
 sudo systemctl restart hmail-api
 echo "Deploy complete on branch: $BRANCH"

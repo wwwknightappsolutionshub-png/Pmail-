@@ -724,6 +724,7 @@
   flex-direction: column;
   background: #f8fafc;
   color: #0f172a;
+  position: relative;
 }
 
 .mail-app .mail-list-pane,
@@ -1180,6 +1181,8 @@
   bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
   z-index: 14950;
   pointer-events: none;
+  justify-content: flex-end;
+  padding-right: max(0.65rem, env(safe-area-inset-right, 0px));
 }
 
 .mail-pagination-portal .mail-pagination {

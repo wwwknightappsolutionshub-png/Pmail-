@@ -11,7 +11,17 @@ type Props = {
 export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
   const [status, setStatus] = useState<AdminSystemStatus | null>(null);
   const [pushConfig, setPushConfig] = useState<PmailPlatformConfig | null>(null);
+  const [pushStats, setPushStats] = useState<{
+    pushEnabledUsers: number;
+    subscribedUsers: number;
+    deviceSubscriptions: number;
+    vapidConfigured: boolean;
+  } | null>(null);
   const [pushSaving, setPushSaving] = useState(false);
+  const [pushBroadcasting, setPushBroadcasting] = useState(false);
+  const [pushBroadcastTitle, setPushBroadcastTitle] = useState("PMail+");
+  const [pushBroadcastBody, setPushBroadcastBody] = useState("");
+  const [pushBroadcastResult, setPushBroadcastResult] = useState("");
   const [pushError, setPushError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -20,8 +30,12 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
       const data = await api.adminSystemStatus();
       setStatus(data);
       if (isSuperAdmin) {
-        const { config } = await api.adminPmailPlatformConfig();
+        const [{ config }, stats] = await Promise.all([
+          api.adminPmailPlatformConfig(),
+          api.adminPmailPushStats(),
+        ]);
         setPushConfig(config);
+        setPushStats(stats);
       }
     } finally {
       setLoading(false);
@@ -49,6 +63,34 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
       setPushError(err instanceof Error ? err.message : "Failed to update push settings");
     } finally {
       setPushSaving(false);
+    }
+  }
+
+  async function sendPushBroadcast() {
+    if (!pushBroadcastBody.trim()) {
+      setPushError("Enter a message body for the push notification.");
+      return;
+    }
+
+    setPushBroadcasting(true);
+    setPushError("");
+    setPushBroadcastResult("");
+    try {
+      const result = await api.broadcastAdminPmailPush({
+        title: pushBroadcastTitle.trim() || "PMail+",
+        body: pushBroadcastBody.trim(),
+        url: "/",
+      });
+      setPushBroadcastResult(
+        `Sent to ${result.delivered} device(s) across ${result.targetedUsers} user(s) with push enabled.`,
+      );
+      setPushBroadcastBody("");
+      const stats = await api.adminPmailPushStats();
+      setPushStats(stats);
+    } catch (err) {
+      setPushError(err instanceof Error ? err.message : "Failed to send push broadcast");
+    } finally {
+      setPushBroadcasting(false);
     }
   }
 
@@ -83,6 +125,13 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
           <div><dt>Platform mail push</dt><dd>{push.mailPushEnabled ? "Enabled" : "Disabled"}</dd></div>
           <div><dt>Default for users</dt><dd>{push.mailPushDefaultForUsers ? "On" : "Off"}</dd></div>
           <div><dt>PWA auto-subscribe</dt><dd>{push.pwaPushAutoSubscribe ? "On" : "Off"}</dd></div>
+          {pushStats ? (
+            <>
+              <div><dt>Users with push on</dt><dd>{pushStats.pushEnabledUsers}</dd></div>
+              <div><dt>Users with devices</dt><dd>{pushStats.subscribedUsers}</dd></div>
+              <div><dt>Device subscriptions</dt><dd>{pushStats.deviceSubscriptions}</dd></div>
+            </>
+          ) : null}
         </dl>
         {!push.vapidConfigured ? (
           <p className="muted" style={{ marginTop: "0.75rem" }}>
@@ -120,6 +169,47 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
               Auto-subscribe PWA on login
             </label>
             {pushError ? <p className="admin-alert admin-alert-error">{pushError}</p> : null}
+            {pushBroadcastResult ? <p className="admin-alert admin-alert-success">{pushBroadcastResult}</p> : null}
+            <div className="admin-status-push-broadcast">
+              <h4>Broadcast push</h4>
+              <p className="muted">
+                Sends to users who have mail push enabled and at least one registered device. New mail still uses
+                automatic notifications.
+              </p>
+              <label>
+                <span>Title</span>
+                <input
+                  type="text"
+                  value={pushBroadcastTitle}
+                  maxLength={80}
+                  disabled={pushBroadcasting || !push.vapidConfigured || !pushConfig.mailPushEnabled}
+                  onChange={(e) => setPushBroadcastTitle(e.target.value)}
+                />
+              </label>
+              <label>
+                <span>Message</span>
+                <textarea
+                  value={pushBroadcastBody}
+                  maxLength={240}
+                  rows={3}
+                  placeholder="Platform announcement or test message…"
+                  disabled={pushBroadcasting || !push.vapidConfigured || !pushConfig.mailPushEnabled}
+                  onChange={(e) => setPushBroadcastBody(e.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                disabled={
+                  pushBroadcasting ||
+                  !push.vapidConfigured ||
+                  !pushConfig.mailPushEnabled ||
+                  !pushBroadcastBody.trim()
+                }
+                onClick={() => void sendPushBroadcast()}
+              >
+                {pushBroadcasting ? "Sending…" : "Send push to opted-in users"}
+              </button>
+            </div>
           </div>
         ) : null}
       </section>

@@ -3832,7 +3832,12 @@ html:has(.pmail-demo-shell--light) body {
 
   .pmail-demo-shell .bespoke-demo-topbar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(2rem, auto) minmax(2rem, auto) minmax(2rem, auto);
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(2rem, auto)
+      minmax(2rem, auto)
+      minmax(2rem, auto)
+      minmax(2rem, auto);
     grid-template-rows: auto;
     align-items: center;
     gap: clamp(0.4rem, 2.5vw, 0.55rem);
@@ -3918,8 +3923,8 @@ html:has(.pmail-demo-shell--light) body {
     border-color: rgba(248, 113, 113, 0.35);
   }
 
-  /* Mobile topbar — search, addons, theme, sign out */
-  .pmail-demo-shell .bespoke-demo-topbar-actions > .bespoke-demo-topbar-btn:first-child {
+  /* Mobile topbar — search, addons, theme, avatar, sign out */
+  .pmail-demo-shell .bespoke-demo-topbar-btn--refer {
     display: none !important;
   }
 
@@ -3928,9 +3933,12 @@ html:has(.pmail-demo-shell--light) body {
     grid-column: 2;
     grid-row: 1;
     display: inline-flex !important;
+    position: relative;
+    z-index: 2;
+    pointer-events: auto;
   }
 
-  .pmail-demo-shell .bespoke-demo-topbar-actions > button.bespoke-demo-topbar-btn:not(.bespoke-demo-topbar-signout) {
+  .pmail-demo-shell .bespoke-demo-topbar-actions > button.bespoke-demo-topbar-btn.bespoke-demo-topbar-btn--theme {
     grid-column: 3;
     grid-row: 1;
   }

@@ -1275,6 +1275,54 @@
   border-top: 1px solid var(--admin-border);
 }
 
+.admin-status-push-broadcast {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--admin-border);
+}
+
+.admin-status-push-broadcast h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.admin-status-push-broadcast label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.admin-status-push-broadcast input,
+.admin-status-push-broadcast textarea {
+  font: inherit;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md, 8px);
+  background: var(--admin-surface, #fff);
+}
+
+.admin-status-push-broadcast button {
+  align-self: flex-start;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.55rem 0.9rem;
+  border-radius: var(--admin-radius-md, 8px);
+  border: 1px solid var(--admin-accent, #0d9488);
+  background: var(--admin-accent, #0d9488);
+  color: #fff;
+  cursor: pointer;
+}
+
+.admin-status-push-broadcast button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .admin-sections-form {
   max-width: 640px;
 }

@@ -6,7 +6,7 @@ function extractEmailFromHeader(value: string): string {
   return (match?.[1] ?? value).trim().toLowerCase();
 }
 
-function senderLabel(from: string): string {
+export function senderLabel(from: string): string {
   const email = extractEmailFromHeader(from);
   const nameMatch = from.match(/^([^<]+)</);
   const name = nameMatch?.[1]?.trim();
@@ -29,6 +29,7 @@ type Props = {
   onToggleSelectUid: (uid: number) => void;
   onToggleSelectAll: () => void;
   formatDate: (iso: string) => string;
+  primaryColumnLabel?: string;
 };
 
 export function SenderGroupedMessageList({
@@ -42,6 +43,7 @@ export function SenderGroupedMessageList({
   onToggleSelectUid,
   onToggleSelectAll,
   formatDate,
+  primaryColumnLabel = "Sender",
 }: Props) {
   const groups = useMemo(() => {
     const map = new Map<string, MailMessageSummary[]>();
@@ -73,7 +75,7 @@ export function SenderGroupedMessageList({
             />
           ) : null}
         </span>
-        <span>Subject</span>
+        <span>{primaryColumnLabel}</span>
         <span>Excerpt</span>
         <span>Received</span>
       </div>

@@ -97,6 +97,60 @@ export async function sendPushToUser(
   return delivered;
 }
 
+export async function getMailPushAudienceStats(): Promise<{
+  pushEnabledUsers: number;
+  subscribedUsers: number;
+  deviceSubscriptions: number;
+}> {
+  const [pushEnabledUsers, subscribedUsers, deviceSubscriptions] = await Promise.all([
+    prisma.user.count({ where: { mailPushEnabled: true, isActive: true } }),
+    prisma.user.count({
+      where: {
+        mailPushEnabled: true,
+        isActive: true,
+        pwaPushSubscriptions: { some: {} },
+      },
+    }),
+    prisma.pwaPushSubscription.count(),
+  ]);
+
+  return { pushEnabledUsers, subscribedUsers, deviceSubscriptions };
+}
+
+export async function broadcastMailPush(input: {
+  title: string;
+  body: string;
+  url?: string;
+  tenantId?: string;
+}): Promise<{ targetedUsers: number; delivered: number }> {
+  if (!(await isMailPushPlatformEnabled())) {
+    throw new Error("Mail push is disabled platform-wide. Enable it in PMail+ push settings first.");
+  }
+
+  ensureVapid();
+
+  const users = await prisma.user.findMany({
+    where: {
+      mailPushEnabled: true,
+      isActive: true,
+      ...(input.tenantId ? { tenantId: input.tenantId } : {}),
+      pwaPushSubscriptions: { some: {} },
+    },
+    select: { id: true },
+  });
+
+  let delivered = 0;
+  for (const user of users) {
+    delivered += await sendPushToUser(user.id, {
+      title: input.title,
+      body: input.body,
+      url: input.url ?? "/",
+    });
+  }
+
+  return { targetedUsers: users.length, delivered };
+}
+
 export async function notifyUsersOfNewMail(
   userIds: string[],
   unreadCount: number,

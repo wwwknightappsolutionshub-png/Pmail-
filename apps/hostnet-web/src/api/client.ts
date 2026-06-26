@@ -130,6 +130,18 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
+  adminPmailPushStats: () =>
+    request<{
+      pushEnabledUsers: number;
+      subscribedUsers: number;
+      deviceSubscriptions: number;
+      vapidConfigured: boolean;
+    }>("/api/admin/pmail-push/stats"),
+  broadcastAdminPmailPush: (body: { title: string; body: string; url?: string; tenantId?: string }) =>
+    request<{ targetedUsers: number; delivered: number }>("/api/admin/pmail-push/broadcast", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   adminTrends: (days = 30) => request<{ trends: AdminTrends }>(`/api/admin/analytics/trends?days=${days}`),
   adminBillingRevenue: () => request<{ revenue: BillingRevenueDashboard }>("/api/admin/billing/revenue"),
   adminAuditLog: (limit = 50) =>
