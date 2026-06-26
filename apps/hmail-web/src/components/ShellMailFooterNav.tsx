@@ -52,7 +52,11 @@ export function ShellMailFooterNav({ uiThemeVersion = "dark", onActivateInbox }:
 
   return (
     <>
-      <div className={`mail-app mail-app--shell-footer${uiThemeVersion === "light" ? " mail-app--light" : ""}`}>
+      <div
+        className={`mail-shell-footer-host${
+          uiThemeVersion === "light" ? " mail-shell-footer-host--light" : ""
+        }`}
+      >
         <nav className="mail-bottom-nav mail-bottom-nav--with-switcher" aria-label="Mobile navigation">
           <MailBottomNavButton
             label="Folders"

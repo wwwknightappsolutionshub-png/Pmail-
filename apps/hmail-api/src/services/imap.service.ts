@@ -247,6 +247,17 @@ export async function listMessages(
       return { messages: [], total: 0, page, pageSize };
     }
 
+    const total = uids.length;
+    const canUseUidDatePaging = sortBy === "date" && !queryText;
+
+    if (canUseUidDatePaging) {
+      const orderedUids = [...uids].sort((a, b) => (sortOrder === "asc" ? a - b : b - a));
+      const pageUids = orderedUids.slice(offset, offset + pageSize);
+      const pageItems = await fetchMessageSummaries(client, folder, pageUids);
+      await attachSnippets(client, pageItems);
+      return { messages: pageItems, total, page, pageSize };
+    }
+
     const summaries: MailMessageSummary[] = [];
 
     for await (const msg of client.fetch(
@@ -283,35 +294,87 @@ export async function listMessages(
     }
 
     const sorted = sortMessageSummaries(summaries, sortBy, sortOrder);
-    const total = sorted.length;
+    const slowTotal = sorted.length;
     const pageItems = sorted.slice(offset, offset + pageSize);
 
-    if (pageItems.length > 0) {
-      const snippetByUid = new Map<number, string>();
-      for await (const msg of client.fetch(
-        pageItems.map((m) => m.uid),
-        { uid: true, source: { start: 0, maxLength: 800 } },
-        { uid: true },
-      )) {
-        if (!msg.source) continue;
-        try {
-          const parsed = await simpleParser(msg.source);
-          snippetByUid.set(
-            msg.uid,
-            bodyPreview(parsed).slice(0, 160).replace(/\s+/g, " ").trim(),
-          );
-        } catch {
-          snippetByUid.set(msg.uid, "");
-        }
-      }
-      for (const item of pageItems) {
-        item.snippet = snippetByUid.get(item.uid) ?? "";
-      }
-    }
+    await attachSnippets(client, pageItems);
 
-    return { messages: pageItems, total, page, pageSize };
+    return { messages: pageItems, total: slowTotal, page, pageSize };
   } finally {
     await client.logout().catch(() => undefined);
+  }
+}
+
+async function fetchMessageSummaries(
+  client: ReturnType<typeof buildImapClient>,
+  folder: string,
+  uids: number[],
+): Promise<MailMessageSummary[]> {
+  if (uids.length === 0) return [];
+
+  const byUid = new Map<number, MailMessageSummary>();
+
+  for await (const msg of client.fetch(
+    uids,
+    {
+      uid: true,
+      envelope: true,
+      flags: true,
+      bodyStructure: true,
+    },
+    { uid: true },
+  )) {
+    const envelope = msg.envelope;
+    const fromAddr = envelope?.from?.[0];
+    const toAddr = envelope?.to?.[0];
+    const subject = envelope?.subject ?? "(No subject)";
+    const from = fromAddr
+      ? `${fromAddr.name ? `${fromAddr.name} ` : ""}<${fromAddr.address}>`
+      : "";
+    const to = toAddr?.address ?? "";
+
+    byUid.set(msg.uid, {
+      uid: msg.uid,
+      folder,
+      subject,
+      from,
+      to,
+      date: envelope?.date?.toISOString() ?? new Date().toISOString(),
+      seen: msg.flags?.has("\\Seen") ?? false,
+      flagged: msg.flags?.has("\\Flagged") ?? false,
+      hasAttachments: hasAttachments(msg.bodyStructure),
+      snippet: "",
+    });
+  }
+
+  return uids.map((uid) => byUid.get(uid)).filter((item): item is MailMessageSummary => Boolean(item));
+}
+
+async function attachSnippets(
+  client: ReturnType<typeof buildImapClient>,
+  pageItems: MailMessageSummary[],
+): Promise<void> {
+  if (pageItems.length === 0) return;
+
+  const snippetByUid = new Map<number, string>();
+  for await (const msg of client.fetch(
+    pageItems.map((m) => m.uid),
+    { uid: true, source: { start: 0, maxLength: 800 } },
+    { uid: true },
+  )) {
+    if (!msg.source) continue;
+    try {
+      const parsed = await simpleParser(msg.source);
+      snippetByUid.set(
+        msg.uid,
+        bodyPreview(parsed).slice(0, 160).replace(/\s+/g, " ").trim(),
+      );
+    } catch {
+      snippetByUid.set(msg.uid, "");
+    }
+  }
+  for (const item of pageItems) {
+    item.snippet = snippetByUid.get(item.uid) ?? "";
   }
 }
 

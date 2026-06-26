@@ -3070,7 +3070,8 @@ html:has(.pmail-demo-shell--light) body {
 }
 
 .pmail-demo-shell .bespoke-production-settings-stack {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 1.25rem;
   width: 100%;
   max-width: 100%;
@@ -3086,17 +3087,26 @@ html:has(.pmail-demo-shell--light) body {
   box-sizing: border-box;
 }
 
-.pmail-demo-shell .bespoke-production-settings-stack .brand-settings {
+.pmail-demo-shell .bespoke-production-settings-stack > * {
+  flex: none;
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
+}
+
+.pmail-demo-shell .bespoke-production-settings-stack .brand-settings.mail-view-panel {
   flex: none;
   height: auto;
-  min-height: 0;
+  min-height: auto;
   max-height: none;
   overflow: visible;
 }
 
 .pmail-demo-shell .bespoke-production-settings-stack .brand-settings__scroll {
   flex: none;
+  min-height: auto;
   height: auto;
+  max-height: none;
   overflow: visible;
   padding-left: 0;
   padding-right: 0;
@@ -3460,8 +3470,24 @@ html:has(.pmail-demo-shell--light) body {
 }
 
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .message-sender-group-head {
-  background: var(--surface-inset);
   color: var(--text-secondary);
+  border-bottom-color: #d5dee8;
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .message-list--table > .message-sender-group:nth-child(odd) .message-sender-group-head {
+  background: #eef2f7;
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .message-list--table > .message-sender-group:nth-child(even) .message-sender-group-head {
+  background: #ffffff;
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .message-list--table .message-sender-group .message-table-row:nth-child(odd) {
+  background: #f8fafc;
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .message-list--table .message-sender-group .message-table-row:nth-child(even) {
+  background: #ffffff;
 }
 
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .read-header,
@@ -3623,14 +3649,35 @@ html:has(.pmail-demo-shell--light) body {
   color: var(--text);
 }
 
-.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-actions button {
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-nav button {
   background: #ffffff;
-  border-color: var(--border);
-  color: var(--text-secondary);
+  border-color: #475569;
+  color: #0f172a;
+  font-weight: 700;
 }
 
-.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-summary,
-.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-actions span {
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-nav button:disabled {
+  opacity: 1;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+}
+
+.pmail-demo-shell--light .mail-pagination-portal--light .mail-pagination-nav button {
+  background: #ffffff;
+  border-color: #475569;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.pmail-demo-shell--light .mail-pagination-portal--light .mail-pagination-nav button:disabled {
+  opacity: 1;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+}
+
+.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination-page-label {
   color: var(--muted);
 }
 
@@ -3673,9 +3720,16 @@ html:has(.pmail-demo-shell--light) body {
     pointer-events: none;
   }
 
+  .pmail-shell-mobile-footer .mail-shell-footer-host,
   .pmail-shell-mobile-footer .mail-app--shell-footer {
     pointer-events: auto;
     --mail-bottom-nav-h: 2.75rem;
+    /* Avoid inheriting mail-app full-viewport sizing in the body portal */
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    background: transparent;
+    display: block;
   }
 
   .pmail-shell-mobile-footer .mail-bottom-nav {
@@ -3929,10 +3983,25 @@ html:has(.pmail-demo-shell--light) body {
     padding: 0;
   }
 
-  .pmail-demo-shell .bespoke-demo-workspace-tabs {
+  .pmail-demo-shell .bespoke-demo-workspace-tabs-shell {
     position: sticky;
     top: 0;
     z-index: calc(var(--pmail-search-layer, 9000) - 5);
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-tabs-more {
+    display: inline-flex !important;
+    flex-shrink: 0;
+    z-index: 2;
+    min-width: 2.35rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-tabs {
+    position: static;
+    top: auto;
+    z-index: auto;
     flex-wrap: nowrap;
     max-width: 100%;
     overflow-x: auto;
@@ -3940,11 +4009,11 @@ html:has(.pmail-demo-shell--light) body {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 0.35rem;
-    padding: 0.45rem 0.65rem;
+    padding: 0.45rem 0.25rem 0.45rem 0.65rem;
     transition: padding-top 0.22s ease;
   }
 
-  .pmail-demo-shell .bespoke-demo-topbar--search-collapsed + .bespoke-demo-workspace-tabs {
+  .pmail-demo-shell .bespoke-demo-topbar--search-collapsed + .bespoke-demo-workspace-tabs-shell .bespoke-demo-workspace-tabs {
     padding-top: max(0.45rem, env(safe-area-inset-top));
   }
 
@@ -3957,9 +4026,9 @@ html:has(.pmail-demo-shell--light) body {
     white-space: nowrap;
     padding: 0.4rem 0.55rem;
     font-size: clamp(0.72rem, 2.8vw, 0.8rem);
-    max-width: 42vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-toolbar:has(.bespoke-demo-toolbar-block--tools:empty) {
@@ -3990,6 +4059,13 @@ html:has(.pmail-demo-shell--light) body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+  }
+
+  .pmail-demo-shell .bespoke-demo-inbox-production-mount .mail-app--embedded-in-bespoke .mail-list-scroll-wrap > .mail-pagination {
+    flex-shrink: 0;
+    position: sticky;
+    bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
+    z-index: 200;
   }
 
   .pmail-demo-shell .bespoke-demo-inbox-production-mount .mail-app--embedded-in-bespoke .message-list {
@@ -4031,9 +4107,19 @@ html:has(.pmail-demo-shell--light) body {
     overflow: hidden;
   }
 
-  .pmail-demo-shell .bespoke-demo-production-workspace--settings .bespoke-production-settings-stack .brand-settings {
+  .pmail-demo-shell .bespoke-demo-production-workspace--settings .bespoke-production-settings-stack .brand-settings.mail-view-panel {
     flex: none;
     height: auto;
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .pmail-demo-shell .bespoke-demo-production-workspace--settings .bespoke-production-settings-stack .brand-settings__scroll {
+    flex: none;
+    min-height: auto;
+    height: auto;
+    max-height: none;
     overflow: visible;
   }
 

@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev": "powershell -ExecutionPolicy Bypass -File scripts/dev.ps1",
+    "dev:pmail": "concurrently -n api,web -c blue,green \"npm run dev -w hmail-api\" \"npm run dev -w hmail-web\"",
     "dev:concurrent": "concurrently -n api,hmail,hostnet -c blue,green,magenta \"npm run dev -w hmail-api\" \"npm run dev -w hmail-web\" \"npm run dev -w hostnet-web\"",
     "build": "npm run db:generate -w hmail-api && npm run build -w hmail-api && npm run build -w hmail-web && npm run build -w hostnet-web",
     "test": "npm run test -w hmail-api",

@@ -1,7 +1,11 @@
 import type { AuthUser, MailFolder, MailListResult, MailMessageDetail, MailSortField, MailSortOrder, TenantBranding } from "../types/mail";
 import type { MailContact, MailContactCollection } from "../types/contact";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+function resolveApiBase(): string {
+  return import.meta.env.PROD ? (import.meta.env.VITE_API_BASE_URL ?? "") : "";
+}
+
+const API_BASE = resolveApiBase();
 
 export class ApiError extends Error {
   status: number;
@@ -187,20 +191,40 @@ export type ApplyAssistWallet = {
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch {
+    throw new ApiError(
+      "Cannot reach the mail service. From the project root run: npm run dev -w hmail-api",
+      0,
+    );
+  }
 
   if (!res.ok) {
-    let message = "Request failed";
+    let message = `Request failed (${res.status})`;
     try {
-      const data = (await res.json()) as { error?: string };
-      message = data.error ?? message;
+      const text = await res.text();
+      if (text) {
+        try {
+          const data = JSON.parse(text) as { error?: string; message?: string };
+          message = data.error ?? data.message ?? message;
+        } catch {
+          message = text.length > 180 ? `${text.slice(0, 180)}…` : text;
+        }
+      } else if (res.status >= 500) {
+        message =
+          "Mail service error — the API may be restarting. Wait a few seconds, then try again. For local testing use /login/pmail-tester.";
+      } else if (res.status === 0) {
+        message = "Cannot reach the mail service. From the project root run: npm run dev -w hmail-api";
+      }
     } catch {
       // ignore
     }
@@ -354,8 +378,8 @@ export const api = {
     },
   ) => {
     const params = new URLSearchParams({ folder });
-    if (options?.page) params.set("page", String(options.page));
-    if (options?.pageSize) params.set("pageSize", String(options.pageSize));
+    if (options?.page != null) params.set("page", String(options.page));
+    if (options?.pageSize != null) params.set("pageSize", String(options.pageSize));
     if (options?.search) params.set("search", options.search);
     if (options?.searchField) params.set("searchField", options.searchField);
     if (options?.searchQuery) params.set("searchQuery", options.searchQuery);
@@ -617,7 +641,6 @@ export const api = {
     cc?: string;
     attachments?: string[];
   }) {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
     const res = await fetch(`${API_BASE}/api/platform/mail2pdf`, {
       method: "POST",
       credentials: "include",
@@ -2290,7 +2313,6 @@ export const api = {
     }),
 
   async exportJobHunterCvPdf(id: string) {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
     const res = await fetch(`${API_BASE}/api/job-hunter/cv/documents/${encodeURIComponent(id)}/export-pdf`, {
       method: "POST",
       credentials: "include",
@@ -2337,7 +2359,6 @@ export const api = {
     }),
 
   async downloadUserDocument(id: string) {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
     const res = await fetch(`${API_BASE}/api/mail/documents/${encodeURIComponent(id)}/download`, {
       credentials: "include",
     });
@@ -2373,7 +2394,6 @@ export const api = {
     }),
 
   deleteJobSiteLink: async (id: string) => {
-    const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
     const res = await fetch(`${API_BASE}/api/job-hunter/job-sites/${encodeURIComponent(id)}`, {
       method: "DELETE",
       credentials: "include",

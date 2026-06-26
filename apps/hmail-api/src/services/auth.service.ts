@@ -236,6 +236,9 @@ export async function loginUser(input: {
       }
     }
   } catch (err) {
+    if (err instanceof Error && err.message.includes("IMAP host is required")) {
+      throw new AuthError("Complete your mail provider settings (IMAP/SMTP host) before signing in.");
+    }
     rethrowLoginSetupError(err);
   }
 
@@ -280,6 +283,11 @@ export async function loginUser(input: {
   try {
     await ensurePrimaryMailAccount(userWithConfig, mailPassword);
   } catch (err) {
+    if (err instanceof Error && err.message.includes("Mail provider configuration missing")) {
+      throw new AuthError(
+        "Mail provider configuration missing. Select your provider on the sign-in form and try again.",
+      );
+    }
     rethrowLoginSetupError(err);
   }
 

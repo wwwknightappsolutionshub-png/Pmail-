@@ -235,6 +235,38 @@ html:has(.login-page) #root {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary, #0d4f6c) 14%, transparent);
 }
 
+.login-password-field {
+  position: relative;
+  display: block;
+}
+
+.login-password-field input {
+  padding-right: 2.85rem;
+}
+
+.login-password-toggle {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.login-password-toggle:hover,
+.login-password-toggle:focus-visible {
+  color: var(--brand-primary, #0d4f6c);
+  background: color-mix(in srgb, var(--brand-primary, #0d4f6c) 8%, #ffffff);
+  outline: none;
+}
+
 .login-error {
   padding: 0.75rem 0.9rem;
   border-radius: 10px;

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -276,6 +277,14 @@ export function MailPage({
   const [messages, setMessages] = useState<MailMessageSummary[]>([]);
   const [messageTotal, setMessageTotal] = useState(0);
   const [messagePage, setMessagePage] = useState(1);
+  const messagePageRef = useRef(1);
+  const fetchGenerationRef = useRef(0);
+  const selectedUidRef = useRef<number | null>(null);
+  const loadMessagesRef = useRef<((options?: { silent?: boolean; page?: number }) => Promise<void>) | null>(null);
+  const resetMessagePage = useCallback(() => {
+    messagePageRef.current = 1;
+    setMessagePage(1);
+  }, []);
   const [sortBy, setSortBy] = useState<MailSortField>("date");
   const [sortOrder, setSortOrder] = useState<MailSortOrder>("desc");
   const [contactSuggestions, setContactSuggestions] = useState<string[]>([]);
@@ -283,6 +292,7 @@ export function MailPage({
   const [contactsPrefillEmail, setContactsPrefillEmail] = useState<string | undefined>();
   const [statusMessage, setStatusMessage] = useState("");
   const [selectedUid, setSelectedUid] = useState<number | null>(null);
+  selectedUidRef.current = selectedUid;
   const [selectedUids, setSelectedUids] = useState<number[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<MailMessageDetail | null>(null);
   const [mailFilter, setMailFilter] = useState<MailStatusFilter>("all");
@@ -294,6 +304,7 @@ export function MailPage({
   const setAppliedSearch = onAppliedSearchChange ?? setInternalAppliedSearch;
   const [loadingFolders, setLoadingFolders] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [pagingMessages, setPagingMessages] = useState(false);
   const [listRefreshing, setListRefreshing] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(false);
   const [listError, setListError] = useState("");
@@ -326,7 +337,16 @@ export function MailPage({
   const [mailAccountCount, setMailAccountCount] = useState<number | null>(null);
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
+  const [mobileMailViewport, setMobileMailViewport] = useState(() => isMobileScreen());
   const hasMultiInboxAddon = hasAddon("multi-inbox-functionality");
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setMobileMailViewport(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useAutoMailPush(user?.id);
 
@@ -484,19 +504,25 @@ export function MailPage({
     setSelectedUid(null);
     setSelectedMessage(null);
     setSelectedUids([]);
-    setMessagePage(1);
+    resetMessagePage();
     setAppliedSearch({ field: "subject", query: "" });
     setSearchDraft({ field: "subject", query: "" });
     setMailFilter("all");
     await refresh();
     await loadFolders();
-  }, [refresh, loadFolders]);
+  }, [refresh, loadFolders, resetMessagePage, setAppliedSearch, setSearchDraft]);
 
-  const loadMessages = useCallback(async (options?: { silent?: boolean }) => {
+  const loadMessages = useCallback(async (options?: { silent?: boolean; page?: number }) => {
     if (isVirtualView(activeFolder)) return;
 
+    const targetPage = options?.page ?? messagePageRef.current;
+    const generation = ++fetchGenerationRef.current;
     const silent = options?.silent === true;
-    if (silent) {
+    const isPaging = options?.page != null;
+
+    if (isPaging) {
+      setPagingMessages(true);
+    } else if (silent) {
       setListRefreshing(true);
     } else {
       setLoadingMessages(true);
@@ -508,7 +534,7 @@ export function MailPage({
         isGmailStyleQuery(searchText) ||
         (appliedSearch.scope != null && appliedSearch.scope !== "all");
       const result = await api.messages(activeFolder, {
-        page: messagePage,
+        page: targetPage,
         pageSize: PAGE_SIZE,
         searchField: searchText && !gmailSearch ? appliedSearch.field : undefined,
         searchQuery: searchText || undefined,
@@ -516,6 +542,10 @@ export function MailPage({
         sortBy,
         sortOrder,
       });
+      if (generation !== fetchGenerationRef.current) return;
+
+      messagePageRef.current = targetPage;
+      setMessagePage(targetPage);
       setMessages(result.messages);
       setMessageTotal(result.total);
       const normalizedFolder = activeFolder.trim().toLowerCase();
@@ -523,21 +553,43 @@ export function MailPage({
         refreshCareerNav();
       }
       setSelectedUids((prev) => prev.filter((uid) => result.messages.some((m) => m.uid === uid)));
-      if (selectedUid && !result.messages.some((m) => m.uid === selectedUid)) {
+      if (selectedUidRef.current && !result.messages.some((m) => m.uid === selectedUidRef.current)) {
         setSelectedUid(null);
         setSelectedMessage(null);
         setMobilePane("list");
       }
     } catch (err) {
-      setListError(err instanceof Error ? err.message : "Failed to load messages");
+      if (generation === fetchGenerationRef.current) {
+        setListError(err instanceof Error ? err.message : "Failed to load messages");
+      }
     } finally {
-      if (silent) {
-        setListRefreshing(false);
-      } else {
-        setLoadingMessages(false);
+      if (generation === fetchGenerationRef.current) {
+        if (isPaging) {
+          setPagingMessages(false);
+        } else if (silent) {
+          setListRefreshing(false);
+        } else {
+          setLoadingMessages(false);
+        }
       }
     }
-  }, [activeFolder, appliedSearch, mailFilter, selectedUid, messagePage, sortBy, sortOrder, refreshCareerNav]);
+  }, [activeFolder, appliedSearch, mailFilter, sortBy, sortOrder, refreshCareerNav]);
+
+  loadMessagesRef.current = loadMessages;
+
+  const listQueryRevision = useMemo(
+    () =>
+      [
+        activeFolder,
+        appliedSearch.field,
+        appliedSearch.query,
+        appliedSearch.scope ?? "all",
+        mailFilter,
+        sortBy,
+        sortOrder,
+      ].join("|"),
+    [activeFolder, appliedSearch, mailFilter, sortBy, sortOrder],
+  );
 
   const refreshAfterSend = useCallback(
     async (sentFolderPath?: string) => {
@@ -636,14 +688,16 @@ export function MailPage({
   }, [loadFolders]);
 
   useEffect(() => {
-    loadMessages();
-  }, [loadMessages]);
+    resetMessagePage();
+    void loadMessagesRef.current?.({ page: 1 });
+  }, [listQueryRevision, resetMessagePage]);
 
   useEffect(() => {
     if (selectedUid && !isVirtual) loadMessage(selectedUid);
   }, [selectedUid, loadMessage, isVirtual]);
 
   const selectFolder = (path: string) => {
+    messagePageRef.current = 1;
     setActiveFolder(path);
     setSelectedUid(null);
     setSelectedMessage(null);
@@ -681,6 +735,23 @@ export function MailPage({
       setSelectedUids(messages.map((m) => m.uid));
     }
   };
+
+  const handlePageChange = useCallback(
+    (nextPage: number) => {
+      const totalPages = Math.max(1, Math.ceil(messageTotal / PAGE_SIZE));
+      if (nextPage < 1 || nextPage > totalPages || nextPage === messagePageRef.current) return;
+
+      messagePageRef.current = nextPage;
+      setMessagePage(nextPage);
+      setSelectedUid(null);
+      setSelectedMessage(null);
+      setSelectedUids([]);
+      setMobilePane("list");
+      messageListRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      void loadMessages({ page: nextPage });
+    },
+    [loadMessages, messageTotal],
+  );
 
   const mobileGoBack = () => {
     if (mobilePane === "read") {
@@ -973,6 +1044,17 @@ export function MailPage({
     if (virtualView) return virtualView;
 
     const visibleSuggestions = contactSuggestions.filter((e) => !dismissedSuggestions.includes(e));
+    const usePortaledPagination = embedded && mobileMailViewport;
+    const mailPagination =
+      messageTotal > 0 ? (
+        <MailPaginationBar
+          page={messagePage}
+          pageSize={PAGE_SIZE}
+          total={messageTotal}
+          loading={pagingMessages}
+          onPageChange={handlePageChange}
+        />
+      ) : null;
 
     return (
       <>
@@ -1157,16 +1239,23 @@ export function MailPage({
                   ))}
                 </>
               )}
-              <MailPaginationBar
-                page={messagePage}
-                pageSize={PAGE_SIZE}
-                total={messageTotal}
-                onPageChange={setMessagePage}
-              />
             </>
           )}
           </div>
+          {!usePortaledPagination ? mailPagination : null}
         </div>
+        {usePortaledPagination && mailPagination
+          ? createPortal(
+              <div
+                className={`mail-pagination-portal${
+                  activeThemeVersion === "light" ? " mail-pagination-portal--light" : ""
+                }`}
+              >
+                {mailPagination}
+              </div>,
+              document.body,
+            )
+          : null}
       </>
     );
   };
@@ -1363,12 +1452,12 @@ export function MailPage({
 
         <section className="mail-list-pane">
           {embedded ? (
-            <p className="mail-list-breadcrumb" aria-label={`Welcome back, ${listUserDisplayName}, ${activeFolderLabel}`}>
+            <p className="mail-list-breadcrumb" aria-label={`Welcome back, ${listUserDisplayName}. You are: ${activeFolderLabel}`}>
               <span className="mail-list-breadcrumb-welcome">Welcome back, {listUserDisplayName}</span>
               <span className="mail-list-breadcrumb-sep" aria-hidden="true">
                 |
               </span>
-              <span className="mail-list-breadcrumb-current">{activeFolderLabel}</span>
+              <span className="mail-list-breadcrumb-current">You are: {activeFolderLabel}</span>
             </p>
           ) : null}
           <header className={`list-header ${isVirtual ? "list-header--virtual" : ""}`}>

@@ -117,16 +117,22 @@ export function saveDemoWorkspaceLocal(useCaseId: string, state: BespokeDemoPers
   }
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
+const API_BASE = import.meta.env.PROD ? (import.meta.env.VITE_API_BASE_URL ?? "") : "";
+
+const REMOTE_FETCH_TIMEOUT_MS = 4_000;
 
 export async function loadDemoWorkspaceRemote(
   useCaseId: string,
   sessionId: string,
 ): Promise<BespokeDemoPersistedState | null> {
   try {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), REMOTE_FETCH_TIMEOUT_MS);
     const res = await fetch(`${API_BASE}/api/public/bespoke-demo/${useCaseId}/workspace`, {
       headers: { "X-Demo-Session": sessionId },
+      signal: controller.signal,
     });
+    window.clearTimeout(timeout);
     if (!res.ok) return null;
     const data = (await res.json()) as { state: BespokeDemoPersistedState | null };
     return data.state ?? null;

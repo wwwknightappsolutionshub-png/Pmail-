@@ -189,6 +189,12 @@ authRouter.post("/login", async (req, res, next) => {
       res.status(401).json({ error: err.message });
       return;
     }
+    if (err instanceof Error) {
+      console.error("[auth/login]", err);
+      const status = err.message.includes("database schema") ? 503 : 400;
+      res.status(status).json({ error: err.message });
+      return;
+    }
     next(err);
   }
 });

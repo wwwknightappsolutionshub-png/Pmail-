@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { PMAIL_TESTER_TENANT_SLUG } from "../constants/tenant";
 import {
   emptyMailConfig,
+  inferProviderPresetFromEmail,
   resolveMailConfigFromPreset,
   type LoginMailConfigValues,
   type MailProviderPresetKey,
@@ -60,6 +61,22 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
           setTesterBypass(Boolean(result.testerBypass));
           setSuggestedTenantSlug(result.suggestedTenantSlug ?? null);
           setGreetingName(result.displayName);
+          if (result.suggestedMailConfig?.providerPreset) {
+            setMailConfig((current) =>
+              current.providerPreset
+                ? current
+                : resolveMailConfigFromPreset(
+                    result.suggestedMailConfig!.providerPreset as MailProviderPresetKey,
+                  ),
+            );
+          } else {
+            const inferred = inferProviderPresetFromEmail(normalized);
+            if (inferred) {
+              setMailConfig((current) =>
+                current.providerPreset ? current : resolveMailConfigFromPreset(inferred),
+              );
+            }
+          }
         }
       })
       .catch(() => {
@@ -95,6 +112,12 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
 
     if (showProviderSetup && !mailConfig.providerPreset) {
       setShowProviderSelectToast(true);
+      setLoginError("Select your mail provider above, then sign in.");
+      return;
+    }
+
+    if (suggestedTenantSlug && !isTesterRoute) {
+      setLoginError("Use the tester workspace link above, or open /login/pmail-tester for local demo login.");
       return;
     }
 

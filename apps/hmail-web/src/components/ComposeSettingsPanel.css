@@ -609,3 +609,31 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Production settings tab — one shared scroll; panels stack by content height */
+.bespoke-production-settings-stack .brand-settings.mail-view-panel {
+  flex: none;
+  height: auto;
+  min-height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.bespoke-production-settings-stack .brand-settings__scroll {
+  flex: none;
+  min-height: auto;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.bespoke-production-settings-stack .brand-settings-hero {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.bespoke-production-settings-stack .brand-settings-scroll-top {
+  display: none;
+}

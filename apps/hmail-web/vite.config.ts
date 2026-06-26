@@ -84,7 +84,8 @@ export default defineConfig(({ mode }) => {
           ],
         },
         devOptions: {
-          enabled: mode === "development",
+          // Dev SW intercepts Vite module requests and can leave the app stuck on the HTML splash.
+          enabled: false,
         },
       }),
     ],

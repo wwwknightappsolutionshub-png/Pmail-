@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type {
   BespokeMailDemoConfig,
@@ -39,6 +39,7 @@ import { getMailClientSeeds } from "../../data/demoMailClientSeeds";
 import {
   buildPersistedState,
   hydrateDemoWorkspace,
+  loadDemoWorkspaceLocal,
   queueDemoWorkspaceSave,
   resolveDemoAutoReplyEntitlement,
   type DemoCalendarEvent,
@@ -699,6 +700,41 @@ export function BespokeMailDemo({
 
   const [paidAddonNotice, setPaidAddonNotice] = useState<{ feature: string; slug: string } | null>(null);
   const [workspaceReady, setWorkspaceReady] = useState(false);
+  const workspaceTabsRef = useRef<HTMLDivElement>(null);
+  const [workspaceTabsCanScrollForward, setWorkspaceTabsCanScrollForward] = useState(false);
+  const [isMobileWorkspaceTabs, setIsMobileWorkspaceTabs] = useState(false);
+
+  const updateWorkspaceTabsScroll = useCallback(() => {
+    const el = workspaceTabsRef.current;
+    if (!el) return;
+    const remaining = el.scrollWidth - el.clientWidth - el.scrollLeft;
+    setWorkspaceTabsCanScrollForward(remaining > 4);
+  }, []);
+
+  const scrollWorkspaceTabsForward = useCallback(() => {
+    const el = workspaceTabsRef.current;
+    if (!el) return;
+
+    const tabs = Array.from(el.querySelectorAll<HTMLButtonElement>(".bespoke-demo-workspace-tab"));
+    const viewportRight = el.scrollLeft + el.clientWidth;
+    const nextHidden = tabs.find((tab) => tab.offsetLeft + tab.offsetWidth > viewportRight + 4);
+
+    if (nextHidden) {
+      nextHidden.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+    } else {
+      el.scrollBy({ left: Math.max(180, Math.round(el.clientWidth * 0.72)), behavior: "smooth" });
+    }
+
+    window.setTimeout(updateWorkspaceTabsScroll, 320);
+  }, [updateWorkspaceTabsScroll]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobileWorkspaceTabs(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     setActiveTool(null);
@@ -783,7 +819,7 @@ export function BespokeMailDemo({
       })),
     });
 
-    void hydrateDemoWorkspace(demo.useCaseId, () => seed).then((loaded) => {
+    const applyLoaded = (loaded: ReturnType<typeof buildPersistedState>) => {
       if (cancelled) return;
       setMessages(loaded.messages);
       setCrmContacts(loaded.crmContacts);
@@ -803,12 +839,22 @@ export function BespokeMailDemo({
       setAutoReplies(loaded.autoReplies);
       setSignatures(loaded.signatures);
       setWorkspaceReady(true);
-    });
+    };
+
+    if (renderInboxWorkspace) {
+      const local = loadDemoWorkspaceLocal(demo.useCaseId);
+      applyLoaded(local ?? seed);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    void hydrateDemoWorkspace(demo.useCaseId, () => seed).then(applyLoaded);
 
     return () => {
       cancelled = true;
     };
-  }, [demo.useCaseId, demo.messages, demo.crmContacts, demo.reminders, mailSeeds, composeSeed]);
+  }, [demo.useCaseId, demo.messages, demo.crmContacts, demo.reminders, mailSeeds, composeSeed, renderInboxWorkspace]);
 
   useEffect(() => {
     if (!workspaceReady) return;
@@ -991,6 +1037,38 @@ export function BespokeMailDemo({
   const remindersTabCount = useLiveTabCounts ? workspaceTabCounts!.reminders : pendingReminderCount;
   const calendarTabCount = useLiveTabCounts ? workspaceTabCounts!.calendar : calendarEvents.length;
   const messagingTabCount = useLiveTabCounts ? workspaceTabCounts!.messaging : messagingThreads.length;
+  const workspaceTabButtonCount = 6 + (showCareerTab ? 1 : 0);
+  const showWorkspaceTabsMore =
+    isMobileWorkspaceTabs || workspaceTabsCanScrollForward || workspaceTabButtonCount > 5;
+
+  useLayoutEffect(() => {
+    if (!workspaceReady) return;
+    const el = workspaceTabsRef.current;
+    if (!el) return;
+
+    const run = () => updateWorkspaceTabsScroll();
+    run();
+    const delayed = window.setTimeout(run, 120);
+    el.addEventListener("scroll", run, { passive: true });
+    const observer = new ResizeObserver(run);
+    observer.observe(el);
+    if (el.parentElement) observer.observe(el.parentElement);
+
+    return () => {
+      window.clearTimeout(delayed);
+      el.removeEventListener("scroll", run);
+      observer.disconnect();
+    };
+  }, [
+    workspaceReady,
+    updateWorkspaceTabsScroll,
+    showCareerTab,
+    contactsTabCount,
+    remindersTabCount,
+    calendarTabCount,
+    messagingTabCount,
+    isMobileWorkspaceTabs,
+  ]);
   const activeToolId = activeTool && demo.tools.some((tool) => tool.id === activeTool) ? activeTool : null;
   const toolPanel = demo.toolPanels[activeToolId ?? demo.defaultToolId] ?? demo.toolPanels[demo.defaultToolId];
   const applyComposeTemplate = (template: { subject: string; html: string; label?: string }) => {
@@ -2171,7 +2249,8 @@ export function BespokeMailDemo({
         </div>
       </header>
 
-      <div className="bespoke-demo-workspace-tabs">
+      <div className="bespoke-demo-workspace-tabs-shell">
+        <div className="bespoke-demo-workspace-tabs" ref={workspaceTabsRef}>
         <button
           type="button"
           className={`bespoke-demo-workspace-tab${
@@ -2245,6 +2324,20 @@ export function BespokeMailDemo({
             onClick={() => (onCareerTabClick && forcedWorkspace !== "career" ? onCareerTabClick() : openWorkspaceTool("career", "Career"))}
           >
             Career
+          </button>
+        ) : null}
+        </div>
+        {showWorkspaceTabsMore ? (
+          <button
+            type="button"
+            className="bespoke-demo-workspace-tabs-more"
+            aria-label="Show more workspace tabs"
+            onClick={scrollWorkspaceTabsForward}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z" />
+            </svg>
+            <span>Show more</span>
           </button>
         ) : null}
       </div>

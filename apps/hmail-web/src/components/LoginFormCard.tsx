@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { formatMailConfigSummary, inferProviderPresetFromEmail } from "../constants/mailProviders";
 import { LoginProviderSelectToast } from "./LoginProviderSelectToast";
 import { GmailConnectWizard } from "./GmailConnectWizard";
@@ -43,6 +45,7 @@ export function LoginFormCard({
   className = "",
   onRequestWorkspaceAccess,
 }: LoginFormCardProps) {
+  const [showPassword, setShowPassword] = useState(false);
   const isGoogleProvider =
     mailConfig.providerPreset === "google" || inferProviderPresetFromEmail(email) === "google";
 
@@ -98,19 +101,30 @@ export function LoginFormCard({
 
           <label>
             Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Type in your active password"
-              required
-              autoComplete="current-password"
-            />
+            <span className="login-password-field">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="type in your password / app password"
+                required
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                className="login-password-toggle"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+              </button>
+            </span>
           </label>
 
-          {showProviderSetup && !isGoogleProvider ? (
-            <p className="login-provider-hint">Use your current mail provider password not a new password</p>
-          ) : null}
+          <p className="login-provider-hint">
+            Use your current mail provider password not a new password or app password if you are using gmail and others
+          </p>
         </section>
 
         {showProviderSetup ? <hr className="login-form-divider" aria-hidden="true" /> : null}

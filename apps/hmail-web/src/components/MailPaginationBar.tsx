@@ -4,28 +4,43 @@ interface MailPaginationBarProps {
   page: number;
   pageSize: number;
   total: number;
+  loading?: boolean;
   onPageChange: (page: number) => void;
 }
 
-export function MailPaginationBar({ page, pageSize, total, onPageChange }: MailPaginationBarProps) {
+export function MailPaginationBar({ page, pageSize, total, loading = false, onPageChange }: MailPaginationBarProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
-  const end = Math.min(page * pageSize, total);
+  const canGoBack = page > 1;
+  const canGoForward = page < totalPages;
+
+  const pageLabel =
+    loading && total > 0
+      ? `Loading page ${page}…`
+      : total === 0
+        ? "No messages"
+        : `Page ${page} of ${totalPages}`;
 
   return (
-    <div className="mail-pagination">
-      <span className="mail-pagination-summary">
-        {total === 0 ? "No messages" : `${start}–${end} of ${total}`}
-      </span>
-      <div className="mail-pagination-actions">
-        <button type="button" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
-          Previous
+    <div className={`mail-pagination${loading ? " mail-pagination--loading" : ""}`} aria-busy={loading}>
+      <div className="mail-pagination-nav" role="navigation" aria-label="Message list pages">
+        <button
+          type="button"
+          className="mail-pagination-btn mail-pagination-btn--arrow"
+          disabled={!canGoBack || total === 0}
+          aria-label="Previous page"
+          onClick={() => onPageChange(page - 1)}
+        >
+          &lt;
         </button>
-        <span>
-          Page {page} of {totalPages}
-        </span>
-        <button type="button" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>
-          Next
+        <span className="mail-pagination-page-label">{pageLabel}</span>
+        <button
+          type="button"
+          className="mail-pagination-btn mail-pagination-btn--arrow"
+          disabled={!canGoForward || total === 0}
+          aria-label="Next page"
+          onClick={() => onPageChange(page + 1)}
+        >
+          &gt;
         </button>
       </div>
     </div>

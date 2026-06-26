@@ -19,11 +19,13 @@ Standalone project for **Prohost Cloud** (custom VPS hosting panel) and **PMail+
 cd "Hostnet Panel"
 npm install
 npm run setup:sqlite
-npm run dev
+npm run dev:pmail
 ```
 
+`dev:pmail` starts the API and webmail UI together in one terminal. For the full stack (including the hosting panel), use `npm run dev` instead.
+
 - Web: http://localhost:5173/login
-- API: http://localhost:4000/health
+- API: http://localhost:4002/health (or whatever `API_PORT` is in `.env`)
 - Sign in with your Hostinger mailbox credentials
 
 Other options (native PostgreSQL, free cloud DB): see **[docs/SETUP-WITHOUT-DOCKER.md](docs/SETUP-WITHOUT-DOCKER.md)**

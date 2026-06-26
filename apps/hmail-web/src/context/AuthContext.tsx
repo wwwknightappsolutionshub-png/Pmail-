@@ -17,8 +17,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refresh = async () => {
+    const timeoutMs = 15_000;
     try {
-      const { user: me } = await api.me();
+      const { user: me } = await Promise.race([
+        api.me(),
+        new Promise<never>((_, reject) => {
+          window.setTimeout(() => reject(new Error("Auth check timed out")), timeoutMs);
+        }),
+      ]);
       setUser(me);
     } catch {
       setUser(null);

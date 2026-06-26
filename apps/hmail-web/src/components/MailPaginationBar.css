@@ -1,48 +1,107 @@
 .mail-pagination {
+  --mail-pagination-bg: #0b1424;
+  --mail-pagination-border: rgba(148, 163, 184, 0.28);
+  --mail-pagination-text: #cbd5e1;
+  --mail-pagination-btn-bg: #152238;
+  --mail-pagination-btn-border: #64748b;
+  --mail-pagination-btn-text: #f8fafc;
+  --mail-pagination-btn-disabled-bg: #101a2c;
+  --mail-pagination-btn-disabled-text: #64748b;
+  --mail-pagination-btn-disabled-border: #334155;
+
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 0.75rem;
   padding: 0.65rem 1rem;
-  border-top: 1px solid var(--list-chrome-border, var(--border, #e2e8f0));
-  background: var(--list-chrome-bg, var(--surface-inset, #f8fafc));
+  border-top: 1px solid var(--mail-pagination-border);
+  background: var(--mail-pagination-bg);
   font-family: inherit;
   font-size: 0.82rem;
-  color: var(--text-muted, #64748b);
+  color: var(--mail-pagination-text);
 }
 
-.mail-pagination-summary {
-  color: var(--text-muted, #64748b);
-}
-
-.mail-pagination-actions {
+.mail-pagination-nav {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.65rem;
+  width: 100%;
 }
 
-.mail-pagination-actions button {
-  min-height: 2.25rem;
-  border: 1px solid var(--list-chrome-btn-border, var(--border, #c8d1dc));
-  border-radius: 8px;
-  background: var(--list-chrome-btn-bg, #ffffff);
-  color: var(--text-secondary, var(--text, #334155));
-  padding: 0.35rem 0.75rem;
+.mail-pagination-page-label {
+  color: var(--mail-pagination-text);
   font-weight: 600;
+  white-space: nowrap;
+  min-width: 7.5rem;
+  text-align: center;
+}
+
+.mail-pagination-btn,
+.mail-pagination-nav button {
+  border: 1px solid var(--mail-pagination-btn-border);
+  border-radius: 8px;
+  background: var(--mail-pagination-btn-bg);
+  color: var(--mail-pagination-btn-text);
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
 }
 
-.mail-pagination-actions button:hover:not(:disabled) {
-  border-color: var(--accent-border, color-mix(in srgb, var(--brand-accent, #0d9488) 38%, transparent));
-  background: var(--accent-soft, #ecf8f6);
-  color: var(--accent-dark, #0f766e);
+.mail-pagination-btn--arrow,
+.mail-pagination-nav button.mail-pagination-btn--arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.35rem;
+  min-width: 2.35rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 1rem;
+  line-height: 1;
 }
 
-.mail-pagination-actions span {
-  color: var(--text-muted, #64748b);
+.mail-pagination-btn:hover:not(:disabled),
+.mail-pagination-nav button:hover:not(:disabled) {
+  border-color: #14b8a6;
+  background: #0f2937;
+  color: #ecfeff;
 }
 
-.mail-pagination-actions button:disabled {
-  opacity: 0.45;
+.mail-pagination-btn:disabled,
+.mail-pagination-nav button:disabled {
+  opacity: 1;
   cursor: not-allowed;
+  background: var(--mail-pagination-btn-disabled-bg);
+  border-color: var(--mail-pagination-btn-disabled-border);
+  color: var(--mail-pagination-btn-disabled-border);
+}
+
+.mail-pagination--loading .mail-pagination-btn:not(:disabled) {
+  border-color: #14b8a6;
+  color: #ecfeff;
+}
+
+.mail-pagination-portal .mail-pagination,
+.mail-pagination-portal--light .mail-pagination {
+  --mail-pagination-bg: #ffffff;
+  --mail-pagination-border: #cbd5e1;
+  --mail-pagination-text: #334155;
+  --mail-pagination-btn-bg: #ffffff;
+  --mail-pagination-btn-border: #475569;
+  --mail-pagination-btn-text: #0f172a;
+  --mail-pagination-btn-disabled-bg: #f1f5f9;
+  --mail-pagination-btn-disabled-text: #94a3b8;
+  --mail-pagination-btn-disabled-border: #cbd5e1;
+}
+
+.mail-app.mail-app--light .mail-pagination {
+  --mail-pagination-bg: var(--list-chrome-bg, #f8fafc);
+  --mail-pagination-border: var(--list-chrome-border, #dbe3ec);
+  --mail-pagination-text: #334155;
+  --mail-pagination-btn-bg: #ffffff;
+  --mail-pagination-btn-border: #475569;
+  --mail-pagination-btn-text: #0f172a;
+  --mail-pagination-btn-disabled-bg: #f1f5f9;
+  --mail-pagination-btn-disabled-text: #94a3b8;
+  --mail-pagination-btn-disabled-border: #cbd5e1;
 }

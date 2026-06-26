@@ -9,7 +9,15 @@ npx dotenv-cli -e ../../.env -- npx tsx scripts/generate-prisma.ts | Out-Null
 npx dotenv-cli -e ../../.env -- npx tsx prisma/seed.ts
 Pop-Location
 
-Write-Host "Starting hmail-api on http://localhost:4000"
+$apiPort = "4000"
+$envFile = Join-Path $root ".env"
+if (Test-Path $envFile) {
+  Get-Content $envFile | ForEach-Object {
+    if ($_ -match '^\s*API_PORT=(.+)$') { $apiPort = $matches[1].Trim() }
+  }
+}
+
+Write-Host "Starting hmail-api on http://localhost:$apiPort"
 Start-Process powershell -ArgumentList @(
   "-NoExit",
   "-Command",

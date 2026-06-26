@@ -33,10 +33,30 @@
       >
         <div style="text-align: center">
           <div style="font-size: 1.35rem; font-weight: 600; color: #f8fafc; letter-spacing: 0.02em">PMail+</div>
-          <div style="margin-top: 0.5rem; font-size: 0.9rem">Loading…</div>
+          <div id="pmail-boot-hint" style="margin-top: 0.5rem; font-size: 0.9rem">Loading…</div>
         </div>
       </div>
     </div>
+    <script>
+      window.__PMail_BOOTED__ = false;
+      window.setTimeout(function () {
+        if (window.__PMail_BOOTED__) return;
+        var hint = document.getElementById("pmail-boot-hint");
+        if (!hint) return;
+        hint.textContent =
+          "Still loading… If this does not clear, unregister the PMail+ service worker (browser site settings) and reload.";
+      }, 12000);
+      window.addEventListener(
+        "error",
+        function () {
+          var hint = document.getElementById("pmail-boot-hint");
+          if (hint && !window.__PMail_BOOTED__) {
+            hint.textContent = "App failed to load. Clear site data for this URL and reload.";
+          }
+        },
+        true,
+      );
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
