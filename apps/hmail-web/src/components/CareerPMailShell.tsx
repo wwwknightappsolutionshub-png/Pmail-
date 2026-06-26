@@ -7,6 +7,9 @@ import { useAuth } from "../context/AuthContext";
 import { useAddons } from "../context/AddonContext";
 import type { MailSearchState } from "../constants/mailViews";
 import { VerticalBespokeMailDemoPage } from "../pages/VerticalBespokeMailDemoPage";
+import { BespokeComposeBridgeProvider } from "../context/BespokeComposeBridge";
+import { MailFooterNavBridgeProvider } from "../context/MailFooterNavBridge";
+import { ShellMailFooterNav } from "./ShellMailFooterNav";
 
 type LiveComposeSettings = {
   autoReplyEnabled: boolean;
@@ -89,7 +92,9 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
   );
 
   return (
-    <VerticalBespokeMailDemoPage
+    <BespokeComposeBridgeProvider>
+      <MailFooterNavBridgeProvider>
+        <VerticalBespokeMailDemoPage
       businessVertical={user?.businessVertical ?? null}
       userName={displayName}
       userEmail={displayEmail}
@@ -155,9 +160,12 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
       }}
       renderTopbarSearch={topbarSearch}
       renderWorkspace={renderWorkspace}
+      renderMobileFooterNav={<ShellMailFooterNav uiThemeVersion={uiThemeVersion} />}
       showCareerTab={hasJobHunterAccess()}
       forcedWorkspace="career"
       onWorkspaceTabNavigate={onWorkspaceTabNavigate}
-    />
+        />
+      </MailFooterNavBridgeProvider>
+    </BespokeComposeBridgeProvider>
   );
 }

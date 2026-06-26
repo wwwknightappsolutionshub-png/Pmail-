@@ -129,6 +129,7 @@ type VerticalBespokeMailDemoPageProps = {
     calendar: number;
     messaging: number;
   } | null;
+  renderMobileFooterNav?: ReactNode;
 };
 
 export function VerticalBespokeMailDemoPage({
@@ -168,6 +169,7 @@ export function VerticalBespokeMailDemoPage({
   onMailWorkspaceView,
   mobileTopbarSearchCollapsed = false,
   workspaceTabCounts = null,
+  renderMobileFooterNav,
 }: VerticalBespokeMailDemoPageProps) {
   const { hasAddon } = useAddons();
   const resolvedHideIndustryTools =
@@ -240,6 +242,7 @@ export function VerticalBespokeMailDemoPage({
         onMailWorkspaceView={onMailWorkspaceView}
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
+        renderMobileFooterNav={renderMobileFooterNav}
         renderLoading={<PmailLoadingScreen subtitle="Loading your workspace…" />}
         renderIndustryTool={({ demo: currentDemo, toolId, applyComposeTemplate }) => {
           if (currentDemo.useCaseId === "legal") {

@@ -3635,6 +3635,10 @@ html:has(.pmail-demo-shell--light) body {
 }
 
 /* ─── Mobile / PWA shell ─────────────────────────────────── */
+.bespoke-demo-mobile-footer-shell {
+  display: none;
+}
+
 @media (max-width: 767px) {
   .pmail-demo-shell {
     --pmail-bespoke-topbar-h: calc(3.55rem + env(safe-area-inset-top));
@@ -3648,16 +3652,73 @@ html:has(.pmail-demo-shell--light) body {
     box-sizing: border-box;
   }
 
+  .pmail-demo-shell .bespoke-demo-production-workspace--settings .bespoke-production-settings-stack {
+    padding-bottom: calc(1.5rem + var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .pmail-demo-shell .bespoke-demo-mobile-footer-shell {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 55;
+  }
+
+  .pmail-demo-shell .mail-app--embedded-in-bespoke .mail-bottom-nav {
+    display: none !important;
+  }
+
+  .pmail-demo-shell .bespoke-demo-mobile-footer-shell .mail-app--shell-footer {
+    --mail-bottom-nav-h: 2.75rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-mobile-footer-shell .mail-bottom-nav {
+    display: flex;
+    position: static;
+    border-top-color: var(--border);
+    background: rgba(8, 14, 26, 0.94);
+  }
+
+  .pmail-demo-shell .bespoke-demo-mobile-footer-shell .mail-bottom-nav .mail-bottom-nav-btn,
+  .pmail-demo-shell .bespoke-demo-mobile-footer-shell .mail-bottom-nav .inbox-switcher-trigger--bottom-nav {
+    color: var(--text-muted);
+  }
+
+  .pmail-demo-shell .bespoke-demo-mobile-footer-shell .mail-bottom-nav .mail-bottom-nav-btn.is-active,
+  .pmail-demo-shell .bespoke-demo-mobile-footer-shell .mail-bottom-nav .inbox-switcher-trigger--bottom-nav[aria-expanded="true"] {
+    color: #fff;
+    background: transparent;
+  }
+
+  .pmail-demo-shell--light .bespoke-demo-mobile-footer-shell .mail-bottom-nav {
+    background: #fff;
+    border-top-color: #dbe3ec;
+  }
+
+  .pmail-demo-shell--light .bespoke-demo-mobile-footer-shell .mail-bottom-nav .mail-bottom-nav-btn,
+  .pmail-demo-shell--light .bespoke-demo-mobile-footer-shell .mail-bottom-nav .inbox-switcher-trigger--bottom-nav {
+    color: #64748b;
+  }
+
+  .pmail-demo-shell--light .bespoke-demo-mobile-footer-shell .mail-bottom-nav .mail-bottom-nav-btn.is-active,
+  .pmail-demo-shell--light .bespoke-demo-mobile-footer-shell .mail-bottom-nav .inbox-switcher-trigger--bottom-nav[aria-expanded="true"] {
+    color: var(--brand-primary, #0d4f6c);
+    background: transparent;
+  }
+
   .pmail-demo-shell .bespoke-demo-inbox-production-mount:not(.bespoke-demo-inbox-production-mount--hidden) {
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
+    padding-bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom));
+    box-sizing: border-box;
   }
 
   .pmail-demo-shell .bespoke-demo-inbox-production-mount--hidden {
     flex: 0 0 auto;
     min-height: 0;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .pmail-demo-shell .bespoke-demo {

@@ -4,6 +4,7 @@ import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useAutoMailPush } from "../hooks/useAutoMailPush";
 import { useRegisterBespokeCompose } from "../context/BespokeComposeBridge";
+import { useOptionalMailFooterNavBridge, useRegisterMailFooterNav } from "../context/MailFooterNavBridge";
 import { useAddons } from "../context/AddonContext";
 import { AddonUpsellPanel } from "../components/AddonUpsellPanel";
 import { ComposeModal, type ComposeInitial } from "../components/ComposeModal";
@@ -720,6 +721,22 @@ export function MailPage({
       void refreshMailInbox();
     }
   }, [mobilePane, activeFolder, inboxPath, canRefreshMailList, refreshMailInbox, activateEmbeddedShell]);
+
+  const footerNavBridge = useOptionalMailFooterNavBridge();
+  const footerNavHandlers = useMemo(
+    () => ({
+      openFolders: openMobileFolders,
+      openMessages: openMobileMessages,
+    }),
+    [openMobileFolders, openMobileMessages],
+  );
+
+  useRegisterMailFooterNav(footerNavHandlers, embedded && Boolean(footerNavBridge));
+
+  useEffect(() => {
+    if (!embedded || !footerNavBridge) return;
+    footerNavBridge.setState({ mobilePane });
+  }, [embedded, footerNavBridge, mobilePane]);
 
   const junkFolder = folders.find((f) => resolveFolderKind(f) === "junk");
   const isTrashFolder = activeFolderKind === "trash";
@@ -1493,6 +1510,7 @@ export function MailPage({
       </div>
       </div>
 
+      {!embedded ? (
       <nav className="mail-bottom-nav mail-bottom-nav--with-switcher" aria-label="Mobile navigation">
         <MailBottomNavButton
           label="Folders"
@@ -1517,12 +1535,10 @@ export function MailPage({
         <MailBottomNavButton
           label="New mail"
           icon={SquarePen}
-          onClick={() => {
-            activateEmbeddedShell();
-            openCompose({ mode: "new" });
-          }}
+          onClick={() => openCompose({ mode: "new" })}
         />
       </nav>
+      ) : null}
 
       <ComposeModal
         open={composeOpen}

@@ -5,6 +5,8 @@ import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useAddons } from "../context/AddonContext";
 import { BespokeComposeBridgeProvider, useBespokeComposeBridge } from "../context/BespokeComposeBridge";
+import { MailFooterNavBridgeProvider } from "../context/MailFooterNavBridge";
+import { ShellMailFooterNav } from "../components/ShellMailFooterNav";
 import { GmailMailSearch } from "../components/GmailMailSearch";
 import { ContactSyncToast } from "../components/ContactSyncToast";
 import { SecondaryMailboxToast } from "../components/SecondaryMailboxToast";
@@ -315,6 +317,16 @@ function BespokeMailShellContent() {
     [searchDraft, appliedSearch, uiThemeVersion, mailFolderRequest],
   );
 
+  const mobileFooterNav = useMemo(
+    () => (
+      <ShellMailFooterNav
+        uiThemeVersion={uiThemeVersion}
+        onActivateInbox={() => setRequestedWorkspace("inbox")}
+      />
+    ),
+    [uiThemeVersion],
+  );
+
   return (
     <>
       <VerticalBespokeMailDemoPage
@@ -348,6 +360,7 @@ function BespokeMailShellContent() {
         onMailWorkspaceView={navigateMailWorkspaceView}
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
+        renderMobileFooterNav={mobileFooterNav}
         showCareerTab={careerNavUnlocked}
         onCareerTabClick={() => navigate("/career")}
         requestedWorkspace={requestedWorkspace}
@@ -393,7 +406,9 @@ function BespokeMailShellContent() {
 export function BespokeMailShellPage() {
   return (
     <BespokeComposeBridgeProvider>
-      <BespokeMailShellContent />
+      <MailFooterNavBridgeProvider>
+        <BespokeMailShellContent />
+      </MailFooterNavBridgeProvider>
     </BespokeComposeBridgeProvider>
   );
 }
