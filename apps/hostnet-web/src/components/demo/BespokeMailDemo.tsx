@@ -173,8 +173,6 @@ type Props = {
     calendar: number;
     messaging: number;
   } | null;
-  /** Persistent mobile footer nav (production PMail+ shell). */
-  renderMobileFooterNav?: ReactNode;
   /** Branded splash while demo workspace hydrates (production PMail+ shell). */
   renderLoading?: ReactNode;
 };
@@ -514,7 +512,6 @@ export function BespokeMailDemo({
   onMailWorkspaceView,
   mobileTopbarSearchCollapsed = false,
   workspaceTabCounts = null,
-  renderMobileFooterNav,
   renderLoading,
 }: Props) {
   const composeSeed = useMemo(() => getComposeSettings(demo.useCaseId), [demo.useCaseId]);
@@ -3849,10 +3846,6 @@ export function BespokeMailDemo({
           onSendWhatsapp={requestComposeWhatsappSend}
           onDiscard={discardComposeMail}
         />
-      ) : null}
-
-      {renderMobileFooterNav ? (
-        <div className="bespoke-demo-mobile-footer-shell">{renderMobileFooterNav}</div>
       ) : null}
 
       <AutoReplyModal

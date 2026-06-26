@@ -3899,7 +3899,7 @@
   }
 
   .bespoke-demo-messaging-shell[data-mobile-messaging-pane="list"] .bespoke-demo-messaging-directory {
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(0.75rem + var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
   }
 
   .bespoke-demo-messaging-directory__scroll {
@@ -3912,14 +3912,14 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(0.75rem + var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
   }
 
   .bespoke-demo-messaging-shell[data-mobile-messaging-pane="chat"] .bespoke-demo-chat-panel {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(0.75rem + var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
   }
 
   .bespoke-demo-chat-head {

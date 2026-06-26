@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { BespokeMailDemo, type BespokeWorkspace } from "@hostnet-demo/components/demo/BespokeMailDemo";
 import "@hostnet-demo/components/demo/BespokeMailDemo.css";
 import { getBespokeMailDemo } from "@hostnet-demo/data/bespokeMailDemoData";
@@ -242,7 +243,6 @@ export function VerticalBespokeMailDemoPage({
         onMailWorkspaceView={onMailWorkspaceView}
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
-        renderMobileFooterNav={renderMobileFooterNav}
         renderLoading={<PmailLoadingScreen subtitle="Loading your workspace…" />}
         renderIndustryTool={({ demo: currentDemo, toolId, applyComposeTemplate }) => {
           if (currentDemo.useCaseId === "legal") {
@@ -290,6 +290,18 @@ export function VerticalBespokeMailDemoPage({
           return null;
         }}
       />
+      {renderMobileFooterNav
+        ? createPortal(
+            <div
+              className={`pmail-shell-mobile-footer${
+                uiThemeVersion === "light" ? " pmail-shell-mobile-footer--light" : ""
+              }`}
+            >
+              {renderMobileFooterNav}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
