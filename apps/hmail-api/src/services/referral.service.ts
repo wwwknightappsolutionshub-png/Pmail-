@@ -2,6 +2,10 @@ import { getEnv } from "../config/env.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
 import { renderEmailTemplate } from "./email-template.service.js";
 import { listFolders, listMessages, type MailCredentials } from "./imap.service.js";
+import {
+  isPersonalReferralEmail,
+  referralRecipientDedupeKey,
+} from "./referral-recipient-filter.js";
 
 export const PMail_REFERRAL_TEMPLATE_SLUG = "pmail-refer-friend";
 export const PMail_REFERRAL_SUBJECT = "Explore More Possibilities With Mails On PMail+ | Join Me";
@@ -51,11 +55,17 @@ function collectUniqueEmails(
   seen: Set<string>,
 ): string[] {
   const collected: string[] = [];
+  const excludeKey = referralRecipientDedupeKey(excludeEmail);
   for (const row of rows) {
     const candidates = field === "from" ? parseAddressField(row.from) : parseAddressField(row.to);
     for (const email of candidates) {
-      if (email === excludeEmail || seen.has(email)) continue;
-      seen.add(email);
+      if (referralRecipientDedupeKey(email) === excludeKey) continue;
+      if (!isPersonalReferralEmail(email)) continue;
+
+      const dedupeKey = referralRecipientDedupeKey(email);
+      if (seen.has(dedupeKey)) continue;
+
+      seen.add(dedupeKey);
       collected.push(email);
       if (collected.length >= limit) break;
     }

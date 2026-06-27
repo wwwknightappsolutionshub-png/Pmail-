@@ -2,6 +2,7 @@ import type { DemoMessage } from "./bespokeMailDemoData";
 import type { DemoOutboundMail } from "./demoMailClient";
 import { buildPmailReferralHtml, referralHtmlToPlainText } from "./referralBrandedEmail";
 import { extractSenderEmail } from "./demoMailUtils";
+import { isPersonalReferralEmail, referralRecipientDedupeKey } from "../utils/referralRecipientFilter";
 
 export const REFERRAL_REWARD_TOAST =
   "Congratulations you can now enjoy the Platform tools free of charge for 7 days";
@@ -19,10 +20,16 @@ const INBOX_RECIPIENT_LIMIT = 30;
 const SENT_RECIPIENT_LIMIT = 10;
 function collectUniqueEmails(values: string[], limit: number, excludeEmail: string, seen: Set<string>): string[] {
   const collected: string[] = [];
+  const excludeKey = referralRecipientDedupeKey(excludeEmail);
   for (const value of values) {
     for (const email of parseAddressCandidates(value)) {
-      if (!email || email === excludeEmail || seen.has(email)) continue;
-      seen.add(email);
+      if (!email || referralRecipientDedupeKey(email) === excludeKey) continue;
+      if (!isPersonalReferralEmail(email)) continue;
+
+      const dedupeKey = referralRecipientDedupeKey(email);
+      if (seen.has(dedupeKey)) continue;
+
+      seen.add(dedupeKey);
       collected.push(email);
       if (collected.length >= limit) return collected;
     }

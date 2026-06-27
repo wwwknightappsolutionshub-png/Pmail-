@@ -1,33 +1,62 @@
+import { lazy, Suspense, type ReactNode } from "react";
 import { Navigate, Route, Routes, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
-import { WelcomePage } from "./pages/WelcomePage";
-import { BespokeMailShellPage } from "./pages/BespokeMailShellPage";
-import { MailPage } from "./pages/MailPage";
-import { CareerWorkspacePage } from "./pages/CareerWorkspacePage";
-import { CareerScannerPage } from "./pages/CareerScannerPage";
-import { CareerCvHubPanel } from "./components/CareerCvHubPanel";
-import { CareerHistoryPanel } from "./components/CareerHistoryPanel";
-import { CareerCvBuilderPanel } from "./components/CareerCvBuilderPanel";
-import { CareerApplyAssistPanel } from "./components/CareerApplyAssistPanel";
-import { JobHunterPanel } from "./components/JobHunterPanel";
-import { AddonsPage } from "./pages/AddonsPage";
-import { BusinessVerticalPage } from "./pages/BusinessVerticalPage";
 import { PmailLoadingScreen } from "./components/PmailLoadingScreen";
+import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 
-function AuthenticatedRoute({ children }: { children: React.ReactNode }) {
+const WelcomePage = lazy(() => import("./pages/WelcomePage").then((m) => ({ default: m.WelcomePage })));
+const BespokeMailShellPage = lazy(() =>
+  import("./pages/BespokeMailShellPage").then((m) => ({ default: m.BespokeMailShellPage })),
+);
+const MailPage = lazy(() => import("./pages/MailPage").then((m) => ({ default: m.MailPage })));
+const CareerWorkspacePage = lazy(() =>
+  import("./pages/CareerWorkspacePage").then((m) => ({ default: m.CareerWorkspacePage })),
+);
+const CareerScannerPage = lazy(() =>
+  import("./pages/CareerScannerPage").then((m) => ({ default: m.CareerScannerPage })),
+);
+const CareerCvHubPanel = lazy(() =>
+  import("./components/CareerCvHubPanel").then((m) => ({ default: m.CareerCvHubPanel })),
+);
+const CareerHistoryPanel = lazy(() =>
+  import("./components/CareerHistoryPanel").then((m) => ({ default: m.CareerHistoryPanel })),
+);
+const CareerCvBuilderPanel = lazy(() =>
+  import("./components/CareerCvBuilderPanel").then((m) => ({ default: m.CareerCvBuilderPanel })),
+);
+const CareerApplyAssistPanel = lazy(() =>
+  import("./components/CareerApplyAssistPanel").then((m) => ({ default: m.CareerApplyAssistPanel })),
+);
+const JobHunterPanel = lazy(() => import("./components/JobHunterPanel").then((m) => ({ default: m.JobHunterPanel })));
+const AddonsPage = lazy(() => import("./pages/AddonsPage").then((m) => ({ default: m.AddonsPage })));
+const BusinessVerticalPage = lazy(() =>
+  import("./pages/BusinessVerticalPage").then((m) => ({ default: m.BusinessVerticalPage })),
+);
+
+function AuthenticatedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <PmailLoadingScreen subtitle="Signing you in…" />;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <PmailLoadingScreen subtitle="Signing you in…" />;
   if (!user) return <Navigate to="/login" replace />;
-  if (!user.businessVertical) return <BusinessVerticalPage />;
+  if (!user.businessVertical) {
+    return (
+      <Suspense fallback={<RouteLoadingFallback subtitle="Loading workspace setup…" />}>
+        <BusinessVerticalPage />
+      </Suspense>
+    );
+  }
   return <>{children}</>;
+}
+
+function LazyRoute({ children, subtitle = "Loading…" }: { children: ReactNode; subtitle?: string }) {
+  return <Suspense fallback={<RouteLoadingFallback subtitle={subtitle} />}>{children}</Suspense>;
 }
 
 function CareerCvLegacyRedirect() {
@@ -48,15 +77,31 @@ export function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/login/:tenantSlug" element={<LoginPage />} />
-      <Route path="/welcome" element={<WelcomePage />} />
-      <Route path="/welcome/:tenantSlug" element={<WelcomePage />} />
+      <Route
+        path="/welcome"
+        element={
+          <LazyRoute subtitle="Loading welcome…">
+            <WelcomePage />
+          </LazyRoute>
+        }
+      />
+      <Route
+        path="/welcome/:tenantSlug"
+        element={
+          <LazyRoute subtitle="Loading welcome…">
+            <WelcomePage />
+          </LazyRoute>
+        }
+      />
       <Route path="/discover" element={<DiscoverRedirect />} />
       <Route path="/discover/:tenantSlug" element={<DiscoverRedirect />} />
       <Route
         path="/"
         element={
           <ProtectedRoute>
-            <BespokeMailShellPage />
+            <LazyRoute subtitle="Loading PMail+…">
+              <BespokeMailShellPage />
+            </LazyRoute>
           </ProtectedRoute>
         }
       />
@@ -64,7 +109,9 @@ export function App() {
         path="/mail/production"
         element={
           <ProtectedRoute>
-            <MailPage />
+            <LazyRoute subtitle="Loading mail…">
+              <MailPage />
+            </LazyRoute>
           </ProtectedRoute>
         }
       />
@@ -72,17 +119,68 @@ export function App() {
         path="/career"
         element={
           <ProtectedRoute>
-            <CareerWorkspacePage />
+            <LazyRoute subtitle="Loading career workspace…">
+              <CareerWorkspacePage />
+            </LazyRoute>
           </ProtectedRoute>
         }
       >
-        <Route index element={<CareerCvHubPanel />} />
-        <Route path="scan" element={<CareerScannerPage />} />
-        <Route path="build" element={<CareerCvBuilderPanel />} />
-        <Route path="build/:id" element={<CareerCvBuilderPanel />} />
-        <Route path="apply" element={<CareerApplyAssistPanel />} />
-        <Route path="track" element={<CareerHistoryPanel />} />
-        <Route path="settings" element={<JobHunterPanel />} />
+        <Route
+          index
+          element={
+            <LazyRoute subtitle="Loading CV hub…">
+              <CareerCvHubPanel />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="scan"
+          element={
+            <LazyRoute subtitle="Loading scanner…">
+              <CareerScannerPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="build"
+          element={
+            <LazyRoute subtitle="Loading CV builder…">
+              <CareerCvBuilderPanel />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="build/:id"
+          element={
+            <LazyRoute subtitle="Loading CV builder…">
+              <CareerCvBuilderPanel />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="apply"
+          element={
+            <LazyRoute subtitle="Loading apply assist…">
+              <CareerApplyAssistPanel />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="track"
+          element={
+            <LazyRoute subtitle="Loading history…">
+              <CareerHistoryPanel />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <LazyRoute subtitle="Loading settings…">
+              <JobHunterPanel />
+            </LazyRoute>
+          }
+        />
         <Route path="cv" element={<Navigate to="/career/build" replace />} />
         <Route path="cv/:id" element={<CareerCvLegacyRedirect />} />
         <Route path="scanner" element={<Navigate to="/career/scan" replace />} />
@@ -94,7 +192,9 @@ export function App() {
         path="/addons"
         element={
           <AuthenticatedRoute>
-            <AddonsPage />
+            <LazyRoute subtitle="Loading add-ons…">
+              <AddonsPage />
+            </LazyRoute>
           </AuthenticatedRoute>
         }
       />

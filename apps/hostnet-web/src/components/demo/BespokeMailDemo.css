@@ -313,12 +313,13 @@
   position: fixed;
   z-index: calc(var(--pmail-search-layer, 9000) + 10);
   min-width: min(100%, 18rem);
-  max-width: calc(100vw - 1.5rem);
+  max-width: calc(100vw - max(2rem, env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)));
+  box-sizing: border-box;
   pointer-events: auto;
 }
 
 .bespoke-mail-search-portal--advanced {
-  width: min(34rem, calc(100vw - 1.5rem));
+  width: min(34rem, calc(100vw - max(2rem, env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px))));
 }
 
 .bespoke-mail-search-recent,

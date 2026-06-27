@@ -45,6 +45,41 @@ type SearchAnchorRect = {
   width: number;
 };
 
+const VIEWPORT_EDGE_GAP_PX = 16;
+const ADVANCED_PANEL_MAX_WIDTH_PX = 544;
+
+function viewportEdgeGap(): number {
+  return VIEWPORT_EDGE_GAP_PX;
+}
+
+function clampPanelLeft(left: number, panelWidth: number): number {
+  const edgeGap = viewportEdgeGap();
+  const maxLeft = window.innerWidth - edgeGap - panelWidth;
+  return Math.max(edgeGap, Math.min(left, maxLeft));
+}
+
+function computeSearchPanelRect(root: HTMLElement, advanced: boolean): SearchAnchorRect {
+  const rect = root.getBoundingClientRect();
+  const top = rect.bottom + 6;
+  const edgeGap = viewportEdgeGap();
+
+  if (advanced) {
+    const width = Math.min(ADVANCED_PANEL_MAX_WIDTH_PX, window.innerWidth - edgeGap * 2);
+    return {
+      top,
+      left: clampPanelLeft(rect.left, width),
+      width,
+    };
+  }
+
+  const width = Math.min(rect.width, window.innerWidth - edgeGap * 2);
+  return {
+    top,
+    left: clampPanelLeft(rect.left, width),
+    width,
+  };
+}
+
 export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>(function MailSearchBar(
   { query, active, scope, contacts = [], onQueryChange, onScopeChange, onSearch, onClear },
   ref,
@@ -86,13 +121,9 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
     }
 
     function syncAnchor() {
-      const rect = rootRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      setAnchorRect({
-        top: rect.bottom + 6,
-        left: rect.left,
-        width: rect.width,
-      });
+      const root = rootRef.current;
+      if (!root) return;
+      setAnchorRect(computeSearchPanelRect(root, showAdvanced));
     }
 
     syncAnchor();
@@ -165,7 +196,7 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
             style={{
               top: anchorRect.top,
               left: anchorRect.left,
-              width: showAdvanced ? undefined : anchorRect.width,
+              width: anchorRect.width,
             }}
           >
             {showRecent ? (

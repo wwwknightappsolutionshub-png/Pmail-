@@ -2,48 +2,13 @@ import { createPortal } from "react-dom";
 import { BespokeMailDemo, type BespokeWorkspace } from "@hostnet-demo/components/demo/BespokeMailDemo";
 import "@hostnet-demo/components/demo/BespokeMailDemo.css";
 import { getBespokeMailDemo } from "@hostnet-demo/data/bespokeMailDemoData";
-import {
-  ClientEntitiesPanel,
-  DocumentIntakePanel,
-  FilingCalendarPanel,
-  SecureExchangePanel,
-} from "../components/AccountingPanels";
-import {
-  ClientPortalPanel,
-  CompliancePanel,
-  DeadlinesPanel,
-  ImmigrationDeskPanel,
-} from "../components/FeaturePanels";
-import {
-  ClientWorkspacesPanel,
-  ProjectTrackerPanel,
-  ProposalDeskPanel,
-  SlaMonitorPanel,
-} from "../components/B2bPanels";
-import {
-  AppointmentDeskPanel,
-  HipaaAuditPanel,
-  PatientRegistryPanel,
-  ReferralTrackerPanel,
-} from "../components/HealthcarePanels";
-import {
-  BulkOutreachPanel,
-  InterviewDeskPanel,
-  RolePipelinePanel,
-  TalentSearchPanel,
-} from "../components/RecruitmentPanels";
-import {
-  DealRoomPanel,
-  ListingBoardPanel,
-  QuickRepliesPanel,
-  ShowingSchedulerPanel,
-} from "../components/RealEstatePanels";
 import type { BusinessVertical } from "../types/mail";
 import type { ReactNode } from "react";
 import { useAddons } from "../context/AddonContext";
 import { shouldHideVerticalIndustryRibbon } from "../utils/verticalIndustryRibbon";
 import { PmailLoadingScreen } from "../components/PmailLoadingScreen";
 import { HMailLogo } from "../components/HMailLogo";
+import { LazyIndustryToolPanel } from "../components/industryTools/LazyIndustryToolPanel";
 import "./VerticalBespokeMailDemoPage.css";
 
 type AutoReplyEntitlementState = {
@@ -251,51 +216,13 @@ export function VerticalBespokeMailDemoPage({
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
         renderLoading={<PmailLoadingScreen subtitle="Loading your workspace…" />}
-        renderIndustryTool={({ demo: currentDemo, toolId, applyComposeTemplate }) => {
-          if (currentDemo.useCaseId === "legal") {
-            if (toolId === "matters") return <ImmigrationDeskPanel />;
-            if (toolId === "deadlines") return <DeadlinesPanel />;
-            if (toolId === "compliance") return <CompliancePanel />;
-            if (toolId === "clients") return <ClientPortalPanel />;
-          }
-
-          if (currentDemo.useCaseId === "accounting") {
-            if (toolId === "intake") return <DocumentIntakePanel />;
-            if (toolId === "deadlines") return <FilingCalendarPanel />;
-            if (toolId === "secure") return <SecureExchangePanel onUseTemplate={applyComposeTemplate} />;
-            if (toolId === "clients") return <ClientEntitiesPanel />;
-          }
-
-          if (currentDemo.useCaseId === "real-estate") {
-            if (toolId === "listings") return <ListingBoardPanel />;
-            if (toolId === "showings") return <ShowingSchedulerPanel />;
-            if (toolId === "templates") return <QuickRepliesPanel onUseTemplate={applyComposeTemplate} />;
-            if (toolId === "team") return <DealRoomPanel />;
-          }
-
-          if (currentDemo.useCaseId === "recruitment") {
-            if (toolId === "pipeline") return <RolePipelinePanel />;
-            if (toolId === "schedule") return <InterviewDeskPanel />;
-            if (toolId === "outreach") return <BulkOutreachPanel onUseTemplate={applyComposeTemplate} />;
-            if (toolId === "search") return <TalentSearchPanel />;
-          }
-
-          if (currentDemo.useCaseId === "b2b-services") {
-            if (toolId === "workspaces") return <ClientWorkspacesPanel />;
-            if (toolId === "projects") return <ProjectTrackerPanel />;
-            if (toolId === "proposals") return <ProposalDeskPanel onUseTemplate={applyComposeTemplate} />;
-            if (toolId === "sla") return <SlaMonitorPanel />;
-          }
-
-          if (currentDemo.useCaseId === "healthcare") {
-            if (toolId === "patients") return <PatientRegistryPanel />;
-            if (toolId === "appointments") return <AppointmentDeskPanel />;
-            if (toolId === "referrals") return <ReferralTrackerPanel onUseTemplate={applyComposeTemplate} />;
-            if (toolId === "compliance") return <HipaaAuditPanel />;
-          }
-
-          return null;
-        }}
+        renderIndustryTool={({ demo: currentDemo, toolId, applyComposeTemplate }) => (
+          <LazyIndustryToolPanel
+            useCaseId={currentDemo.useCaseId}
+            toolId={toolId}
+            applyComposeTemplate={applyComposeTemplate}
+          />
+        )}
       />
       {renderMobileFooterNav
         ? createPortal(

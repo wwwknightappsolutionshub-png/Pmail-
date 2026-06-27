@@ -1,54 +1,187 @@
+import { lazy, Suspense, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { MarketingThemeProvider } from "./hooks/useMarketingTheme";
-import { LandingPage } from "./pages/LandingPage";
-import { UseCasePage } from "./pages/UseCasePage";
-import { UseCaseDemoPage } from "./pages/UseCaseDemoPage";
-import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
-import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
-import { PanelLoginPage } from "./pages/panel/PanelLoginPage";
-import { PanelDashboardPage } from "./pages/panel/PanelDashboardPage";
-import { CheckoutCancelPage, CheckoutMockPage, CheckoutSuccessPage } from "./pages/CheckoutPages";
-import { GrowthLayout } from "./pages/growth/GrowthLayout";
-import { GrowthOnboardingPage } from "./pages/growth/GrowthOnboardingPage";
-import { GrowthDashboardPage } from "./pages/growth/GrowthDashboardPage";
-import { GrowthStudioPage } from "./pages/growth/GrowthStudioPage";
-import { GrowthPipelinePage } from "./pages/growth/GrowthPipelinePage";
-import { GrowthChatbotPage } from "./pages/growth/GrowthChatbotPage";
-import { GrowthAnalyticsPage } from "./pages/growth/GrowthAnalyticsPage";
-import { GrowthAutomationsPage } from "./pages/growth/GrowthAutomationsPage";
-import { GrowthSettingsPage } from "./pages/growth/GrowthSettingsPage";
-import { GrowthOptimizationPage } from "./pages/growth/GrowthOptimizationPage";
-import { GrowthChannelsPage } from "./pages/growth/GrowthChannelsPage";
-import { GrowthAdsSeoPage } from "./pages/growth/GrowthAdsSeoPage";
+
+const LandingPage = lazy(() => import("./pages/LandingPage").then((m) => ({ default: m.LandingPage })));
+const UseCasePage = lazy(() => import("./pages/UseCasePage").then((m) => ({ default: m.UseCasePage })));
+const UseCaseDemoPage = lazy(() => import("./pages/UseCaseDemoPage").then((m) => ({ default: m.UseCaseDemoPage })));
+const AdminLoginPage = lazy(() => import("./pages/admin/AdminLoginPage").then((m) => ({ default: m.AdminLoginPage })));
+const AdminDashboardPage = lazy(() =>
+  import("./pages/admin/AdminDashboardPage").then((m) => ({ default: m.AdminDashboardPage })),
+);
+const PanelLoginPage = lazy(() => import("./pages/panel/PanelLoginPage").then((m) => ({ default: m.PanelLoginPage })));
+const PanelDashboardPage = lazy(() =>
+  import("./pages/panel/PanelDashboardPage").then((m) => ({ default: m.PanelDashboardPage })),
+);
+const CheckoutSuccessPage = lazy(() =>
+  import("./pages/CheckoutPages").then((m) => ({ default: m.CheckoutSuccessPage })),
+);
+const CheckoutCancelPage = lazy(() =>
+  import("./pages/CheckoutPages").then((m) => ({ default: m.CheckoutCancelPage })),
+);
+const CheckoutMockPage = lazy(() => import("./pages/CheckoutPages").then((m) => ({ default: m.CheckoutMockPage })));
+const GrowthLayout = lazy(() => import("./pages/growth/GrowthLayout").then((m) => ({ default: m.GrowthLayout })));
+const GrowthOnboardingPage = lazy(() =>
+  import("./pages/growth/GrowthOnboardingPage").then((m) => ({ default: m.GrowthOnboardingPage })),
+);
+const GrowthDashboardPage = lazy(() =>
+  import("./pages/growth/GrowthDashboardPage").then((m) => ({ default: m.GrowthDashboardPage })),
+);
+const GrowthStudioPage = lazy(() =>
+  import("./pages/growth/GrowthStudioPage").then((m) => ({ default: m.GrowthStudioPage })),
+);
+const GrowthPipelinePage = lazy(() =>
+  import("./pages/growth/GrowthPipelinePage").then((m) => ({ default: m.GrowthPipelinePage })),
+);
+const GrowthChatbotPage = lazy(() =>
+  import("./pages/growth/GrowthChatbotPage").then((m) => ({ default: m.GrowthChatbotPage })),
+);
+const GrowthAnalyticsPage = lazy(() =>
+  import("./pages/growth/GrowthAnalyticsPage").then((m) => ({ default: m.GrowthAnalyticsPage })),
+);
+const GrowthAutomationsPage = lazy(() =>
+  import("./pages/growth/GrowthAutomationsPage").then((m) => ({ default: m.GrowthAutomationsPage })),
+);
+const GrowthSettingsPage = lazy(() =>
+  import("./pages/growth/GrowthSettingsPage").then((m) => ({ default: m.GrowthSettingsPage })),
+);
+const GrowthOptimizationPage = lazy(() =>
+  import("./pages/growth/GrowthOptimizationPage").then((m) => ({ default: m.GrowthOptimizationPage })),
+);
+const GrowthChannelsPage = lazy(() =>
+  import("./pages/growth/GrowthChannelsPage").then((m) => ({ default: m.GrowthChannelsPage })),
+);
+const GrowthAdsSeoPage = lazy(() =>
+  import("./pages/growth/GrowthAdsSeoPage").then((m) => ({ default: m.GrowthAdsSeoPage })),
+);
+
+function RouteFallback() {
+  return (
+    <div
+      style={{
+        minHeight: "40dvh",
+        display: "grid",
+        placeItems: "center",
+        padding: "1.5rem",
+        color: "var(--text, #334155)",
+      }}
+      role="status"
+      aria-live="polite"
+    >
+      Loading…
+    </div>
+  );
+}
+
+function LazyRoute({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<RouteFallback />}>{children}</Suspense>;
+}
 
 export function App() {
   return (
     <MarketingThemeProvider>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/use-case" element={<UseCasePage />} />
-        <Route path="/use-case/demo/:useCaseId" element={<UseCaseDemoPage />} />
-        <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
-        <Route path="/checkout/cancel" element={<CheckoutCancelPage />} />
-        <Route path="/checkout/mock" element={<CheckoutMockPage />} />
-        <Route path="/panel/login" element={<PanelLoginPage />} />
-        <Route path="/panel" element={<PanelDashboardPage />} />
-        <Route path="/growth" element={<GrowthLayout />}>
-          <Route index element={<GrowthDashboardPage />} />
-          <Route path="onboarding" element={<GrowthOnboardingPage />} />
-          <Route path="dashboard" element={<GrowthDashboardPage />} />
-          <Route path="studio" element={<GrowthStudioPage />} />
-          <Route path="pipeline" element={<GrowthPipelinePage />} />
-          <Route path="chatbot" element={<GrowthChatbotPage />} />
-          <Route path="analytics" element={<GrowthAnalyticsPage />} />
-          <Route path="automations" element={<GrowthAutomationsPage />} />
-          <Route path="optimization" element={<GrowthOptimizationPage />} />
-          <Route path="channels" element={<GrowthChannelsPage />} />
-          <Route path="ads-seo" element={<GrowthAdsSeoPage />} />
-          <Route path="settings" element={<GrowthSettingsPage />} />
+        <Route
+          path="/"
+          element={
+            <LazyRoute>
+              <LandingPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/use-case"
+          element={
+            <LazyRoute>
+              <UseCasePage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/use-case/demo/:useCaseId"
+          element={
+            <LazyRoute>
+              <UseCaseDemoPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/checkout/success"
+          element={
+            <LazyRoute>
+              <CheckoutSuccessPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/checkout/cancel"
+          element={
+            <LazyRoute>
+              <CheckoutCancelPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/checkout/mock"
+          element={
+            <LazyRoute>
+              <CheckoutMockPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/panel/login"
+          element={
+            <LazyRoute>
+              <PanelLoginPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/panel"
+          element={
+            <LazyRoute>
+              <PanelDashboardPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/growth"
+          element={
+            <LazyRoute>
+              <GrowthLayout />
+            </LazyRoute>
+          }
+        >
+          <Route index element={<LazyRoute><GrowthDashboardPage /></LazyRoute>} />
+          <Route path="onboarding" element={<LazyRoute><GrowthOnboardingPage /></LazyRoute>} />
+          <Route path="dashboard" element={<LazyRoute><GrowthDashboardPage /></LazyRoute>} />
+          <Route path="studio" element={<LazyRoute><GrowthStudioPage /></LazyRoute>} />
+          <Route path="pipeline" element={<LazyRoute><GrowthPipelinePage /></LazyRoute>} />
+          <Route path="chatbot" element={<LazyRoute><GrowthChatbotPage /></LazyRoute>} />
+          <Route path="analytics" element={<LazyRoute><GrowthAnalyticsPage /></LazyRoute>} />
+          <Route path="automations" element={<LazyRoute><GrowthAutomationsPage /></LazyRoute>} />
+          <Route path="optimization" element={<LazyRoute><GrowthOptimizationPage /></LazyRoute>} />
+          <Route path="channels" element={<LazyRoute><GrowthChannelsPage /></LazyRoute>} />
+          <Route path="ads-seo" element={<LazyRoute><GrowthAdsSeoPage /></LazyRoute>} />
+          <Route path="settings" element={<LazyRoute><GrowthSettingsPage /></LazyRoute>} />
         </Route>
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route
+          path="/admin/login"
+          element={
+            <LazyRoute>
+              <AdminLoginPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <LazyRoute>
+              <AdminDashboardPage />
+            </LazyRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </MarketingThemeProvider>

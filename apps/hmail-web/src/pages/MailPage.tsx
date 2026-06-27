@@ -51,6 +51,8 @@ import { MailOrderBar } from "../components/MailOrderBar";
 import { MailPaginationBar } from "../components/MailPaginationBar";
 import { GmailMailSearch, isGmailStyleQuery } from "../components/GmailMailSearch";
 import { NewFolderModal } from "../components/NewFolderModal";
+import { isDeferredProductionVirtualView } from "../components/deferredProductionVirtualViews";
+import { LazyProductionVirtualView } from "../components/LazyProductionVirtualView";
 import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
 import { SenderGroupedMessageList, senderLabel } from "../components/SenderGroupedMessageList";
 import { MailBottomNavButton } from "../components/MailBottomNavButton";
@@ -1069,8 +1071,9 @@ export function MailPage({
   };
 
   const renderMainContent = () => {
-    const virtualView = renderProductionVirtualView(activeFolder, {
-      renderGatedView: (view, panel) => renderGatedView(view, hasAddon, panel, panelWorkspaceTrial),
+    const virtualViewCtx = {
+      renderGatedView: (view: string, panel: import("react").ReactNode) =>
+        renderGatedView(view, hasAddon, panel, panelWorkspaceTrial),
       openCompose,
       contactsPrefillEmail,
       onContactsMessage: setStatusMessage,
@@ -1082,7 +1085,19 @@ export function MailPage({
       onCareerScannerPreloadConsumed: () => setCareerScannerPreload(null),
       jobHunterEnabled: hasJobHunterAddon,
       onComposeTemplateApplied: setPlatformNotice,
-    });
+    };
+
+    if (isDeferredProductionVirtualView(activeFolder)) {
+      return (
+        <LazyProductionVirtualView
+          activeFolder={activeFolder}
+          ctx={virtualViewCtx}
+          careerScannerPreloadKey={careerScannerPreload?.file?.name ?? careerScannerPreload?.file?.size ?? null}
+        />
+      );
+    }
+
+    const virtualView = renderProductionVirtualView(activeFolder, virtualViewCtx);
     if (virtualView) return virtualView;
 
     const visibleSuggestions = contactSuggestions.filter((e) => !dismissedSuggestions.includes(e));

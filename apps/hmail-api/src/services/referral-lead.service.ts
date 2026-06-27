@@ -10,6 +10,7 @@ import {
   wrapTrackedLinksInHtml,
 } from "./tracking.service.js";
 import { buildReferralCompose, PMail_REFERRAL_SUBJECT } from "./referral.service.js";
+import { dedupeReferralRecipients, referralRecipientDedupeKey } from "./referral-recipient-filter.js";
 
 export type ReferralEmailStatus = "pending" | "delivered" | "read" | "bounced";
 
@@ -20,10 +21,12 @@ const PLATFORM_TRIAL_ANCHOR_SLUG = "full-calendar-functionality";
 const REFERRAL_REWARD_DAYS = 7;
 
 function parseRecipientEmails(value: string): string[] {
-  return value
-    .split(/[,;]/)
-    .map((entry) => entry.trim().toLowerCase())
-    .filter((entry) => entry.includes("@"));
+  return dedupeReferralRecipients(
+    value
+      .split(/[,;]/)
+      .map((entry) => entry.trim().toLowerCase())
+      .filter((entry) => entry.includes("@")),
+  );
 }
 
 function isActiveSubscription(
@@ -128,6 +131,19 @@ export async function sendReferralInvitations(input: {
     throw new Error("Add at least one Bcc recipient before sending.");
   }
 
+  const priorLeads = await prisma.pmailReferralLead.findMany({
+    where: { referredByUserId: input.userId },
+    select: { recipientEmail: true },
+  });
+  const alreadyInvited = new Set(priorLeads.map((lead) => referralRecipientDedupeKey(lead.recipientEmail)));
+  const pendingRecipients = recipients.filter(
+    (recipientEmail) => !alreadyInvited.has(referralRecipientDedupeKey(recipientEmail)),
+  );
+
+  if (pendingRecipients.length === 0) {
+    throw new Error("All selected contacts were already invited or filtered out.");
+  }
+
   const composeSettings = await getComposeSettingsByUserId(input.userId);
   const fromName = composeSettings.displayName?.trim() || input.displayName?.trim() || undefined;
   const referredByName = input.displayName?.trim() || input.email.split("@")[0] || null;
@@ -137,7 +153,7 @@ export async function sendReferralInvitations(input: {
   let sentCount = 0;
   let bouncedCount = 0;
 
-  for (const recipientEmail of recipients) {
+  for (const recipientEmail of pendingRecipients) {
     const tracking = await createSentTracking(input.userId, {
       toEmail: recipientEmail,
       subject,
