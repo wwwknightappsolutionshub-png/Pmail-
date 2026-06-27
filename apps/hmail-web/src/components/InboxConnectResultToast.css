@@ -1,0 +1,63 @@
+.inbox-connect-result-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 16000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(2, 8, 23, 0.42);
+  pointer-events: auto;
+}
+
+.inbox-connect-result-card {
+  width: min(22rem, 100%);
+  border-radius: 16px;
+  padding: 1.25rem 1.35rem;
+  background: #0b1424;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: #f8fafc;
+  box-shadow: 0 24px 48px rgba(2, 8, 23, 0.45);
+  text-align: center;
+}
+
+.inbox-connect-result-card strong {
+  display: block;
+  font-size: 1.15rem;
+  margin-bottom: 0.45rem;
+}
+
+.inbox-connect-result-card p {
+  margin: 0 0 1rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.inbox-connect-result-card--success {
+  border-color: rgba(20, 184, 166, 0.45);
+}
+
+.inbox-connect-result-card--error {
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.inbox-connect-result-dismiss {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  min-height: 2.5rem;
+  padding: 0.45rem 1.2rem;
+  cursor: pointer;
+}
+
+.pmail-demo-shell--light .inbox-connect-result-card {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #dbe3ec;
+}
+
+.pmail-demo-shell--light .inbox-connect-result-card p {
+  color: #475569;
+}

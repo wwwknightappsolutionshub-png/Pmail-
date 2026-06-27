@@ -99,6 +99,7 @@ type Props = {
   viewerEmail?: string;
   viewerAvatarUrl?: string | null;
   addonsHref?: string;
+  onOpenAddons?: () => void;
   calendarEnterpriseEnabled?: boolean;
   whatsappEnabled?: boolean;
   mailToPdfEnabled?: boolean;
@@ -479,6 +480,7 @@ export function BespokeMailDemo({
   viewerEmail,
   viewerAvatarUrl,
   addonsHref = "/#register",
+  onOpenAddons,
   calendarEnterpriseEnabled = false,
   whatsappEnabled = false,
   mailToPdfEnabled = false,
@@ -2176,20 +2178,38 @@ export function BespokeMailDemo({
         </div>
         <div className="bespoke-demo-topbar-right">
           <div className="bespoke-demo-topbar-actions" aria-label="Workspace actions">
-            <Link
-              to={addonsHref}
-              className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons"
-              aria-label="Addon marketplace"
-              title="Addon marketplace"
-            >
-              <TopbarIcon>
-                <path
-                  fill="currentColor"
-                  d="M7 4h10l1 4h4v2h-1.05l-1.2 9.5A2 2 0 0 1 17.77 22H8.23a2 2 0 0 1-1.98-1.5L5.05 10H4V8h4l1-4zm2.2 2 .6 2h4.4l.6-2H9.2zm-.62 4 1.1 8h6.64l1.1-8H8.58zM9 12.5a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1zm6 0a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1z"
-                />
-              </TopbarIcon>
-              <span>Addon marketplace</span>
-            </Link>
+            {onOpenAddons ? (
+              <button
+                type="button"
+                className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons"
+                aria-label="Addon marketplace"
+                title="Addon marketplace"
+                onClick={onOpenAddons}
+              >
+                <TopbarIcon>
+                  <path
+                    fill="currentColor"
+                    d="M7 4h10l1 4h4v2h-1.05l-1.2 9.5A2 2 0 0 1 17.77 22H8.23a2 2 0 0 1-1.98-1.5L5.05 10H4V8h4l1-4zm2.2 2 .6 2h4.4l.6-2H9.2zm-.62 4 1.1 8h6.64l1.1-8H8.58zM9 12.5a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1zm6 0a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1z"
+                  />
+                </TopbarIcon>
+                <span>Addon marketplace</span>
+              </button>
+            ) : (
+              <Link
+                to={addonsHref}
+                className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons"
+                aria-label="Addon marketplace"
+                title="Addon marketplace"
+              >
+                <TopbarIcon>
+                  <path
+                    fill="currentColor"
+                    d="M7 4h10l1 4h4v2h-1.05l-1.2 9.5A2 2 0 0 1 17.77 22H8.23a2 2 0 0 1-1.98-1.5L5.05 10H4V8h4l1-4zm2.2 2 .6 2h4.4l.6-2H9.2zm-.62 4 1.1 8h6.64l1.1-8H8.58zM9 12.5a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1zm6 0a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1z"
+                  />
+                </TopbarIcon>
+                <span>Addon marketplace</span>
+              </Link>
+            )}
             {onThemeChange ? (
               <button
                 type="button"

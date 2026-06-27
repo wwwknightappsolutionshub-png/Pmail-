@@ -15,6 +15,13 @@ import { AddonsPage } from "./pages/AddonsPage";
 import { BusinessVerticalPage } from "./pages/BusinessVerticalPage";
 import { PmailLoadingScreen } from "./components/PmailLoadingScreen";
 
+function AuthenticatedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <PmailLoadingScreen subtitle="Signing you in…" />;
+  if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <PmailLoadingScreen subtitle="Signing you in…" />;
@@ -86,9 +93,9 @@ export function App() {
       <Route
         path="/addons"
         element={
-          <ProtectedRoute>
+          <AuthenticatedRoute>
             <AddonsPage />
-          </ProtectedRoute>
+          </AuthenticatedRoute>
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />

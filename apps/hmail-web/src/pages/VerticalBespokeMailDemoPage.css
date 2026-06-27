@@ -2138,6 +2138,19 @@ html:has(.pmail-demo-shell--light) body {
   background: #f8fafc;
 }
 
+.pmail-demo-shell--light .bespoke-demo-topbar-actions {
+  align-items: center;
+}
+
+.pmail-demo-shell--light .bespoke-demo-topbar-btn--addons,
+.pmail-demo-shell--light .bespoke-demo-topbar-btn--theme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  line-height: 1;
+}
+
 .pmail-demo-shell--light .bespoke-demo-workspace-tabs {
   background: #ffffff;
   border-bottom: 1px solid var(--border);
@@ -3871,7 +3884,8 @@ html:has(.pmail-demo-shell--light) body {
   }
 
   .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) .bespoke-demo-topbar-btn--addons,
-  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) .bespoke-demo-topbar-actions > a.bespoke-demo-topbar-btn {
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) .bespoke-demo-topbar-actions > a.bespoke-demo-topbar-btn,
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) .bespoke-demo-topbar-actions > button.bespoke-demo-topbar-btn--addons {
     grid-column: 1;
   }
 
@@ -3962,13 +3976,16 @@ html:has(.pmail-demo-shell--light) body {
   }
 
   .pmail-demo-shell .bespoke-demo-topbar-btn--addons,
-  .pmail-demo-shell .bespoke-demo-topbar-actions > a.bespoke-demo-topbar-btn {
+  .pmail-demo-shell .bespoke-demo-topbar-actions > a.bespoke-demo-topbar-btn,
+  .pmail-demo-shell .bespoke-demo-topbar-actions > button.bespoke-demo-topbar-btn--addons {
     grid-column: 2;
     grid-row: 1;
     display: inline-flex !important;
     position: relative;
     z-index: 2;
     pointer-events: auto;
+    align-items: center;
+    justify-content: center;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar-actions > button.bespoke-demo-topbar-btn.bespoke-demo-topbar-btn--theme {

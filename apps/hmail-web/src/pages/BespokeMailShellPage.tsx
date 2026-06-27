@@ -361,6 +361,7 @@ function BespokeMailShellContent() {
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
         renderMobileFooterNav={mobileFooterNav}
+        onOpenAddons={() => navigate("/addons")}
         showCareerTab={careerNavUnlocked}
         onCareerTabClick={() => navigate("/career")}
         requestedWorkspace={requestedWorkspace}

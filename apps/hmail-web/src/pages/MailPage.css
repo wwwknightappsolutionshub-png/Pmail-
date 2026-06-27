@@ -355,7 +355,7 @@
 }
 
 .mail-app[data-mobile-pane="menu"] .mail-sidebar-backdrop {
-  display: block;
+  display: none;
 }
 
 .mail-sidebar-head {
@@ -1176,13 +1176,15 @@
 
 .mail-pagination-portal {
   position: fixed;
-  left: 0;
+  left: var(--pmail-folder-drawer-w, 0);
   right: 0;
   bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
   z-index: 14950;
+  display: flex;
   pointer-events: none;
   justify-content: flex-end;
   padding-right: max(0.65rem, env(safe-area-inset-right, 0px));
+  transition: left 0.22s ease;
 }
 
 .mail-pagination-portal .mail-pagination {
@@ -2493,10 +2495,23 @@
     --mail-drawer-tooltip-layer: 120;
   }
 
+  .mail-app[data-mobile-pane="menu"] .mail-sidebar-backdrop {
+    display: none !important;
+  }
+
   .mail-app[data-mobile-pane="menu"] .mail-list-pane {
     display: flex !important;
     position: relative;
     z-index: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: calc(100% - var(--sidebar-width, 4.75rem));
+    max-width: calc(100% - var(--sidebar-width, 4.75rem));
+    margin-left: var(--sidebar-width, 4.75rem);
+    transition:
+      margin-left 0.22s ease,
+      width 0.22s ease,
+      max-width 0.22s ease;
   }
 
   .mail-app[data-mobile-pane="menu"] .list-header {
@@ -2535,18 +2550,15 @@
     isolation: isolate;
   }
 
+  .mail-app--embedded-in-bespoke[data-mobile-pane="menu"] .mail-sidebar-backdrop {
+    display: none !important;
+  }
+
   .mail-app--embedded-in-bespoke[data-mobile-pane="menu"] .mail-sidebar,
   .mail-app--embedded-in-bespoke[data-mobile-pane="menu"] .mail-sidebar-backdrop {
     position: absolute;
     top: 0;
     left: 0;
-  }
-
-  .mail-app--embedded-in-bespoke[data-mobile-pane="menu"] .mail-sidebar-backdrop {
-    right: 0;
-    bottom: 0;
-    width: auto;
-    inset: 0;
   }
 
   .mail-app--embedded-in-bespoke[data-mobile-pane="menu"] .mail-sidebar {
@@ -2617,13 +2629,13 @@
   }
 
   .mail-app.mail-app--light[data-mobile-pane="menu"] .mail-sidebar-backdrop {
-    background: rgba(15, 23, 42, 0.12);
+    display: none !important;
   }
 
   .mail-app[data-mobile-pane="menu"] .mail-sidebar-backdrop {
     z-index: calc(var(--mail-drawer-layer, 100) - 1);
-    display: block;
-    background: rgba(15, 23, 42, 0.22);
+    display: none !important;
+    background: transparent;
   }
 
   .mail-app[data-mobile-pane="list"] .mail-read-pane,

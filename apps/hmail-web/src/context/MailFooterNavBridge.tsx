@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import type { InboxSwitcherHandle } from "../components/InboxSwitcher";
 
 export type MailFooterNavPane = "menu" | "list" | "read";
 
@@ -17,8 +18,10 @@ type MailFooterNavBridgeValue = {
   state: MailFooterNavState;
   setState: (state: MailFooterNavState) => void;
   registerHandlers: (handlers: MailFooterNavHandlers) => () => void;
+  registerInboxSwitcher: (handle: InboxSwitcherHandle | null) => void;
   openFolders: () => void;
   openMessages: () => void;
+  openInboxAddForm: () => void;
 };
 
 const defaultState: MailFooterNavState = { mobilePane: "list" };
@@ -27,6 +30,7 @@ const MailFooterNavBridgeContext = createContext<MailFooterNavBridgeValue | null
 
 export function MailFooterNavBridgeProvider({ children }: { children: ReactNode }) {
   const handlersRef = useRef<MailFooterNavHandlers | null>(null);
+  const inboxSwitcherRef = useRef<InboxSwitcherHandle | null>(null);
   const pendingRef = useRef<PendingFooterAction>(null);
   const [state, setState] = useState<MailFooterNavState>(defaultState);
 
@@ -67,8 +71,18 @@ export function MailFooterNavBridgeProvider({ children }: { children: ReactNode 
     pendingRef.current = "messages";
   }, []);
 
+  const registerInboxSwitcher = useCallback((handle: InboxSwitcherHandle | null) => {
+    inboxSwitcherRef.current = handle;
+  }, []);
+
+  const openInboxAddForm = useCallback(() => {
+    inboxSwitcherRef.current?.openWithAddForm();
+  }, []);
+
   return (
-    <MailFooterNavBridgeContext.Provider value={{ state, setState, registerHandlers, openFolders, openMessages }}>
+    <MailFooterNavBridgeContext.Provider
+      value={{ state, setState, registerHandlers, registerInboxSwitcher, openFolders, openMessages, openInboxAddForm }}
+    >
       {children}
     </MailFooterNavBridgeContext.Provider>
   );

@@ -3,9 +3,11 @@ import { api } from "../api/client";
 import { useAddons } from "../context/AddonContext";
 import {
   defaultMailConfig,
+  inferProviderPresetFromEmail,
   resolveMailConfigFromPreset,
   type MailConfigValues,
 } from "../constants/mailProviders";
+import { formatMailConnectError } from "../utils/mailConnectErrors";
 import { ProviderPresetPicker } from "./ProviderPresetPicker";
 import { Mails } from "lucide-react";
 import "./InboxSwitcher.css";
@@ -31,6 +33,8 @@ interface InboxSwitcherProps {
   variant?: "sidebar" | "header" | "bottom-nav";
   onPaidAddonGate?: () => void;
   onAccountCountChange?: (count: number) => void;
+  onAccountConnected?: () => void;
+  onAccountConnectFailed?: () => void;
 }
 
 export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>(function InboxSwitcher(
@@ -40,6 +44,8 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
     variant = "sidebar",
     onPaidAddonGate,
     onAccountCountChange,
+    onAccountConnected,
+    onAccountConnectFailed,
   },
   ref,
 ) {
@@ -251,9 +257,12 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
       });
       setForm({ email: "", password: "", label: "", ...defaultMailConfig() });
       setShowAddForm(false);
+      setOpen(false);
       await loadAccounts();
+      onAccountConnected?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add mailbox");
+      setError(formatMailConnectError(err));
+      onAccountConnectFailed?.();
     } finally {
       setAdding(false);
     }
@@ -363,7 +372,15 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
                 <input
                   type="email"
                   value={form.email}
-                  onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => {
+                    const email = e.target.value;
+                    const inferred = inferProviderPresetFromEmail(email);
+                    setForm((prev) => ({
+                      ...prev,
+                      email,
+                      ...(inferred ? resolveMailConfigFromPreset(inferred) : {}),
+                    }));
+                  }}
                 />
               </label>
               <label>

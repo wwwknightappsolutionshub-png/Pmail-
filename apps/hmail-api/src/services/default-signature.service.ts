@@ -11,6 +11,15 @@ function resolveWebOrigin(): string {
   return getEnv().HOSTNET_WEB_URL.replace(/\/$/, "");
 }
 
+function resolvePmailWebOrigin(): string {
+  const env = getEnv();
+  const firstCorsOrigin = env.CORS_ORIGIN.split(",")[0]?.trim();
+  if (firstCorsOrigin) {
+    return firstCorsOrigin.replace(/\/$/, "");
+  }
+  return resolveWebOrigin();
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -50,7 +59,7 @@ export async function resolveBrandedLogoUrl(tenantId: string): Promise<string> {
   if (logo && /^https?:\/\//i.test(logo)) {
     return logo;
   }
-  return `${resolveWebOrigin()}/favicon.svg`;
+  return `${resolvePmailWebOrigin()}/favicon.svg`;
 }
 
 export function buildDefaultBrandedSignatureHtml(input: { logoUrl: string; joinUrl: string }): string {

@@ -18,6 +18,7 @@ import {
   setCvScannerDontAskAgain,
 } from "../lib/cvScannerToastPrefs";
 import { InboxSwitcher, type InboxSwitcherHandle } from "../components/InboxSwitcher";
+import { InboxConnectResultToast } from "../components/InboxConnectResultToast";
 import { MultiInboxConnectToast } from "../components/MultiInboxConnectToast";
 import { PaidAddonToast } from "../components/PaidAddonToast";
 import { MessageUnsubscribeButton } from "../components/MessageUnsubscribeButton";
@@ -60,6 +61,7 @@ import {
 } from "../components/MobileDrawerTooltip";
 import { Folder, Inbox, SquarePen, X } from "lucide-react";
 import { isMobileScreen } from "../utils/pwaPlatform";
+import { useMessageListAtEnd } from "../hooks/useMessageListAtEnd";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
 import { toolAddonSlug } from "../constants/addonTools";
@@ -335,6 +337,7 @@ export function MailPage({
   const [referBusy, setReferBusy] = useState(false);
   const [paidAddonGate, setPaidAddonGate] = useState<{ slug: string; name: string } | null>(null);
   const [multiInboxPromptOpen, setMultiInboxPromptOpen] = useState(false);
+  const [inboxConnectToast, setInboxConnectToast] = useState<"success" | "error" | null>(null);
   const [mailAccountCount, setMailAccountCount] = useState<number | null>(null);
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -430,6 +433,17 @@ export function MailPage({
   }, [activeFolder, onActiveFolderChange]);
 
   useEffect(() => {
+    if (mobilePane === "menu" && mobileMailViewport) {
+      document.documentElement.style.setProperty("--pmail-folder-drawer-w", "4.75rem");
+    } else {
+      document.documentElement.style.removeProperty("--pmail-folder-drawer-w");
+    }
+    return () => {
+      document.documentElement.style.removeProperty("--pmail-folder-drawer-w");
+    };
+  }, [mobileMailViewport, mobilePane]);
+
+  useEffect(() => {
     if (!showInboxSwitcher || !hasMultiInboxAddon) return;
     if (mailAccountCount === null || mailAccountCount > 1) return;
     if (isMultiInboxPromptDismissed()) return;
@@ -439,6 +453,12 @@ export function MailPage({
   const isLoadingSelectedMessage = Boolean(
     selectedUid &&
       (loadingMessage || !selectedMessage || selectedMessage.uid !== selectedUid),
+  );
+  const listPaginationEnabled = !isVirtual && messageTotal > PAGE_SIZE && mobilePane !== "read";
+  const messageListAtEnd = useMessageListAtEnd(
+    messageListRef,
+    listPaginationEnabled,
+    `${activeFolder}-${messagePage}-${messages.length}-${messageTotal}`,
   );
 
   const loadFolders = useCallback(async () => {
@@ -1057,7 +1077,8 @@ export function MailPage({
 
     const visibleSuggestions = contactSuggestions.filter((e) => !dismissedSuggestions.includes(e));
     const usePortaledPagination = embedded && mobileMailViewport;
-    const showPagination = messageTotal > PAGE_SIZE && mobilePane !== "read";
+    const showPagination =
+      messageTotal > PAGE_SIZE && mobilePane !== "read" && messageListAtEnd;
     const listPrimaryColumnLabel = selectedUid ? "Subject" : "Sender";
     const mailPagination =
       showPagination ? (
@@ -1492,6 +1513,8 @@ export function MailPage({
                   onSwitched={() => void handleMailboxSwitch()}
                   onPaidAddonGate={() => openPaidAddonGate("multi-inbox-functionality", "Multiple Inboxes")}
                   onAccountCountChange={setMailAccountCount}
+                  onAccountConnected={() => setInboxConnectToast("success")}
+                  onAccountConnectFailed={() => setInboxConnectToast("error")}
                 />
               </div>
             ) : null}
@@ -1713,6 +1736,10 @@ export function MailPage({
         <MultiInboxConnectToast
           onConnectMailbox={() => {
             setMultiInboxPromptOpen(false);
+            if (embedded && footerNavBridge) {
+              footerNavBridge.openInboxAddForm();
+              return;
+            }
             inboxSwitcherRef.current?.openWithAddForm();
           }}
           onDismiss={() => setMultiInboxPromptOpen(false)}
@@ -1721,6 +1748,10 @@ export function MailPage({
             setMultiInboxPromptOpen(false);
           }}
         />
+      ) : null}
+
+      {inboxConnectToast ? (
+        <InboxConnectResultToast kind={inboxConnectToast} onDismiss={() => setInboxConnectToast(null)} />
       ) : null}
 
       {mobileDrawerMenuOpen ? (

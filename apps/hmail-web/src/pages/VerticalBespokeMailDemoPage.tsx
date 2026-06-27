@@ -131,6 +131,7 @@ type VerticalBespokeMailDemoPageProps = {
     messaging: number;
   } | null;
   renderMobileFooterNav?: ReactNode;
+  onOpenAddons?: () => void;
 };
 
 export function VerticalBespokeMailDemoPage({
@@ -171,6 +172,7 @@ export function VerticalBespokeMailDemoPage({
   mobileTopbarSearchCollapsed = false,
   workspaceTabCounts = null,
   renderMobileFooterNav,
+  onOpenAddons,
 }: VerticalBespokeMailDemoPageProps) {
   const { hasAddon } = useAddons();
   const resolvedHideIndustryTools =
@@ -194,6 +196,7 @@ export function VerticalBespokeMailDemoPage({
         viewerEmail={userEmail}
         viewerAvatarUrl={viewerAvatarUrl}
         addonsHref="/addons"
+        onOpenAddons={onOpenAddons}
         calendarEnterpriseEnabled={calendarEnterpriseEnabled}
         whatsappEnabled={whatsappEnabled}
         mailToPdfEnabled={mailToPdfEnabled}
