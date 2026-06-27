@@ -2216,7 +2216,6 @@ export function BespokeMailDemo({
               />
             )}
           </div>
-          {renderAddonsButton("primary")}
         </div>
 
         <div className="bespoke-demo-topbar-right">
@@ -2227,6 +2226,10 @@ export function BespokeMailDemo({
               </div>
             ) : null}
             <div className="bespoke-demo-topbar-secondary-actions">
+            <div className="bespoke-demo-topbar-avatar" title={`${displayName} <${displayEmail}>`} aria-hidden="true">
+              <span className="bespoke-demo-topbar-avatar-initials">{viewerInitials}</span>
+              <img className="bespoke-demo-topbar-avatar-image" src={topbarAvatarUrl} alt="" decoding="async" />
+            </div>
             {renderAddonsButton("collapsed")}
             {onThemeChange ? (
               <button
@@ -2267,10 +2270,6 @@ export function BespokeMailDemo({
                 <span>Sign out</span>
               </button>
             ) : null}
-            <div className="bespoke-demo-topbar-avatar" title={`${displayName} <${displayEmail}>`} aria-hidden="true">
-              <span className="bespoke-demo-topbar-avatar-initials">{viewerInitials}</span>
-              <img className="bespoke-demo-topbar-avatar-image" src={topbarAvatarUrl} alt="" decoding="async" />
-            </div>
             </div>
             <button
               type="button"

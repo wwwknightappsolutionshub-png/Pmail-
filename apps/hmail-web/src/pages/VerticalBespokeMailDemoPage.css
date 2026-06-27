@@ -3862,7 +3862,7 @@ html:has(.pmail-demo-shell--light) body {
 
   .pmail-demo-shell .bespoke-demo-topbar-primary {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
     gap: 0.45rem;
     width: 100%;
@@ -3984,12 +3984,12 @@ html:has(.pmail-demo-shell--light) body {
   }
 
   .pmail-demo-shell .bespoke-demo-topbar-btn--addons-primary {
-    display: inline-flex !important;
-    flex-shrink: 0;
+    display: none !important;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar-btn--addons-collapsed {
-    display: none !important;
+    display: inline-flex !important;
+    flex-shrink: 0;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar--primary-collapsed .bespoke-demo-topbar-btn--addons-primary {
