@@ -72,8 +72,8 @@ function BespokeMailShellContent() {
 
   const openAddonsMarketplace = useCallback(() => {
     setMobileTopbarSearchCollapsed(false);
-    navigate("/addons");
-  }, [navigate]);
+    window.location.assign("/addons");
+  }, []);
 
   const mailWorkspaceViews = useMemo(
     () => ({

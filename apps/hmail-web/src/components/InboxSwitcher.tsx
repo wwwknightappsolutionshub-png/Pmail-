@@ -233,6 +233,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
 
     setSwitchingId(accountId);
     setError("");
+    let switchedAccount: MailAccountSummary | null = null;
     try {
       const result = await api.activateMailAccount(accountId);
       const active =
@@ -245,13 +246,16 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
           mailAccountCount: result.accounts.length,
         });
       }
+      switchedAccount = targetAccount;
       setOpen(false);
       void onSwitched();
-      onAccountSwitched?.(targetAccount);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to switch mailbox");
     } finally {
       setSwitchingId(null);
+      if (switchedAccount) {
+        onAccountSwitched?.(switchedAccount);
+      }
     }
   };
 

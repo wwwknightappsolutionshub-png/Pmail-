@@ -6,6 +6,42 @@
   --pmail-toast-overlay: rgba(2, 8, 23, 0.5);
 }
 
+.pmail-brand-toast-shelf {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px) + 0.85rem);
+  z-index: 16050;
+  width: min(22rem, calc(100% - 2rem));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.pmail-brand-toast-card--switch {
+  position: relative;
+  padding-top: 1.45rem;
+  text-align: center;
+}
+
+.pmail-brand-toast-close {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: inherit;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.pmail-brand-toast-shelf .pmail-brand-toast-card {
+  pointer-events: auto;
+}
+
 .pmail-brand-toast-overlay {
   position: fixed;
   inset: 0;

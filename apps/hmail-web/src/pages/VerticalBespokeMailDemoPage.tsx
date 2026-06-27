@@ -43,6 +43,7 @@ import type { ReactNode } from "react";
 import { useAddons } from "../context/AddonContext";
 import { shouldHideVerticalIndustryRibbon } from "../utils/verticalIndustryRibbon";
 import { PmailLoadingScreen } from "../components/PmailLoadingScreen";
+import { HMailLogo } from "../components/HMailLogo";
 import "./VerticalBespokeMailDemoPage.css";
 
 type AutoReplyEntitlementState = {
@@ -111,6 +112,7 @@ type VerticalBespokeMailDemoPageProps = {
     body: string;
   }) => void | Promise<{ id?: string } | void>;
   renderTopbarSearch?: ReactNode;
+  renderTopbarBrand?: ReactNode;
   renderInboxWorkspace?: ReactNode;
   renderWorkspace?: (workspace: BespokeWorkspace) => ReactNode | null;
   showCareerTab?: boolean;
@@ -157,6 +159,7 @@ export function VerticalBespokeMailDemoPage({
   onAutoReplySettingsPersist,
   onAutoReplyTemplateSave,
   renderTopbarSearch,
+  renderTopbarBrand,
   renderInboxWorkspace,
   renderWorkspace,
   showCareerTab,
@@ -232,6 +235,7 @@ export function VerticalBespokeMailDemoPage({
         onLogout={onLogout}
         onReferFriend={onReferFriend}
         renderTopbarSearch={renderTopbarSearch}
+        renderTopbarBrand={renderTopbarBrand ?? <HMailLogo size="sm" className="bespoke-demo-topbar-logo" />}
         renderInboxWorkspace={renderInboxWorkspace}
         renderWorkspace={renderWorkspace}
         showCareerTab={showCareerTab}

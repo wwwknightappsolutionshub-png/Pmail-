@@ -1,6 +1,7 @@
 import { useEffect, useState, type RefObject } from "react";
 
-const END_THRESHOLD_PX = 48;
+const SHOW_THRESHOLD_PX = 48;
+const HIDE_THRESHOLD_PX = 160;
 
 export function useMessageListAtEnd(
   listRef: RefObject<HTMLElement | null>,
@@ -27,7 +28,13 @@ export function useMessageListAtEnd(
         setAtEnd(true);
         return;
       }
-      setAtEnd(scrollTop + clientHeight >= scrollHeight - END_THRESHOLD_PX);
+
+      const distanceFromEnd = scrollHeight - (scrollTop + clientHeight);
+      setAtEnd((current) => {
+        if (distanceFromEnd <= SHOW_THRESHOLD_PX) return true;
+        if (distanceFromEnd >= HIDE_THRESHOLD_PX) return false;
+        return current;
+      });
     };
 
     evaluate();

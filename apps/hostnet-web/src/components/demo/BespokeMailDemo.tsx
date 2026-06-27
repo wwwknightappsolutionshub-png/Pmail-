@@ -168,6 +168,8 @@ type Props = {
   onMailWorkspaceView?: (view: string | null) => void;
   /** Collapse topbar search on mobile when message list scrolls down (production PMail+). */
   mobileTopbarSearchCollapsed?: boolean;
+  /** Branded mark for mobile topbar (production PMail+). */
+  renderTopbarBrand?: ReactNode;
   /** Live workspace tab counts (production PMail+ shell). */
   workspaceTabCounts?: {
     contacts: number;
@@ -514,6 +516,7 @@ export function BespokeMailDemo({
   activeMailWorkspaceView = null,
   onMailWorkspaceView,
   mobileTopbarSearchCollapsed = false,
+  renderTopbarBrand,
   workspaceTabCounts = null,
   renderLoading,
 }: Props) {
@@ -526,6 +529,36 @@ export function BespokeMailDemo({
     return (parts[0]?.slice(0, 2) ?? "U").toUpperCase();
   }, [displayName]);
   const topbarAvatarUrl = viewerAvatarUrl?.trim() || buildDefaultAvatarDataUrl(displayName);
+
+  const openAddonsMarketplace = () => {
+    if (onOpenAddons) {
+      onOpenAddons();
+      return;
+    }
+    window.location.assign(addonsHref);
+  };
+
+  const renderAddonsButton = (placement: "primary" | "collapsed") => (
+    <button
+      type="button"
+      className={`bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons bespoke-demo-topbar-btn--addons-${placement}`}
+      aria-label="Addon marketplace"
+      title="Addon marketplace"
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openAddonsMarketplace();
+      }}
+    >
+      <TopbarIcon>
+        <path
+          fill="currentColor"
+          d="M7 4h10l1 4h4v2h-1.05l-1.2 9.5A2 2 0 0 1 17.77 22H8.23a2 2 0 0 1-1.98-1.5L5.05 10H4V8h4l1-4zm2.2 2 .6 2h4.4l.6-2H9.2zm-.62 4 1.1 8h6.64l1.1-8H8.58zM9 12.5a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1zm6 0a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1z"
+        />
+      </TopbarIcon>
+      <span>Addon marketplace</span>
+    </button>
+  );
 
   const [workspace, setWorkspace] = useState<Workspace>(forcedWorkspace ?? "inbox");
   const activeWorkspace = forcedWorkspace ?? workspace;
@@ -2150,70 +2183,51 @@ export function BespokeMailDemo({
 
   return (
     <div className={bespokeDemoClassName}>
-      <header className="bespoke-demo-topbar">
+      <header
+        className={`bespoke-demo-topbar${
+          mobileTopbarSearchCollapsed ? " bespoke-demo-topbar--primary-collapsed" : ""
+        }`}
+      >
         <div className="bespoke-demo-topbar-left">
           <div>
             <p className="bespoke-demo-kicker">PMail+ Workspace</p>
             <strong className="bespoke-demo-brand">Welcome back, {displayName}</strong>
           </div>
         </div>
-        <div
-          className={`bespoke-demo-topbar-center${
-            mobileTopbarSearchCollapsed ? " bespoke-demo-topbar-center--search-collapsed" : ""
-          }`}
-        >
-          {renderTopbarSearch ?? (
-            <MailSearchBar
-              ref={mailSearchRef}
-              query={mailSearchQuery}
-              active={mailSearchActive}
-              scope={mailSearchScope}
-              contacts={crmContacts.map((contact) => ({ name: contact.name, email: contact.email }))}
-              onQueryChange={setMailSearchQuery}
-              onScopeChange={setMailSearchScope}
-              onSearch={runMailSearch}
-              onClear={clearMailSearch}
-            />
-          )}
-        </div>
-        <div className="bespoke-demo-topbar-right">
-          <div className="bespoke-demo-topbar-actions" aria-label="Workspace actions">
-            {onOpenAddons ? (
-              <button
-                type="button"
-                className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons"
-                aria-label="Addon marketplace"
-                title="Addon marketplace"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  onOpenAddons();
-                }}
-              >
-                <TopbarIcon>
-                  <path
-                    fill="currentColor"
-                    d="M7 4h10l1 4h4v2h-1.05l-1.2 9.5A2 2 0 0 1 17.77 22H8.23a2 2 0 0 1-1.98-1.5L5.05 10H4V8h4l1-4zm2.2 2 .6 2h4.4l.6-2H9.2zm-.62 4 1.1 8h6.64l1.1-8H8.58zM9 12.5a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1zm6 0a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1z"
-                  />
-                </TopbarIcon>
-                <span>Addon marketplace</span>
-              </button>
-            ) : (
-              <Link
-                to={addonsHref}
-                className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons"
-                aria-label="Addon marketplace"
-                title="Addon marketplace"
-              >
-                <TopbarIcon>
-                  <path
-                    fill="currentColor"
-                    d="M7 4h10l1 4h4v2h-1.05l-1.2 9.5A2 2 0 0 1 17.77 22H8.23a2 2 0 0 1-1.98-1.5L5.05 10H4V8h4l1-4zm2.2 2 .6 2h4.4l.6-2H9.2zm-.62 4 1.1 8h6.64l1.1-8H8.58zM9 12.5a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1zm6 0a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1z"
-                  />
-                </TopbarIcon>
-                <span>Addon marketplace</span>
-              </Link>
+
+        <div className="bespoke-demo-topbar-primary">
+          {renderTopbarBrand ? (
+            <div className="bespoke-demo-topbar-brand" aria-hidden={!renderTopbarBrand}>
+              {renderTopbarBrand}
+            </div>
+          ) : null}
+          <div className="bespoke-demo-topbar-center">
+            {renderTopbarSearch ?? (
+              <MailSearchBar
+                ref={mailSearchRef}
+                query={mailSearchQuery}
+                active={mailSearchActive}
+                scope={mailSearchScope}
+                contacts={crmContacts.map((contact) => ({ name: contact.name, email: contact.email }))}
+                onQueryChange={setMailSearchQuery}
+                onScopeChange={setMailSearchScope}
+                onSearch={runMailSearch}
+                onClear={clearMailSearch}
+              />
             )}
+          </div>
+          {renderAddonsButton("primary")}
+        </div>
+
+        <div className="bespoke-demo-topbar-right">
+          <div className="bespoke-demo-topbar-secondary" aria-label="Workspace actions">
+            {renderTopbarBrand ? (
+              <div className="bespoke-demo-topbar-brand-sticky" aria-hidden={!mobileTopbarSearchCollapsed}>
+                {renderTopbarBrand}
+              </div>
+            ) : null}
+            <div className="bespoke-demo-topbar-secondary-actions">
+            {renderAddonsButton("collapsed")}
             {onThemeChange ? (
               <button
                 type="button"
@@ -2256,6 +2270,7 @@ export function BespokeMailDemo({
             <div className="bespoke-demo-topbar-avatar" title={`${displayName} <${displayEmail}>`} aria-hidden="true">
               <span className="bespoke-demo-topbar-avatar-initials">{viewerInitials}</span>
               <img className="bespoke-demo-topbar-avatar-image" src={topbarAvatarUrl} alt="" decoding="async" />
+            </div>
             </div>
             <button
               type="button"

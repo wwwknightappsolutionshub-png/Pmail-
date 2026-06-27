@@ -13,7 +13,7 @@ export function InboxSwitchSuccessToast({
   accountLabel,
   accountEmail,
   onDismiss,
-  autoDismissMs = 5000,
+  autoDismissMs = 2000,
 }: InboxSwitchSuccessToastProps) {
   useEffect(() => {
     const timer = window.setTimeout(onDismiss, autoDismissMs);
@@ -21,8 +21,16 @@ export function InboxSwitchSuccessToast({
   }, [autoDismissMs, onDismiss]);
 
   return createPortal(
-    <div className="pmail-brand-toast-overlay" role="status" aria-live="polite">
-      <div className="pmail-brand-toast-card">
+    <div className="pmail-brand-toast-shelf" role="status" aria-live="polite">
+      <div className="pmail-brand-toast-card pmail-brand-toast-card--switch">
+        <button
+          type="button"
+          className="pmail-brand-toast-close"
+          aria-label="Dismiss"
+          onClick={onDismiss}
+        >
+          ×
+        </button>
         <strong>Congratulations</strong>
         <p>
           You have successfully switched to &quot;{accountLabel} / {accountEmail}&quot;
