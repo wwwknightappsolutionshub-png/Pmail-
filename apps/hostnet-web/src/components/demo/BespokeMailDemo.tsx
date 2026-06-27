@@ -2184,7 +2184,11 @@ export function BespokeMailDemo({
                 className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--addons"
                 aria-label="Addon marketplace"
                 title="Addon marketplace"
-                onClick={onOpenAddons}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onOpenAddons();
+                }}
               >
                 <TopbarIcon>
                   <path

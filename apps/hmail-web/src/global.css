@@ -1,3 +1,5 @@
+@import "./components/PmailBrandToast.css";
+
 :root {
   --font-app: "Anek", "Anek Latin", system-ui, -apple-system, sans-serif;
   --bg: #0b1220;

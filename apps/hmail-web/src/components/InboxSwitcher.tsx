@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, forwardRef, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import { useAddons } from "../context/AddonContext";
 import {
   defaultMailConfig,
@@ -10,6 +12,7 @@ import {
 import { formatMailConnectError } from "../utils/mailConnectErrors";
 import { ProviderPresetPicker } from "./ProviderPresetPicker";
 import { Mails } from "lucide-react";
+import { PmailLoadingScreen } from "./PmailLoadingScreen";
 import "./InboxSwitcher.css";
 import "./MailBottomNavButton.css";
 
@@ -35,6 +38,7 @@ interface InboxSwitcherProps {
   onAccountCountChange?: (count: number) => void;
   onAccountConnected?: () => void;
   onAccountConnectFailed?: () => void;
+  onAccountSwitched?: (account: MailAccountSummary) => void;
 }
 
 export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>(function InboxSwitcher(
@@ -46,9 +50,11 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
     onAccountCountChange,
     onAccountConnected,
     onAccountConnectFailed,
+    onAccountSwitched,
   },
   ref,
 ) {
+  const { user, setUser } = useAuth();
   const { hasAddon } = useAddons();
   const [open, setOpen] = useState(false);
   const [accounts, setAccounts] = useState<MailAccountSummary[]>([]);
@@ -222,12 +228,26 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
       setOpen(false);
       return;
     }
+    const targetAccount = accounts.find((account) => account.id === accountId);
+    if (!targetAccount) return;
+
     setSwitchingId(accountId);
     setError("");
     try {
-      await api.activateMailAccount(accountId);
+      const result = await api.activateMailAccount(accountId);
+      const active =
+        result.accounts.find((account) => account.id === result.activeMailAccountId) ??
+        targetAccount;
+      if (user) {
+        setUser({
+          ...user,
+          activeMailAccount: active,
+          mailAccountCount: result.accounts.length,
+        });
+      }
       setOpen(false);
-      onSwitched();
+      void onSwitched();
+      onAccountSwitched?.(targetAccount);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to switch mailbox");
     } finally {
@@ -285,6 +305,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
   const mailboxTooltip = isBottomNav ? `Mailboxes: ${displayEmail}` : undefined;
 
   return (
+    <>
     <div className={`inbox-switcher inbox-switcher--${variant}`} ref={rootRef}>
       <button
         ref={triggerRef}
@@ -421,5 +442,16 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
         </div>
       ) : null}
     </div>
+    {switchingId
+      ? createPortal(
+          <PmailLoadingScreen
+            className="pmail-loading-screen--overlay"
+            heading="Switching your mailbox"
+            subtitle="PMail+"
+          />,
+          document.body,
+        )
+      : null}
+    </>
   );
 });

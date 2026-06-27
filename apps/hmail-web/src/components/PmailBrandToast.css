@@ -1,0 +1,95 @@
+:root {
+  --pmail-toast-bg: linear-gradient(145deg, #0f2744 0%, #0d4f6c 52%, #0f766e 100%);
+  --pmail-toast-border: rgba(45, 212, 191, 0.42);
+  --pmail-toast-text: #f8fafc;
+  --pmail-toast-subtext: rgba(248, 250, 252, 0.9);
+  --pmail-toast-overlay: rgba(2, 8, 23, 0.5);
+}
+
+.pmail-brand-toast-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 16050;
+  display: grid;
+  place-items: center;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+  background: var(--pmail-toast-overlay);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.pmail-brand-toast-card {
+  width: min(22rem, 100%);
+  border-radius: 16px;
+  padding: 1.2rem 1.35rem;
+  background: var(--pmail-toast-bg);
+  border: 1px solid var(--pmail-toast-border);
+  color: var(--pmail-toast-text);
+  box-shadow: 0 24px 48px rgba(2, 8, 23, 0.45);
+  text-align: center;
+  pointer-events: auto;
+}
+
+.pmail-brand-toast-card strong {
+  display: block;
+  font-size: 1.12rem;
+  margin-bottom: 0.45rem;
+}
+
+.pmail-brand-toast-card p {
+  margin: 0;
+  color: var(--pmail-toast-subtext);
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.pmail-brand-toast-dismiss {
+  margin-top: 1rem;
+  border: 1px solid rgba(248, 250, 252, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  min-height: 2.5rem;
+  padding: 0.45rem 1.2rem;
+  cursor: pointer;
+}
+
+/* Shared branded surfaces for existing toast cards */
+.inbox-connect-result-card,
+.multi-inbox-toast,
+.paid-addon-toast,
+.contact-sync-toast,
+.signature-reminder-toast,
+.cv-scanner-toast,
+.secondary-mailbox-toast,
+.login-provider-select-toast,
+.undo-send-toast {
+  background: var(--pmail-toast-bg) !important;
+  color: var(--pmail-toast-text) !important;
+  border-color: var(--pmail-toast-border) !important;
+}
+
+.inbox-connect-result-card p,
+.multi-inbox-toast-copy p,
+.multi-inbox-toast-subtitle,
+.paid-addon-toast-copy p,
+.contact-sync-toast-copy p,
+.signature-reminder-toast-copy p,
+.cv-scanner-toast-copy p,
+.secondary-mailbox-toast-copy p,
+.login-provider-select-toast-copy p,
+.undo-send-toast p {
+  color: var(--pmail-toast-subtext) !important;
+}
+
+.pmail-demo-shell--light .inbox-connect-result-card,
+.pmail-demo-shell--light .paid-addon-toast,
+.pmail-demo-shell--light .contact-sync-toast,
+.mail-app--light .paid-addon-toast,
+.mail-app--light .contact-sync-toast {
+  background: var(--pmail-toast-bg) !important;
+  color: var(--pmail-toast-text) !important;
+  border-color: var(--pmail-toast-border) !important;
+}

@@ -6,7 +6,8 @@ import { useAddons } from "../context/AddonContext";
 import { useBespokeComposeBridge } from "../context/BespokeComposeBridge";
 import { useMailFooterNavBridge } from "../context/MailFooterNavBridge";
 import { InboxConnectResultToast } from "./InboxConnectResultToast";
-import { InboxSwitcher, type InboxSwitcherHandle } from "./InboxSwitcher";
+import { InboxSwitchSuccessToast } from "./InboxSwitchSuccessToast";
+import { InboxSwitcher, type InboxSwitcherHandle, type MailAccountSummary } from "./InboxSwitcher";
 import { MailBottomNavButton } from "./MailBottomNavButton";
 import { PaidAddonToast } from "./PaidAddonToast";
 
@@ -16,7 +17,7 @@ type ShellMailFooterNavProps = {
 };
 
 export function ShellMailFooterNav({ uiThemeVersion = "dark", onActivateInbox }: ShellMailFooterNavProps) {
-  const { user, refresh } = useAuth();
+  const { user } = useAuth();
   const { panelWorkspaceTrial } = useAddons();
   const { openCompose } = useBespokeComposeBridge();
   const footerNav = useMailFooterNavBridge();
@@ -24,6 +25,7 @@ export function ShellMailFooterNav({ uiThemeVersion = "dark", onActivateInbox }:
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
   const [paidAddonGate, setPaidAddonGate] = useState<{ slug: string; name: string } | null>(null);
   const [inboxConnectToast, setInboxConnectToast] = useState<"success" | "error" | null>(null);
+  const [inboxSwitchToast, setInboxSwitchToast] = useState<MailAccountSummary | null>(null);
 
   const bindInboxSwitcherRef = useCallback(
     (handle: InboxSwitcherHandle | null) => {
@@ -56,9 +58,9 @@ export function ShellMailFooterNav({ uiThemeVersion = "dark", onActivateInbox }:
     openCompose({ mode: "new" });
   }, [activateInbox, openCompose]);
 
-  const handleMailboxSwitch = useCallback(async () => {
-    await refresh();
-  }, [refresh]);
+  const handleMailboxSwitch = useCallback(() => {
+    footerNav.openMessages();
+  }, [footerNav]);
 
   return (
     <>
@@ -88,6 +90,7 @@ export function ShellMailFooterNav({ uiThemeVersion = "dark", onActivateInbox }:
             onPaidAddonGate={() => setPaidAddonGate({ slug: "multi-inbox-functionality", name: "Multiple Inboxes" })}
             onAccountConnected={() => setInboxConnectToast("success")}
             onAccountConnectFailed={() => setInboxConnectToast("error")}
+            onAccountSwitched={(account) => setInboxSwitchToast(account)}
           />
           <MailBottomNavButton label="New mail" icon={SquarePen} onClick={handleNewMail} />
         </nav>
@@ -108,6 +111,14 @@ export function ShellMailFooterNav({ uiThemeVersion = "dark", onActivateInbox }:
 
       {inboxConnectToast ? (
         <InboxConnectResultToast kind={inboxConnectToast} onDismiss={() => setInboxConnectToast(null)} />
+      ) : null}
+
+      {inboxSwitchToast ? (
+        <InboxSwitchSuccessToast
+          accountLabel={inboxSwitchToast.label?.trim() || inboxSwitchToast.email.split("@")[0] || "Account"}
+          accountEmail={inboxSwitchToast.email}
+          onDismiss={() => setInboxSwitchToast(null)}
+        />
       ) : null}
     </>
   );

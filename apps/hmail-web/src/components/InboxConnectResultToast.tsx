@@ -10,7 +10,7 @@ export function InboxConnectResultToast({ kind, onDismiss }: InboxConnectResultT
 
   return (
     <div className="inbox-connect-result-overlay" role="status" aria-live="polite">
-      <div className={`inbox-connect-result-card inbox-connect-result-card--${kind}`}>
+      <div className={`inbox-connect-result-card pmail-brand-toast-card inbox-connect-result-card--${kind}`}>
         <strong>{isSuccess ? "Congratulations" : "Hooray"}</strong>
         <p>
           {isSuccess

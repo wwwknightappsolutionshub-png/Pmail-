@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -17,8 +16,9 @@ import {
   recordCvScannerToastShown,
   setCvScannerDontAskAgain,
 } from "../lib/cvScannerToastPrefs";
-import { InboxSwitcher, type InboxSwitcherHandle } from "../components/InboxSwitcher";
+import { InboxSwitcher, type InboxSwitcherHandle, type MailAccountSummary } from "../components/InboxSwitcher";
 import { InboxConnectResultToast } from "../components/InboxConnectResultToast";
+import { InboxSwitchSuccessToast } from "../components/InboxSwitchSuccessToast";
 import { MultiInboxConnectToast } from "../components/MultiInboxConnectToast";
 import { PaidAddonToast } from "../components/PaidAddonToast";
 import { MessageUnsubscribeButton } from "../components/MessageUnsubscribeButton";
@@ -267,7 +267,7 @@ export function MailPage({
   onCareerNavUnlockedChange,
   onEmbeddedShellActivate,
 }: MailPageProps = {}) {
-  const { user, logout, refresh } = useAuth();
+  const { user, logout } = useAuth();
   const { hasAddon, hasJobHunterAccess, panelWorkspaceTrial } = useAddons();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -338,6 +338,7 @@ export function MailPage({
   const [paidAddonGate, setPaidAddonGate] = useState<{ slug: string; name: string } | null>(null);
   const [multiInboxPromptOpen, setMultiInboxPromptOpen] = useState(false);
   const [inboxConnectToast, setInboxConnectToast] = useState<"success" | "error" | null>(null);
+  const [inboxSwitchToast, setInboxSwitchToast] = useState<MailAccountSummary | null>(null);
   const [mailAccountCount, setMailAccountCount] = useState<number | null>(null);
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -454,7 +455,8 @@ export function MailPage({
     selectedUid &&
       (loadingMessage || !selectedMessage || selectedMessage.uid !== selectedUid),
   );
-  const listPaginationEnabled = !isVirtual && messageTotal > PAGE_SIZE && mobilePane !== "read";
+  const listPaginationEnabled =
+    !isVirtual && messageTotal > PAGE_SIZE && mobilePane !== "read" && (mobilePane !== "menu" || contentPane === "list");
   const messageListAtEnd = useMessageListAtEnd(
     messageListRef,
     listPaginationEnabled,
@@ -475,7 +477,7 @@ export function MailPage({
     } finally {
       setLoadingFolders(false);
     }
-  }, [activeFolder]);
+  }, [activeFolder, user?.activeMailAccount?.id]);
 
   useEffect(() => {
     const mailFolder = searchParams.get("mailFolder");
@@ -524,18 +526,26 @@ export function MailPage({
       });
   }, [onCareerNavUnlockedChange]);
 
-  const handleMailboxSwitch = useCallback(async () => {
+  const handleMailboxSwitch = useCallback(() => {
     setActiveFolder("INBOX");
     setSelectedUid(null);
     setSelectedMessage(null);
     setSelectedUids([]);
     resetMessagePage();
-    setAppliedSearch({ field: "subject", query: "" });
-    setSearchDraft({ field: "subject", query: "" });
+    setAppliedSearch({ field: "subject", query: "", scope: "all" });
+    setSearchDraft({ field: "subject", query: "", scope: "all" });
     setMailFilter("all");
-    await refresh();
-    await loadFolders();
-  }, [refresh, loadFolders, resetMessagePage, setAppliedSearch, setSearchDraft]);
+  }, [resetMessagePage, setAppliedSearch, setSearchDraft]);
+
+  const activeMailAccountId = user?.activeMailAccount?.id ?? null;
+  const previousMailAccountIdRef = useRef<string | null>(activeMailAccountId);
+
+  useEffect(() => {
+    const previousId = previousMailAccountIdRef.current;
+    previousMailAccountIdRef.current = activeMailAccountId;
+    if (!previousId || !activeMailAccountId || previousId === activeMailAccountId) return;
+    handleMailboxSwitch();
+  }, [activeMailAccountId, handleMailboxSwitch]);
 
   const loadMessages = useCallback(async (options?: { silent?: boolean; page?: number }) => {
     if (isVirtualView(activeFolder)) return;
@@ -1076,9 +1086,10 @@ export function MailPage({
     if (virtualView) return virtualView;
 
     const visibleSuggestions = contactSuggestions.filter((e) => !dismissedSuggestions.includes(e));
-    const usePortaledPagination = embedded && mobileMailViewport;
     const showPagination =
-      messageTotal > PAGE_SIZE && mobilePane !== "read" && messageListAtEnd;
+      messageTotal > PAGE_SIZE &&
+      (mobilePane === "list" || (mobilePane === "menu" && contentPane === "list")) &&
+      messageListAtEnd;
     const listPrimaryColumnLabel = selectedUid ? "Subject" : "Sender";
     const mailPagination =
       showPagination ? (
@@ -1282,20 +1293,8 @@ export function MailPage({
             </>
           )}
           </div>
-          {!usePortaledPagination ? mailPagination : null}
+          {mailPagination}
         </div>
-        {usePortaledPagination && mailPagination
-          ? createPortal(
-              <div
-                className={`mail-pagination-portal${
-                  activeThemeVersion === "light" ? " mail-pagination-portal--light" : ""
-                }`}
-              >
-                {mailPagination}
-              </div>,
-              document.body,
-            )
-          : null}
       </>
     );
   };
@@ -1515,6 +1514,7 @@ export function MailPage({
                   onAccountCountChange={setMailAccountCount}
                   onAccountConnected={() => setInboxConnectToast("success")}
                   onAccountConnectFailed={() => setInboxConnectToast("error")}
+                  onAccountSwitched={(account) => setInboxSwitchToast(account)}
                 />
               </div>
             ) : null}
@@ -1668,6 +1668,9 @@ export function MailPage({
           onSwitched={() => void handleMailboxSwitch()}
           onPaidAddonGate={() => openPaidAddonGate("multi-inbox-functionality", "Multiple Inboxes")}
           onAccountCountChange={setMailAccountCount}
+          onAccountConnected={() => setInboxConnectToast("success")}
+          onAccountConnectFailed={() => setInboxConnectToast("error")}
+          onAccountSwitched={(account) => setInboxSwitchToast(account)}
         />
         <MailBottomNavButton
           label="New mail"
@@ -1752,6 +1755,14 @@ export function MailPage({
 
       {inboxConnectToast ? (
         <InboxConnectResultToast kind={inboxConnectToast} onDismiss={() => setInboxConnectToast(null)} />
+      ) : null}
+
+      {inboxSwitchToast ? (
+        <InboxSwitchSuccessToast
+          accountLabel={inboxSwitchToast.label?.trim() || inboxSwitchToast.email.split("@")[0] || "Account"}
+          accountEmail={inboxSwitchToast.email}
+          onDismiss={() => setInboxSwitchToast(null)}
+        />
       ) : null}
 
       {mobileDrawerMenuOpen ? (

@@ -70,6 +70,11 @@ function BespokeMailShellContent() {
 
   useMobileTopbarChromeCollapse(setMobileTopbarSearchCollapsed);
 
+  const openAddonsMarketplace = useCallback(() => {
+    setMobileTopbarSearchCollapsed(false);
+    navigate("/addons");
+  }, [navigate]);
+
   const mailWorkspaceViews = useMemo(
     () => ({
       contacts: VIEW_CONTACTS,
@@ -361,7 +366,7 @@ function BespokeMailShellContent() {
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
         renderMobileFooterNav={mobileFooterNav}
-        onOpenAddons={() => navigate("/addons")}
+        onOpenAddons={openAddonsMarketplace}
         showCareerTab={careerNavUnlocked}
         onCareerTabClick={() => navigate("/career")}
         requestedWorkspace={requestedWorkspace}
