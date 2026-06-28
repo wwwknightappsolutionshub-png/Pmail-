@@ -213,14 +213,17 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
   const handleTriggerClick = () => {
     if (!entitled) {
       onPaidAddonGate?.();
+      if (isBottomNav) triggerRef.current?.blur();
       return;
     }
     if (!hasMultipleAccounts && accounts.length <= 1) {
       setOpen(true);
       setShowAddForm(true);
+      if (isBottomNav) triggerRef.current?.blur();
       return;
     }
     setOpen((value) => !value);
+    if (isBottomNav) triggerRef.current?.blur();
   };
 
   const handleSwitch = async (accountId: string) => {

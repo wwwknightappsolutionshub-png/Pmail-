@@ -13,13 +13,17 @@ import { PaidAddonToast } from "./PaidAddonToast";
 
 type ShellMailFooterNavProps = {
   uiThemeVersion?: "dark" | "light";
+  /** Switch shell workspace back to inbox without resetting mail folder/pane. */
   onActivateInbox?: () => void;
+  /** Hard reset to inbox list (Messages footer). */
+  onResetInboxHome?: () => void;
   onClearMailSearch?: () => void;
 };
 
 export function ShellMailFooterNav({
   uiThemeVersion = "dark",
   onActivateInbox,
+  onResetInboxHome,
   onClearMailSearch,
 }: ShellMailFooterNavProps) {
   const { user } = useAuth();
@@ -48,16 +52,24 @@ export function ShellMailFooterNav({
     navigate("/");
   }, [navigate, onActivateInbox]);
 
+  const resetInboxHome = useCallback(() => {
+    if (onResetInboxHome) {
+      onResetInboxHome();
+      return;
+    }
+    activateInbox();
+  }, [activateInbox, onResetInboxHome]);
+
   const handleFolders = useCallback(() => {
     onClearMailSearch?.();
-    footerNav.openFolders();
     activateInbox();
+    footerNav.openFolders();
   }, [activateInbox, footerNav, onClearMailSearch]);
 
   const handleMessages = useCallback(() => {
-    activateInbox();
+    resetInboxHome();
     footerNav.openMessages();
-  }, [activateInbox, footerNav]);
+  }, [footerNav, resetInboxHome]);
 
   const handleNewMail = useCallback(() => {
     onClearMailSearch?.();
@@ -66,9 +78,9 @@ export function ShellMailFooterNav({
   }, [activateInbox, onClearMailSearch, openCompose]);
 
   const handleMailboxSwitch = useCallback(() => {
-    activateInbox();
+    resetInboxHome();
     footerNav.openMessages();
-  }, [activateInbox, footerNav]);
+  }, [footerNav, resetInboxHome]);
 
   return (
     <>

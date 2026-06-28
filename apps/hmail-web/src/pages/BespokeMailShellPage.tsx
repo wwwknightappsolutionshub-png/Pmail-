@@ -136,6 +136,10 @@ function BespokeMailShellContent() {
     clearMailSearch();
   }, [clearMailSearch]);
 
+  const activateInboxWorkspace = useCallback(() => {
+    setRequestedWorkspace("inbox");
+  }, []);
+
   const dismissMailSearchOverlay = useCallback(() => {
     if (isMailSearchActive(appliedSearch)) {
       setSearchDraft(appliedSearch);
@@ -360,11 +364,12 @@ function BespokeMailShellContent() {
     () => (
       <ShellMailFooterNav
         uiThemeVersion={uiThemeVersion}
-        onActivateInbox={resetToInboxHome}
+        onActivateInbox={activateInboxWorkspace}
+        onResetInboxHome={resetToInboxHome}
         onClearMailSearch={clearMailSearch}
       />
     ),
-    [uiThemeVersion, resetToInboxHome, clearMailSearch],
+    [uiThemeVersion, activateInboxWorkspace, resetToInboxHome, clearMailSearch],
   );
 
   return (

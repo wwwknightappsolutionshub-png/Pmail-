@@ -64,14 +64,10 @@
   z-index: 30;
 }
 
-.mail-bottom-nav-btn:is(:hover, :focus-visible):not(:disabled)::after,
-.inbox-switcher-trigger--bottom-nav:is(:hover, :focus-visible):not(:disabled)::after {
-  opacity: 1;
-  visibility: visible;
-}
-
-.mail-bottom-nav-btn:active:not(:disabled)::after,
-.inbox-switcher-trigger--bottom-nav:active:not(:disabled)::after {
-  opacity: 1;
-  visibility: visible;
+@media (hover: hover) and (pointer: fine) {
+  .mail-bottom-nav-btn:hover:not(:disabled)::after,
+  .inbox-switcher-trigger--bottom-nav:hover:not(:disabled)::after {
+    opacity: 1;
+    visibility: visible;
+  }
 }

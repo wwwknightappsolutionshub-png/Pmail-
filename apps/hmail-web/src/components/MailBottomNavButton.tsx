@@ -13,7 +13,10 @@ export function MailBottomNavButton({ label, icon: Icon, active = false, onClick
     <button
       type="button"
       className={`mail-bottom-nav-btn${active ? " is-active" : ""}`}
-      onClick={onClick}
+      onClick={(event) => {
+        onClick();
+        event.currentTarget.blur();
+      }}
       aria-label={label}
       title={label}
       data-tooltip={label}
