@@ -166,6 +166,8 @@ type Props = {
   mailWorkspaceViews?: Partial<Record<"contacts" | "crm" | "reminders" | "calendar", string>>;
   activeMailWorkspaceView?: string | null;
   onMailWorkspaceView?: (view: string | null) => void;
+  /** Clear production mail search when the user leaves the inbox search context. */
+  onLeaveMailSearch?: () => void;
   /** Collapse topbar search on mobile when message list scrolls down (production PMail+). */
   mobileTopbarSearchCollapsed?: boolean;
   /** Branded mark for mobile topbar (production PMail+). */
@@ -515,6 +517,7 @@ export function BespokeMailDemo({
   mailWorkspaceViews,
   activeMailWorkspaceView = null,
   onMailWorkspaceView,
+  onLeaveMailSearch,
   mobileTopbarSearchCollapsed = false,
   renderTopbarBrand,
   workspaceTabCounts = null,
@@ -1608,6 +1611,9 @@ export function BespokeMailDemo({
       onWorkspaceTabNavigate?.("inbox");
       return;
     }
+    if (renderInboxWorkspace) {
+      onLeaveMailSearch?.();
+    }
     setActiveTool(null);
     setWorkspace("inbox");
     onMailWorkspaceView?.(null);
@@ -1678,12 +1684,18 @@ export function BespokeMailDemo({
       return;
     }
     if (nextWorkspace === "career" && onCareerTabClick) {
+      if (renderInboxWorkspace) {
+        onLeaveMailSearch?.();
+      }
       onCareerTabClick();
       return;
     }
     if (workspaceToolsGated) {
       showPaidFeatureNotice(feature, "bespoke-workspace");
       return;
+    }
+    if (renderInboxWorkspace) {
+      onLeaveMailSearch?.();
     }
     if (
       renderInboxWorkspace &&

@@ -69,6 +69,7 @@ import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
 import { toolAddonSlug } from "../constants/addonTools";
 import {
   folderSupportsBulkActions,
+  EMPTY_MAIL_SEARCH,
   isVirtualView,
   virtualViewTitle,
   VIEW_CONTACTS,
@@ -421,15 +422,35 @@ export function MailPage({
   const showBulkBar = activeFolderKind ? folderSupportsBulkActions(activeFolderKind) : false;
   const showInboxSwitcher = !isVirtual && hasMultiInboxAddon;
 
+  const clearMailSearch = useCallback(() => {
+    setSearchDraft(EMPTY_MAIL_SEARCH);
+    setAppliedSearch(EMPTY_MAIL_SEARCH);
+    messagePageRef.current = 1;
+    setMessagePage(1);
+  }, [setAppliedSearch, setSearchDraft]);
+
+  const selectFolder = useCallback(
+    (path: string) => {
+      messagePageRef.current = 1;
+      setActiveFolder(path);
+      setSelectedUid(null);
+      setSelectedMessage(null);
+      setSelectedUids([]);
+      setExpandedSenderEmail(null);
+      setMailFilter("all");
+      setMessagePage(1);
+      clearMailSearch();
+      setMobilePane("list");
+    },
+    [clearMailSearch],
+  );
+
   useEffect(() => {
     if (requestedFolder === undefined) return;
     const target = requestedFolder ?? inboxPath ?? "INBOX";
-    setActiveFolder(target);
-    setSelectedUid(null);
-    setSelectedMessage(null);
-    setMobilePane("list");
+    selectFolder(target);
     onRequestedFolderHandled?.();
-  }, [requestedFolder, inboxPath, onRequestedFolderHandled]);
+  }, [requestedFolder, inboxPath, onRequestedFolderHandled, selectFolder]);
 
   useEffect(() => {
     onActiveFolderChange?.(activeFolder);
@@ -734,21 +755,8 @@ export function MailPage({
     if (selectedUid && !isVirtual) loadMessage(selectedUid);
   }, [selectedUid, loadMessage, isVirtual]);
 
-  const selectFolder = (path: string) => {
-    messagePageRef.current = 1;
-    setActiveFolder(path);
-    setSelectedUid(null);
-    setSelectedMessage(null);
-    setSelectedUids([]);
-    setExpandedSenderEmail(null);
-    setMailFilter("all");
-    setMessagePage(1);
-    setSearchDraft({ field: "subject", query: "" });
-    setAppliedSearch({ field: "subject", query: "" });
-    setMobilePane(isVirtualView(path) ? "list" : "list");
-  };
-
   const selectMessage = (uid: number) => {
+    clearMailSearch();
     setSelectedUid(uid);
     setSelectedMessage((current) => (current?.uid === uid ? current : null));
     setLoadingMessage(true);
@@ -810,29 +818,26 @@ export function MailPage({
 
   const openMobileFolders = useCallback(() => {
     activateEmbeddedShell();
+    clearMailSearch();
     setMobilePane("menu");
-  }, [activateEmbeddedShell]);
+  }, [activateEmbeddedShell, clearMailSearch]);
 
   const openMobileMessages = useCallback(() => {
     activateEmbeddedShell();
-    if (mobilePane === "read") {
-      setSelectedUid(null);
-      setSelectedMessage(null);
-      setMessageError("");
-    }
-    setMobilePane("list");
-
+    setComposeOpen(false);
+    setComposeInitial(undefined);
+    setNewFolderOpen(false);
+    setCvScannerToastFile(null);
+    setCareerScannerPreload(null);
+    setCloseDrawerTooltip(null);
+    setMessageError("");
     const targetInbox = inboxPath || "INBOX";
-    if (isVirtualView(activeFolder) || activeFolder !== targetInbox) {
-      selectFolder(targetInbox);
-      return;
-    }
-
-    if (canRefreshMailList) {
-      messageListRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-      void refreshMailInbox();
-    }
-  }, [mobilePane, activeFolder, inboxPath, canRefreshMailList, refreshMailInbox, activateEmbeddedShell]);
+    selectFolder(targetInbox);
+    requestAnimationFrame(() => {
+      messageListRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    });
+    void loadMessagesRef.current?.({ page: 1 });
+  }, [activateEmbeddedShell, inboxPath, selectFolder]);
 
   const footerNavBridge = useOptionalMailFooterNavBridge();
   const footerNavHandlers = useMemo(
@@ -903,9 +908,10 @@ export function MailPage({
   };
 
   const openCompose = useCallback((initial?: ComposeInitial) => {
+    clearMailSearch();
     setComposeInitial(initial);
     setComposeOpen(true);
-  }, []);
+  }, [clearMailSearch]);
 
   useRegisterBespokeCompose(openCompose, embedded);
 

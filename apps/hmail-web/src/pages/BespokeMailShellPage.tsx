@@ -19,6 +19,8 @@ import { useWorkspaceTabCounts } from "../hooks/useWorkspaceTabCounts";
 import { useSecondaryMailboxNotifications } from "../hooks/useSecondaryMailboxNotifications";
 import { useSignatureReminder } from "../hooks/useSignatureReminder";
 import {
+  EMPTY_MAIL_SEARCH,
+  isMailSearchActive,
   isVirtualView,
   VIEW_CALENDAR,
   VIEW_CONTACTS,
@@ -55,8 +57,8 @@ function BespokeMailShellContent() {
   );
   const [platformNotice, setPlatformNotice] = useState("");
   const [requestedWorkspace, setRequestedWorkspace] = useState<BespokeWorkspace | null>(null);
-  const [searchDraft, setSearchDraft] = useState<MailSearchState>({ field: "subject", query: "", scope: "all" });
-  const [appliedSearch, setAppliedSearch] = useState<MailSearchState>({ field: "subject", query: "", scope: "all" });
+  const [searchDraft, setSearchDraft] = useState<MailSearchState>(EMPTY_MAIL_SEARCH);
+  const [appliedSearch, setAppliedSearch] = useState<MailSearchState>(EMPTY_MAIL_SEARCH);
   const [liveComposeSettings, setLiveComposeSettings] = useState<LiveComposeSettings | null>(null);
   const [viewerAvatarUrl, setViewerAvatarUrl] = useState<string | null>(null);
   const [organizationUsers, setOrganizationUsers] = useState<Array<{ id: string; email: string; displayName: string }>>(
@@ -90,8 +92,23 @@ function BespokeMailShellContent() {
 
   const workspaceTabCounts = useWorkspaceTabCounts(Boolean(user), displayEmail, organizationUsers);
 
+  const clearMailSearch = useCallback(() => {
+    setSearchDraft(EMPTY_MAIL_SEARCH);
+    setAppliedSearch(EMPTY_MAIL_SEARCH);
+  }, []);
+
+  const requestWorkspace = useCallback(
+    (workspace: BespokeWorkspace) => {
+      if (workspace !== "inbox") {
+        clearMailSearch();
+      }
+      setRequestedWorkspace(workspace);
+    },
+    [clearMailSearch],
+  );
+
   const signatureReminder = useSignatureReminder({
-    onOpenBrandSettings: () => setRequestedWorkspace("settings"),
+    onOpenBrandSettings: () => requestWorkspace("settings"),
   });
 
   useInboxContactSync({
@@ -103,10 +120,29 @@ function BespokeMailShellContent() {
 
   const secondaryMailbox = useSecondaryMailboxNotifications(Boolean(user));
 
-  const navigateMailWorkspaceView = useCallback((view: string | null) => {
-    setMailWorkspaceView(view);
-    setMailFolderRequest(view);
-  }, []);
+  const navigateMailWorkspaceView = useCallback(
+    (view: string | null) => {
+      clearMailSearch();
+      setMailWorkspaceView(view);
+      setMailFolderRequest(view);
+    },
+    [clearMailSearch],
+  );
+
+  const resetToInboxHome = useCallback(() => {
+    setRequestedWorkspace("inbox");
+    setMailWorkspaceView(null);
+    setMailFolderRequest(null);
+    clearMailSearch();
+  }, [clearMailSearch]);
+
+  const dismissMailSearchOverlay = useCallback(() => {
+    if (isMailSearchActive(appliedSearch)) {
+      setSearchDraft(appliedSearch);
+      return;
+    }
+    clearMailSearch();
+  }, [appliedSearch, clearMailSearch]);
 
   useEffect(() => {
     void api
@@ -288,14 +324,11 @@ function BespokeMailShellContent() {
         onSearch={() => {
           setAppliedSearch(searchDraft);
         }}
-        onClear={() => {
-          const empty = { field: "subject" as const, query: "", scope: "all" as const };
-          setSearchDraft(empty);
-          setAppliedSearch(empty);
-        }}
+        onClear={clearMailSearch}
+        onDismiss={dismissMailSearchOverlay}
       />
     ),
-    [searchDraft],
+    [searchDraft, clearMailSearch, dismissMailSearchOverlay],
   );
 
   const inboxWorkspace = useMemo(
@@ -327,10 +360,11 @@ function BespokeMailShellContent() {
     () => (
       <ShellMailFooterNav
         uiThemeVersion={uiThemeVersion}
-        onActivateInbox={() => setRequestedWorkspace("inbox")}
+        onActivateInbox={resetToInboxHome}
+        onClearMailSearch={clearMailSearch}
       />
     ),
-    [uiThemeVersion],
+    [uiThemeVersion, resetToInboxHome, clearMailSearch],
   );
 
   return (
@@ -364,6 +398,7 @@ function BespokeMailShellContent() {
         mailWorkspaceViews={mailWorkspaceViews}
         activeMailWorkspaceView={mailWorkspaceView}
         onMailWorkspaceView={navigateMailWorkspaceView}
+        onLeaveMailSearch={clearMailSearch}
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
         renderMobileFooterNav={mobileFooterNav}

@@ -90,6 +90,7 @@ type VerticalBespokeMailDemoPageProps = {
   mailWorkspaceViews?: Partial<Record<"contacts" | "crm" | "reminders" | "calendar", string>>;
   activeMailWorkspaceView?: string | null;
   onMailWorkspaceView?: (view: string | null) => void;
+  onLeaveMailSearch?: () => void;
   mobileTopbarSearchCollapsed?: boolean;
   workspaceTabCounts?: {
     contacts: number;
@@ -137,6 +138,7 @@ export function VerticalBespokeMailDemoPage({
   mailWorkspaceViews,
   activeMailWorkspaceView,
   onMailWorkspaceView,
+  onLeaveMailSearch,
   mobileTopbarSearchCollapsed = false,
   workspaceTabCounts = null,
   renderMobileFooterNav,
@@ -213,6 +215,7 @@ export function VerticalBespokeMailDemoPage({
         mailWorkspaceViews={mailWorkspaceViews}
         activeMailWorkspaceView={activeMailWorkspaceView}
         onMailWorkspaceView={onMailWorkspaceView}
+        onLeaveMailSearch={onLeaveMailSearch}
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
         renderLoading={<PmailLoadingScreen subtitle="Loading your workspace…" />}

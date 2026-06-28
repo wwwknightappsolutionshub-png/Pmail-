@@ -37,6 +37,8 @@ type MailSearchBarProps = {
   onScopeChange: (scope: MailSearchScope) => void;
   onSearch: (query: string, scope: MailSearchScope) => void;
   onClear: () => void;
+  /** Fired when the search overlay closes without submitting a search. */
+  onDismiss?: () => void;
   /** Icon-only trigger for compact production topbars. */
   variant?: "bar" | "icon";
 };
@@ -83,7 +85,7 @@ function computeSearchPanelRect(root: HTMLElement, advanced: boolean): SearchAnc
 }
 
 export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>(function MailSearchBar(
-  { query, active, scope, contacts = [], onQueryChange, onScopeChange, onSearch, onClear, variant = "bar" },
+  { query, active, scope, contacts = [], onQueryChange, onScopeChange, onSearch, onClear, onDismiss, variant = "bar" },
   ref,
 ) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -105,11 +107,14 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
   const showAdvanced = advancedOpen;
   const showPanel = showRecent || showAdvanced;
 
-  function closeSearchOverlay() {
+  function closeSearchOverlay(options?: { preserveSession?: boolean }) {
     setSheetOpen(false);
     setFocused(false);
     setAdvancedOpen(false);
     inputRef.current?.blur();
+    if (!options?.preserveSession) {
+      onDismiss?.();
+    }
   }
 
   useImperativeHandle(ref, () => ({
@@ -193,7 +198,7 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
     const trimmed = nextQuery.trim();
     if (trimmed) rememberMailSearch(trimmed);
     onSearch(trimmed, nextScope);
-    closeSearchOverlay();
+    closeSearchOverlay({ preserveSession: true });
   }
 
   function openSearchSheet() {

@@ -108,6 +108,12 @@ export interface MailSearchState {
   scope?: MailSearchScope;
 }
 
+export const EMPTY_MAIL_SEARCH: MailSearchState = { field: "subject", query: "", scope: "all" };
+
+export function isMailSearchActive(search: MailSearchState): boolean {
+  return Boolean(search.query.trim()) || (search.scope != null && search.scope !== "all");
+}
+
 export function isVirtualView(path: string): boolean {
   return (ALL_VIRTUAL_VIEWS as readonly string[]).includes(path);
 }

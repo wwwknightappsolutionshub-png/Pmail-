@@ -14,9 +14,14 @@ import { PaidAddonToast } from "./PaidAddonToast";
 type ShellMailFooterNavProps = {
   uiThemeVersion?: "dark" | "light";
   onActivateInbox?: () => void;
+  onClearMailSearch?: () => void;
 };
 
-export function ShellMailFooterNav({ uiThemeVersion = "dark", onActivateInbox }: ShellMailFooterNavProps) {
+export function ShellMailFooterNav({
+  uiThemeVersion = "dark",
+  onActivateInbox,
+  onClearMailSearch,
+}: ShellMailFooterNavProps) {
   const { user } = useAuth();
   const { panelWorkspaceTrial } = useAddons();
   const { openCompose } = useBespokeComposeBridge();
@@ -44,23 +49,26 @@ export function ShellMailFooterNav({ uiThemeVersion = "dark", onActivateInbox }:
   }, [navigate, onActivateInbox]);
 
   const handleFolders = useCallback(() => {
+    onClearMailSearch?.();
     footerNav.openFolders();
     activateInbox();
-  }, [activateInbox, footerNav]);
+  }, [activateInbox, footerNav, onClearMailSearch]);
 
   const handleMessages = useCallback(() => {
-    footerNav.openMessages();
     activateInbox();
+    footerNav.openMessages();
   }, [activateInbox, footerNav]);
 
   const handleNewMail = useCallback(() => {
+    onClearMailSearch?.();
     activateInbox();
     openCompose({ mode: "new" });
-  }, [activateInbox, openCompose]);
+  }, [activateInbox, onClearMailSearch, openCompose]);
 
   const handleMailboxSwitch = useCallback(() => {
+    activateInbox();
     footerNav.openMessages();
-  }, [footerNav]);
+  }, [activateInbox, footerNav]);
 
   return (
     <>

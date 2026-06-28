@@ -7,6 +7,7 @@ type GmailMailSearchProps = {
   onChange: (next: MailSearchState) => void;
   onSearch: () => void;
   onClear: () => void;
+  onDismiss?: () => void;
   contacts?: MailSearchContactSuggestion[];
   variant?: "bar" | "icon";
 };
@@ -16,6 +17,7 @@ export function GmailMailSearch({
   onChange,
   onSearch,
   onClear,
+  onDismiss,
   contacts = [],
   variant = "bar",
 }: GmailMailSearchProps) {
@@ -37,6 +39,7 @@ export function GmailMailSearch({
       onClear={() => {
         onClear();
       }}
+      onDismiss={onDismiss}
     />
   );
 }
