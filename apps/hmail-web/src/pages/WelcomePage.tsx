@@ -117,7 +117,6 @@ export function WelcomePage() {
           <LoginFormCard
             {...loginForm}
             loadError={loadError}
-            showExploreLink={false}
             onRequestWorkspaceAccess={() => setAccessMode("prospect")}
           />
         )

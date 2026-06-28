@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Sparkles } from "lucide-react";
 import { formatMailConfigSummary, inferProviderPresetFromEmail } from "../constants/mailProviders";
 import { LoginProviderSelectToast } from "./LoginProviderSelectToast";
 import { GmailConnectWizard } from "./GmailConnectWizard";
@@ -12,8 +12,6 @@ type LoginFormState = ReturnType<typeof useLoginForm>;
 
 type LoginFormCardProps = LoginFormState & {
   loadError?: string;
-  showExploreLink?: boolean;
-  exploreHref?: string;
   formId?: string;
   className?: string;
   onRequestWorkspaceAccess?: () => void;
@@ -39,8 +37,6 @@ export function LoginFormCard({
   submitting,
   onSubmit,
   loadError = "",
-  showExploreLink = true,
-  exploreHref = "/welcome",
   formId = "pmail-login-form",
   className = "",
   onRequestWorkspaceAccess,
@@ -61,7 +57,7 @@ export function LoginFormCard({
           {isTesterRoute
             ? "Demo workspace login — no mail provider setup required. Use the seeded tester credentials to explore all paid add-ons."
             : showProviderSetup
-              ? "For your first sign-in, confirm your organization's / personal mail provider. We apply recommended settings from your email domain where supported, then authenticate with your mailbox credentials."
+              ? "For your first sign-in, confirm your personal or organizational mail provider. We automatically apply recommended settings from your email domain where supported, then authenticate with your mailbox credentials."
               : "Connect your existing mailbox to access workspace tools and add-ons."}
         </p>
       </div>
@@ -79,7 +75,8 @@ export function LoginFormCard({
         {onRequestWorkspaceAccess ? (
           <section className="login-form-section login-form-section--prospect" aria-label="Workspace access">
             <button type="button" className="login-prospect-cta" onClick={onRequestWorkspaceAccess}>
-              Request workspace access without connecting mail
+              <Sparkles className="login-prospect-cta__icon" size={18} strokeWidth={2.25} aria-hidden="true" />
+              <span className="login-prospect-cta__label">Request workspace access without connecting mail</span>
             </button>
           </section>
         ) : null}
@@ -212,12 +209,6 @@ export function LoginFormCard({
           <button type="submit" disabled={submitting || preflightLoading} className="login-submit">
             {submitting ? "Authenticating…" : isTesterRoute ? "Sign in to tester workspace" : "Sign in to mailbox"}
           </button>
-
-          {showExploreLink ? (
-            <Link className="login-create-account" to={exploreHref}>
-              New here? Explore PMail+
-            </Link>
-          ) : null}
         </section>
       </form>
     </div>

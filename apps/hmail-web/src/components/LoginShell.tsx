@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { HMailLogo } from "./HMailLogo";
 import type { TenantBranding } from "../types/mail";
@@ -12,6 +13,8 @@ type LoginShellProps = {
   layoutClassName?: string;
   brandPanelClassName?: string;
   formPanelClassName?: string;
+  exploreHref?: string;
+  showExploreLink?: boolean;
 };
 
 export function LoginShell({
@@ -22,6 +25,8 @@ export function LoginShell({
   layoutClassName = "",
   brandPanelClassName = "",
   formPanelClassName = "",
+  exploreHref = "/welcome",
+  showExploreLink = false,
 }: LoginShellProps) {
   const brandStyle = {
     "--brand-primary": branding.primaryColor,
@@ -56,6 +61,11 @@ export function LoginShell({
           subtitle="Prohost Cloud"
           className="login-topbar-logo"
         />
+        {showExploreLink ? (
+          <Link className="login-topbar-explore" to={exploreHref}>
+            New here? Explore PMail+ Features
+          </Link>
+        ) : null}
       </header>
 
       <main className={`login-layout${layoutClassName ? ` ${layoutClassName}` : ""}`}>

@@ -28,6 +28,8 @@ export function LoginPage() {
   return (
     <LoginShell
       branding={branding}
+      exploreHref={exploreHref}
+      showExploreLink
       leftPanel={<LoginBrandPanel branding={branding} />}
       rightPanel={
         accessMode === "prospect" ? (
@@ -40,7 +42,6 @@ export function LoginPage() {
           <LoginFormCard
             {...loginForm}
             loadError={loadError}
-            exploreHref={exploreHref}
             onRequestWorkspaceAccess={() => setAccessMode("prospect")}
           />
         )
