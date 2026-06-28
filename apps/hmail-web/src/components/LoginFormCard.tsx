@@ -61,7 +61,7 @@ export function LoginFormCard({
           {isTesterRoute
             ? "Demo workspace login — no mail provider setup required. Use the seeded tester credentials to explore all paid add-ons."
             : showProviderSetup
-              ? "For your first sign-in, confirm your organization's mail provider. We apply recommended settings from your email domain where supported, then authenticate with your mailbox credentials."
+              ? "For your first sign-in, confirm your organization's / personal mail provider. We apply recommended settings from your email domain where supported, then authenticate with your mailbox credentials."
               : "Connect your existing mailbox to access workspace tools and add-ons."}
         </p>
       </div>
@@ -93,7 +93,7 @@ export function LoginFormCard({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Input your email id"
+              placeholder="Type in your email id"
               required
               autoComplete="username"
             />
@@ -106,7 +106,7 @@ export function LoginFormCard({
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="type in your password / app password"
+                placeholder="Type in your password / app password"
                 required
                 autoComplete="current-password"
               />

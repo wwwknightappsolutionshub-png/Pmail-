@@ -6,6 +6,7 @@
   --login-surface: #ffffff;
   --login-muted: #64748b;
   --login-text: #0f172a;
+  --login-font: var(--font-app);
 
   width: 100%;
   max-width: 100%;
@@ -14,9 +15,29 @@
   display: flex;
   flex-direction: column;
   overflow-x: clip;
-  font-family: "Exo", system-ui, sans-serif;
+  font-family: var(--login-font);
   color: var(--login-text);
   background: #f1f5f9;
+}
+
+.login-page :where(
+  input,
+  textarea,
+  select,
+  button,
+  a,
+  label,
+  p,
+  span,
+  li,
+  h1,
+  h2,
+  h3,
+  h4,
+  small,
+  strong
+) {
+  font-family: var(--login-font);
 }
 
 html.login-route,
@@ -30,6 +51,7 @@ html:has(.login-page) #root {
   min-width: 0;
   overflow-x: clip;
   background: #f1f5f9;
+  font-family: var(--font-app);
 }
 
 .login-topbar {
@@ -48,13 +70,17 @@ html:has(.login-page) #root {
 
 .login-topbar-logo .hmail-wordmark,
 .login-topbar-logo .hmail-logo-text strong {
-  font-family: "Anek", "Anek Latin", sans-serif;
   font-weight: 600;
 }
 
 .login-topbar-logo .hmail-logo-text span {
   color: var(--login-muted);
   font-size: 0.72rem;
+  font-family: var(--login-font);
+}
+
+.login-page .hmail-logo-text span {
+  font-family: var(--login-font);
 }
 
 .login-layout {
@@ -100,7 +126,7 @@ html:has(.login-page) #root {
 .login-headline.hmail-wordmark,
 .login-headline {
   margin: 0;
-  font-family: "Anek", "Anek Latin", sans-serif;
+  font-family: var(--login-font);
   font-size: clamp(2.2rem, 9vw, 3rem);
   font-weight: 700;
   line-height: 1;
@@ -151,7 +177,7 @@ html:has(.login-page) #root {
 .login-form-header h2,
 .login-signin-title {
   margin: 0;
-  font-family: "Anek", "Anek Latin", sans-serif;
+  font-family: var(--login-font);
   font-size: 1.55rem;
   font-weight: 700;
 }
@@ -226,7 +252,18 @@ html:has(.login-page) #root {
   color: var(--login-text);
   border-radius: 10px;
   padding: 0.82rem 0.95rem;
+  font-family: var(--login-font);
   font-size: 1rem;
+  font-weight: 400;
+}
+
+.login-form input::placeholder {
+  font-family: var(--login-font);
+  font-size: 1rem;
+  font-weight: 400;
+  font-style: normal;
+  color: #94a3b8;
+  opacity: 1;
 }
 
 .login-form input:focus {
@@ -567,6 +604,15 @@ html:has(.login-page) #root {
   border: 1px solid var(--login-border, #dbe3ec);
   background: #fff;
   color: inherit;
+  font-family: var(--login-font);
+  font-weight: 400;
+}
+
+.login-form .mail-onboarding-custom-grid input::placeholder {
+  font-weight: 400;
+  font-style: normal;
+  color: #94a3b8;
+  opacity: 1;
 }
 
 /* Tablet+ two-column layout */
