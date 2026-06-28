@@ -10,6 +10,7 @@ import { AdminDashboardHome } from "./AdminDashboardHome";
 import { AdminSalesPipelinePage } from "./AdminSalesPipelinePage";
 import { AdminEmailTemplatesPanel } from "./AdminEmailTemplatesPanel";
 import { AdminTestimonialsPanel } from "./AdminTestimonialsPanel";
+import { AdminMailUsersPanel } from "./AdminMailUsersPanel";
 import { AdminMarketingPanel } from "./AdminMarketingPanel";
 import { AdminPageHeader } from "./AdminPageHeader";
 import { AdminPlatformAdminsPanel } from "./AdminPlatformAdminsPanel";
@@ -107,6 +108,11 @@ export function AdminDashboardPage() {
                     {item.id === "sales-pipeline" && salesPipelinePending > 0 ? (
                       <span className="admin-nav-badge" aria-label={`${salesPipelinePending} pending in pipeline`}>
                         {salesPipelinePending}
+                      </span>
+                    ) : null}
+                    {item.id === "mail-users" && (poll?.presence.onlineNow ?? 0) > 0 ? (
+                      <span className="admin-nav-badge" aria-label={`${poll?.presence.onlineNow} users online`}>
+                        {poll?.presence.onlineNow}
                       </span>
                     ) : null}
                   </button>
@@ -294,6 +300,17 @@ export function AdminDashboardPage() {
                 setMessage("Hosting account deleted");
                 setError(null);
               }}
+              onError={(err) => {
+                setError(err);
+                setMessage(null);
+              }}
+            />
+          )}
+
+          {tab === "mail-users" && (
+            <AdminMailUsersPanel
+              tenants={tenants}
+              pollKey={poll?.polledAt}
               onError={(err) => {
                 setError(err);
                 setMessage(null);

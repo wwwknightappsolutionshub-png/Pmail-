@@ -297,6 +297,7 @@ model Session {
   activeMailAccountId   String?
   expiresAt             DateTime
   createdAt             DateTime @default(now())
+  lastActiveAt          DateTime @default(now())
   ipAddress             String?
   userAgent             String?
 
@@ -304,6 +305,7 @@ model Session {
   activeMailAccount UserMailAccount? @relation(fields: [activeMailAccountId], references: [id], onDelete: SetNull)
 
   @@index([expiresAt])
+  @@index([lastActiveAt])
   @@index([activeMailAccountId])
 }
 

@@ -7,7 +7,7 @@ import { AdminTrendCharts } from "./AdminTrendCharts";
 import "./AdminDashboard.css";
 
 type Props = {
-  onNavigate?: (tab: "sales-pipeline" | "tenants" | "accounts" | "vps" | "addons" | "billing" | "system" | "marketing") => void;
+  onNavigate?: (tab: "sales-pipeline" | "tenants" | "mail-users" | "accounts" | "vps" | "addons" | "billing" | "system" | "marketing") => void;
   poll?: AdminPollSnapshot | null;
 };
 
@@ -80,7 +80,18 @@ export function AdminDashboardHome({ onNavigate, poll }: Props) {
 
       <div className="admin-stat-grid">
         <StatCard label="Tenants" value={summary.tenants.total} sub={`${summary.tenants.active} active · +${summary.tenants.createdThisWeek} this week`} />
-        <StatCard label="Mail users" value={summary.mailUsers.total} sub={`${summary.mailUsers.active} active`} />
+        <StatCard
+          label="Mail users"
+          value={summary.mailUsers.total}
+          sub={`${summary.mailUsers.active} active · ${summary.mailUsers.onlineNow} online now`}
+          highlight={summary.mailUsers.onlineNow > 0}
+        />
+        <StatCard
+          label="PMail+ sessions"
+          value={summary.mailUsers.activeSessions}
+          sub={`${summary.mailUsers.onlineNow} user(s) online`}
+          highlight={summary.mailUsers.activeSessions > 0}
+        />
         <StatCard
           label="Hosting accounts"
           value={summary.hosting.accounts}
@@ -111,6 +122,9 @@ export function AdminDashboardHome({ onNavigate, poll }: Props) {
               </button>
               <button type="button" className="btn btn-secondary" onClick={() => onNavigate("tenants")}>
                 Manage tenants
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={() => onNavigate("mail-users")}>
+                PMail+ users
               </button>
               <button type="button" className="btn btn-secondary" onClick={() => onNavigate("accounts")}>
                 Panel accounts

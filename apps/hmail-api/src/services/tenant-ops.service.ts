@@ -2,6 +2,7 @@ import { TRIAL_DAYS } from "../data/addon-catalog.js";
 import { prisma } from "../lib/prisma.js";
 import { listAddonsForTenant } from "./addon.service.js";
 import { getTenantGrowthOps } from "./growth-admin-ops.service.js";
+import { getPresenceMapForUserIds, type UserPresenceSnapshot } from "./user-presence.service.js";
 
 export class TenantOpsError extends Error {
   constructor(message: string) {
@@ -28,14 +29,17 @@ export type MailConfigInput = {
   smtpSecure?: boolean;
 };
 
-function serializeMailUser(user: {
+function serializeMailUser(
+  user: {
   id: string;
   email: string;
   displayName: string | null;
   isActive: boolean;
   lastLoginAt: Date | null;
   createdAt: Date;
-}) {
+},
+  presence: UserPresenceSnapshot,
+) {
   return {
     id: user.id,
     email: user.email,
@@ -43,6 +47,7 @@ function serializeMailUser(user: {
     isActive: user.isActive,
     lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
     createdAt: user.createdAt.toISOString(),
+    presence,
   };
 }
 
@@ -97,6 +102,7 @@ export async function getTenantOperations(tenantId: string) {
     orderBy: { createdAt: "desc" },
   });
   const growth = await getTenantGrowthOps(tenantId);
+  const presenceMap = await getPresenceMapForUserIds(tenant.users.map((user) => user.id));
 
   return {
     tenant: {
@@ -109,7 +115,12 @@ export async function getTenantOperations(tenantId: string) {
     },
     branding: tenant.branding,
     mail: tenant.mail,
-    users: tenant.users.map(serializeMailUser),
+    users: tenant.users.map((user) =>
+      serializeMailUser(
+        user,
+        presenceMap.get(user.id) ?? { isOnline: false, activeSessionCount: 0, lastActiveAt: null },
+      ),
+    ),
     hostingAccounts: tenant.hostingAccounts.map((a) => ({
       id: a.id,
       loginId: `${a.username}@${a.domain}`,

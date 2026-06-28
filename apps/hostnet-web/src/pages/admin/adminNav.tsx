@@ -7,6 +7,7 @@ export type AdminTab =
   | "hosting"
   | "addons"
   | "tenants"
+  | "mail-users"
   | "accounts"
   | "sales-pipeline"
   | "email-templates"
@@ -93,6 +94,15 @@ export const ADMIN_NAV: NavGroup[] = [
         icon: (
           <svg viewBox="0 0 20 20" aria-hidden="true">
             <path d="M10 3a4 4 0 100 8 4 4 0 000-8zM4 15a6 6 0 0112 0v1H4v-1z" />
+          </svg>
+        ),
+      },
+      {
+        id: "mail-users",
+        label: "PMail+ users",
+        icon: (
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M3 5a2 2 0 012-2h3.5l1 1H15a2 2 0 012 2v1H3V5zm0 3h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm3 2v2h6v-2H6z" />
           </svg>
         ),
       },
@@ -207,6 +217,10 @@ export const ADMIN_TAB_META: Record<AdminTab, { title: string; description: stri
   tenants: {
     title: "Tenants",
     description: "Create and manage customer organizations, mail users, and branding.",
+  },
+  "mail-users": {
+    title: "PMail+ users",
+    description: "Global mailbox directory with live online presence, last login, and active session tracking.",
   },
   accounts: {
     title: "Panel hosting accounts",

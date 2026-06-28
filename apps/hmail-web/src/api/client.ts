@@ -351,6 +351,8 @@ export const api = {
       body: JSON.stringify(body),
     }),
   logout: () => request<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
+  presenceHeartbeat: () =>
+    request<{ ok: boolean; lastActiveAt: string }>("/api/auth/presence/heartbeat", { method: "POST" }),
   me: () => request<{ user: AuthUser }>("/api/auth/me"),
   organizationUsers: () => request<{ users: WorkspaceUser[] }>("/api/auth/organization-users"),
   selectBusinessVertical: (businessVertical: AuthUser["businessVertical"]) =>

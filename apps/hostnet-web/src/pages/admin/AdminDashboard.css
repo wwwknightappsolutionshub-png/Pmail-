@@ -2737,6 +2737,99 @@
   }
 }
 
+.admin-presence-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #94a3b8;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+.admin-presence-dot.online {
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+}
+
+.admin-presence-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.admin-presence-label.online {
+  color: #047857;
+}
+
+.admin-mail-users-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-mail-users-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.admin-mail-users-section-head h3 {
+  margin: 0;
+}
+
+.admin-mail-users-toolbar {
+  display: grid;
+  grid-template-columns: minmax(12rem, 2fr) minmax(10rem, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.admin-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  font-size: 0.88rem;
+}
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.admin-session-agent {
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-mail-user-sessions-row td {
+  background: #f8fafc;
+}
+
+.data-table.compact th,
+.data-table.compact td {
+  font-size: 0.82rem;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
+
+@media (max-width: 900px) {
+  .admin-mail-users-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 700px) {
   .admin-section-editor-fields {
     grid-template-columns: 1fr;

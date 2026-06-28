@@ -2,13 +2,15 @@ import { getReadiness } from "./health.service.js";
 import { getMarketingLeadStats } from "./marketing-leads.service.js";
 import { getMembershipStats } from "./membership.service.js";
 import { getInquiryStats } from "./inquiry.service.js";
+import { getMailUserPresenceStats } from "./user-presence.service.js";
 
 export async function getAdminPollSnapshot() {
-  const [readiness, leadStats, membershipStats, inquiryStats] = await Promise.all([
+  const [readiness, leadStats, membershipStats, inquiryStats, presence] = await Promise.all([
     getReadiness(),
     getMarketingLeadStats(),
     getMembershipStats(),
     getInquiryStats(),
+    getMailUserPresenceStats(),
   ]);
 
   const salesPipelinePending =
@@ -33,5 +35,6 @@ export async function getAdminPollSnapshot() {
       membership: { demoSent: membershipStats.demoSent, newCount: membershipStats.newCount },
       inquiries: { open: inquiryStats.open },
     },
+    presence,
   };
 }

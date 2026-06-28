@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { getReadiness } from "./health.service.js";
 import { getMarketingLeadStats } from "./marketing-leads.service.js";
+import { getMailUserPresenceStats } from "./user-presence.service.js";
 
 export async function getAdminDashboard() {
   const now = new Date();
@@ -27,6 +28,7 @@ export async function getAdminDashboard() {
     hostingCreatedThisWeek,
     leadStats,
     readiness,
+    presenceStats,
   ] = await Promise.all([
     prisma.tenant.count(),
     prisma.tenant.count({ where: { isActive: true } }),
@@ -67,12 +69,18 @@ export async function getAdminDashboard() {
     prisma.hostingAccount.count({ where: { createdAt: { gte: weekAgo } } }),
     getMarketingLeadStats(),
     getReadiness(),
+    getMailUserPresenceStats(),
   ]);
 
   return {
     summary: {
       tenants: { total: tenantCount, active: activeTenantCount, createdThisWeek: tenantsCreatedThisWeek },
-      mailUsers: { total: mailUserCount, active: activeMailUserCount },
+      mailUsers: {
+        total: mailUserCount,
+        active: activeMailUserCount,
+        onlineNow: presenceStats.onlineNow,
+        activeSessions: presenceStats.activeSessions,
+      },
       hosting: {
         accounts: hostingAccountCount,
         suspended: suspendedHostingCount,

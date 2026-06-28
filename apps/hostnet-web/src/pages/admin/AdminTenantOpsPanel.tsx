@@ -254,8 +254,12 @@ function UsersPanel({
         <table className="data-table">
           <thead>
             <tr>
+              <th>Status</th>
               <th>Email</th>
               <th>Name</th>
+              <th>Last login</th>
+              <th>Last active</th>
+              <th>Sessions</th>
               <th>Active</th>
               <th />
             </tr>
@@ -263,8 +267,17 @@ function UsersPanel({
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
+                <td>
+                  <span className={`admin-presence-label${u.presence.isOnline ? " online" : ""}`}>
+                    <span className={`admin-presence-dot${u.presence.isOnline ? " online" : ""}`} aria-hidden="true" />
+                    {u.presence.isOnline ? "Online" : "Offline"}
+                  </span>
+                </td>
                 <td>{u.email}</td>
                 <td>{u.displayName ?? "—"}</td>
+                <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : "—"}</td>
+                <td>{u.presence.lastActiveAt ? new Date(u.presence.lastActiveAt).toLocaleString() : "—"}</td>
+                <td>{u.presence.activeSessionCount}</td>
                 <td>{u.isActive ? "Yes" : "No"}</td>
                 <td>
                   <button type="button" className="btn btn-danger" onClick={() => remove(u.id, u.email)}>

@@ -5,6 +5,13 @@ import { requireSuperAdmin } from "../middleware/requireSuperAdmin.js";
 import { getAdminDashboard } from "../services/admin-dashboard.service.js";
 import { getAdminTrends, getBillingRevenueDashboard } from "../services/admin-analytics.service.js";
 import { getAdminPollSnapshot } from "../services/admin-poll.service.js";
+import {
+  getMailUserPresenceStats,
+  listActiveMailUserSessions,
+  listGlobalMailUsers,
+  listMailUserSessions,
+  listOnlineMailUsers,
+} from "../services/user-presence.service.js";
 import { listRecentAuditLogs } from "../services/admin-audit.service.js";
 import { getAdminSystemStatus } from "../services/ops-status.service.js";
 import {
@@ -138,6 +145,62 @@ function paramId(value: string | string[]): string {
 }
 
 export const adminOpsRouter = Router();
+
+adminOpsRouter.get("/mail-users/presence", async (_req, res, next) => {
+  try {
+    const stats = await getMailUserPresenceStats();
+    res.json({ stats });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.get("/mail-users/online", async (_req, res, next) => {
+  try {
+    const payload = await listOnlineMailUsers();
+    res.json(payload);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.get("/mail-users/sessions", async (req, res, next) => {
+  try {
+    const userId = typeof req.query.userId === "string" ? req.query.userId : undefined;
+    const limit = typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
+    const payload = await listActiveMailUserSessions({ userId, limit });
+    res.json(payload);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.get("/mail-users/:id/sessions", async (req, res, next) => {
+  try {
+    const payload = await listMailUserSessions(paramId(req.params.id));
+    if (!payload) {
+      res.status(404).json({ error: "Mail user not found" });
+      return;
+    }
+    res.json(payload);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.get("/mail-users", async (req, res, next) => {
+  try {
+    const q = typeof req.query.q === "string" ? req.query.q : undefined;
+    const tenantId = typeof req.query.tenantId === "string" ? req.query.tenantId : undefined;
+    const onlineOnly = req.query.onlineOnly === "true" || req.query.onlineOnly === "1";
+    const page = typeof req.query.page === "string" ? Number(req.query.page) : undefined;
+    const limit = typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
+    const payload = await listGlobalMailUsers({ q, tenantId, onlineOnly, page, limit });
+    res.json(payload);
+  } catch (err) {
+    next(err);
+  }
+});
 
 adminOpsRouter.get("/dashboard", async (_req, res, next) => {
   try {

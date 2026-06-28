@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   AuthError,
   getAuthContext,
+  getSessionTokenFromRequest,
   listTenantWorkspaceUsers,
   loginUser,
   loginTesterUser,
@@ -22,6 +23,7 @@ import {
 import { isMailProviderPresetKey, resolveMailConfigFromPreset } from "../data/mail-providers.js";
 import { getEnv } from "../config/env.js";
 import { requireAuth } from "../middleware/auth.js";
+import { touchSessionPresence } from "../services/user-presence.service.js";
 import { isBusinessVertical, selectBusinessVertical } from "../services/business-vertical.service.js";
 import { attributeReferralSignup } from "../services/referral-lead.service.js";
 import {
@@ -228,6 +230,19 @@ authRouter.get("/me", async (req, res, next) => {
         activeMailAccount: mailSummary.activeMailAccount,
         mailAccountCount: mailSummary.mailAccountCount,
       }),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+authRouter.post("/presence/heartbeat", requireAuth, async (req, res, next) => {
+  try {
+    const token = getSessionTokenFromRequest(req);
+    const lastActiveAt = token ? await touchSessionPresence(token) : null;
+    res.json({
+      ok: true,
+      lastActiveAt: lastActiveAt ?? new Date().toISOString(),
     });
   } catch (err) {
     next(err);

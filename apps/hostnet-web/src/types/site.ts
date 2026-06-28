@@ -142,7 +142,7 @@ export type PlatformAdmin = {
 
 export type AdminDashboardSummary = {
   tenants: { total: number; active: number; createdThisWeek: number };
-  mailUsers: { total: number; active: number };
+  mailUsers: { total: number; active: number; onlineNow: number; activeSessions: number };
   hosting: {
     accounts: number;
     suspended: number;
@@ -218,6 +218,12 @@ export type VpsInstance = {
 
 export type PlatformAdminRecord = PlatformAdmin & { createdAt: string };
 
+export type MailUserPresence = {
+  isOnline: boolean;
+  activeSessionCount: number;
+  lastActiveAt: string | null;
+};
+
 export type TenantMailUser = {
   id: string;
   email: string;
@@ -225,6 +231,36 @@ export type TenantMailUser = {
   isActive: boolean;
   lastLoginAt: string | null;
   createdAt: string;
+  presence: MailUserPresence;
+};
+
+export type AdminMailUserRecord = TenantMailUser & {
+  tenant: {
+    id: string;
+    slug: string;
+    name: string;
+    isActive: boolean;
+  };
+};
+
+export type AdminMailUserSession = {
+  id: string;
+  userId: string;
+  createdAt: string;
+  lastActiveAt: string;
+  expiresAt: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  isOnline: boolean;
+};
+
+export type AdminMailUserPresenceStats = {
+  totalUsers: number;
+  activeUsers: number;
+  onlineNow: number;
+  activeSessions: number;
+  onlineWindowMinutes: number;
+  asOf: string;
 };
 
 export type TenantOpsPayload = {
@@ -416,6 +452,7 @@ export type AdminPollSnapshot = {
     membership: { demoSent: number; newCount: number };
     inquiries: { open: number };
   };
+  presence: AdminMailUserPresenceStats;
 };
 
 export type AdminTrendPoint = { date: string; count: number };

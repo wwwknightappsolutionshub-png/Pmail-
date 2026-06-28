@@ -265,6 +265,7 @@ export async function loginUser(input: {
         tokenHash: hashToken(token),
         encryptedMailPassword: encryptSecret(mailPassword),
         expiresAt,
+        lastActiveAt: new Date(),
         ipAddress: input.ipAddress,
         userAgent: input.userAgent,
       },

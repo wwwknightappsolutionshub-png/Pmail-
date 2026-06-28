@@ -2,6 +2,9 @@ import type {
   AddonMarketing,
   AdminAddon,
   AdminDashboardPayload,
+  AdminMailUserPresenceStats,
+  AdminMailUserRecord,
+  AdminMailUserSession,
   AdminPollSnapshot,
   AdminSystemStatus,
   AdminTrends,
@@ -56,14 +59,23 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch {
+    throw new ApiError(
+      "Cannot reach the platform API. Start the project with npm run dev (or npm run dev -w hmail-api) and try again.",
+      0,
+      "NETWORK_ERROR",
+    );
+  }
 
   if (!res.ok) {
     let message = "Request failed";
@@ -85,7 +97,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
         if (parts.length > 0) message = parts.join("; ");
       }
     } catch {
-      // ignore
+      if (res.status >= 500) {
+        message =
+          "Platform API is unavailable. Start hmail-api (npm run dev from the project root) and try again.";
+      }
+    }
+    if (message === "Request failed" && res.status >= 500) {
+      message =
+        "Platform API is unavailable. Start hmail-api (npm run dev from the project root) and try again.";
     }
     throw new ApiError(message, res.status, code);
   }
@@ -118,6 +137,39 @@ export const api = {
     }),
 
   adminPoll: () => request<AdminPollSnapshot>("/api/admin/poll"),
+  adminMailUsers: (params?: {
+    q?: string;
+    tenantId?: string;
+    onlineOnly?: boolean;
+    page?: number;
+    limit?: number;
+  }) => {
+    const search = new URLSearchParams();
+    if (params?.q) search.set("q", params.q);
+    if (params?.tenantId) search.set("tenantId", params.tenantId);
+    if (params?.onlineOnly) search.set("onlineOnly", "1");
+    if (params?.page) search.set("page", String(params.page));
+    if (params?.limit) search.set("limit", String(params.limit));
+    const query = search.toString();
+    return request<{
+      users: AdminMailUserRecord[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>(`/api/admin/mail-users${query ? `?${query}` : ""}`);
+  },
+  adminMailUsersOnline: () =>
+    request<{ users: AdminMailUserRecord[]; asOf: string }>("/api/admin/mail-users/online"),
+  adminMailUserPresence: () => request<{ stats: AdminMailUserPresenceStats }>("/api/admin/mail-users/presence"),
+  adminMailUserSessions: (userId: string) =>
+    request<{ sessions: AdminMailUserSession[]; asOf: string }>(`/api/admin/mail-users/${userId}/sessions`),
+  adminActiveMailUserSessions: (params?: { userId?: string; limit?: number }) => {
+    const search = new URLSearchParams();
+    if (params?.userId) search.set("userId", params.userId);
+    if (params?.limit) search.set("limit", String(params.limit));
+    const query = search.toString();
+    return request<{ sessions: AdminMailUserSession[]; asOf: string }>(
+      `/api/admin/mail-users/sessions${query ? `?${query}` : ""}`,
+    );
+  },
   adminDashboard: () => request<{ dashboard: AdminDashboardPayload }>("/api/admin/dashboard"),
   adminSystemStatus: () => request<AdminSystemStatus>("/api/admin/system-status"),
   adminPmailPlatformConfig: () => request<{ config: PmailPlatformConfig }>("/api/admin/pmail-platform-config"),

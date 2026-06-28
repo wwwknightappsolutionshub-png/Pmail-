@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api } from "../api/client";
+import { usePresenceHeartbeat } from "../hooks/usePresenceHeartbeat";
 import type { AuthUser } from "../types/mail";
 
 interface AuthContextValue {
@@ -34,6 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refresh().finally(() => setLoading(false));
   }, []);
+
+  usePresenceHeartbeat(Boolean(user));
 
   const value = useMemo(
     () => ({
