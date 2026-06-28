@@ -74,6 +74,7 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
   const topbarSearch = useMemo(
     () => (
       <GmailMailSearch
+        variant="icon"
         value={searchDraft}
         onChange={setSearchDraft}
         onSearch={() => navigate("/")}

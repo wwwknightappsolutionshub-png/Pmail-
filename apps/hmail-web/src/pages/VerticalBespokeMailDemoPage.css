@@ -3166,6 +3166,26 @@ html:has(.pmail-demo-shell--light) body {
   padding-right: 1.35rem;
 }
 
+.pmail-demo-shell .bespoke-demo-topbar--compact-chrome {
+  display: block;
+  gap: 0;
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+  padding-bottom: 0.75rem;
+}
+
+.pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 0.35rem;
+}
+
+.pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-logo .hmail-logo-wordmark {
+  display: none;
+}
+
 .pmail-demo-shell .bespoke-demo-topbar-center .bespoke-mail-search-bar {
   min-height: 2.75rem;
   padding: 0.35rem 0.55rem 0.35rem 0.85rem;
@@ -3702,6 +3722,10 @@ html:has(.pmail-demo-shell--light) body {
     --mail-bottom-nav-h: 2.75rem;
   }
 
+  .pmail-demo-shell:has(.bespoke-demo-topbar--compact-chrome) {
+    --pmail-bespoke-topbar-h: calc(2.85rem + env(safe-area-inset-top));
+  }
+
   .pmail-demo-shell .bespoke-demo-production-workspace:not(.bespoke-demo-production-workspace--settings) {
     padding-bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom));
     box-sizing: border-box;
@@ -3855,6 +3879,60 @@ html:has(.pmail-demo-shell--light) body {
     isolation: isolate;
   }
 
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome {
+    display: block !important;
+    min-height: calc(2.65rem + env(safe-area-inset-top));
+    padding-top: calc(0.65rem + env(safe-area-inset-top));
+    padding-bottom: 0.65rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.35rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    width: auto;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot,
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-avatar,
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn {
+    flex: 0 0 auto;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn--refer {
+    display: none !important;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn span:not(.bespoke-demo-topbar-btn-icon) {
+    display: none;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-mail-search-icon-sheet {
+    top: calc(env(safe-area-inset-top, 0px) + 3.15rem);
+  }
+
   .pmail-demo-shell .bespoke-demo-topbar-left,
   .pmail-demo-shell .bespoke-demo-user {
     display: none !important;
@@ -3946,6 +4024,10 @@ html:has(.pmail-demo-shell--light) body {
     justify-content: center;
     flex: 0 0 auto;
     min-width: 2rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-brand {
+    justify-content: flex-start;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar-logo .hmail-logo-icon {

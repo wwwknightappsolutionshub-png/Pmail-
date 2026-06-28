@@ -37,6 +37,8 @@ type MailSearchBarProps = {
   onScopeChange: (scope: MailSearchScope) => void;
   onSearch: (query: string, scope: MailSearchScope) => void;
   onClear: () => void;
+  /** Icon-only trigger for compact production topbars. */
+  variant?: "bar" | "icon";
 };
 
 type SearchAnchorRect = {
@@ -81,14 +83,17 @@ function computeSearchPanelRect(root: HTMLElement, advanced: boolean): SearchAnc
 }
 
 export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>(function MailSearchBar(
-  { query, active, scope, contacts = [], onQueryChange, onScopeChange, onSearch, onClear },
+  { query, active, scope, contacts = [], onQueryChange, onScopeChange, onSearch, onClear, variant = "bar" },
   ref,
 ) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const isIconVariant = variant === "icon";
   const [advanced, setAdvanced] = useState<MailSearchAdvanced>(() => emptyMailSearchAdvanced(scope));
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [anchorRect, setAnchorRect] = useState<SearchAnchorRect | null>(null);
@@ -101,10 +106,12 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
 
   useImperativeHandle(ref, () => ({
     focus: () => {
+      if (isIconVariant) setSheetOpen(true);
       inputRef.current?.focus();
       setFocused(true);
     },
     openAdvanced: () => {
+      if (isIconVariant) setSheetOpen(true);
       openAdvancedFromQuery();
     },
   }));
@@ -121,9 +128,9 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
     }
 
     function syncAnchor() {
-      const root = rootRef.current;
-      if (!root) return;
-      setAnchorRect(computeSearchPanelRect(root, showAdvanced));
+      const anchor = (isIconVariant && sheetOpen ? sheetRef.current : null) ?? rootRef.current;
+      if (!anchor) return;
+      setAnchorRect(computeSearchPanelRect(anchor, showAdvanced));
     }
 
     syncAnchor();
@@ -133,15 +140,22 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
       window.removeEventListener("resize", syncAnchor);
       window.removeEventListener("scroll", syncAnchor, true);
     };
-  }, [showPanel, query, advancedOpen]);
+  }, [showPanel, query, advancedOpen, isIconVariant, sheetOpen]);
 
   useEffect(() => {
     if (!showPanel) return;
     function handlePointerDown(event: MouseEvent) {
       const target = event.target as Node;
-      if (rootRef.current?.contains(target) || panelRef.current?.contains(target)) return;
+      if (
+        rootRef.current?.contains(target) ||
+        sheetRef.current?.contains(target) ||
+        panelRef.current?.contains(target)
+      ) {
+        return;
+      }
       setFocused(false);
       setAdvancedOpen(false);
+      if (isIconVariant) setSheetOpen(false);
     }
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
@@ -161,6 +175,13 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
     onSearch(trimmed, nextScope);
     setFocused(false);
     setAdvancedOpen(false);
+    if (isIconVariant) setSheetOpen(false);
+  }
+
+  function openSearchSheet() {
+    setSheetOpen(true);
+    setFocused(true);
+    requestAnimationFrame(() => inputRef.current?.focus());
   }
 
   function handleAdvancedSubmit(event: FormEvent) {
@@ -380,6 +401,138 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
         )
       : null;
 
+  const searchBar = (
+    <div className="bespoke-mail-search-bar">
+      <span className="bespoke-mail-search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path
+            fill="currentColor"
+            d="M10 2a8 8 0 1 0 4.9 14.3l4.4 4.4 1.4-1.4-4.4-4.4A8 8 0 0 0 10 2Zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"
+          />
+        </svg>
+      </span>
+      <input
+        ref={inputRef}
+        type="search"
+        className="bespoke-mail-search-input"
+        value={query}
+        placeholder="Search mail"
+        aria-label="Search mail"
+        aria-expanded={showPanel}
+        aria-controls={showPanel ? "pmail-mail-search-panel" : undefined}
+        onFocus={() => setFocused(true)}
+        onChange={(event) => {
+          onQueryChange(event.target.value);
+          setAdvanced(advancedFromParsed(parseGmailQuery(event.target.value, scope), scope));
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            submitSearch();
+          }
+          if (event.key === "Escape") {
+            setFocused(false);
+            setAdvancedOpen(false);
+            if (isIconVariant) setSheetOpen(false);
+            inputRef.current?.blur();
+          }
+        }}
+      />
+      {query ? (
+        <button
+          type="button"
+          className="bespoke-mail-search-clear"
+          aria-label="Clear search"
+          onClick={() => {
+            onQueryChange("");
+            setAdvanced(emptyMailSearchAdvanced(scope));
+            onClear();
+            inputRef.current?.focus();
+          }}
+        >
+          ×
+        </button>
+      ) : null}
+      <button
+        type="button"
+        className={`bespoke-mail-search-advanced-toggle${advancedOpen ? " bespoke-mail-search-advanced-toggle--open" : ""}`}
+        aria-label="Show search options"
+        aria-expanded={advancedOpen}
+        title="Show search options"
+        onClick={() => {
+          if (advancedOpen) setAdvancedOpen(false);
+          else openAdvancedFromQuery();
+        }}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+
+  if (isIconVariant) {
+    return (
+      <>
+        <div
+          ref={rootRef}
+          className={`bespoke-mail-search bespoke-mail-search--icon-trigger${
+            active ? " bespoke-mail-search--active" : ""
+          }${sheetOpen ? " bespoke-mail-search--icon-open" : ""}${showPanel ? " bespoke-mail-search--open" : ""}`}
+        >
+          <button
+            type="button"
+            className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--search"
+            aria-label={active && query.trim() ? `Search mail: ${query.trim()}` : "Search mail"}
+            aria-expanded={sheetOpen || showPanel}
+            onClick={() => {
+              if (sheetOpen) inputRef.current?.focus();
+              else openSearchSheet();
+            }}
+          >
+            <svg className="bespoke-demo-topbar-btn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path
+                fill="currentColor"
+                d="M10 2a8 8 0 1 0 4.9 14.3l4.4 4.4 1.4-1.4-4.4-4.4A8 8 0 0 0 10 2Zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"
+              />
+            </svg>
+            {active ? <span className="bespoke-mail-search-active-dot" aria-hidden="true" /> : null}
+          </button>
+        </div>
+        {sheetOpen && portalRoot
+          ? createPortal(
+              <div ref={sheetRef} className="bespoke-mail-search-icon-sheet" role="dialog" aria-label="Search mail">
+                <div
+                  className={`bespoke-mail-search bespoke-mail-search--sheet${
+                    focused ? " bespoke-mail-search--focused" : ""
+                  }${active ? " bespoke-mail-search--active" : ""}${
+                    advancedOpen ? " bespoke-mail-search--advanced" : ""
+                  }`}
+                >
+                  {searchBar}
+                </div>
+              </div>,
+              portalRoot,
+            )
+          : null}
+        <datalist id="pmail-search-from-contacts">
+          {contactOptions.map((option) => (
+            <option key={`from-${option}`} value={option} />
+          ))}
+        </datalist>
+        <datalist id="pmail-search-to-contacts">
+          {contactOptions.map((option) => (
+            <option key={`to-${option}`} value={option} />
+          ))}
+        </datalist>
+        {panel}
+      </>
+    );
+  }
+
   return (
     <>
       <div
@@ -388,75 +541,7 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
           active ? " bespoke-mail-search--active" : ""
         }${advancedOpen ? " bespoke-mail-search--advanced" : ""}${showPanel ? " bespoke-mail-search--open" : ""}`}
       >
-        <div className="bespoke-mail-search-bar">
-          <span className="bespoke-mail-search-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M10 2a8 8 0 1 0 4.9 14.3l4.4 4.4 1.4-1.4-4.4-4.4A8 8 0 0 0 10 2Zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"
-              />
-            </svg>
-          </span>
-          <input
-            ref={inputRef}
-            type="search"
-            className="bespoke-mail-search-input"
-            value={query}
-            placeholder="Search mail"
-            aria-label="Search mail"
-            aria-expanded={showPanel}
-            aria-controls={showPanel ? "pmail-mail-search-panel" : undefined}
-            onFocus={() => setFocused(true)}
-            onChange={(event) => {
-              onQueryChange(event.target.value);
-              setAdvanced(advancedFromParsed(parseGmailQuery(event.target.value, scope), scope));
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                submitSearch();
-              }
-              if (event.key === "Escape") {
-                setFocused(false);
-                setAdvancedOpen(false);
-                inputRef.current?.blur();
-              }
-            }}
-          />
-          {query ? (
-            <button
-              type="button"
-              className="bespoke-mail-search-clear"
-              aria-label="Clear search"
-              onClick={() => {
-                onQueryChange("");
-                setAdvanced(emptyMailSearchAdvanced(scope));
-                onClear();
-                inputRef.current?.focus();
-              }}
-            >
-              ×
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className={`bespoke-mail-search-advanced-toggle${advancedOpen ? " bespoke-mail-search-advanced-toggle--open" : ""}`}
-            aria-label="Show search options"
-            aria-expanded={advancedOpen}
-            title="Show search options"
-            onClick={() => {
-              if (advancedOpen) setAdvancedOpen(false);
-              else openAdvancedFromQuery();
-            }}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"
-              />
-            </svg>
-          </button>
-        </div>
+        {searchBar}
 
         <datalist id="pmail-search-from-contacts">
           {contactOptions.map((option) => (

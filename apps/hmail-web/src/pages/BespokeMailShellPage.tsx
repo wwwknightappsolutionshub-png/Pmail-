@@ -282,6 +282,7 @@ function BespokeMailShellContent() {
   const topbarSearch = useMemo(
     () => (
       <GmailMailSearch
+        variant="icon"
         value={searchDraft}
         onChange={setSearchDraft}
         onSearch={() => {

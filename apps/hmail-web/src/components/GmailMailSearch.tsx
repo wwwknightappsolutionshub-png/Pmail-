@@ -8,13 +8,22 @@ type GmailMailSearchProps = {
   onSearch: () => void;
   onClear: () => void;
   contacts?: MailSearchContactSuggestion[];
+  variant?: "bar" | "icon";
 };
 
-export function GmailMailSearch({ value, onChange, onSearch, onClear, contacts = [] }: GmailMailSearchProps) {
+export function GmailMailSearch({
+  value,
+  onChange,
+  onSearch,
+  onClear,
+  contacts = [],
+  variant = "bar",
+}: GmailMailSearchProps) {
   const scope: MailSearchScope = value.scope ?? "all";
 
   return (
     <MailSearchBar
+      variant={variant}
       query={value.query}
       active={Boolean(value.query.trim())}
       scope={scope}

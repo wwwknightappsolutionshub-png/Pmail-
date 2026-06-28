@@ -181,6 +181,89 @@
   justify-content: flex-end;
 }
 
+.bespoke-demo-topbar--compact-chrome {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 0.65rem;
+}
+
+.bespoke-demo-topbar-compact-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-brand {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.bespoke-demo-topbar-compact-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+}
+
+.bespoke-demo-topbar-search-slot {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.bespoke-mail-search--icon-trigger {
+  width: auto;
+}
+
+.bespoke-mail-search--icon-trigger .bespoke-demo-topbar-btn--search {
+  position: relative;
+}
+
+.bespoke-mail-search-active-dot {
+  position: absolute;
+  top: 0.12rem;
+  right: 0.12rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: var(--accent-2);
+  box-shadow: 0 0 0 1px var(--surface-chrome);
+}
+
+.bespoke-mail-search-icon-sheet {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 0.55rem);
+  left: max(0.75rem, env(safe-area-inset-left, 0px));
+  right: max(0.75rem, env(safe-area-inset-right, 0px));
+  z-index: calc(var(--pmail-search-layer, 9000) + 6);
+}
+
+.bespoke-mail-search-icon-sheet .bespoke-mail-search {
+  width: 100%;
+}
+
+.bespoke-mail-search-icon-sheet .bespoke-mail-search-bar {
+  min-height: 2.75rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+
+@media (min-width: 768px) {
+  .bespoke-mail-search-icon-sheet {
+    top: calc(env(safe-area-inset-top, 0px) + 4.25rem);
+    left: auto;
+    right: max(1.25rem, env(safe-area-inset-right, 0px));
+    width: min(28rem, calc(100vw - 2.5rem));
+  }
+}
+
 .bespoke-demo-back {
   color: var(--muted);
   font-size: 0.88rem;

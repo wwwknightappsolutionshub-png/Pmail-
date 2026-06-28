@@ -2181,115 +2181,131 @@ export function BespokeMailDemo({
     .filter(Boolean)
     .join(" ");
 
+  const compactChrome = Boolean(renderTopbarBrand);
+  const topbarSearchControl =
+    renderTopbarSearch ??
+    (
+      <MailSearchBar
+        ref={mailSearchRef}
+        query={mailSearchQuery}
+        active={mailSearchActive}
+        scope={mailSearchScope}
+        contacts={crmContacts.map((contact) => ({ name: contact.name, email: contact.email }))}
+        onQueryChange={setMailSearchQuery}
+        onScopeChange={setMailSearchScope}
+        onSearch={runMailSearch}
+        onClear={clearMailSearch}
+      />
+    );
+
+  const topbarAccountActions = (
+    <>
+      {renderAddonsButton("collapsed")}
+      {onThemeChange ? (
+        <button
+          type="button"
+          className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--theme"
+          onClick={() => void onThemeChange(uiThemeVersion === "light" ? "dark" : "light")}
+          aria-label={uiThemeVersion === "light" ? "Switch to dark UI" : "Switch to light UI"}
+        >
+          <TopbarIcon>
+            {uiThemeVersion === "light" ? (
+              <path
+                fill="currentColor"
+                d="M21 12.8A7.5 7.5 0 0 1 11.2 3a6.5 6.5 0 1 0 9.8 9.8z"
+              />
+            ) : (
+              <path
+                fill="currentColor"
+                d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0 4a1 1 0 0 1-1-1v-1.1a1 1 0 1 1 2 0V21a1 1 0 0 1-1 1zm0-17.9a1 1 0 0 1-1-1V2a1 1 0 1 1 2 0v1.1a1 1 0 0 1-1 1zm10 8.9h-1.1a1 1 0 1 1 0-2H22a1 1 0 1 1 0 2h-1zm-17.9 0H2a1 1 0 1 1 0-2h1.1a1 1 0 1 1 0 2zm14.7 6.7a1 1 0 0 1-1.4 0l-.8-.8a1 1 0 1 1 1.4-1.4l.8.8a1 1 0 0 1 0 1.4zm-11.3-11.3a1 1 0 0 1-1.4 0l-.8-.8a1 1 0 1 1 1.4-1.4l.8.8a1 1 0 0 1 0 1.4zm11.3-2.7a1 1 0 0 1 0 1.4l-.8.8a1 1 0 1 1-1.4-1.4l.8-.8a1 1 0 0 1 1.4 0zM7.8 16.2a1 1 0 0 1 0 1.4l-.8.8a1 1 0 1 1-1.4-1.4l.8-.8a1 1 0 0 1 1.4 0z"
+              />
+            )}
+          </TopbarIcon>
+          <span>{uiThemeVersion === "light" ? "Dark UI" : "Light UI"}</span>
+        </button>
+      ) : null}
+      {onLogout ? (
+        <button
+          type="button"
+          className="bespoke-demo-topbar-btn bespoke-demo-topbar-signout"
+          onClick={onLogout}
+          aria-label="Sign out"
+        >
+          <TopbarIcon>
+            <path
+              fill="currentColor"
+              d="M10.09 15.59 11.5 17l5-5-5-5-1.41 1.41L12.17 11H3v2h9.17l-2.08 2.59zM19 3H9c-1.1 0-2 .9-2 2v4h2V5h10v14H9v-4H7v4c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+            />
+          </TopbarIcon>
+          <span>Sign out</span>
+        </button>
+      ) : null}
+      <div className="bespoke-demo-topbar-avatar" title={`${displayName} <${displayEmail}>`} aria-hidden="true">
+        <span className="bespoke-demo-topbar-avatar-initials">{viewerInitials}</span>
+        <img className="bespoke-demo-topbar-avatar-image" src={topbarAvatarUrl} alt="" decoding="async" />
+      </div>
+    </>
+  );
+
+  const topbarReferButton = (
+    <button
+      type="button"
+      className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--refer"
+      onClick={() => void handleReferFriend()}
+      disabled={referBusy}
+    >
+      <TopbarIcon>
+        <path
+          fill="currentColor"
+          d="M15 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-9 8.5a5 5 0 0 1 10 0V19H6v-2.5zM19 8.5V7h2V5h-2V3h-2v2h-2v2h2v1.5a3.5 3.5 0 1 1-2 0z"
+        />
+      </TopbarIcon>
+      <span>{referBusy ? "Sending invitations…" : "Refer a friend"}</span>
+    </button>
+  );
+
   return (
     <div className={bespokeDemoClassName}>
       <header
         className={`bespoke-demo-topbar${
-          mobileTopbarSearchCollapsed ? " bespoke-demo-topbar--primary-collapsed" : ""
+          compactChrome ? " bespoke-demo-topbar--compact-chrome" : ""
+        }${
+          !compactChrome && mobileTopbarSearchCollapsed ? " bespoke-demo-topbar--primary-collapsed" : ""
         }`}
       >
-        <div className="bespoke-demo-topbar-left">
-          <div>
-            <p className="bespoke-demo-kicker">PMail+ Workspace</p>
-            <strong className="bespoke-demo-brand">Welcome back, {displayName}</strong>
-          </div>
-        </div>
-
-        <div className="bespoke-demo-topbar-primary">
-          {renderTopbarBrand ? (
-            <div className="bespoke-demo-topbar-brand" aria-hidden={!renderTopbarBrand}>
-              {renderTopbarBrand}
+        {compactChrome ? (
+          <div className="bespoke-demo-topbar-compact-row">
+            <div className="bespoke-demo-topbar-brand">{renderTopbarBrand}</div>
+            <div className="bespoke-demo-topbar-compact-actions" aria-label="Workspace actions">
+              <div className="bespoke-demo-topbar-search-slot">{topbarSearchControl}</div>
+              {topbarAccountActions}
+              {topbarReferButton}
             </div>
-          ) : null}
-          <div className="bespoke-demo-topbar-center">
-            {renderTopbarSearch ?? (
-              <MailSearchBar
-                ref={mailSearchRef}
-                query={mailSearchQuery}
-                active={mailSearchActive}
-                scope={mailSearchScope}
-                contacts={crmContacts.map((contact) => ({ name: contact.name, email: contact.email }))}
-                onQueryChange={setMailSearchQuery}
-                onScopeChange={setMailSearchScope}
-                onSearch={runMailSearch}
-                onClear={clearMailSearch}
-              />
-            )}
           </div>
-        </div>
-
-        <div className="bespoke-demo-topbar-right">
-          <div className="bespoke-demo-topbar-secondary" aria-label="Workspace actions">
-            {renderTopbarBrand ? (
-              <div className="bespoke-demo-topbar-brand-sticky" aria-hidden={!mobileTopbarSearchCollapsed}>
-                {renderTopbarBrand}
+        ) : (
+          <>
+            <div className="bespoke-demo-topbar-left">
+              <div>
+                <p className="bespoke-demo-kicker">PMail+ Workspace</p>
+                <strong className="bespoke-demo-brand">Welcome back, {displayName}</strong>
               </div>
-            ) : null}
-            <div className="bespoke-demo-topbar-secondary-actions">
-            <div className="bespoke-demo-topbar-avatar" title={`${displayName} <${displayEmail}>`} aria-hidden="true">
-              <span className="bespoke-demo-topbar-avatar-initials">{viewerInitials}</span>
-              <img className="bespoke-demo-topbar-avatar-image" src={topbarAvatarUrl} alt="" decoding="async" />
             </div>
-            {renderAddonsButton("collapsed")}
-            {onThemeChange ? (
-              <button
-                type="button"
-                className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--theme"
-                onClick={() => void onThemeChange(uiThemeVersion === "light" ? "dark" : "light")}
-                aria-label={uiThemeVersion === "light" ? "Switch to dark UI" : "Switch to light UI"}
-              >
-                <TopbarIcon>
-                  {uiThemeVersion === "light" ? (
-                    <path
-                      fill="currentColor"
-                      d="M21 12.8A7.5 7.5 0 0 1 11.2 3a6.5 6.5 0 1 0 9.8 9.8z"
-                    />
-                  ) : (
-                    <path
-                      fill="currentColor"
-                      d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0 4a1 1 0 0 1-1-1v-1.1a1 1 0 1 1 2 0V21a1 1 0 0 1-1 1zm0-17.9a1 1 0 0 1-1-1V2a1 1 0 1 1 2 0v1.1a1 1 0 0 1-1 1zm10 8.9h-1.1a1 1 0 1 1 0-2H22a1 1 0 1 1 0 2h-1zm-17.9 0H2a1 1 0 1 1 0-2h1.1a1 1 0 1 1 0 2zm14.7 6.7a1 1 0 0 1-1.4 0l-.8-.8a1 1 0 1 1 1.4-1.4l.8.8a1 1 0 0 1 0 1.4zm-11.3-11.3a1 1 0 0 1-1.4 0l-.8-.8a1 1 0 1 1 1.4-1.4l.8.8a1 1 0 0 1 0 1.4zm11.3-2.7a1 1 0 0 1 0 1.4l-.8.8a1 1 0 1 1-1.4-1.4l.8-.8a1 1 0 0 1 1.4 0zM7.8 16.2a1 1 0 0 1 0 1.4l-.8.8a1 1 0 1 1-1.4-1.4l.8-.8a1 1 0 0 1 1.4 0z"
-                    />
-                  )}
-                </TopbarIcon>
-                <span>{uiThemeVersion === "light" ? "Dark UI" : "Light UI"}</span>
-              </button>
-            ) : null}
-            {onLogout ? (
-              <button
-                type="button"
-                className="bespoke-demo-topbar-btn bespoke-demo-topbar-signout"
-                onClick={onLogout}
-                aria-label="Sign out"
-              >
-                <TopbarIcon>
-                  <path
-                    fill="currentColor"
-                    d="M10.09 15.59 11.5 17l5-5-5-5-1.41 1.41L12.17 11H3v2h9.17l-2.08 2.59zM19 3H9c-1.1 0-2 .9-2 2v4h2V5h10v14H9v-4H7v4c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-                  />
-                </TopbarIcon>
-                <span>Sign out</span>
-              </button>
-            ) : null}
+
+            <div className="bespoke-demo-topbar-primary">
+              <div className="bespoke-demo-topbar-center">{topbarSearchControl}</div>
             </div>
-            <button
-              type="button"
-              className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--refer"
-              onClick={() => void handleReferFriend()}
-              disabled={referBusy}
-            >
-              <TopbarIcon>
-                <path
-                  fill="currentColor"
-                  d="M15 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-9 8.5a5 5 0 0 1 10 0V19H6v-2.5zM19 8.5V7h2V5h-2V3h-2v2h-2v2h2v1.5a3.5 3.5 0 1 1-2 0z"
-                />
-              </TopbarIcon>
-              <span>{referBusy ? "Sending invitations…" : "Refer a friend"}</span>
-            </button>
-          </div>
-          <span className="bespoke-demo-user" title={displayEmail}>
-            {displayName} &lt;{displayEmail}&gt;
-          </span>
-        </div>
+
+            <div className="bespoke-demo-topbar-right">
+              <div className="bespoke-demo-topbar-secondary" aria-label="Workspace actions">
+                <div className="bespoke-demo-topbar-secondary-actions">{topbarAccountActions}</div>
+                {topbarReferButton}
+              </div>
+              <span className="bespoke-demo-user" title={displayEmail}>
+                {displayName} &lt;{displayEmail}&gt;
+              </span>
+            </div>
+          </>
+        )}
       </header>
 
       <div className="bespoke-demo-workspace-tabs-shell">
