@@ -88,6 +88,7 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
 ) {
   const rootRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
@@ -103,6 +104,13 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
   const showRecent = focused && !query.trim() && recentSearches.length > 0 && !advancedOpen;
   const showAdvanced = advancedOpen;
   const showPanel = showRecent || showAdvanced;
+
+  function closeSearchOverlay() {
+    setSheetOpen(false);
+    setFocused(false);
+    setAdvancedOpen(false);
+    inputRef.current?.blur();
+  }
 
   useImperativeHandle(ref, () => ({
     focus: () => {
@@ -143,23 +151,35 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
   }, [showPanel, query, advancedOpen, isIconVariant, sheetOpen]);
 
   useEffect(() => {
-    if (!showPanel) return;
+    const overlayActive = isIconVariant ? sheetOpen || showPanel : showPanel;
+    if (!overlayActive) return;
+
     function handlePointerDown(event: MouseEvent) {
       const target = event.target as Node;
-      if (
-        rootRef.current?.contains(target) ||
-        sheetRef.current?.contains(target) ||
-        panelRef.current?.contains(target)
-      ) {
-        return;
-      }
-      setFocused(false);
-      setAdvancedOpen(false);
-      if (isIconVariant) setSheetOpen(false);
+      if (rootRef.current?.contains(target)) return;
+      if (sheetRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      closeSearchOverlay();
     }
+
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [showPanel]);
+  }, [isIconVariant, sheetOpen, showPanel]);
+
+  useEffect(() => {
+    if (!isIconVariant || !sheetOpen) return;
+    document.body.classList.add("pmail-search-overlay-open");
+    return () => document.body.classList.remove("pmail-search-overlay-open");
+  }, [isIconVariant, sheetOpen]);
+
+  useEffect(() => {
+    if (!isIconVariant || !sheetOpen) return;
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") closeSearchOverlay();
+    }
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isIconVariant, sheetOpen]);
 
   useEffect(() => {
     setAdvanced((current) => ({ ...current, scope }));
@@ -173,9 +193,7 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
     const trimmed = nextQuery.trim();
     if (trimmed) rememberMailSearch(trimmed);
     onSearch(trimmed, nextScope);
-    setFocused(false);
-    setAdvancedOpen(false);
-    if (isIconVariant) setSheetOpen(false);
+    closeSearchOverlay();
   }
 
   function openSearchSheet() {
@@ -207,19 +225,31 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
     submitSearch(entry, parseGmailQuery(entry, scope).scope);
   }
 
-  const panel =
-    showPanel && anchorRect && portalRoot
-      ? createPortal(
-          <div
-            ref={panelRef}
-            id="pmail-mail-search-panel"
-            className={`bespoke-mail-search-portal${showAdvanced ? " bespoke-mail-search-portal--advanced" : ""}`}
-            style={{
-              top: anchorRect.top,
-              left: anchorRect.left,
-              width: anchorRect.width,
-            }}
-          >
+  function getOverlayThemeClasses(): string {
+    const shell = rootRef.current?.closest(".pmail-demo-shell, .bespoke-demo");
+    const classes = ["bespoke-mail-search-overlay-root"];
+    if (shell instanceof HTMLElement) {
+      if (shell.classList.contains("pmail-demo-shell")) classes.push("pmail-demo-shell");
+      if (shell.classList.contains("pmail-demo-shell--light")) classes.push("pmail-demo-shell--light");
+      if (shell.classList.contains("bespoke-demo")) classes.push("bespoke-demo");
+    }
+    return classes.join(" ");
+  }
+
+  function renderSearchPanel() {
+    if (!showPanel || !anchorRect) return null;
+
+    return (
+      <div
+        ref={panelRef}
+        id="pmail-mail-search-panel"
+        className={`bespoke-mail-search-portal${showAdvanced ? " bespoke-mail-search-portal--advanced" : ""}`}
+        style={{
+          top: anchorRect.top,
+          left: anchorRect.left,
+          width: anchorRect.width,
+        }}
+      >
             {showRecent ? (
               <div className="bespoke-mail-search-recent" role="listbox" aria-label="Recent searches">
                 {recentSearches.map((entry) => (
@@ -396,10 +426,9 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
                 </div>
               </form>
             ) : null}
-          </div>,
-          portalRoot,
-        )
-      : null;
+      </div>
+    );
+  }
 
   const searchBar = (
     <div className="bespoke-mail-search-bar">
@@ -431,10 +460,7 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
             submitSearch();
           }
           if (event.key === "Escape") {
-            setFocused(false);
-            setAdvancedOpen(false);
-            if (isIconVariant) setSheetOpen(false);
-            inputRef.current?.blur();
+            closeSearchOverlay();
           }
         }}
       />
@@ -502,20 +528,33 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
             {active ? <span className="bespoke-mail-search-active-dot" aria-hidden="true" /> : null}
           </button>
         </div>
-        {sheetOpen && portalRoot
+        {sheetOpen
           ? createPortal(
-              <div ref={sheetRef} className="bespoke-mail-search-icon-sheet" role="dialog" aria-label="Search mail">
-                <div
-                  className={`bespoke-mail-search bespoke-mail-search--sheet${
-                    focused ? " bespoke-mail-search--focused" : ""
-                  }${active ? " bespoke-mail-search--active" : ""}${
-                    advancedOpen ? " bespoke-mail-search--advanced" : ""
-                  }`}
-                >
-                  {searchBar}
+              <div className={getOverlayThemeClasses()}>
+                <button
+                  ref={backdropRef}
+                  type="button"
+                  className="bespoke-mail-search-icon-backdrop"
+                  aria-label="Close search"
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    closeSearchOverlay();
+                  }}
+                />
+                <div ref={sheetRef} className="bespoke-mail-search-icon-sheet" role="dialog" aria-label="Search mail">
+                  <div
+                    className={`bespoke-mail-search bespoke-mail-search--sheet${
+                      focused ? " bespoke-mail-search--focused" : ""
+                    }${active ? " bespoke-mail-search--active" : ""}${
+                      advancedOpen ? " bespoke-mail-search--advanced" : ""
+                    }`}
+                  >
+                    {searchBar}
+                  </div>
                 </div>
+                {renderSearchPanel()}
               </div>,
-              portalRoot,
+              document.body,
             )
           : null}
         <datalist id="pmail-search-from-contacts">
@@ -528,10 +567,13 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
             <option key={`to-${option}`} value={option} />
           ))}
         </datalist>
-        {panel}
       </>
     );
   }
+
+  const barSearchPanelNode = renderSearchPanel();
+  const barSearchPanel =
+    barSearchPanelNode && portalRoot ? createPortal(barSearchPanelNode, portalRoot) : null;
 
   return (
     <>
@@ -554,7 +596,7 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
           ))}
         </datalist>
       </div>
-      {panel}
+      {barSearchPanel}
     </>
   );
 });

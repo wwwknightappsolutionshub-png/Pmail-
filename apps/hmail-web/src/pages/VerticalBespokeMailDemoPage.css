@@ -3929,7 +3929,8 @@ html:has(.pmail-demo-shell--light) body {
     display: none;
   }
 
-  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-mail-search-icon-sheet {
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-mail-search-icon-sheet,
+  body.pmail-search-overlay-open .bespoke-mail-search-icon-sheet {
     top: calc(env(safe-area-inset-top, 0px) + 3.15rem);
   }
 
