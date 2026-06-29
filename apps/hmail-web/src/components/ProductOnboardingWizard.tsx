@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type TouchEvent } from "react";
+import { useCallback, useRef, useState, type CSSProperties, type TouchEvent } from "react";
 import type { ProductOnboardingSlide } from "../data/productOnboardingSlides";
 import "./ProductOnboardingWizard.css";
 
@@ -8,23 +8,20 @@ type ProductOnboardingWizardProps = {
   slides: ProductOnboardingSlide[];
   activeIndex: number;
   onActiveIndexChange: (index: number) => void;
-  onSkip: () => void;
-  onComplete: () => void;
+  onSkipToSignIn: () => void;
   productName: string;
   className?: string;
-  /** When true, login is always visible beside the wizard (desktop layout). */
-  desktopCompanion?: boolean;
+  isCtaSlide?: boolean;
 };
 
 export function ProductOnboardingWizard({
   slides,
   activeIndex,
   onActiveIndexChange,
-  onSkip,
-  onComplete,
+  onSkipToSignIn,
   productName,
   className = "",
-  desktopCompanion = false,
+  isCtaSlide = false,
 }: ProductOnboardingWizardProps) {
   const touchStartX = useRef<number | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
@@ -32,12 +29,9 @@ export function ProductOnboardingWizard({
   const isLastSlide = activeIndex >= slides.length - 1;
 
   const goNext = useCallback(() => {
-    if (isLastSlide) {
-      onComplete();
-      return;
-    }
+    if (isLastSlide) return;
     onActiveIndexChange(activeIndex + 1);
-  }, [activeIndex, isLastSlide, onActiveIndexChange, onComplete]);
+  }, [activeIndex, isLastSlide, onActiveIndexChange]);
 
   const goPrev = useCallback(() => {
     if (activeIndex > 0) onActiveIndexChange(activeIndex - 1);
@@ -67,14 +61,29 @@ export function ProductOnboardingWizard({
   return (
     <div
       className={`product-onboarding-wizard${className ? ` ${className}` : ""}${
-        desktopCompanion ? " product-onboarding-wizard--desktop" : ""
+        isCtaSlide ? " product-onboarding-wizard--cta" : " product-onboarding-wizard--fullscreen"
       }`}
+      data-active-slide={slide.id}
     >
+      <div className="product-onboarding-wizard-bg" aria-hidden="true">
+        <span className="product-onboarding-wizard-mesh" />
+        <span className="product-onboarding-wizard-grid" />
+        <span className="product-onboarding-wizard-shimmer" />
+        <span className="product-onboarding-wizard-orb product-onboarding-wizard-orb--a" />
+        <span className="product-onboarding-wizard-orb product-onboarding-wizard-orb--b" />
+        <span className="product-onboarding-wizard-orb product-onboarding-wizard-orb--c" />
+        <span className="product-onboarding-wizard-spark product-onboarding-wizard-spark--1" />
+        <span className="product-onboarding-wizard-spark product-onboarding-wizard-spark--2" />
+        <span className="product-onboarding-wizard-spark product-onboarding-wizard-spark--3" />
+      </div>
+
       <div className="product-onboarding-wizard-top">
         <span className="product-onboarding-wizard-brand">{productName}</span>
-        <button type="button" className="product-onboarding-wizard-skip" onClick={onSkip}>
-          Skip to sign in
-        </button>
+        {!isLastSlide ? (
+          <button type="button" className="product-onboarding-wizard-skip" onClick={onSkipToSignIn}>
+            Skip to sign in
+          </button>
+        ) : null}
       </div>
 
       <div
@@ -89,21 +98,58 @@ export function ProductOnboardingWizard({
             transform: `translateX(calc(${-activeIndex * 100}% + ${dragOffset}px))`,
           }}
         >
-          {slides.map((entry) => (
-            <article key={entry.id} className="product-onboarding-slide" aria-hidden={entry.id !== slide.id}>
-              <div className="product-onboarding-slide-icon" aria-hidden="true">
-                {entry.icon}
-              </div>
-              <p className="product-onboarding-slide-eyebrow">{entry.eyebrow}</p>
-              <h2 className="product-onboarding-slide-title">{entry.title}</h2>
-              <p className="product-onboarding-slide-lead">{entry.lead}</p>
-              <ul className="product-onboarding-slide-bullets">
-                {entry.bullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
-                ))}
-              </ul>
-            </article>
-          ))}
+          {slides.map((entry, index) => {
+            const isActive = index === activeIndex;
+            const hasSections = Boolean(entry.sections?.length);
+
+            return (
+              <article
+                key={entry.id}
+                className={`product-onboarding-slide${isActive ? " is-active" : ""}${
+                  entry.variant === "cta" ? " product-onboarding-slide--cta" : ""
+                }${hasSections ? " product-onboarding-slide--verticals" : ""}`}
+                aria-hidden={!isActive}
+                data-slide={entry.id}
+              >
+                <div className="product-onboarding-slide-inner">
+                  <div className="product-onboarding-slide-icon" aria-hidden="true">
+                    <span className="product-onboarding-slide-icon-glow" />
+                    <span className="product-onboarding-slide-icon-char">{entry.icon}</span>
+                  </div>
+                  <p className="product-onboarding-slide-eyebrow">{entry.eyebrow}</p>
+                  <h2 className="product-onboarding-slide-title">{entry.title}</h2>
+                  <p className="product-onboarding-slide-lead">{entry.lead}</p>
+                  {entry.bullets.length > 0 ? (
+                    <ul className="product-onboarding-slide-bullets">
+                      {entry.bullets.map((bullet, bulletIndex) => (
+                        <li key={bullet} style={{ "--pow-stagger": bulletIndex } as CSSProperties}>
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {entry.sections?.length ? (
+                    <div className="product-onboarding-slide-sections">
+                      {entry.sections.map((section, sectionIndex) => (
+                        <div
+                          key={section.title}
+                          className="product-onboarding-slide-section"
+                          style={{ "--pow-stagger": sectionIndex } as CSSProperties}
+                        >
+                          <h3 className="product-onboarding-slide-section-title">{section.title}</h3>
+                          <ul className="product-onboarding-slide-section-items">
+                            {section.items.map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
 
@@ -133,9 +179,21 @@ export function ProductOnboardingWizard({
           >
             Back
           </button>
-          <button type="button" className="product-onboarding-wizard-nav-btn" onClick={goNext}>
-            {isLastSlide ? (desktopCompanion ? "Ready to sign in →" : "Continue to sign in") : "Next"}
-          </button>
+          {!isLastSlide ? (
+            <button type="button" className="product-onboarding-wizard-nav-btn" onClick={goNext}>
+              Next
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="product-onboarding-wizard-nav-btn product-onboarding-wizard-nav-btn--cta-hint"
+              onClick={() => {
+                document.getElementById("welcome-sign-in-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              Sign in below →
+            </button>
+          )}
         </div>
       </div>
     </div>

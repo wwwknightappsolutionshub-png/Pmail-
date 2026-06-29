@@ -6,7 +6,6 @@ import {
   buildProductOnboardingSlides,
   formatReferrerDisplayName,
 } from "../data/productOnboardingSlides";
-import { LoginBrandPanel } from "../components/LoginBrandPanel";
 import { LoginFormCard } from "../components/LoginFormCard";
 import { buildLoginPath, LoginShell, useTenantBranding } from "../components/LoginShell";
 import { ProductOnboardingWizard } from "../components/ProductOnboardingWizard";
@@ -21,27 +20,11 @@ import {
 import "./WelcomePage.css";
 import "../components/ProspectAccessForm.css";
 
-function useIsWideLayout() {
-  const [wide, setWide] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(min-width: 768px)").matches : false,
-  );
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 768px)");
-    const onChange = () => setWide(media.matches);
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
-  }, []);
-
-  return wide;
-}
-
 export function WelcomePage() {
   const { tenantSlug: tenantSlugParam } = useParams();
   const [searchParams] = useSearchParams();
   const tenantSlug = tenantSlugParam?.trim().toLowerCase() || DEFAULT_TENANT_SLUG;
   const { user } = useAuth();
-  const isWideLayout = useIsWideLayout();
   const replayTour = searchParams.get("replay") === "1";
   const referralRef = searchParams.get("ref")?.trim() ?? null;
 
@@ -49,8 +32,6 @@ export function WelcomePage() {
   const loginForm = useLoginForm(tenantSlug, { onLoginSuccess: markWelcomeOnboardingSeen });
 
   const [slideIndex, setSlideIndex] = useState(0);
-  const [mobileShowLogin, setMobileShowLogin] = useState(false);
-  const [wizardDismissed, setWizardDismissed] = useState(false);
   const [accessMode, setAccessMode] = useState<"signin" | "prospect">("signin");
 
   useEffect(() => {
@@ -66,15 +47,11 @@ export function WelcomePage() {
     [branding.productName, referralRef],
   );
 
-  const finishWizard = () => {
-    markWelcomeOnboardingSeen();
-    setWizardDismissed(true);
-    setMobileShowLogin(true);
-  };
+  const isCtaSlide = slideIndex >= slides.length - 1;
 
-  const showWizardPanel = !wizardDismissed;
-  const mobileLoginOnly = !isWideLayout && mobileShowLogin;
-  const hideLoginOnMobile = showWizardPanel && !isWideLayout;
+  const skipToSignIn = () => {
+    setSlideIndex(slides.length - 1);
+  };
 
   if (user) return <Navigate to="/" replace />;
 
@@ -83,44 +60,40 @@ export function WelcomePage() {
     return <Navigate to={buildLoginPath(tenantSlug, refQuery)} replace />;
   }
 
+  const loginPanel =
+    accessMode === "prospect" ? (
+      <ProspectAccessForm
+        tenantSlug={tenantSlug}
+        productName={branding.productName}
+        onBackToSignIn={() => setAccessMode("signin")}
+      />
+    ) : (
+      <LoginFormCard
+        {...loginForm}
+        loadError={loadError}
+        onRequestWorkspaceAccess={() => setAccessMode("prospect")}
+      />
+    );
+
   return (
     <LoginShell
       branding={branding}
-      layoutClassName={`welcome-layout${showWizardPanel ? " welcome-layout--wizard" : ""}${
-        hideLoginOnMobile ? " welcome-layout--wizard-only" : ""
-      }${mobileLoginOnly ? " welcome-layout--login-only-mobile" : ""}`}
-      brandPanelClassName={showWizardPanel ? "welcome-brand-panel--wizard" : ""}
-      formPanelClassName={hideLoginOnMobile ? "welcome-form-panel--hidden-mobile" : ""}
+      layoutClassName={`welcome-layout welcome-layout--wizard${
+        isCtaSlide ? " welcome-layout--cta-split" : " welcome-layout--fullscreen-slides"
+      }`}
+      brandPanelClassName="welcome-brand-panel--wizard"
+      formPanelClassName={isCtaSlide ? "welcome-form-panel--cta" : "welcome-form-panel--hidden"}
       leftPanel={
-        showWizardPanel ? (
-          <ProductOnboardingWizard
-            slides={slides}
-            activeIndex={slideIndex}
-            onActiveIndexChange={setSlideIndex}
-            onSkip={finishWizard}
-            onComplete={finishWizard}
-            productName={branding.productName}
-            desktopCompanion={isWideLayout}
-          />
-        ) : mobileLoginOnly ? null : (
-          <LoginBrandPanel branding={branding} />
-        )
+        <ProductOnboardingWizard
+          slides={slides}
+          activeIndex={slideIndex}
+          onActiveIndexChange={setSlideIndex}
+          onSkipToSignIn={skipToSignIn}
+          productName={branding.productName}
+          isCtaSlide={isCtaSlide}
+        />
       }
-      rightPanel={
-        accessMode === "prospect" ? (
-          <ProspectAccessForm
-            tenantSlug={tenantSlug}
-            productName={branding.productName}
-            onBackToSignIn={() => setAccessMode("signin")}
-          />
-        ) : (
-          <LoginFormCard
-            {...loginForm}
-            loadError={loadError}
-            onRequestWorkspaceAccess={() => setAccessMode("prospect")}
-          />
-        )
-      }
+      rightPanel={<div id="welcome-sign-in-panel">{loginPanel}</div>}
       overlay={
         loginForm.submitting ? (
           <PmailLoadingScreen
