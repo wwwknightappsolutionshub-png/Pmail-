@@ -1,0 +1,45 @@
+.sender-avatar {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  user-select: none;
+}
+
+.sender-avatar--sm {
+  width: 1.65rem;
+  height: 1.65rem;
+  font-size: 0.62rem;
+}
+
+.sender-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.message-sender-avatar.sender-avatar,
+.message-table-sender-avatar.sender-avatar {
+  width: 2rem;
+  height: 2rem;
+}
+
+@media (max-width: 767px) {
+  .message-sender-avatar.sender-avatar,
+  .message-table-sender-avatar.sender-avatar {
+    width: 2.15rem;
+    height: 2.15rem;
+  }
+}
+
+.mail-app.mail-app--light .sender-avatar:not([style*="background-color"]) {
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+}

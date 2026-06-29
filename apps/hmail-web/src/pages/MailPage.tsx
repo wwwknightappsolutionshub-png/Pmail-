@@ -55,6 +55,8 @@ import { isDeferredProductionVirtualView } from "../components/deferredProductio
 import { LazyProductionVirtualView } from "../components/LazyProductionVirtualView";
 import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
 import { SenderGroupedMessageList, senderLabel } from "../components/SenderGroupedMessageList";
+import { SenderAvatar } from "../components/SenderAvatar";
+import { extractEmailFromHeader } from "../utils/senderAvatar";
 import { MailBottomNavButton } from "../components/MailBottomNavButton";
 import {
   MobileDrawerTooltip,
@@ -112,11 +114,6 @@ function readSidebarCollapsedPreference(): boolean | null {
 
 function defaultSidebarCollapsed(): boolean {
   return true;
-}
-
-function extractEmailFromHeader(value: string): string {
-  const match = value.match(/<([^>]+)>/);
-  return (match?.[1] ?? value).trim().toLowerCase();
 }
 
 type MobilePane = "list" | "read" | "menu";
@@ -341,7 +338,7 @@ export function MailPage({
   );
   const [mobilePane, setMobilePane] = useState<MobilePane>("list");
   const [closeDrawerTooltip, setCloseDrawerTooltip] = useState<MobileDrawerTooltipState>(null);
-  const [expandedSenderEmail, setExpandedSenderEmail] = useState<string | null>(null);
+  const [collapsedSenderEmails, setCollapsedSenderEmails] = useState<Set<string>>(() => new Set());
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
     (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
   );
@@ -412,11 +409,7 @@ export function MailPage({
   const businessVertical = user?.businessVertical ?? null;
   const hasJobHunterAddon = hasJobHunterAccess();
   const inboxPath = useMemo(() => resolveInboxPath(folders), [folders]);
-  const useSenderGrouping =
-    !isVirtualView(activeFolder) &&
-    inboxPath === activeFolder &&
-    !appliedSearch.query &&
-    mailFilter === "all";
+  const useSenderGrouping = !isVirtualView(activeFolder) && inboxPath === activeFolder;
 
   const sortedFolders = useMemo(() => sortFolders(folders), [folders]);
   const isVirtual = isVirtualView(activeFolder);
@@ -450,7 +443,7 @@ export function MailPage({
       setSelectedUid(null);
       setSelectedMessage(null);
       setSelectedUids([]);
-      setExpandedSenderEmail(null);
+      setCollapsedSenderEmails(new Set());
       setMailFilter("all");
       clearMailSearch();
       setMobilePane("list");
@@ -468,6 +461,19 @@ export function MailPage({
   useEffect(() => {
     onActiveFolderChange?.(activeFolder);
   }, [activeFolder, onActiveFolderChange]);
+
+  useEffect(() => {
+    if (!selectedUid || !useSenderGrouping) return;
+    const message = messages.find((entry) => entry.uid === selectedUid);
+    if (!message) return;
+    const email = extractEmailFromHeader(message.from);
+    setCollapsedSenderEmails((current) => {
+      if (!current.has(email)) return current;
+      const next = new Set(current);
+      next.delete(email);
+      return next;
+    });
+  }, [selectedUid, messages, useSenderGrouping]);
 
   useEffect(() => {
     if (!showInboxSwitcher || !hasMultiInboxAddon) return;
@@ -1245,9 +1251,14 @@ export function MailPage({
                 <SenderGroupedMessageList
                   messages={messages}
                   selectedUid={selectedUid}
-                  expandedSenderEmail={expandedSenderEmail}
+                  collapsedSenderEmails={collapsedSenderEmails}
                   onToggleSender={(email) =>
-                    setExpandedSenderEmail((current) => (current === email ? null : email))
+                    setCollapsedSenderEmails((current) => {
+                      const next = new Set(current);
+                      if (next.has(email)) next.delete(email);
+                      else next.add(email);
+                      return next;
+                    })
                   }
                   onSelectMessage={selectMessage}
                   showBulkBar={showBulkBar}
@@ -1288,6 +1299,7 @@ export function MailPage({
                         ) : null}
                       </span>
                       <button type="button" className="message-table-cell message-table-cell--subject" onClick={() => selectMessage(msg.uid)}>
+                        <SenderAvatar from={msg.from} className="message-table-sender-avatar" size="sm" />
                         <span className="message-subject-text">
                           {selectedUid
                             ? msg.subject || "(No subject)"
@@ -1410,7 +1422,12 @@ export function MailPage({
       ) : null}
 
       <div className="mail-layout">
-        <div className="mail-sidebar-backdrop" onClick={() => setMobilePane("list")} aria-hidden="true" />
+        <button
+          type="button"
+          className="mail-sidebar-backdrop"
+          onClick={() => setMobilePane("list")}
+          aria-label="Close folders"
+        />
 
         <aside className={`mail-sidebar${sidebarCollapsed ? " mail-sidebar--collapsed" : ""}`}>
           <div className="mail-sidebar-rail-head">

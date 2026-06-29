@@ -467,6 +467,12 @@
   font-weight: 700;
 }
 
+.brand-settings-avatar-logo {
+  border-radius: 22%;
+  object-fit: contain;
+  background: transparent;
+}
+
 .brand-settings-preview-body iframe {
   width: 100%;
   min-height: 4.5rem;

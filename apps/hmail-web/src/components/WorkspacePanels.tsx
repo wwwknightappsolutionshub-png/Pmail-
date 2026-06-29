@@ -26,6 +26,7 @@ import {
   readSignatureAvatarFile,
   type SignatureFieldValues,
 } from "../utils/signatureBuilder";
+import { PMail_LOGO_DATA_URL } from "@hostnet-demo/data/pmailLogo";
 
 export { WorkspaceCrmPanel } from "./WorkspaceCrmPanel";
 export { WorkspaceRemindersPanel } from "./WorkspaceRemindersPanel";
@@ -141,7 +142,7 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
       const payload = {
         name: signatureName,
         body,
-        avatarUrl: sigForm.avatarUrl || undefined,
+        avatarUrl: sigForm.avatarUrl || PMail_LOGO_DATA_URL,
         isDefault: sigForm.isDefault,
       };
       const wasEdit = Boolean(sigForm.id);
@@ -419,11 +420,15 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
             <span className="brand-settings-preview-label">Live preview</span>
             <div className="brand-settings-preview-body">
               {sigForm.avatarUrl ? (
-                <img src={sigForm.avatarUrl} alt="" />
+                <img
+                  src={sigForm.avatarUrl}
+                  alt=""
+                  className={
+                    sigForm.avatarUrl === PMail_LOGO_DATA_URL ? "brand-settings-avatar-logo" : undefined
+                  }
+                />
               ) : (
-                <div className="brand-settings-avatar-fallback" aria-hidden="true">
-                  S
-                </div>
+                <img src={PMail_LOGO_DATA_URL} alt="" className="brand-settings-avatar-logo" />
               )}
               <iframe title="Signature preview" sandbox="" srcDoc={signaturePreviewHtml || "<p>Your signature preview appears here.</p>"} />
             </div>

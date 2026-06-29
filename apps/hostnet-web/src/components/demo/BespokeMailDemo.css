@@ -872,8 +872,25 @@ body.pmail-search-overlay-open {
   flex-shrink: 0;
   min-width: 0;
   overflow: hidden;
+  position: relative;
   border-bottom: 1px solid var(--border);
   background: var(--surface-tabs);
+}
+
+.bespoke-demo-workspace-tabs-shell--overflow-end::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 3.25rem;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(90deg, transparent, var(--surface-tabs) 72%);
+}
+
+.bespoke-demo-workspace-tabs-shell--overflow-end:has(.bespoke-demo-workspace-tabs-more)::before {
+  right: 4.35rem;
 }
 
 .bespoke-demo-workspace-tabs {
@@ -907,11 +924,13 @@ body.pmail-search-overlay-open {
   border: none;
   border-left: 1px solid var(--border);
   background: linear-gradient(90deg, transparent, var(--surface-tabs) 28%);
-  color: var(--muted);
+  color: var(--accent-light, var(--accent-2));
   font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
+  position: relative;
+  z-index: 2;
 }
 
 .bespoke-demo-workspace-tabs-more svg {
@@ -2881,7 +2900,7 @@ body.pmail-search-overlay-open {
 .bespoke-demo-signature-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: 11px;
   object-fit: cover;
   flex-shrink: 0;
   border: 1px solid rgba(20, 184, 166, 0.35);

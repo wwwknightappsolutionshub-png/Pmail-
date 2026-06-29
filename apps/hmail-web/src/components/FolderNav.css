@@ -328,11 +328,8 @@
 
 /* Mobile folder drawer — Gmail-style labeled slide-over */
 @media (max-width: 767px) {
-  .mail-app[data-mobile-pane="menu"] .folder-nav-group--compose .folder-nav-item--compose {
-    border-radius: 999px;
-    margin-bottom: 0.35rem;
-    background: color-mix(in srgb, var(--brand-accent, #14b8a6) 16%, rgba(15, 23, 42, 0.88));
-    border: 1px solid color-mix(in srgb, var(--brand-accent, #14b8a6) 35%, transparent);
+  .mail-app[data-mobile-pane="menu"] .folder-nav-group--compose {
+    display: none !important;
   }
 
   .mail-app[data-mobile-pane="menu"] .folder-nav-heading {

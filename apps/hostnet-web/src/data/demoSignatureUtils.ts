@@ -1,11 +1,8 @@
 import type { DemoSignature } from "./bespokeMailComposeSettings";
 import { contactInitials } from "./demoMailUtils";
+import { PMail_LOGO_DATA_URL, buildPmailLogoDataUrl } from "./pmailLogo";
 
-export function getSignatureAvatarLabel(signature: Pick<DemoSignature, "name" | "body">): string {
-  const firstLine = signature.body.split("\n")[0]?.trim();
-  return firstLine || signature.name || "Signature";
-}
-
+/** User profile / topbar fallback — initials on teal circle. */
 export function buildDefaultAvatarDataUrl(label: string): string {
   const initials = contactInitials(label);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="${label}">
@@ -15,9 +12,26 @@ export function buildDefaultAvatarDataUrl(label: string): string {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-export function resolveSignatureAvatarUrl(signature: Pick<DemoSignature, "name" | "body" | "avatarUrl">): string {
-  return signature.avatarUrl ?? buildDefaultAvatarDataUrl(getSignatureAvatarLabel(signature));
+/** Default signature avatar — PMail+ branded app icon. */
+export function buildDefaultSignatureAvatarDataUrl(): string {
+  return PMail_LOGO_DATA_URL;
 }
+
+function isLegacyInitialsSignatureAvatar(url: string): boolean {
+  return url.includes('fill="#0d9488"') && url.includes("<text");
+}
+
+export function resolveSignatureAvatarUrl(signature: Pick<DemoSignature, "name" | "body" | "avatarUrl">): string {
+  if (signature.avatarUrl) {
+    if (isLegacyInitialsSignatureAvatar(signature.avatarUrl)) {
+      return buildDefaultSignatureAvatarDataUrl();
+    }
+    return signature.avatarUrl;
+  }
+  return buildDefaultSignatureAvatarDataUrl();
+}
+
+export { buildPmailLogoDataUrl, PMail_LOGO_DATA_URL };
 
 export const SIGNATURE_AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 

@@ -324,7 +324,12 @@
   position: fixed;
   inset: 0;
   z-index: 35;
+  margin: 0;
+  padding: 0;
+  border: none;
   background: rgba(15, 23, 42, 0.45);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mail-sidebar {
@@ -357,6 +362,7 @@
 .mail-app[data-mobile-pane="menu"] .mail-sidebar-backdrop {
   display: block;
   opacity: 1;
+  pointer-events: auto;
 }
 
 .mail-sidebar-head {
@@ -948,14 +954,27 @@
 }
 
 .message-sender-avatar {
-  display: grid;
-  width: 2rem;
-  height: 2rem;
-  place-items: center;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--brand-accent, #14b8a6) 28%, rgba(15, 23, 42, 0.9));
-  color: #ecfeff;
-  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.message-table-cell--subject,
+.message-table-cell--grouped-subject {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.message-table-cell--subject .message-subject-text,
+.message-table-cell--grouped-subject .message-subject-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-table-sender-avatar {
+  flex-shrink: 0;
 }
 
 .message-sender-meta {
@@ -2147,11 +2166,6 @@
 .mail-app.mail-app--light .message-table-row.unread .message-subject-text {
   color: #0f172a;
   font-weight: 700;
-}
-
-.mail-app.mail-app--light .message-sender-avatar {
-  background: color-mix(in srgb, var(--brand-accent, #14b8a6) 18%, #ffffff);
-  color: #0f766e;
 }
 
 .mail-app.mail-app--light .message-sender-unread {

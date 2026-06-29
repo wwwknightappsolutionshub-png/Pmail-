@@ -25,6 +25,7 @@ import {
 } from "../../data/demoMailUtils";
 import {
   buildDefaultAvatarDataUrl,
+  buildDefaultSignatureAvatarDataUrl,
   readImageFileAsDataUrl,
   resolveSignatureAvatarUrl,
 } from "../../data/demoSignatureUtils";
@@ -200,7 +201,7 @@ function emptySignatureDraft(): SignatureDraft {
   return {
     name: "",
     body: "",
-    avatarUrl: buildDefaultAvatarDataUrl("Signature"),
+    avatarUrl: buildDefaultSignatureAvatarDataUrl(),
   };
 }
 
@@ -1075,9 +1076,7 @@ export function BespokeMailDemo({
   const remindersTabCount = useLiveTabCounts ? workspaceTabCounts!.reminders : pendingReminderCount;
   const calendarTabCount = useLiveTabCounts ? workspaceTabCounts!.calendar : calendarEvents.length;
   const messagingTabCount = useLiveTabCounts ? workspaceTabCounts!.messaging : messagingThreads.length;
-  const workspaceTabButtonCount = 6 + (showCareerTab ? 1 : 0);
-  const showWorkspaceTabsMore =
-    isMobileWorkspaceTabs || workspaceTabsCanScrollForward || workspaceTabButtonCount > 5;
+  const showWorkspaceTabsMore = workspaceTabsCanScrollForward;
 
   useLayoutEffect(() => {
     if (!workspaceReady) return;
@@ -2056,21 +2055,18 @@ export function BespokeMailDemo({
   }
 
   function resetSignatureAvatar() {
-    const label = signatureDraft.name.trim() || signatureDraft.body.split("\n")[0]?.trim() || "Signature";
     setSignatureDraft((current) => ({
       ...current,
-      avatarUrl: buildDefaultAvatarDataUrl(label),
+      avatarUrl: buildDefaultSignatureAvatarDataUrl(),
     }));
-    setSettingsNotice("Avatar reset to default initials.");
+    setSettingsNotice("Avatar reset to default PMail+ logo.");
   }
 
   function saveSignature(event: FormEvent) {
     event.preventDefault();
     if (!signatureDraft.name.trim() || !signatureDraft.body.trim()) return;
 
-    const avatarUrl =
-      signatureDraft.avatarUrl ||
-      buildDefaultAvatarDataUrl(signatureDraft.name.trim() || "Signature");
+    const avatarUrl = signatureDraft.avatarUrl || buildDefaultSignatureAvatarDataUrl();
 
     if (editingSignatureId === "new") {
       const signature: DemoSignature = {
@@ -2320,7 +2316,11 @@ export function BespokeMailDemo({
         )}
       </header>
 
-      <div className="bespoke-demo-workspace-tabs-shell">
+      <div
+        className={`bespoke-demo-workspace-tabs-shell${
+          workspaceTabsCanScrollForward ? " bespoke-demo-workspace-tabs-shell--overflow-end" : ""
+        }`}
+      >
         <div className="bespoke-demo-workspace-tabs" ref={workspaceTabsRef}>
         <button
           type="button"
@@ -2408,7 +2408,7 @@ export function BespokeMailDemo({
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path fill="currentColor" d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z" />
             </svg>
-            <span>Show more</span>
+            <span className="bespoke-demo-workspace-tabs-more-label">More</span>
           </button>
         ) : null}
       </div>
@@ -3930,7 +3930,7 @@ export function BespokeMailDemo({
                     />
                     <div className="bespoke-demo-signature-avatar-actions">
                       <p className="bespoke-demo-sidebar-title">Signature avatar</p>
-                      <p className="muted">Upload a photo from your device or reset to default initials.</p>
+                      <p className="muted">Upload a photo from your device or reset to the default PMail+ logo.</p>
                       <div className="bespoke-demo-editor-actions">
                         <label className="btn btn-secondary bespoke-demo-upload-btn">
                           Upload image

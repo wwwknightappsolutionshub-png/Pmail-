@@ -1,27 +1,14 @@
 import { useMemo } from "react";
 import type { MailMessageSummary } from "../types/mail";
+import { SenderAvatar } from "./SenderAvatar";
+import { extractEmailFromHeader, senderLabel } from "../utils/senderAvatar";
 
-function extractEmailFromHeader(value: string): string {
-  const match = value.match(/<([^>]+)>/);
-  return (match?.[1] ?? value).trim().toLowerCase();
-}
-
-export function senderLabel(from: string): string {
-  const email = extractEmailFromHeader(from);
-  const nameMatch = from.match(/^([^<]+)</);
-  const name = nameMatch?.[1]?.trim();
-  return name && name !== email ? name : email;
-}
-
-function senderInitial(from: string): string {
-  const label = senderLabel(from);
-  return label.charAt(0).toUpperCase() || "?";
-}
+export { senderLabel };
 
 type Props = {
   messages: MailMessageSummary[];
   selectedUid: number | null;
-  expandedSenderEmail: string | null;
+  collapsedSenderEmails: ReadonlySet<string>;
   onToggleSender: (email: string) => void;
   onSelectMessage: (uid: number) => void;
   showBulkBar: boolean;
@@ -35,7 +22,7 @@ type Props = {
 export function SenderGroupedMessageList({
   messages,
   selectedUid,
-  expandedSenderEmail,
+  collapsedSenderEmails,
   onToggleSender,
   onSelectMessage,
   showBulkBar,
@@ -56,7 +43,7 @@ export function SenderGroupedMessageList({
     return [...map.entries()].map(([email, items]) => ({
       email,
       label: senderLabel(items[0]?.from ?? email),
-      initial: senderInitial(items[0]?.from ?? email),
+      from: items[0]?.from ?? email,
       messages: items,
       unreadCount: items.filter((item) => !item.seen).length,
     }));
@@ -80,7 +67,7 @@ export function SenderGroupedMessageList({
         <span>Received</span>
       </div>
       {groups.map((group) => {
-        const expanded = expandedSenderEmail === group.email;
+        const expanded = !collapsedSenderEmails.has(group.email);
         return (
           <div key={group.email} className="message-sender-group">
             <div className="message-sender-group-head">
@@ -90,9 +77,7 @@ export function SenderGroupedMessageList({
                 aria-expanded={expanded}
                 onClick={() => onToggleSender(group.email)}
               >
-                <span className="message-sender-avatar" aria-hidden="true">
-                  {group.initial}
-                </span>
+                <SenderAvatar from={group.from} className="message-sender-avatar" />
                 <span className="message-sender-meta">
                   <strong>{group.label}</strong>
                   <small>{group.email}</small>
@@ -123,9 +108,10 @@ export function SenderGroupedMessageList({
                     </span>
                     <button
                       type="button"
-                      className="message-table-cell message-table-cell--subject"
+                      className="message-table-cell message-table-cell--subject message-table-cell--grouped-subject"
                       onClick={() => onSelectMessage(msg.uid)}
                     >
+                      <SenderAvatar from={msg.from} className="message-table-sender-avatar" size="sm" />
                       <span className="message-subject-text">{msg.subject || "(No subject)"}</span>
                       {msg.flagged ? (
                         <span className="message-star" aria-label="Starred">
