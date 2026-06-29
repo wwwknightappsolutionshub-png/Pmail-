@@ -355,7 +355,8 @@
 }
 
 .mail-app[data-mobile-pane="menu"] .mail-sidebar-backdrop {
-  display: none;
+  display: block;
+  opacity: 1;
 }
 
 .mail-sidebar-head {
@@ -2496,67 +2497,96 @@
 
   .mail-app[data-mobile-pane="menu"] {
     --mail-drawer-layer: 100;
-    --mail-drawer-tooltip-layer: 120;
-    --sidebar-width: 4.75rem;
   }
 
   .mail-app[data-mobile-pane="menu"] .mail-sidebar-backdrop {
-    display: none !important;
+    display: block !important;
+    opacity: 1;
+    z-index: calc(var(--mail-drawer-layer, 100) - 1);
+    background: rgba(15, 23, 42, 0.45);
+  }
+
+  .mail-app.mail-app--light[data-mobile-pane="menu"] .mail-sidebar-backdrop {
+    background: rgba(15, 23, 42, 0.32);
   }
 
   .mail-app[data-mobile-pane="menu"] .mail-layout {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: stretch;
+    display: block !important;
     overflow: hidden;
     min-height: 0;
   }
 
   .mail-app[data-mobile-pane="menu"] .mail-sidebar {
-    position: relative !important;
-    top: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    transform: none !important;
-    flex: 0 0 var(--sidebar-width, 4.75rem);
-    width: var(--sidebar-width, 4.75rem);
-    min-width: var(--sidebar-width, 4.75rem);
-    max-width: var(--sidebar-width, 4.75rem);
-    height: auto;
-    align-self: stretch;
-    z-index: 1;
-    box-sizing: border-box;
-    padding: 0.65rem 0.4rem;
-    padding-bottom: max(0.65rem, env(safe-area-inset-bottom));
-    overflow-x: hidden;
-    overflow-y: auto;
+    position: fixed !important;
+    top: 0 !important;
+    bottom: var(--mail-bottom-nav-h, 2.75rem) !important;
+    left: 0 !important;
+    width: var(--sidebar-width, min(88vw, 320px)) !important;
+    min-width: 0 !important;
+    max-width: var(--sidebar-width, min(88vw, 320px)) !important;
+    flex: none !important;
+    height: auto !important;
+    transform: translateX(0) !important;
+    z-index: var(--mail-drawer-layer, 100);
+    padding: 1rem 0.85rem;
+    padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
+    overflow: hidden;
     background: linear-gradient(180deg, #0f2744 0%, #0b1220 100%);
-    box-shadow: none;
+    box-shadow: 8px 0 32px rgba(2, 8, 23, 0.28);
     border-right: 1px solid rgba(148, 163, 184, 0.18);
   }
 
   .mail-app[data-mobile-pane="menu"] .mail-list-pane,
   .mail-app[data-mobile-pane="menu"] .mail-read-pane {
-    flex: 1 1 auto;
-    min-width: 0;
-    width: auto;
-    max-width: none;
-    margin-left: 0;
-    position: relative;
-    z-index: 0;
     display: none !important;
   }
 
-  .mail-app[data-mobile-pane="menu"][data-content-pane="list"] .mail-list-pane {
-    display: flex !important;
+  .mail-app[data-mobile-pane="menu"] .mail-sidebar-body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-top: 0.15rem;
+    margin-right: 0;
+    padding-right: 0.15rem;
   }
 
-  .mail-app[data-mobile-pane="menu"][data-content-pane="read"] .mail-read-pane {
-    display: flex !important;
+  .mail-app[data-mobile-pane="menu"] .mail-sidebar-rail-head {
+    justify-content: space-between;
+    margin-bottom: 0.35rem;
   }
 
-  .mail-app[data-mobile-pane="menu"] .list-header {
-    z-index: 0;
+  .mail-app[data-mobile-pane="menu"] .mail-sidebar-head {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .mail-sidebar-head .mail-brand-logo {
+    display: flex;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .mail-sidebar-close {
+    width: auto;
+    min-height: 2.25rem;
+    padding: 0.4rem 0.65rem;
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .mail-sidebar-close-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .mail-app.mail-app--light[data-mobile-pane="menu"] .mail-sidebar-close {
+    color: #475569;
+    border-color: #dbe3ec;
+    background: #fff;
+  }
+
+  .mail-app.mail-app--light[data-mobile-pane="menu"] .mail-sidebar {
+    background: #f8fafc;
+    box-shadow: 8px 0 28px rgba(15, 23, 42, 0.12);
+    border-right: 1px solid #dbe3ec;
   }
 
   .mail-app--embedded-in-bespoke[data-mobile-pane="menu"] {
@@ -2572,75 +2602,8 @@
     bottom: var(--mail-bottom-nav-h, 2.75rem);
   }
 
-  .mail-app[data-mobile-pane="menu"] .mail-sidebar-body {
-    overflow-x: hidden;
-    overflow-y: visible;
-    padding-top: 0.15rem;
-    margin-right: 0;
-    padding-right: 0;
-  }
-
-  .mail-app[data-mobile-pane="menu"] .mail-sidebar-body .folder-nav {
-    max-width: 100%;
-    padding-right: 0;
-    overflow: hidden;
-  }
-
-  .mail-app[data-mobile-pane="menu"] .mail-sidebar-rail-head {
-    justify-content: center;
-    margin-bottom: 0.15rem;
-    overflow: hidden;
-  }
-
-  .mail-app[data-mobile-pane="menu"] .mail-sidebar-head {
-    justify-content: center;
-    width: 100%;
-  }
-
-  .mail-app[data-mobile-pane="menu"] .mail-sidebar-head .mail-brand-logo {
-    display: none;
-  }
-
-  .mail-app[data-mobile-pane="menu"] .mail-sidebar-close {
-    width: 100%;
-    min-height: 2.75rem;
-    padding: 0.45rem 0.35rem;
-    border-color: transparent;
-    background: transparent;
-    border-radius: 10px;
-  }
-
-  .mail-app[data-mobile-pane="menu"] .mail-sidebar-close-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-
-  .mail-app.mail-app--light[data-mobile-pane="menu"] .mail-sidebar-close {
-    color: #475569;
-  }
-
-  .mail-app.mail-app--light[data-mobile-pane="menu"] .mail-sidebar {
-    background: #eef1f6;
-    box-shadow: 8px 0 24px rgba(15, 23, 42, 0.12);
-    border-right: 1px solid #dbe3ec;
-  }
-
-  .mail-app.mail-app--light[data-mobile-pane="menu"] .mail-sidebar-backdrop {
-    display: none !important;
-  }
-
-  .mail-app[data-mobile-pane="menu"] .mail-sidebar-backdrop {
-    z-index: calc(var(--mail-drawer-layer, 100) - 1);
-    display: none !important;
-    background: transparent;
-  }
-
   .mail-app[data-mobile-pane="list"] .mail-read-pane {
     display: none !important;
-  }
-
-  .mail-app[data-mobile-pane="menu"][data-content-pane="read"] .mail-read-pane {
-    display: flex !important;
   }
 
   .mail-app--embedded-in-bespoke .mail-sidebar-close--embedded {
@@ -2650,7 +2613,7 @@
 
   .mail-app--embedded-in-bespoke .mail-sidebar-rail-head {
     width: 100%;
-    justify-content: center;
+    justify-content: space-between;
   }
 
   .mail-app--embedded-in-bespoke .mail-sidebar-toggle {

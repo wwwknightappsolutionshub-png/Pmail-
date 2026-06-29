@@ -48,7 +48,7 @@ import { PmailLoadingScreen } from "../components/PmailLoadingScreen";
 import { MailBulkActions } from "../components/MailBulkActions";
 import { MailFilterBar } from "../components/MailFilterBar";
 import { MailOrderBar } from "../components/MailOrderBar";
-import { MailPaginationBar } from "../components/MailPaginationBar";
+import { MailListLoadMore } from "../components/MailListLoadMore";
 import { GmailMailSearch, isGmailStyleQuery } from "../components/GmailMailSearch";
 import { NewFolderModal } from "../components/NewFolderModal";
 import { isDeferredProductionVirtualView } from "../components/deferredProductionVirtualViews";
@@ -82,6 +82,21 @@ import "./MailPage.css";
 import "../components/ContactsPanel.css";
 
 const PAGE_SIZE = 30;
+
+function mergeMessagePages(
+  previous: MailMessageSummary[],
+  incoming: MailMessageSummary[],
+): MailMessageSummary[] {
+  if (incoming.length === 0) return previous;
+  const seen = new Set(previous.map((message) => message.uid));
+  const merged = [...previous];
+  for (const message of incoming) {
+    if (seen.has(message.uid)) continue;
+    seen.add(message.uid);
+    merged.push(message);
+  }
+  return merged;
+}
 const MAIL_SIDEBAR_COLLAPSED_KEY = "pmail-mail-sidebar-collapsed-v3";
 
 function readSidebarCollapsedPreference(): boolean | null {
@@ -282,14 +297,14 @@ export function MailPage({
   const [activeFolder, setActiveFolder] = useState("INBOX");
   const [messages, setMessages] = useState<MailMessageSummary[]>([]);
   const [messageTotal, setMessageTotal] = useState(0);
-  const [messagePage, setMessagePage] = useState(1);
   const messagePageRef = useRef(1);
   const fetchGenerationRef = useRef(0);
   const selectedUidRef = useRef<number | null>(null);
-  const loadMessagesRef = useRef<((options?: { silent?: boolean; page?: number }) => Promise<void>) | null>(null);
+  const loadMessagesRef = useRef<
+    ((options?: { silent?: boolean; page?: number; append?: boolean }) => Promise<void>) | null
+  >(null);
   const resetMessagePage = useCallback(() => {
     messagePageRef.current = 1;
-    setMessagePage(1);
   }, []);
   const [sortBy, setSortBy] = useState<MailSortField>("date");
   const [sortOrder, setSortOrder] = useState<MailSortOrder>("desc");
@@ -426,7 +441,6 @@ export function MailPage({
     setSearchDraft(EMPTY_MAIL_SEARCH);
     setAppliedSearch(EMPTY_MAIL_SEARCH);
     messagePageRef.current = 1;
-    setMessagePage(1);
   }, [setAppliedSearch, setSearchDraft]);
 
   const selectFolder = useCallback(
@@ -438,7 +452,6 @@ export function MailPage({
       setSelectedUids([]);
       setExpandedSenderEmail(null);
       setMailFilter("all");
-      setMessagePage(1);
       clearMailSearch();
       setMobilePane("list");
     },
@@ -457,17 +470,6 @@ export function MailPage({
   }, [activeFolder, onActiveFolderChange]);
 
   useEffect(() => {
-    if (mobilePane === "menu" && mobileMailViewport) {
-      document.documentElement.style.setProperty("--pmail-folder-drawer-w", "4.75rem");
-    } else {
-      document.documentElement.style.removeProperty("--pmail-folder-drawer-w");
-    }
-    return () => {
-      document.documentElement.style.removeProperty("--pmail-folder-drawer-w");
-    };
-  }, [mobileMailViewport, mobilePane]);
-
-  useEffect(() => {
     if (!showInboxSwitcher || !hasMultiInboxAddon) return;
     if (mailAccountCount === null || mailAccountCount > 1) return;
     if (isMultiInboxPromptDismissed()) return;
@@ -478,13 +480,18 @@ export function MailPage({
     selectedUid &&
       (loadingMessage || !selectedMessage || selectedMessage.uid !== selectedUid),
   );
-  const listPaginationEnabled =
-    !isVirtual && messageTotal > PAGE_SIZE && mobilePane !== "read" && (mobilePane !== "menu" || contentPane === "list");
+  const listInfiniteScrollEnabled =
+    !isVirtual &&
+    messages.length > 0 &&
+    messages.length < messageTotal &&
+    mobilePane !== "read" &&
+    mobilePane !== "menu";
   const messageListAtEnd = useMessageListAtEnd(
     messageListRef,
-    listPaginationEnabled,
-    `${activeFolder}-${messagePage}-${messages.length}-${messageTotal}`,
+    listInfiniteScrollEnabled,
+    `${activeFolder}-${messages.length}-${messageTotal}`,
   );
+  const hasMoreMessages = messages.length < messageTotal;
 
   const loadFolders = useCallback(async () => {
     setLoadingFolders(true);
@@ -570,13 +577,14 @@ export function MailPage({
     handleMailboxSwitch();
   }, [activeMailAccountId, handleMailboxSwitch]);
 
-  const loadMessages = useCallback(async (options?: { silent?: boolean; page?: number }) => {
+  const loadMessages = useCallback(async (options?: { silent?: boolean; page?: number; append?: boolean }) => {
     if (isVirtualView(activeFolder)) return;
 
-    const targetPage = options?.page ?? messagePageRef.current;
+    const append = options?.append === true;
+    const targetPage = options?.page ?? (append ? messagePageRef.current + 1 : messagePageRef.current);
     const generation = ++fetchGenerationRef.current;
     const silent = options?.silent === true;
-    const isPaging = options?.page != null;
+    const isPaging = append || options?.page != null;
 
     if (isPaging) {
       setPagingMessages(true);
@@ -603,18 +611,20 @@ export function MailPage({
       if (generation !== fetchGenerationRef.current) return;
 
       messagePageRef.current = targetPage;
-      setMessagePage(targetPage);
-      setMessages(result.messages);
+      setMessages((prev) => {
+        const next = append ? mergeMessagePages(prev, result.messages) : result.messages;
+        setSelectedUids((uids) => uids.filter((uid) => next.some((message) => message.uid === uid)));
+        if (selectedUidRef.current && !next.some((message) => message.uid === selectedUidRef.current)) {
+          setSelectedUid(null);
+          setSelectedMessage(null);
+          setMobilePane("list");
+        }
+        return next;
+      });
       setMessageTotal(result.total);
       const normalizedFolder = activeFolder.trim().toLowerCase();
       if (normalizedFolder === "inbox" || normalizedFolder === "sent") {
         refreshCareerNav();
-      }
-      setSelectedUids((prev) => prev.filter((uid) => result.messages.some((m) => m.uid === uid)));
-      if (selectedUidRef.current && !result.messages.some((m) => m.uid === selectedUidRef.current)) {
-        setSelectedUid(null);
-        setSelectedMessage(null);
-        setMobilePane("list");
       }
     } catch (err) {
       if (generation === fetchGenerationRef.current) {
@@ -671,7 +681,7 @@ export function MailPage({
           });
           setMessages(result.messages);
           setMessageTotal(result.total);
-          setMessagePage(1);
+          messagePageRef.current = 1;
         } catch (err) {
           setListError(err instanceof Error ? err.message : "Failed to load sent messages");
         } finally {
@@ -717,7 +727,8 @@ export function MailPage({
 
   const refreshMailInbox = useCallback(async () => {
     await loadFolders();
-    await loadMessages({ silent: true });
+    messagePageRef.current = 1;
+    await loadMessages({ silent: true, page: 1 });
     if (selectedUid && !isVirtualView(activeFolder)) {
       await loadMessage(selectedUid);
     }
@@ -752,6 +763,20 @@ export function MailPage({
   }, [listQueryRevision, resetMessagePage]);
 
   useEffect(() => {
+    if (!listInfiniteScrollEnabled || !messageListAtEnd || !hasMoreMessages || pagingMessages || loadingMessages) {
+      return;
+    }
+    void loadMessages({ append: true });
+  }, [
+    hasMoreMessages,
+    listInfiniteScrollEnabled,
+    loadMessages,
+    loadingMessages,
+    messageListAtEnd,
+    pagingMessages,
+  ]);
+
+  useEffect(() => {
     if (selectedUid && !isVirtual) loadMessage(selectedUid);
   }, [selectedUid, loadMessage, isVirtual]);
 
@@ -784,23 +809,6 @@ export function MailPage({
       setSelectedUids(messages.map((m) => m.uid));
     }
   };
-
-  const handlePageChange = useCallback(
-    (nextPage: number) => {
-      const totalPages = Math.max(1, Math.ceil(messageTotal / PAGE_SIZE));
-      if (nextPage < 1 || nextPage > totalPages || nextPage === messagePageRef.current) return;
-
-      messagePageRef.current = nextPage;
-      setMessagePage(nextPage);
-      setSelectedUid(null);
-      setSelectedMessage(null);
-      setSelectedUids([]);
-      setMobilePane("list");
-      messageListRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-      void loadMessages({ page: nextPage });
-    },
-    [loadMessages, messageTotal],
-  );
 
   const mobileGoBack = () => {
     if (mobilePane === "read") {
@@ -1107,21 +1115,7 @@ export function MailPage({
     if (virtualView) return virtualView;
 
     const visibleSuggestions = contactSuggestions.filter((e) => !dismissedSuggestions.includes(e));
-    const showPagination =
-      messageTotal > PAGE_SIZE &&
-      (mobilePane === "list" || (mobilePane === "menu" && contentPane === "list")) &&
-      messageListAtEnd;
     const listPrimaryColumnLabel = selectedUid ? "Subject" : "Sender";
-    const mailPagination =
-      showPagination ? (
-        <MailPaginationBar
-          page={messagePage}
-          pageSize={PAGE_SIZE}
-          total={messageTotal}
-          loading={pagingMessages}
-          onPageChange={handlePageChange}
-        />
-      ) : null;
 
     return (
       <>
@@ -1132,13 +1126,13 @@ export function MailPage({
             onChange={setSearchDraft}
             onSearch={() => {
               setAppliedSearch(searchDraft);
-              setMessagePage(1);
+              messagePageRef.current = 1;
             }}
             onClear={() => {
               const empty = { field: "subject" as const, query: "", scope: "all" as const };
               setSearchDraft(empty);
               setAppliedSearch(empty);
-              setMessagePage(1);
+              messagePageRef.current = 1;
             }}
           />
         </div>
@@ -1150,7 +1144,7 @@ export function MailPage({
               value={mailFilter}
               onChange={(value) => {
                 setMailFilter(value);
-                setMessagePage(1);
+                messagePageRef.current = 1;
               }}
             />
 
@@ -1160,7 +1154,7 @@ export function MailPage({
               onChange={(nextSortBy, nextSortOrder) => {
                 setSortBy(nextSortBy);
                 setSortOrder(nextSortOrder);
-                setMessagePage(1);
+                messagePageRef.current = 1;
               }}
             />
           </>
@@ -1313,8 +1307,8 @@ export function MailPage({
               )}
             </>
           )}
+          <MailListLoadMore loading={pagingMessages && messages.length > 0} />
           </div>
-          {mailPagination}
         </div>
       </>
     );
@@ -1393,12 +1387,12 @@ export function MailPage({
           onSearchDraftChange={setSearchDraft}
           onSearch={() => {
             setAppliedSearch(searchDraft);
-            setMessagePage(1);
+            messagePageRef.current = 1;
           }}
           onSearchClear={() => {
             setSearchDraft({ field: "subject", query: "" });
             setAppliedSearch({ field: "subject", query: "" });
-            setMessagePage(1);
+            messagePageRef.current = 1;
           }}
           onSelectView={(view) => {
             setActiveFolder(view);
@@ -1482,7 +1476,7 @@ export function MailPage({
               onCompose={() => openCompose({ mode: "new" })}
               hasAddon={hasAddon}
               hideIndustryTools={embedded}
-              iconOnlyRail={mobileDrawerMenuOpen}
+              iconOnlyRail={sidebarCollapsed && !mobileMailViewport}
               tooltipTheme={activeThemeVersion}
               onPaidAddonGate={openPaidAddonGate}
               onOpenAddons={(highlightSlug) => openAddonMarketplace(highlightSlug)}
