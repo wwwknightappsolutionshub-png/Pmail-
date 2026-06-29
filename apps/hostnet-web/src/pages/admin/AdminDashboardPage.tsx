@@ -316,9 +316,14 @@ export function AdminDashboardPage() {
             <AdminMailUsersPanel
               tenants={tenants}
               pollKey={poll?.polledAt}
+              isSuperAdmin={admin?.role === "super_admin"}
               onError={(err) => {
                 setError(err);
                 setMessage(null);
+              }}
+              onMessage={(msg) => {
+                setMessage(msg);
+                setError(null);
               }}
             />
           )}

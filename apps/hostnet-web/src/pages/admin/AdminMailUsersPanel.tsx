@@ -7,7 +7,9 @@ import "./AdminDashboard.css";
 type Props = {
   tenants: TenantAdmin[];
   pollKey?: string;
+  isSuperAdmin?: boolean;
   onError: (msg: string) => void;
+  onMessage?: (msg: string) => void;
 };
 
 function formatWhen(value: string | null | undefined) {
@@ -21,7 +23,7 @@ function PresenceDot({ online }: { online: boolean }) {
   );
 }
 
-export function AdminMailUsersPanel({ tenants, pollKey, onError }: Props) {
+export function AdminMailUsersPanel({ tenants, pollKey, isSuperAdmin = false, onError, onMessage }: Props) {
   const [users, setUsers] = useState<AdminMailUserRecord[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<AdminMailUserRecord[]>([]);
   const [activeSessions, setActiveSessions] = useState<AdminMailUserSession[]>([]);
@@ -37,6 +39,7 @@ export function AdminMailUsersPanel({ tenants, pollKey, onError }: Props) {
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
   const [userSessions, setUserSessions] = useState<AdminMailUserSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [flushingSessions, setFlushingSessions] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -82,6 +85,27 @@ export function AdminMailUsersPanel({ tenants, pollKey, onError }: Props) {
     }
   }
 
+  async function flushAllSessions() {
+    const activeCount = stats?.activeSessions ?? 0;
+    const confirmed = window.confirm(
+      `Revoke all PMail+ login sessions (${activeCount} active) and signal clients to clear cached app files?\n\nEvery signed-in mailbox user will need to sign in again on their next visit.`,
+    );
+    if (!confirmed) return;
+
+    setFlushingSessions(true);
+    try {
+      const result = await api.adminFlushPmailUserSessions();
+      await load();
+      onMessage?.(
+        `Revoked ${result.deletedSessions} session(s). Clients will refresh cached files on next load.`,
+      );
+    } catch (err) {
+      onError(err instanceof ApiError ? err.message : "Failed to revoke PMail+ sessions");
+    } finally {
+      setFlushingSessions(false);
+    }
+  }
+
   return (
     <div className="admin-mail-users-panel">
       <AdminPageHeader
@@ -106,6 +130,23 @@ export function AdminMailUsersPanel({ tenants, pollKey, onError }: Props) {
             <strong className="admin-stat-value">{stats.activeSessions}</strong>
             <span className="muted admin-stat-sub">Updated {formatWhen(stats.asOf)}</span>
           </div>
+        </div>
+      ) : null}
+
+      {isSuperAdmin ? (
+        <div className="admin-maintenance-actions">
+          <button
+            type="button"
+            className="btn btn-danger"
+            disabled={flushingSessions}
+            onClick={() => void flushAllSessions()}
+          >
+            {flushingSessions ? "Revoking sessions…" : "Revoke all PMail+ sessions & refresh clients"}
+          </button>
+          <p className="muted admin-maintenance-note">
+            Signs out every mailbox user, clears server-side session caches, and prompts PMail+ apps to drop
+            service-worker caches on next load.
+          </p>
         </div>
       ) : null}
 

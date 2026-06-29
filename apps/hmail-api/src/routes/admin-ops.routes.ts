@@ -12,6 +12,7 @@ import {
   listMailUserSessions,
   listOnlineMailUsers,
 } from "../services/user-presence.service.js";
+import { flushPmailUserSessionsAndCaches } from "../services/pmail-maintenance.service.js";
 import { listRecentAuditLogs } from "../services/admin-audit.service.js";
 import { getAdminSystemStatus } from "../services/ops-status.service.js";
 import {
@@ -170,6 +171,19 @@ adminOpsRouter.get("/mail-users/sessions", async (req, res, next) => {
     const limit = typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
     const payload = await listActiveMailUserSessions({ userId, limit });
     res.json(payload);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminOpsRouter.post("/mail-users/sessions/revoke-all", requireSuperAdmin, async (req, res, next) => {
+  try {
+    const result = await flushPmailUserSessionsAndCaches();
+    await auditAdminMutation(req, "pmail_sessions.revoke_all", "session", "all", {
+      deletedSessions: result.deletedSessions,
+      clientRefreshAt: result.clientRefreshAt,
+    });
+    res.json(result);
   } catch (err) {
     next(err);
   }

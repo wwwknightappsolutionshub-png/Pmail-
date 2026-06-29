@@ -1,6 +1,7 @@
-import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
+import request from "supertest";
 import { createApp } from "../src/app.js";
+import { randomUUID } from "node:crypto";
 import { hashToken } from "../src/lib/crypto.js";
 import { encryptSecret } from "../src/lib/crypto.js";
 import { createAdminAgent, createAuthenticatedAgent, resetTestDatabase, testPrisma } from "./helpers.js";
@@ -117,6 +118,25 @@ describe("PMail+ user presence and admin directory", () => {
     const dashboard = await agent.get("/api/admin/dashboard");
     expect(dashboard.status).toBe(200);
     expect(dashboard.body.dashboard.summary.mailUsers.onlineNow).toBeGreaterThanOrEqual(1);
+  });
+
+  it("super admin can revoke all PMail+ sessions and bump client refresh", async () => {
+    const { agent } = await createAuthenticatedAgent(app);
+    const me = await agent.get("/api/auth/me");
+    expect(me.status).toBe(200);
+
+    const { agent: adminAgent } = await createAdminAgent(app);
+    const revoke = await adminAgent.post("/api/admin/mail-users/sessions/revoke-all");
+    expect(revoke.status).toBe(200);
+    expect(revoke.body.deletedSessions).toBeGreaterThanOrEqual(1);
+    expect(revoke.body.clientRefreshAt).toBeTruthy();
+
+    const after = await agent.get("/api/auth/me");
+    expect(after.status).toBe(401);
+
+    const refresh = await request(app).get("/api/public/pmail-client-refresh");
+    expect(refresh.status).toBe(200);
+    expect(refresh.body.refreshAt).toBeTruthy();
   });
 
   it("includes presence in tenant ops user list", async () => {

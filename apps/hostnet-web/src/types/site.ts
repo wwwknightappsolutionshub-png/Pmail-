@@ -444,6 +444,7 @@ export type PmailPlatformConfig = {
   mailPushDefaultForUsers: boolean;
   pwaPushAutoSubscribe: boolean;
   vapidConfigured: boolean;
+  clientRefreshAt: string;
   updatedAt: string;
 };
 

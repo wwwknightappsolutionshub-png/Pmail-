@@ -2616,6 +2616,7 @@ model PmailPlatformConfig {
   mailPushEnabled         Boolean  @default(true)
   mailPushDefaultForUsers Boolean  @default(true)
   pwaPushAutoSubscribe    Boolean  @default(true)
+  clientRefreshAt         DateTime @default(now())
   updatedAt               DateTime @updatedAt
 }
 

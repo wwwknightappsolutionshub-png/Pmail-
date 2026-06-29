@@ -175,6 +175,12 @@ export const api = {
       `/api/admin/mail-users/sessions${query ? `?${query}` : ""}`,
     );
   },
+  adminFlushPmailUserSessions: () =>
+    request<{
+      deletedSessions: number;
+      clearedCaches: { presenceThrottle: boolean; pwaUnreadBaseline: boolean };
+      clientRefreshAt: string;
+    }>("/api/admin/mail-users/sessions/revoke-all", { method: "POST" }),
   adminDashboard: () => request<{ dashboard: AdminDashboardPayload }>("/api/admin/dashboard"),
   adminSystemStatus: () => request<AdminSystemStatus>("/api/admin/system-status"),
   adminPmailPlatformConfig: () => request<{ config: PmailPlatformConfig }>("/api/admin/pmail-platform-config"),

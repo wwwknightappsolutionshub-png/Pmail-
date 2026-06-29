@@ -75,3 +75,7 @@ export async function syncMailForPwaUsers(): Promise<number> {
 export function seedUnreadBaseline(userId: string, accountId: string, unread: number): void {
   lastUnreadByAccount.set(accountKey(userId, accountId), unread);
 }
+
+export function clearPwaUnreadBaseline(): void {
+  lastUnreadByAccount.clear();
+}

@@ -24,6 +24,8 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
   const [pushBroadcastResult, setPushBroadcastResult] = useState("");
   const [pushError, setPushError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [flushingSessions, setFlushingSessions] = useState(false);
+  const [flushResult, setFlushResult] = useState("");
 
   async function load() {
     try {
@@ -91,6 +93,28 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
       setPushError(err instanceof Error ? err.message : "Failed to send push broadcast");
     } finally {
       setPushBroadcasting(false);
+    }
+  }
+
+  async function flushAllPmailSessions() {
+    const activeCount = poll?.presence.activeSessions ?? 0;
+    const confirmed = window.confirm(
+      `Revoke all PMail+ login sessions (${activeCount} active) and signal clients to clear cached app files?\n\nEvery signed-in mailbox user will need to sign in again on their next visit.`,
+    );
+    if (!confirmed) return;
+
+    setFlushingSessions(true);
+    setFlushResult("");
+    setPushError("");
+    try {
+      const result = await api.adminFlushPmailUserSessions();
+      setFlushResult(
+        `Revoked ${result.deletedSessions} session(s). Client refresh signal sent for ${new Date(result.clientRefreshAt).toLocaleString()}.`,
+      );
+    } catch (err) {
+      setPushError(err instanceof Error ? err.message : "Failed to revoke PMail+ sessions");
+    } finally {
+      setFlushingSessions(false);
     }
   }
 
@@ -223,6 +247,25 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
           </div>
         ) : null}
       </section>
+
+      {isSuperAdmin ? (
+        <section className="card">
+          <h3>PMail+ maintenance</h3>
+          <p className="muted">
+            After a deploy or config change, revoke all mailbox sessions so users sign in again with fresh app
+            files. This also clears server-side presence and push-sync caches.
+          </p>
+          <button
+            type="button"
+            className="btn btn-danger"
+            disabled={flushingSessions}
+            onClick={() => void flushAllPmailSessions()}
+          >
+            {flushingSessions ? "Revoking sessions…" : "Revoke all PMail+ sessions & refresh clients"}
+          </button>
+          {flushResult ? <p className="muted" style={{ marginTop: "0.75rem" }}>{flushResult}</p> : null}
+        </section>
+      ) : null}
 
       <section className="card">
         <h3>Platform email (transactional)</h3>

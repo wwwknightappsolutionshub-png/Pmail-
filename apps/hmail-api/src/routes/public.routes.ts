@@ -45,8 +45,19 @@ import {
 } from "../services/growth-public-chat.service.js";
 import { recordPublicGrowthAnalyticsEvent } from "../services/growth-public-analytics.service.js";
 import { resolveMarketingAssetFile } from "../services/marketing-asset.service.js";
+import { getPmailClientRefreshAt } from "../services/pmail-platform-config.service.js";
 
 export const publicRouter = Router();
+
+publicRouter.get("/pmail-client-refresh", async (_req, res, next) => {
+  try {
+    const refreshAt = await getPmailClientRefreshAt();
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ refreshAt });
+  } catch (err) {
+    next(err);
+  }
+});
 
 publicRouter.get("/marketing/assets/:fileName", (req, res) => {
   const filePath = resolveMarketingAssetFile(String(req.params.fileName ?? ""));

@@ -141,6 +141,10 @@ export async function getPresenceMapForUserIds(userIds: string[]): Promise<Map<s
   return map;
 }
 
+export function clearPresenceTouchThrottle(): void {
+  touchThrottle.clear();
+}
+
 export async function getMailUserPresenceStats() {
   const now = new Date();
   const onlineSessions = await prisma.session.findMany({

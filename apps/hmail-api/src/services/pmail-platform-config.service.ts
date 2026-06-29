@@ -6,6 +6,7 @@ export type PmailPlatformConfigPayload = {
   mailPushDefaultForUsers: boolean;
   pwaPushAutoSubscribe: boolean;
   vapidConfigured: boolean;
+  clientRefreshAt: string;
   updatedAt: string;
 };
 
@@ -19,6 +20,7 @@ function serialize(row: {
   mailPushEnabled: boolean;
   mailPushDefaultForUsers: boolean;
   pwaPushAutoSubscribe: boolean;
+  clientRefreshAt: Date;
   updatedAt: Date;
 }): PmailPlatformConfigPayload {
   return {
@@ -26,6 +28,7 @@ function serialize(row: {
     mailPushDefaultForUsers: row.mailPushDefaultForUsers,
     pwaPushAutoSubscribe: row.pwaPushAutoSubscribe,
     vapidConfigured: Boolean(getVapidPublicKey()),
+    clientRefreshAt: row.clientRefreshAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
 }
@@ -41,6 +44,20 @@ export async function ensurePmailPlatformConfig() {
 export async function getPmailPlatformConfig(): Promise<PmailPlatformConfigPayload> {
   const row = await ensurePmailPlatformConfig();
   return serialize(row);
+}
+
+export async function bumpPmailClientRefresh(): Promise<string> {
+  await ensurePmailPlatformConfig();
+  const updated = await prisma.pmailPlatformConfig.update({
+    where: { id: "default" },
+    data: { clientRefreshAt: new Date() },
+  });
+  return updated.clientRefreshAt.toISOString();
+}
+
+export async function getPmailClientRefreshAt(): Promise<string> {
+  const row = await ensurePmailPlatformConfig();
+  return row.clientRefreshAt.toISOString();
 }
 
 export async function isMailPushPlatformEnabled(): Promise<boolean> {

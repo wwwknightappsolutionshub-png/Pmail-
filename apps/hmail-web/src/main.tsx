@@ -7,6 +7,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { AddonProvider } from "./context/AddonContext";
 import { PwaShell } from "./components/PwaShell";
 import { initPwaRegistration } from "./pwaRegistration";
+import { syncPmailClientRefresh } from "./clientRefresh";
 
 declare global {
   interface Window {
@@ -31,6 +32,8 @@ function showBootFailure(message: string) {
 }
 
 async function prepareBoot() {
+  await syncPmailClientRefresh();
+
   if (import.meta.env.DEV && "serviceWorker" in navigator) {
     const registrations = await navigator.serviceWorker.getRegistrations();
     await Promise.all(registrations.map((registration) => registration.unregister()));
