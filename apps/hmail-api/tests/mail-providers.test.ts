@@ -45,6 +45,29 @@ describe("mail provider suggestions", () => {
     expect(suggested.providerPreset).toBe("hostinger");
   });
 
+  it("forces Hostinger for onoseimmigration.com mailboxes", () => {
+    const tenantMail = {
+      imapHost: "imap.hostinger.com",
+      imapPort: 993,
+      imapSecure: true,
+      smtpHost: "smtp.hostinger.com",
+      smtpPort: 465,
+      smtpSecure: true,
+      mailOnboardingComplete: true,
+    };
+
+    for (const email of [
+      "info@onoseimmigration.com",
+      "application@onoseimmigration.com",
+      "applications@onoseimmigration.com",
+    ]) {
+      const suggested = resolveSuggestedMailConfigForLogin(email, tenantMail);
+      expect(suggested.providerPreset).toBe("hostinger");
+      expect(suggested.imapHost).toBe("imap.hostinger.com");
+      expect(suggested.smtpHost).toBe("smtp.hostinger.com");
+    }
+  });
+
   it("detects when a saved Microsoft config does not match a custom-domain mailbox", () => {
     const suggested = resolveSuggestedMailConfigForLogin("info@onoseimmigration.com", {
       imapHost: "imap.hostinger.com",

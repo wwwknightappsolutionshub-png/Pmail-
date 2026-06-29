@@ -4,8 +4,11 @@ import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { PMAIL_TESTER_TENANT_SLUG } from "../constants/tenant";
 import {
+  applySuggestedMailConfig,
   emptyMailConfig,
   inferProviderPresetFromEmail,
+  isHostingerForcedEmailDomain,
+  resolveHostingerForcedDomainMailConfig,
   resolveMailConfigFromPreset,
   type LoginMailConfigValues,
   type MailProviderPresetKey,
@@ -51,6 +54,10 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
       return;
     }
 
+    if (isHostingerForcedEmailDomain(normalized)) {
+      setMailConfig(resolveHostingerForcedDomainMailConfig());
+    }
+
     let cancelled = false;
     setPreflightLoading(true);
     api
@@ -63,12 +70,22 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
           setGreetingName(result.displayName);
           if (result.suggestedMailConfig?.providerPreset) {
             setMailConfig((current) =>
-              current.providerPreset
-                ? current
-                : resolveMailConfigFromPreset(
-                    result.suggestedMailConfig!.providerPreset as MailProviderPresetKey,
-                  ),
+              isHostingerForcedEmailDomain(normalized)
+                ? resolveHostingerForcedDomainMailConfig()
+                : current.providerPreset
+                  ? current
+                  : applySuggestedMailConfig({
+                      providerPreset: result.suggestedMailConfig!.providerPreset as MailProviderPresetKey,
+                      imapHost: result.suggestedMailConfig!.imapHost,
+                      imapPort: result.suggestedMailConfig!.imapPort,
+                      imapSecure: result.suggestedMailConfig!.imapSecure,
+                      smtpHost: result.suggestedMailConfig!.smtpHost,
+                      smtpPort: result.suggestedMailConfig!.smtpPort,
+                      smtpSecure: result.suggestedMailConfig!.smtpSecure,
+                    }),
             );
+          } else if (isHostingerForcedEmailDomain(normalized)) {
+            setMailConfig(resolveHostingerForcedDomainMailConfig());
           } else {
             const inferred = inferProviderPresetFromEmail(normalized);
             if (inferred) {

@@ -192,7 +192,22 @@ const EMAIL_DOMAIN_PROVIDER_MAP: Record<string, MailProviderPresetKey> = {
   "fastmail.com": "fastmail",
 };
 
+/** Business domains that must always use Hostinger mail settings at sign-in. */
+export const HOSTINGER_FORCED_EMAIL_DOMAINS = new Set(["onoseimmigration.com"]);
+
+export function isHostingerForcedEmailDomain(email: string): boolean {
+  const domain = email.trim().toLowerCase().split("@")[1];
+  return domain ? HOSTINGER_FORCED_EMAIL_DOMAINS.has(domain) : false;
+}
+
+export function resolveHostingerForcedDomainMailConfig(): MailConfigInput {
+  return resolveMailConfigFromPreset("hostinger");
+}
+
 export function inferProviderPresetFromEmail(email: string): MailProviderPresetKey | null {
+  if (isHostingerForcedEmailDomain(email)) {
+    return "hostinger";
+  }
   const domain = email.trim().toLowerCase().split("@")[1];
   if (!domain) return null;
   return EMAIL_DOMAIN_PROVIDER_MAP[domain] ?? null;
@@ -229,6 +244,10 @@ export function resolveSuggestedMailConfigForLogin(
     mailOnboardingComplete: boolean;
   } | null,
 ): MailConfigInput {
+  if (isHostingerForcedEmailDomain(email)) {
+    return resolveHostingerForcedDomainMailConfig();
+  }
+
   const inferred = inferProviderPresetFromEmail(email);
   if (inferred) {
     return resolveMailConfigFromPreset(inferred);
