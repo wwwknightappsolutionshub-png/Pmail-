@@ -47,7 +47,8 @@
   height: auto;
 }
 
-#welcome-sign-in-panel {
+#welcome-sign-in-panel,
+#login-sign-in-panel {
   width: 100%;
   max-width: 420px;
 }
@@ -118,7 +119,8 @@
     padding-top: 0.5rem;
   }
 
-  .welcome-layout--cta-split #welcome-sign-in-panel {
+  .welcome-layout--cta-split #welcome-sign-in-panel,
+  .welcome-layout--cta-split #login-sign-in-panel {
     max-width: 100%;
   }
 }

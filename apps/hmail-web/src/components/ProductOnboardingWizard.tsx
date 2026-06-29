@@ -1,5 +1,8 @@
-import { useCallback, useRef, useState, type CSSProperties, type TouchEvent } from "react";
+import { useCallback, useRef, useState, type TouchEvent } from "react";
 import type { ProductOnboardingSlide } from "../data/productOnboardingSlides";
+import { ProductOnboardingCtaPanel } from "./ProductOnboardingCtaPanel";
+import { ProductOnboardingSlideView } from "./ProductOnboardingSlideView";
+import { ProductOnboardingWizardBackground } from "./ProductOnboardingWizardBackground";
 import "./ProductOnboardingWizard.css";
 
 const SWIPE_THRESHOLD_PX = 48;
@@ -58,24 +61,24 @@ export function ProductOnboardingWizard({
 
   if (!slide) return null;
 
+  if (isCtaSlide && slide.variant === "cta") {
+    return (
+      <ProductOnboardingCtaPanel
+        slide={slide}
+        productName={productName}
+        className={className}
+        onBack={activeIndex > 0 ? goPrev : undefined}
+        showSignInHint
+      />
+    );
+  }
+
   return (
     <div
-      className={`product-onboarding-wizard${className ? ` ${className}` : ""}${
-        isCtaSlide ? " product-onboarding-wizard--cta" : " product-onboarding-wizard--fullscreen"
-      }`}
+      className={`product-onboarding-wizard${className ? ` ${className}` : ""} product-onboarding-wizard--fullscreen`}
       data-active-slide={slide.id}
     >
-      <div className="product-onboarding-wizard-bg" aria-hidden="true">
-        <span className="product-onboarding-wizard-mesh" />
-        <span className="product-onboarding-wizard-grid" />
-        <span className="product-onboarding-wizard-shimmer" />
-        <span className="product-onboarding-wizard-orb product-onboarding-wizard-orb--a" />
-        <span className="product-onboarding-wizard-orb product-onboarding-wizard-orb--b" />
-        <span className="product-onboarding-wizard-orb product-onboarding-wizard-orb--c" />
-        <span className="product-onboarding-wizard-spark product-onboarding-wizard-spark--1" />
-        <span className="product-onboarding-wizard-spark product-onboarding-wizard-spark--2" />
-        <span className="product-onboarding-wizard-spark product-onboarding-wizard-spark--3" />
-      </div>
+      <ProductOnboardingWizardBackground />
 
       <div className="product-onboarding-wizard-top">
         <span className="product-onboarding-wizard-brand">{productName}</span>
@@ -98,58 +101,9 @@ export function ProductOnboardingWizard({
             transform: `translateX(calc(${-activeIndex * 100}% + ${dragOffset}px))`,
           }}
         >
-          {slides.map((entry, index) => {
-            const isActive = index === activeIndex;
-            const hasSections = Boolean(entry.sections?.length);
-
-            return (
-              <article
-                key={entry.id}
-                className={`product-onboarding-slide${isActive ? " is-active" : ""}${
-                  entry.variant === "cta" ? " product-onboarding-slide--cta" : ""
-                }${hasSections ? " product-onboarding-slide--verticals" : ""}`}
-                aria-hidden={!isActive}
-                data-slide={entry.id}
-              >
-                <div className="product-onboarding-slide-inner">
-                  <div className="product-onboarding-slide-icon" aria-hidden="true">
-                    <span className="product-onboarding-slide-icon-glow" />
-                    <span className="product-onboarding-slide-icon-char">{entry.icon}</span>
-                  </div>
-                  <p className="product-onboarding-slide-eyebrow">{entry.eyebrow}</p>
-                  <h2 className="product-onboarding-slide-title">{entry.title}</h2>
-                  <p className="product-onboarding-slide-lead">{entry.lead}</p>
-                  {entry.bullets.length > 0 ? (
-                    <ul className="product-onboarding-slide-bullets">
-                      {entry.bullets.map((bullet, bulletIndex) => (
-                        <li key={bullet} style={{ "--pow-stagger": bulletIndex } as CSSProperties}>
-                          {bullet}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                  {entry.sections?.length ? (
-                    <div className="product-onboarding-slide-sections">
-                      {entry.sections.map((section, sectionIndex) => (
-                        <div
-                          key={section.title}
-                          className="product-onboarding-slide-section"
-                          style={{ "--pow-stagger": sectionIndex } as CSSProperties}
-                        >
-                          <h3 className="product-onboarding-slide-section-title">{section.title}</h3>
-                          <ul className="product-onboarding-slide-section-items">
-                            {section.items.map((item) => (
-                              <li key={item}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              </article>
-            );
-          })}
+          {slides.map((entry, index) => (
+            <ProductOnboardingSlideView key={entry.id} slide={entry} active={index === activeIndex} />
+          ))}
         </div>
       </div>
 
@@ -179,21 +133,9 @@ export function ProductOnboardingWizard({
           >
             Back
           </button>
-          {!isLastSlide ? (
-            <button type="button" className="product-onboarding-wizard-nav-btn" onClick={goNext}>
-              Next
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="product-onboarding-wizard-nav-btn product-onboarding-wizard-nav-btn--cta-hint"
-              onClick={() => {
-                document.getElementById("welcome-sign-in-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-            >
-              Sign in below →
-            </button>
-          )}
+          <button type="button" className="product-onboarding-wizard-nav-btn" onClick={goNext}>
+            Next
+          </button>
         </div>
       </div>
     </div>

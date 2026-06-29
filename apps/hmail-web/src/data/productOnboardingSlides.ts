@@ -99,20 +99,24 @@ export function buildProductOnboardingSlides(input: {
       ],
       icon: "◈",
     },
-    {
-      id: "cta",
-      eyebrow: "Get started",
-      title: "Ready to open your workspace?",
-      lead: "Connect your mailbox to sign in, or request access if you are not ready to link mail yet.",
-      bullets: [
-        "Sign in with Microsoft 365, Google, Hostinger, and more",
-        "Request workspace access without connecting mail",
-        "Explore add-ons and upgrades inside your workspace",
-      ],
-      icon: "→",
-      variant: "cta",
-    },
+    buildProductOnboardingCtaSlide(productName),
   ];
+}
+
+export function buildProductOnboardingCtaSlide(_productName: string): ProductOnboardingSlide {
+  return {
+    id: "cta",
+    eyebrow: "Get started",
+    title: "Ready to open your workspace?",
+    lead: "Connect your mailbox to sign in, or request access if you are not ready to link mail yet.",
+    bullets: [
+      "Sign in with Microsoft 365, Google, Hostinger, and more",
+      "Request workspace access without connecting mail",
+      "Explore add-ons and upgrades inside your workspace",
+    ],
+    icon: "→",
+    variant: "cta",
+  };
 }
 
 export function formatReferrerDisplayName(email: string): string {
