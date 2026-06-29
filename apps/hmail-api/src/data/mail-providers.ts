@@ -236,6 +236,20 @@ export function resolveSuggestedMailConfigForLogin(
 
   if (tenantMail) {
     const preset = matchProviderPresetFromHosts(tenantMail);
+    if (preset === "hostinger") {
+      const domain = email.trim().toLowerCase().split("@")[1];
+      if (domain) {
+        return {
+          providerPreset: "custom",
+          imapHost: `mail.${domain}`,
+          imapPort: 993,
+          imapSecure: true,
+          smtpHost: `mail.${domain}`,
+          smtpPort: 465,
+          smtpSecure: true,
+        };
+      }
+    }
     if (preset !== "custom") {
       return resolveMailConfigFromPreset(preset);
     }

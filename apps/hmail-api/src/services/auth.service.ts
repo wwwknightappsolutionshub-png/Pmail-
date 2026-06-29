@@ -4,9 +4,11 @@ import type { Tenant, TenantBranding, TenantMailConfig, User, UserMailConfig } f
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import { decryptSecret, encryptSecret, hashToken } from "../lib/crypto.js";
-import { isGoogleMailbox, normalizeMailboxPassword } from "../lib/mailbox-credentials.js";
-import { verifyImapLogin } from "./imap.service.js";
-import { verifySmtpLogin } from "./smtp.service.js";
+import { normalizeMailboxPassword } from "../lib/mailbox-credentials.js";
+import { mailboxAuthErrorMessage } from "../lib/mail-auth-errors.js";
+import { logLoginRejected } from "../lib/mail-auth-log.js";
+import { matchProviderPresetFromHosts } from "../data/mail-providers.js";
+import { MailAuthVerificationError, verifyMailboxForLogin } from "./mail-login-verify.service.js";
 import {
   copyTenantMailConfigToUser,
   parseLoginMailConfig,
@@ -27,19 +29,6 @@ import {
 } from "./mail-account.service.js";
 
 const SESSION_TTL_HOURS = 12;
-
-function gmailAuthHint(): string {
-  return "Gmail could not sign in. In Gmail go to Settings → Forwarding and POP/IMAP → enable IMAP. If 2-Step Verification is on, create an App Password at myaccount.google.com/apppasswords and use that here (not your regular Gmail password).";
-}
-
-function mailboxAuthErrorMessage(email: string, phase: "imap" | "smtp"): string {
-  if (isGoogleMailbox(email)) {
-    return phase === "smtp"
-      ? "Gmail accepted IMAP but SMTP failed. Use a Google App Password and keep Google selected with smtp.gmail.com:587."
-      : gmailAuthHint();
-  }
-  return "Invalid email or password";
-}
 
 function rethrowLoginSetupError(err: unknown): never {
   if (err instanceof Prisma.PrismaClientKnownRequestError && (err.code === "P2021" || err.code === "P2022")) {
@@ -187,16 +176,12 @@ export async function loginUser(input: {
 
   if (!isLocalTester) {
     try {
-      await verifyImapLogin(credentials);
+      mailConfig = await verifyMailboxForLogin(credentials);
     } catch (err) {
-      console.error("[auth] IMAP verify failed", err);
-      throw new AuthError(mailboxAuthErrorMessage(credentialsEmail, "imap"));
-    }
-    try {
-      await verifySmtpLogin(credentials.email, credentials.password, mailConfig);
-    } catch (err) {
-      console.error("[auth] SMTP verify failed", err);
-      throw new AuthError(mailboxAuthErrorMessage(credentialsEmail, "smtp"));
+      const phase = err instanceof MailAuthVerificationError ? err.phase : "imap";
+      const message = mailboxAuthErrorMessage(credentialsEmail, phase, err);
+      logLoginRejected({ email: credentialsEmail, phase, message });
+      throw new AuthError(message);
     }
   }
 
@@ -228,12 +213,18 @@ export async function loginUser(input: {
   }
 
   try {
-    if (!user.mailConfig) {
-      if (pendingUserMailConfig) {
-        await saveUserMailConfig(user.id, pendingUserMailConfig);
-      } else if (tenant.mail?.mailOnboardingComplete) {
-        await copyTenantMailConfigToUser(user.id, tenant.mail);
-      }
+    if (!user.mailConfig && mailConfig) {
+      await saveUserMailConfig(user.id, {
+        providerPreset: matchProviderPresetFromHosts(mailConfig),
+        imapHost: mailConfig.imapHost,
+        imapPort: mailConfig.imapPort,
+        imapSecure: mailConfig.imapSecure,
+        smtpHost: mailConfig.smtpHost,
+        smtpPort: mailConfig.smtpPort,
+        smtpSecure: mailConfig.smtpSecure,
+      });
+    } else if (!user.mailConfig && tenant.mail?.mailOnboardingComplete) {
+      await copyTenantMailConfigToUser(user.id, tenant.mail);
     }
   } catch (err) {
     if (err instanceof Error && err.message.includes("IMAP host is required")) {

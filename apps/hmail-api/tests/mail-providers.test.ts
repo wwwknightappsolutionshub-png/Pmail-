@@ -23,7 +23,7 @@ describe("mail provider suggestions", () => {
     expect(suggested.imapHost).toBe("imap.gmail.com");
   });
 
-  it("suggests tenant hostinger settings for custom domains even when onboarding flag is false", () => {
+  it("suggests custom-domain Hostinger mailbox hosts for business domains", () => {
     const suggested = resolveSuggestedMailConfigForLogin("user@company.com", {
       imapHost: "imap.hostinger.com",
       imapPort: 993,
@@ -33,8 +33,9 @@ describe("mail provider suggestions", () => {
       smtpSecure: true,
       mailOnboardingComplete: false,
     });
-    expect(suggested.providerPreset).toBe("hostinger");
-    expect(suggested.smtpHost).toBe("smtp.hostinger.com");
+    expect(suggested.providerPreset).toBe("custom");
+    expect(suggested.imapHost).toBe("mail.company.com");
+    expect(suggested.smtpHost).toBe("mail.company.com");
   });
 
   it("falls back to hostinger when no domain match and no tenant mail", () => {
