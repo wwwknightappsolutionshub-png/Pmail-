@@ -471,19 +471,6 @@ export function MailPage({
   }, [activeFolder, useSenderGrouping]);
 
   useEffect(() => {
-    if (!selectedUid || !useSenderGrouping) return;
-    const message = messages.find((entry) => entry.uid === selectedUid);
-    if (!message) return;
-    const email = extractEmailFromHeader(message.from);
-    setExpandedSenderEmails((current) => {
-      if (current.has(email)) return current;
-      const next = new Set(current);
-      next.add(email);
-      return next;
-    });
-  }, [selectedUid, messages, useSenderGrouping]);
-
-  useEffect(() => {
     if (!showInboxSwitcher || !hasMultiInboxAddon) return;
     if (mailAccountCount === null || mailAccountCount > 1) return;
     if (isMultiInboxPromptDismissed()) return;

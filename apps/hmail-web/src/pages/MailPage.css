@@ -936,6 +936,13 @@
   cursor: pointer;
 }
 
+.message-sender-toggle .message-sender-avatar,
+.message-sender-toggle .sender-avatar {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+}
+
 .message-sender-actions {
   display: flex;
   flex-wrap: wrap;

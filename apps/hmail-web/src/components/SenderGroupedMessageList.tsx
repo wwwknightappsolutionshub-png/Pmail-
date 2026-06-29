@@ -77,7 +77,7 @@ export function SenderGroupedMessageList({
                 aria-expanded={expanded}
                 onClick={() => onToggleSender(group.email)}
               >
-                <SenderAvatar from={group.from} className="message-sender-avatar" />
+                <SenderAvatar from={group.from} className="message-sender-avatar" priority="high" />
                 <span className="message-sender-meta">
                   <strong>{group.label}</strong>
                   <small>{group.email}</small>
