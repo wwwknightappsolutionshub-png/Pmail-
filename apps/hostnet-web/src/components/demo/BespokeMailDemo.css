@@ -871,10 +871,24 @@ body.pmail-search-overlay-open {
   align-items: stretch;
   flex-shrink: 0;
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
   overflow: hidden;
   position: relative;
   border-bottom: 1px solid var(--border);
   background: var(--surface-tabs);
+}
+
+.bespoke-demo-workspace-tabs-shell--overflow-start::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 1.75rem;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(270deg, transparent, var(--surface-tabs) 72%);
 }
 
 .bespoke-demo-workspace-tabs-shell--overflow-end::before {
@@ -944,6 +958,24 @@ body.pmail-search-overlay-open {
   color: var(--text);
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 10%, var(--surface-tabs)) 28%);
   outline: none;
+}
+
+.bespoke-demo-workspace-tabs-more--mobile {
+  min-width: 2.5rem;
+  padding: 0 0.55rem;
+  justify-content: center;
+  background: linear-gradient(90deg, transparent 0%, var(--surface-tabs) 40%);
+  box-shadow: -6px 0 12px color-mix(in srgb, var(--surface-tabs) 85%, transparent);
+}
+
+.bespoke-demo-workspace-tabs-more--mobile svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent-light, var(--accent-2)) 35%, transparent));
+}
+
+.bespoke-demo-workspace-tabs-more--mobile .bespoke-demo-workspace-tabs-more-label {
+  display: none;
 }
 
 .bespoke-demo-workspace-toolbar {
@@ -3864,18 +3896,27 @@ body.pmail-search-overlay-open {
 
   .bespoke-demo-workspace-tabs-shell {
     border-bottom-color: var(--border);
+    width: 100%;
+    max-width: 100%;
   }
 
   .bespoke-demo-workspace-tabs {
     gap: 0.3rem;
     padding: 0.55rem 0.25rem 0.55rem 0.85rem;
     flex-wrap: nowrap;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .bespoke-demo-workspace-tabs-more {
     display: inline-flex;
     padding-right: 0.55rem;
     font-size: 0.68rem;
+  }
+
+  .bespoke-demo-workspace-tabs-more--mobile {
+    min-width: 2.65rem;
+    padding: 0 0.65rem 0 0.35rem;
   }
 
   .bespoke-demo-workspace-tab {

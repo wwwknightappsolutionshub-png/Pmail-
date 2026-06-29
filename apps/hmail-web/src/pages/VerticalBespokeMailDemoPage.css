@@ -4114,12 +4114,19 @@ html:has(.pmail-demo-shell--light) body {
     top: 0;
     z-index: calc(var(--pmail-search-layer, 9000) - 5);
     min-width: 0;
+    width: 100%;
+    max-width: 100%;
     overflow: hidden;
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-tabs-shell--overflow-end::before {
     width: 2.75rem;
     background: linear-gradient(90deg, transparent, var(--surface-tabs, rgba(8, 14, 26, 0.96)) 70%);
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-tabs-shell--overflow-start::after {
+    width: 1.5rem;
+    background: linear-gradient(270deg, transparent, var(--surface-tabs, rgba(8, 14, 26, 0.96)) 70%);
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-tabs-more {
@@ -4129,6 +4136,17 @@ html:has(.pmail-demo-shell--light) body {
     min-width: 2.75rem;
     color: var(--accent-light, #2dd4bf);
     background: linear-gradient(90deg, transparent, var(--surface-tabs, rgba(8, 14, 26, 0.96)) 35%);
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-tabs-more--mobile {
+    min-width: 2.65rem;
+    padding: 0 0.6rem 0 0.25rem;
+    justify-content: center;
+    box-shadow: -8px 0 14px color-mix(in srgb, var(--surface-tabs, rgba(8, 14, 26, 0.96)) 90%, transparent);
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-tabs-more--mobile .bespoke-demo-workspace-tabs-more-label {
+    display: none;
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-tabs-more-label {

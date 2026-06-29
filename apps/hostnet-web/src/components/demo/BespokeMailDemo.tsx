@@ -740,14 +740,19 @@ export function BespokeMailDemo({
   const [paidAddonNotice, setPaidAddonNotice] = useState<{ feature: string; slug: string } | null>(null);
   const [workspaceReady, setWorkspaceReady] = useState(false);
   const workspaceTabsRef = useRef<HTMLDivElement>(null);
+  const [workspaceTabsHasOverflow, setWorkspaceTabsHasOverflow] = useState(false);
   const [workspaceTabsCanScrollForward, setWorkspaceTabsCanScrollForward] = useState(false);
+  const [workspaceTabsCanScrollBackward, setWorkspaceTabsCanScrollBackward] = useState(false);
   const [isMobileWorkspaceTabs, setIsMobileWorkspaceTabs] = useState(false);
 
   const updateWorkspaceTabsScroll = useCallback(() => {
     const el = workspaceTabsRef.current;
     if (!el) return;
-    const remaining = el.scrollWidth - el.clientWidth - el.scrollLeft;
-    setWorkspaceTabsCanScrollForward(remaining > 4);
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    const overflow = scrollWidth - clientWidth > 4;
+    setWorkspaceTabsHasOverflow(overflow);
+    setWorkspaceTabsCanScrollForward(overflow && scrollLeft + clientWidth < scrollWidth - 4);
+    setWorkspaceTabsCanScrollBackward(overflow && scrollLeft > 4);
   }, []);
 
   const scrollWorkspaceTabsForward = useCallback(() => {
@@ -1076,25 +1081,36 @@ export function BespokeMailDemo({
   const remindersTabCount = useLiveTabCounts ? workspaceTabCounts!.reminders : pendingReminderCount;
   const calendarTabCount = useLiveTabCounts ? workspaceTabCounts!.calendar : calendarEvents.length;
   const messagingTabCount = useLiveTabCounts ? workspaceTabCounts!.messaging : messagingThreads.length;
-  const showWorkspaceTabsMore = workspaceTabsCanScrollForward;
+  const showWorkspaceTabsMore = workspaceTabsHasOverflow && workspaceTabsCanScrollForward;
 
   useLayoutEffect(() => {
     if (!workspaceReady) return;
     const el = workspaceTabsRef.current;
     if (!el) return;
 
-    const run = () => updateWorkspaceTabsScroll();
+    const run = () => {
+      window.requestAnimationFrame(() => {
+        updateWorkspaceTabsScroll();
+      });
+    };
     run();
     const delayed = window.setTimeout(run, 120);
+    const delayedAgain = window.setTimeout(run, 360);
     el.addEventListener("scroll", run, { passive: true });
-    const observer = new ResizeObserver(run);
-    observer.observe(el);
-    if (el.parentElement) observer.observe(el.parentElement);
+    window.addEventListener("resize", run);
+    const resizeObserver = new ResizeObserver(run);
+    resizeObserver.observe(el);
+    if (el.parentElement) resizeObserver.observe(el.parentElement);
+    const mutationObserver = new MutationObserver(run);
+    mutationObserver.observe(el, { childList: true, subtree: true, characterData: true });
 
     return () => {
       window.clearTimeout(delayed);
+      window.clearTimeout(delayedAgain);
       el.removeEventListener("scroll", run);
-      observer.disconnect();
+      window.removeEventListener("resize", run);
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
     };
   }, [
     workspaceReady,
@@ -2318,6 +2334,8 @@ export function BespokeMailDemo({
 
       <div
         className={`bespoke-demo-workspace-tabs-shell${
+          workspaceTabsHasOverflow ? " bespoke-demo-workspace-tabs-shell--overflow" : ""
+        }${workspaceTabsCanScrollBackward ? " bespoke-demo-workspace-tabs-shell--overflow-start" : ""}${
           workspaceTabsCanScrollForward ? " bespoke-demo-workspace-tabs-shell--overflow-end" : ""
         }`}
       >
@@ -2401,14 +2419,19 @@ export function BespokeMailDemo({
         {showWorkspaceTabsMore ? (
           <button
             type="button"
-            className="bespoke-demo-workspace-tabs-more"
-            aria-label="Show more workspace tabs"
+            className={`bespoke-demo-workspace-tabs-more${
+              isMobileWorkspaceTabs ? " bespoke-demo-workspace-tabs-more--mobile" : ""
+            }`}
+            aria-label="More workspace tabs — swipe or tap to see more"
+            title="More tabs"
             onClick={scrollWorkspaceTabsForward}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path fill="currentColor" d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z" />
             </svg>
-            <span className="bespoke-demo-workspace-tabs-more-label">More</span>
+            <span className="bespoke-demo-workspace-tabs-more-label" aria-hidden="true">
+              More
+            </span>
           </button>
         ) : null}
       </div>
