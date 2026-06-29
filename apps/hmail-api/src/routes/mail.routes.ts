@@ -168,7 +168,8 @@ mailRouter.get("/messages", async (req, res, next) => {
       ? (String(req.query.sortOrder) as "asc" | "desc")
       : "desc";
 
-    const result = await listMessages(await mailCredentials(req), folder, {
+    const credentials = await mailCredentials(req);
+    const result = await listMessages(credentials, folder, {
       page,
       pageSize,
       offset,
@@ -182,6 +183,17 @@ mailRouter.get("/messages", async (req, res, next) => {
 
     const normalizedFolder = folder.trim().toLowerCase();
     const authUser = req.auth?.user;
+    if (
+      authUser &&
+      normalizedFolder === "inbox" &&
+      !isPmailTesterEmail(authUser.email)
+    ) {
+      const { purgeBotSpamFromMessageList } = await import("../services/spam-filter.service.js");
+      const filtered = await purgeBotSpamFromMessageList(credentials, folder, result.messages);
+      result.messages = filtered.messages;
+      result.total = Math.max(0, result.total - filtered.removed);
+    }
+
     if (
       authUser &&
       (normalizedFolder === "inbox" || normalizedFolder === "sent") &&

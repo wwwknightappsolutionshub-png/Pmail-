@@ -603,20 +603,43 @@ export async function deleteMessage(
   folder: string,
   uid: number,
 ): Promise<void> {
+  await deleteMessages(credentials, folder, [uid]);
+}
+
+export async function deleteMessages(
+  credentials: MailCredentials,
+  folder: string,
+  uids: number[],
+): Promise<number> {
+  const uniqueUids = [...new Set(uids.filter((uid) => Number.isFinite(uid) && uid > 0))];
+  if (uniqueUids.length === 0) return 0;
+
   const { useLocalPmailFixture, localFixtureDeleteMessage } = await import("./local-pmail-fixture.service.js");
   if (useLocalPmailFixture(credentials)) {
-    localFixtureDeleteMessage(credentials, folder, uid);
-    return;
+    for (const uid of uniqueUids) {
+      localFixtureDeleteMessage(credentials, folder, uid);
+    }
+    return uniqueUids.length;
   }
 
   const client = buildImapClient(credentials);
+  let deleted = 0;
   try {
     await client.connect();
     await client.mailboxOpen(folder);
-    await permanentlyDeleteMessage(client, uid);
+    for (const uid of uniqueUids) {
+      try {
+        await permanentlyDeleteMessage(client, uid);
+        deleted += 1;
+      } catch {
+        // Skip messages that were already removed or cannot be expunged.
+      }
+    }
   } finally {
     await client.logout().catch(() => undefined);
   }
+
+  return deleted;
 }
 
 export async function createMailbox(

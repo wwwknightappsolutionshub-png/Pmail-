@@ -54,6 +54,11 @@ const envSchema = z.object({
   MULTI_INBOX_MAX_ACCOUNTS: z.coerce.number().int().positive().default(5),
   INBOX_CLEANUP_MAX_SCAN: z.coerce.number().int().positive().default(500),
   INBOX_CLEANUP_SENDERS_LIMIT: z.coerce.number().int().positive().default(25),
+  PMAIL_BOT_SPAM_FILTER_ENABLED: z
+    .string()
+    .transform((v) => v !== "false")
+    .default("true"),
+  PMAIL_BOT_SPAM_FILTER_MAX_SCAN: z.coerce.number().int().positive().default(50),
   ATTACHMENT_CATEGORIZE_MAX_SCAN: z.coerce.number().int().positive().default(200),
   DROPBOX_SIGN_API_KEY: z.string().optional(),
   DROPBOX_SIGN_TEST_MODE: z

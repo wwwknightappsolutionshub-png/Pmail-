@@ -18,6 +18,7 @@ import { startMembershipPackageJob } from "./jobs/membership-package.job.js";
 import { startRecruitmentOutreachJob, startPwaMailSyncJob } from "./jobs/pwa-mail-sync.job.js";
 import { startInboxContactSyncJob } from "./jobs/inbox-contact-sync.job.js";
 import { startJobHunterSyncJob } from "./jobs/job-hunter-sync.job.js";
+import { startBotSpamFilterJob } from "./jobs/bot-spam-filter.job.js";
 import { seedAddonCatalog } from "./services/addon.service.js";
 import { seedAddonMarketing, ensureAddonMarketing } from "./services/addon-marketing.service.js";
 import { cleanupLegacySiteSections } from "./services/cms.service.js";
@@ -57,6 +58,7 @@ startRecruitmentOutreachJob();
 startPwaMailSyncJob();
 startInboxContactSyncJob();
 startJobHunterSyncJob();
+startBotSpamFilterJob();
 
 app.listen(env.API_PORT, () => {
   console.log(`hmail-api listening on http://localhost:${env.API_PORT}`);
