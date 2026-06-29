@@ -2,7 +2,7 @@ import { getEnv } from "../config/env.js";
 import { extractEmailAddress } from "../lib/list-unsubscribe.js";
 import { prisma } from "../lib/prisma.js";
 import { isPersonalReferralEmail } from "./referral-recipient-filter.js";
-import { deleteMessages, listMessages, type MailCredentials, type MailMessageSummary } from "./imap.service.js";
+import { listMessages, moveMessagesToJunk, type MailCredentials, type MailMessageSummary } from "./imap.service.js";
 import { getLatestMailCredentials } from "./mail-credentials.service.js";
 
 const BOT_SUBJECT_PATTERNS = [
@@ -120,8 +120,8 @@ export async function purgeBotSpamFromMessageList(
     return { messages, removed: 0 };
   }
 
-  const deleted = await deleteMessages(credentials, folder, spamUids);
-  const removedUids = new Set(spamUids.slice(0, deleted));
+  const moved = await moveMessagesToJunk(credentials, folder, spamUids);
+  const removedUids = new Set(spamUids.slice(0, moved));
   return {
     messages: messages.filter((message) => !removedUids.has(message.uid)),
     removed: removedUids.size,
@@ -189,7 +189,7 @@ export async function processBotSpamFilterForAllUsers(): Promise<{ users: number
   }
 
   if (removed > 0) {
-    console.info(`[bot-spam-filter] removed ${removed} bot message(s) across ${users} mailbox(es)`);
+    console.info(`[bot-spam-filter] moved ${removed} bot message(s) to Junk across ${users} mailbox(es)`);
   }
 
   return { users, removed };

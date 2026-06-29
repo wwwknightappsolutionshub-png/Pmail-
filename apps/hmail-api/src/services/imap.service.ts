@@ -86,6 +86,27 @@ async function permanentlyDeleteMessage(client: ImapFlow, uid: number): Promise<
   }
 }
 
+async function findJunkFolderPath(client: ImapFlow): Promise<string | null> {
+  const mailboxes = await client.list();
+  const bySpecial = mailboxes.find((box) => box.specialUse === "\\Junk");
+  if (bySpecial) return bySpecial.path;
+
+  const byName = mailboxes.find((box) => {
+    const path = box.path.toLowerCase();
+    const name = box.name.toLowerCase();
+    return (
+      path === "junk" ||
+      path === "spam" ||
+      path.endsWith(".junk") ||
+      path.endsWith(".spam") ||
+      name.includes("junk") ||
+      name.includes("spam")
+    );
+  });
+
+  return byName?.path ?? null;
+}
+
 async function findSentFolderPath(client: ImapFlow): Promise<string | null> {
   const mailboxes = await client.list();
   const bySpecial = mailboxes.find((box) => box.specialUse === "\\Sent");
@@ -640,6 +661,43 @@ export async function deleteMessages(
   }
 
   return deleted;
+}
+
+export async function moveMessagesToJunk(
+  credentials: MailCredentials,
+  folder: string,
+  uids: number[],
+): Promise<number> {
+  const uniqueUids = [...new Set(uids.filter((uid) => Number.isFinite(uid) && uid > 0))];
+  if (uniqueUids.length === 0) return 0;
+
+  const { useLocalPmailFixture, localFixtureBulkMessageAction } = await import("./local-pmail-fixture.service.js");
+  if (useLocalPmailFixture(credentials)) {
+    localFixtureBulkMessageAction(credentials, folder, uniqueUids, "reportSpam", "Junk");
+    return uniqueUids.length;
+  }
+
+  const client = buildImapClient(credentials);
+  let moved = 0;
+  try {
+    await client.connect();
+    const junkFolder = await findJunkFolderPath(client);
+    if (!junkFolder) return 0;
+
+    await client.mailboxOpen(folder);
+    for (const uid of uniqueUids) {
+      try {
+        await client.messageMove(uid, junkFolder, { uid: true });
+        moved += 1;
+      } catch {
+        // Skip messages that were already moved or cannot be relocated.
+      }
+    }
+  } finally {
+    await client.logout().catch(() => undefined);
+  }
+
+  return moved;
 }
 
 export async function createMailbox(
