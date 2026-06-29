@@ -69,7 +69,8 @@ describe("Tier A production APIs", () => {
     });
     expect(preflight.status).toBe(200);
     expect(preflight.body.needsProviderSetup).toBe(true);
-    expect(preflight.body.suggestedMailConfig?.providerPreset).toBe("hostinger");
+    expect(preflight.body.suggestedMailConfig?.providerPreset).toBe("custom");
+    expect(preflight.body.suggestedMailConfig?.imapHost).toBe("mail.newfirm.test");
 
     const loginRes = await request(app).post("/api/auth/login").send({
       tenantSlug: "new-firm",
@@ -109,7 +110,8 @@ describe("Tier A production APIs", () => {
     });
     expect(preflight.status).toBe(200);
     expect(preflight.body.needsProviderSetup).toBe(true);
-    expect(preflight.body.suggestedMailConfig?.providerPreset).toBe("hostinger");
+    expect(preflight.body.suggestedMailConfig?.providerPreset).toBe("custom");
+    expect(preflight.body.suggestedMailConfig?.imapHost).toBe("mail.custom-domain.test");
   });
 
   it("first login with provider preset saves user mail config", async () => {
