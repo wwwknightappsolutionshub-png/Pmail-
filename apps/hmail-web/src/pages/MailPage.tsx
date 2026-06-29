@@ -338,7 +338,7 @@ export function MailPage({
   );
   const [mobilePane, setMobilePane] = useState<MobilePane>("list");
   const [closeDrawerTooltip, setCloseDrawerTooltip] = useState<MobileDrawerTooltipState>(null);
-  const [collapsedSenderEmails, setCollapsedSenderEmails] = useState<Set<string>>(() => new Set());
+  const [expandedSenderEmails, setExpandedSenderEmails] = useState<Set<string>>(() => new Set());
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
     (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
   );
@@ -463,14 +463,22 @@ export function MailPage({
   }, [activeFolder, onActiveFolderChange]);
 
   useEffect(() => {
+    if (!useSenderGrouping) {
+      setExpandedSenderEmails(new Set());
+      return;
+    }
+    setExpandedSenderEmails(new Set());
+  }, [activeFolder, useSenderGrouping]);
+
+  useEffect(() => {
     if (!selectedUid || !useSenderGrouping) return;
     const message = messages.find((entry) => entry.uid === selectedUid);
     if (!message) return;
     const email = extractEmailFromHeader(message.from);
-    setCollapsedSenderEmails((current) => {
-      if (!current.has(email)) return current;
+    setExpandedSenderEmails((current) => {
+      if (current.has(email)) return current;
       const next = new Set(current);
-      next.delete(email);
+      next.add(email);
       return next;
     });
   }, [selectedUid, messages, useSenderGrouping]);
@@ -1251,9 +1259,9 @@ export function MailPage({
                 <SenderGroupedMessageList
                   messages={messages}
                   selectedUid={selectedUid}
-                  collapsedSenderEmails={collapsedSenderEmails}
+                  expandedSenderEmails={expandedSenderEmails}
                   onToggleSender={(email) =>
-                    setCollapsedSenderEmails((current) => {
+                    setExpandedSenderEmails((current) => {
                       const next = new Set(current);
                       if (next.has(email)) next.delete(email);
                       else next.add(email);

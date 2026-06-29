@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
 import { formatMailConfigSummary, inferProviderPresetFromEmail } from "../constants/mailProviders";
@@ -42,8 +42,15 @@ export function LoginFormCard({
   onRequestWorkspaceAccess,
 }: LoginFormCardProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [customProviderExpanded, setCustomProviderExpanded] = useState(false);
   const isGoogleProvider =
     mailConfig.providerPreset === "google" || inferProviderPresetFromEmail(email) === "google";
+
+  useEffect(() => {
+    if (mailConfig.providerPreset !== "custom") {
+      setCustomProviderExpanded(false);
+    }
+  }, [mailConfig.providerPreset]);
 
   return (
     <div className={`login-form-card${className ? ` ${className}` : ""}`}>
@@ -82,6 +89,24 @@ export function LoginFormCard({
         ) : null}
 
         {onRequestWorkspaceAccess ? <hr className="login-form-divider" aria-hidden="true" /> : null}
+
+        {showProviderSetup ? (
+          <section className="login-form-section login-form-section--provider" aria-label="Mail provider">
+            <div className="login-provider-section">
+              <span className="login-provider-label">Mail provider</span>
+              <ProviderPresetPicker
+                value={mailConfig.providerPreset}
+                onChange={applyPreset}
+                idPrefix="login-provider"
+              />
+              <p className="login-provider-summary">{formatMailConfigSummary(mailConfig)}</p>
+              {isGoogleProvider ? <GmailConnectWizard /> : null}
+              {preflightLoading ? <p className="login-provider-hint">Checking mailbox setup…</p> : null}
+            </div>
+          </section>
+        ) : null}
+
+        {showProviderSetup ? <hr className="login-form-divider" aria-hidden="true" /> : null}
 
         <section className="login-form-section login-form-section--credentials" aria-label="Mailbox credentials">
           <label>
@@ -124,80 +149,73 @@ export function LoginFormCard({
           </p>
         </section>
 
-        {showProviderSetup ? <hr className="login-form-divider" aria-hidden="true" /> : null}
-
-        {showProviderSetup ? (
-          <section className="login-form-section login-form-section--provider" aria-label="Mail provider">
-            <div className="login-provider-section">
-              <span className="login-provider-label">Mail provider</span>
-              <ProviderPresetPicker
-                value={mailConfig.providerPreset}
-                onChange={applyPreset}
-                idPrefix="login-provider"
-              />
-              <p className="login-provider-summary">{formatMailConfigSummary(mailConfig)}</p>
-              {isGoogleProvider ? <GmailConnectWizard /> : null}
-              {preflightLoading ? <p className="login-provider-hint">Checking mailbox setup…</p> : null}
-            </div>
-          </section>
-        ) : null}
-
         {showProviderSetup && showCustomFields ? <hr className="login-form-divider" aria-hidden="true" /> : null}
 
         {showProviderSetup && showCustomFields ? (
           <section className="login-form-section login-form-section--server" aria-label="Server settings">
-            <div className="mail-onboarding-custom-grid">
-            <label>
-              IMAP host
-              <input
-                value={mailConfig.imapHost}
-                onChange={(e) => setMailConfig({ ...mailConfig, imapHost: e.target.value })}
-                required
-              />
-            </label>
-            <label>
-              IMAP port
-              <input
-                type="number"
-                value={mailConfig.imapPort}
-                onChange={(e) => setMailConfig({ ...mailConfig, imapPort: Number(e.target.value) })}
-                required
-              />
-            </label>
-            <label>
-              SMTP host
-              <input
-                value={mailConfig.smtpHost}
-                onChange={(e) => setMailConfig({ ...mailConfig, smtpHost: e.target.value })}
-                required
-              />
-            </label>
-            <label>
-              SMTP port
-              <input
-                type="number"
-                value={mailConfig.smtpPort}
-                onChange={(e) => setMailConfig({ ...mailConfig, smtpPort: Number(e.target.value) })}
-                required
-              />
-            </label>
-            <label className="login-check-row">
-              <input
-                type="checkbox"
-                checked={mailConfig.imapSecure}
-                onChange={(e) => setMailConfig({ ...mailConfig, imapSecure: e.target.checked })}
-              />
-              IMAP SSL/TLS
-            </label>
-            <label className="login-check-row">
-              <input
-                type="checkbox"
-                checked={mailConfig.smtpSecure}
-                onChange={(e) => setMailConfig({ ...mailConfig, smtpSecure: e.target.checked })}
-              />
-              SMTP SSL/TLS
-            </label>
-          </div>
+            <button
+              type="button"
+              className="login-custom-provider-toggle"
+              aria-expanded={customProviderExpanded}
+              onClick={() => setCustomProviderExpanded((current) => !current)}
+            >
+              <span>Custom server settings</span>
+              <span aria-hidden="true">{customProviderExpanded ? "▾" : "▸"}</span>
+            </button>
+            {customProviderExpanded ? (
+              <div className="mail-onboarding-custom-grid">
+                <label>
+                  IMAP host
+                  <input
+                    value={mailConfig.imapHost}
+                    onChange={(e) => setMailConfig({ ...mailConfig, imapHost: e.target.value })}
+                    required
+                  />
+                </label>
+                <label>
+                  IMAP port
+                  <input
+                    type="number"
+                    value={mailConfig.imapPort}
+                    onChange={(e) => setMailConfig({ ...mailConfig, imapPort: Number(e.target.value) })}
+                    required
+                  />
+                </label>
+                <label>
+                  SMTP host
+                  <input
+                    value={mailConfig.smtpHost}
+                    onChange={(e) => setMailConfig({ ...mailConfig, smtpHost: e.target.value })}
+                    required
+                  />
+                </label>
+                <label>
+                  SMTP port
+                  <input
+                    type="number"
+                    value={mailConfig.smtpPort}
+                    onChange={(e) => setMailConfig({ ...mailConfig, smtpPort: Number(e.target.value) })}
+                    required
+                  />
+                </label>
+                <label className="login-check-row">
+                  <input
+                    type="checkbox"
+                    checked={mailConfig.imapSecure}
+                    onChange={(e) => setMailConfig({ ...mailConfig, imapSecure: e.target.checked })}
+                  />
+                  IMAP SSL/TLS
+                </label>
+                <label className="login-check-row">
+                  <input
+                    type="checkbox"
+                    checked={mailConfig.smtpSecure}
+                    onChange={(e) => setMailConfig({ ...mailConfig, smtpSecure: e.target.checked })}
+                  />
+                  SMTP SSL/TLS
+                </label>
+              </div>
+            ) : null}
           </section>
         ) : null}
 

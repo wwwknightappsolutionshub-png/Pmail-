@@ -8,7 +8,7 @@ export { senderLabel };
 type Props = {
   messages: MailMessageSummary[];
   selectedUid: number | null;
-  collapsedSenderEmails: ReadonlySet<string>;
+  expandedSenderEmails: ReadonlySet<string>;
   onToggleSender: (email: string) => void;
   onSelectMessage: (uid: number) => void;
   showBulkBar: boolean;
@@ -22,7 +22,7 @@ type Props = {
 export function SenderGroupedMessageList({
   messages,
   selectedUid,
-  collapsedSenderEmails,
+  expandedSenderEmails,
   onToggleSender,
   onSelectMessage,
   showBulkBar,
@@ -67,7 +67,7 @@ export function SenderGroupedMessageList({
         <span>Received</span>
       </div>
       {groups.map((group) => {
-        const expanded = !collapsedSenderEmails.has(group.email);
+        const expanded = expandedSenderEmails.has(group.email);
         return (
           <div key={group.email} className="message-sender-group">
             <div className="message-sender-group-head">
