@@ -443,7 +443,7 @@ export function MailPage({
       setSelectedUid(null);
       setSelectedMessage(null);
       setSelectedUids([]);
-      setCollapsedSenderEmails(new Set());
+      setExpandedSenderEmails(new Set());
       setMailFilter("all");
       clearMailSearch();
       setMobilePane("list");
