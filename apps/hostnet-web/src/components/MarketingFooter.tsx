@@ -8,7 +8,6 @@ export function MarketingFooter() {
         <ProhostLogo size="sm" />
         <p className="muted">Enterprise hosting, mail, and infrastructure.</p>
         <div className="landing-foot-links">
-          <Link to="/panel/login">Panel</Link>
           <Link to="/admin/login">Admin</Link>
           <Link to="/#register">Custom pricing</Link>
           <Link to="/use-case">Use cases</Link>

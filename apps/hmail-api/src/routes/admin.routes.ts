@@ -4,6 +4,7 @@ import { requireAdmin } from "../middleware/requireAdmin.js";
 import { requireSuperAdmin } from "../middleware/requireSuperAdmin.js";
 import {
   AdminAuthError,
+  changeAdminPassword,
   getAdminContext,
   loginAdmin,
   logoutAdminSession,
@@ -71,6 +72,11 @@ import { provisionTenantFromLead, ProvisioningError } from "../services/provisio
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8),
 });
 
 const sectionSchema = z.object({
@@ -228,6 +234,25 @@ adminRouter.get("/auth/me", async (req, res, next) => {
 });
 
 adminRouter.use(requireAdmin);
+
+adminRouter.post("/auth/change-password", async (req, res, next) => {
+  try {
+    const body = changePasswordSchema.parse(req.body);
+    await changeAdminPassword({
+      adminId: req.admin!.id,
+      currentPassword: body.currentPassword,
+      newPassword: body.newPassword,
+    });
+    await auditAdminMutation(req, "admin.change_password", "platform_admin", req.admin!.id);
+    res.json({ ok: true });
+  } catch (err) {
+    if (err instanceof AdminAuthError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
 
 adminRouter.get("/sections", async (_req, res, next) => {
   try {

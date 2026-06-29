@@ -427,6 +427,16 @@ export type AdminSystemStatus = {
     mailPushDefaultForUsers: boolean;
     pwaPushAutoSubscribe: boolean;
   };
+  platformEmail: {
+    configured: boolean;
+    host: string;
+    port: number;
+    secure: boolean;
+    from: string;
+    membershipNotifyEmail: string | null;
+    inquiryNotifyEmail: string | null;
+    inquiryReplyEmail: string | null;
+  };
 };
 
 export type PmailPlatformConfig = {

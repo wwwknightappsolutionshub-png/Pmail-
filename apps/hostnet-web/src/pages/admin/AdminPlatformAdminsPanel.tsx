@@ -13,10 +13,17 @@ export function AdminPlatformAdminsPanel({
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [showNew, setShowNew] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const [editName, setEditName] = useState("");
+  const [editRole, setEditRole] = useState<"super_admin" | "admin">("admin");
+  const [editActive, setEditActive] = useState(true);
+  const [editPassword, setEditPassword] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
 
   useEffect(() => {
     api
@@ -47,11 +54,45 @@ export function AdminPlatformAdminsPanel({
     }
   }
 
+  function startEdit(admin: PlatformAdminRecord) {
+    setEditingId(admin.id);
+    setEditName(admin.name);
+    setEditRole(admin.role);
+    setEditActive(admin.isActive);
+    setEditPassword("");
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditPassword("");
+  }
+
+  async function saveEdit(id: string) {
+    setEditSaving(true);
+    try {
+      const body: Parameters<typeof api.updatePlatformAdmin>[1] = {
+        name: editName,
+        role: editRole,
+        isActive: editActive,
+      };
+      if (editPassword.trim()) body.password = editPassword;
+      const res = await api.updatePlatformAdmin(id, body);
+      setAdmins((prev) => prev.map((a) => (a.id === id ? res.admin : a)));
+      cancelEdit();
+      onMessage(editPassword.trim() ? "Admin updated (password reset)" : "Admin updated");
+    } catch (err) {
+      onError(err instanceof ApiError ? err.message : "Update failed");
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
   async function remove(id: string, adminEmail: string) {
     if (!window.confirm(`Delete admin ${adminEmail}?`)) return;
     try {
       await api.deletePlatformAdmin(id);
       setAdmins((prev) => prev.filter((a) => a.id !== id));
+      if (editingId === id) cancelEdit();
       onMessage("Admin deleted");
     } catch (err) {
       onError(err instanceof ApiError ? err.message : "Delete failed");
@@ -104,27 +145,72 @@ export function AdminPlatformAdminsPanel({
             </tr>
           </thead>
           <tbody>
-            {admins.map((a) => (
-              <tr key={a.id}>
-                <td>{a.name}</td>
-                <td>{a.email}</td>
-                <td>
-                  <span className={`badge ${a.role === "super_admin" ? "badge-role" : ""}`}>{a.role}</span>
-                </td>
-                <td>
-                  {a.isActive ? (
-                    <span className="badge badge-status-active">Active</span>
-                  ) : (
-                    <span className="badge badge-status-inactive">Inactive</span>
-                  )}
-                </td>
-                <td>
-                  <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(a.id, a.email)}>
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {admins.map((a) =>
+              editingId === a.id ? (
+                <tr key={a.id}>
+                  <td colSpan={5}>
+                    <div className="form-grid" style={{ maxWidth: 520 }}>
+                      <label>
+                        Name
+                        <input value={editName} onChange={(e) => setEditName(e.target.value)} required />
+                      </label>
+                      <label>
+                        Role
+                        <select value={editRole} onChange={(e) => setEditRole(e.target.value as "super_admin" | "admin")}>
+                          <option value="admin">admin</option>
+                          <option value="super_admin">super_admin</option>
+                        </select>
+                      </label>
+                      <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <input type="checkbox" checked={editActive} onChange={(e) => setEditActive(e.target.checked)} />
+                        Active
+                      </label>
+                      <label>
+                        New password (leave blank to keep current)
+                        <input
+                          type="password"
+                          value={editPassword}
+                          onChange={(e) => setEditPassword(e.target.value)}
+                          minLength={8}
+                          autoComplete="new-password"
+                        />
+                      </label>
+                      <div className="editor-actions">
+                        <button type="button" className="btn btn-primary" onClick={() => saveEdit(a.id)} disabled={editSaving}>
+                          Save
+                        </button>
+                        <button type="button" className="btn btn-secondary" onClick={cancelEdit}>
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <tr key={a.id}>
+                  <td>{a.name}</td>
+                  <td>{a.email}</td>
+                  <td>
+                    <span className={`badge ${a.role === "super_admin" ? "badge-role" : ""}`}>{a.role}</span>
+                  </td>
+                  <td>
+                    {a.isActive ? (
+                      <span className="badge badge-status-active">Active</span>
+                    ) : (
+                      <span className="badge badge-status-inactive">Inactive</span>
+                    )}
+                  </td>
+                  <td>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => startEdit(a)}>
+                      Edit
+                    </button>{" "}
+                    <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(a.id, a.email)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ),
+            )}
           </tbody>
         </table>
       </div>

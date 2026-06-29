@@ -3,6 +3,7 @@ import { getBillingLifecycleSummary } from "./billing-lifecycle.service.js";
 import { prisma } from "../lib/prisma.js";
 import { getEnv, isPaymentMockMode, getEnabledPaymentProviders } from "../config/env.js";
 import { getPmailPlatformConfig } from "./pmail-platform-config.service.js";
+import { getPlatformEmailStatus } from "./platform-email.service.js";
 import { getVapidPublicKey } from "./pwa-push.service.js";
 
 export async function getAdminSystemStatus() {
@@ -43,5 +44,6 @@ export async function getAdminSystemStatus() {
       mailPushDefaultForUsers: pushConfig.mailPushDefaultForUsers,
       pwaPushAutoSubscribe: pushConfig.pwaPushAutoSubscribe,
     },
+    platformEmail: getPlatformEmailStatus(),
   };
 }

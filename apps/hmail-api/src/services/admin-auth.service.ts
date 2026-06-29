@@ -103,6 +103,35 @@ export async function logoutAdminSession(token: string): Promise<void> {
   });
 }
 
+export async function changeAdminPassword(input: {
+  adminId: string;
+  currentPassword: string;
+  newPassword: string;
+}): Promise<void> {
+  const env = getEnv();
+  if (input.newPassword.length < env.ADMIN_MIN_PASSWORD_LENGTH) {
+    throw new AdminAuthError(`Password must be at least ${env.ADMIN_MIN_PASSWORD_LENGTH} characters`);
+  }
+  if (env.NODE_ENV === "production" && env.ADMIN_DISALLOW_DEFAULT_PASSWORD) {
+    if (input.newPassword === env.ADMIN_DEFAULT_PASSWORD) {
+      throw new AdminAuthError("Default admin password is not allowed in production");
+    }
+  }
+
+  const admin = await prisma.platformAdmin.findUnique({ where: { id: input.adminId } });
+  if (!admin || !admin.isActive) {
+    throw new AdminAuthError("Current password is incorrect");
+  }
+  if (!verifyPassword(input.currentPassword, admin.passwordHash)) {
+    throw new AdminAuthError("Current password is incorrect");
+  }
+
+  await prisma.platformAdmin.update({
+    where: { id: admin.id },
+    data: { passwordHash: hashPassword(input.newPassword) },
+  });
+}
+
 export async function getAdminContext(req: Request): Promise<PlatformAdmin | null> {
   const header = req.headers.authorization;
   const bearer = header?.startsWith("Bearer ") ? header.slice(7) : null;

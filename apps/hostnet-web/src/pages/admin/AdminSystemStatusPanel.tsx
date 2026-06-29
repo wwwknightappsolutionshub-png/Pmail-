@@ -104,6 +104,16 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
     mailPushDefaultForUsers: true,
     pwaPushAutoSubscribe: true,
   };
+  const platformEmail = status.platformEmail ?? {
+    configured: false,
+    host: "—",
+    port: 0,
+    secure: false,
+    from: "—",
+    membershipNotifyEmail: null,
+    inquiryNotifyEmail: null,
+    inquiryReplyEmail: null,
+  };
 
   return (
     <div className="admin-status-grid">
@@ -211,6 +221,45 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
               </button>
             </div>
           </div>
+        ) : null}
+      </section>
+
+      <section className="card">
+        <h3>Platform email (transactional)</h3>
+        <dl className="admin-status-dl">
+          <div>
+            <dt>SMTP credentials</dt>
+            <dd>{platformEmail.configured ? "Configured" : "Not configured"}</dd>
+          </div>
+          <div>
+            <dt>SMTP host</dt>
+            <dd className="admin-status-mono">
+              {platformEmail.host}:{platformEmail.port} ({platformEmail.secure ? "TLS" : "STARTTLS"})
+            </dd>
+          </div>
+          <div>
+            <dt>From address</dt>
+            <dd className="admin-status-mono">{platformEmail.from}</dd>
+          </div>
+          <div>
+            <dt>Membership notify</dt>
+            <dd className="admin-status-mono">{platformEmail.membershipNotifyEmail ?? "default"}</dd>
+          </div>
+          <div>
+            <dt>Inquiry notify</dt>
+            <dd className="admin-status-mono">{platformEmail.inquiryNotifyEmail ?? "default"}</dd>
+          </div>
+          <div>
+            <dt>Inquiry reply-to</dt>
+            <dd className="admin-status-mono">{platformEmail.inquiryReplyEmail ?? "default"}</dd>
+          </div>
+        </dl>
+        {!platformEmail.configured ? (
+          <p className="muted" style={{ marginTop: "0.75rem" }}>
+            Set <code className="admin-status-mono">PLATFORM_SMTP_USER</code> and{" "}
+            <code className="admin-status-mono">PLATFORM_SMTP_PASS</code> in the API environment. In production, inquiry
+            confirmations and membership notifications require SMTP.
+          </p>
         ) : null}
       </section>
 

@@ -51,6 +51,8 @@ function serializeMailUser(
   };
 }
 
+const EMPTY_PRESENCE: UserPresenceSnapshot = { isOnline: false, activeSessionCount: 0, lastActiveAt: null };
+
 export async function getTenantOperations(tenantId: string) {
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
@@ -118,7 +120,7 @@ export async function getTenantOperations(tenantId: string) {
     users: tenant.users.map((user) =>
       serializeMailUser(
         user,
-        presenceMap.get(user.id) ?? { isOnline: false, activeSessionCount: 0, lastActiveAt: null },
+        presenceMap.get(user.id) ?? EMPTY_PRESENCE,
       ),
     ),
     hostingAccounts: tenant.hostingAccounts.map((a) => ({
@@ -203,7 +205,8 @@ export async function listTenantMailUsers(tenantId: string) {
     where: { tenantId },
     orderBy: { email: "asc" },
   });
-  return users.map(serializeMailUser);
+  const presenceMap = await getPresenceMapForUserIds(users.map((user) => user.id));
+  return users.map((user) => serializeMailUser(user, presenceMap.get(user.id) ?? EMPTY_PRESENCE));
 }
 
 export async function createTenantMailUser(
@@ -218,7 +221,8 @@ export async function createTenantMailUser(
       displayName: input.displayName?.trim() || null,
     },
   });
-  return serializeMailUser(user);
+  const presenceMap = await getPresenceMapForUserIds([user.id]);
+  return serializeMailUser(user, presenceMap.get(user.id) ?? EMPTY_PRESENCE);
 }
 
 export async function updateTenantMailUser(
@@ -236,7 +240,8 @@ export async function updateTenantMailUser(
       ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
     },
   });
-  return serializeMailUser(user);
+  const presenceMap = await getPresenceMapForUserIds([user.id]);
+  return serializeMailUser(user, presenceMap.get(user.id) ?? EMPTY_PRESENCE);
 }
 
 export async function deleteTenantMailUser(tenantId: string, userId: string): Promise<void> {

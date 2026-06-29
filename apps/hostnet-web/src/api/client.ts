@@ -122,6 +122,11 @@ export const api = {
       body: JSON.stringify(body),
     }),
   adminLogout: () => request<{ ok: boolean }>("/api/admin/auth/logout", { method: "POST" }),
+  adminChangePassword: (body: { currentPassword: string; newPassword: string }) =>
+    request<{ ok: boolean }>("/api/admin/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   adminMe: () => request<{ admin: PlatformAdmin }>("/api/admin/auth/me"),
 
   adminSections: () => request<{ sections: SiteSection[] }>("/api/admin/sections"),

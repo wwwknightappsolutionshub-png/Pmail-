@@ -90,6 +90,20 @@ export async function sendTemplatedPlatformEmail(input: {
   });
 }
 
+export function getPlatformEmailStatus() {
+  const smtp = getPlatformSmtpConfig();
+  return {
+    configured: Boolean(smtp.user && smtp.pass),
+    host: smtp.host,
+    port: smtp.port,
+    secure: smtp.secure,
+    from: smtp.from,
+    membershipNotifyEmail: process.env.MEMBERSHIP_NOTIFY_EMAIL?.trim() || null,
+    inquiryNotifyEmail: process.env.INQUIRY_NOTIFY_EMAIL?.trim() || null,
+    inquiryReplyEmail: process.env.INQUIRY_REPLY_EMAIL?.trim() || null,
+  };
+}
+
 export async function notifyInternalAddress(address: string, subject: string, html: string): Promise<void> {
   await sendPlatformEmail({ to: address, subject, html });
 }

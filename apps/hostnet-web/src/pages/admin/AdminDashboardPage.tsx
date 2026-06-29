@@ -18,6 +18,7 @@ import { AdminTenantOpsPanel } from "./AdminTenantOpsPanel";
 import { AdminBillingPanel } from "./AdminBillingPanel";
 import { AdminCommandPalette, useCommandPaletteShortcut } from "./AdminCommandPalette";
 import { AdminSystemStatusPanel } from "./AdminSystemStatusPanel";
+import { AdminChangePasswordPanel } from "./AdminChangePasswordPanel";
 import { AdminVpsPanel } from "./AdminVpsPanel";
 import { useAdminPoll } from "./useAdminPoll";
 import "./AdminDashboard.css";
@@ -34,6 +35,7 @@ export function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [tenantOpsId, setTenantOpsId] = useState<string | null>(null);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const { snapshot: poll } = useAdminPoll(Boolean(admin));
 
   useCommandPaletteShortcut(() => setCommandOpen(true));
@@ -132,6 +134,9 @@ export function AdminDashboardPage() {
             </div>
           </div>
           <div className="admin-sidebar-actions">
+            <button type="button" className="btn btn-ghost-sidebar" onClick={() => setChangePasswordOpen(true)}>
+              Change password
+            </button>
             <Link to="/" className="btn btn-ghost-sidebar">
               View public site
             </Link>
@@ -397,6 +402,19 @@ export function AdminDashboardPage() {
         onClose={() => setCommandOpen(false)}
         onNavigate={setTab}
         tenants={tenants}
+      />
+
+      <AdminChangePasswordPanel
+        open={changePasswordOpen}
+        onClose={() => setChangePasswordOpen(false)}
+        onSuccess={(msg) => {
+          setMessage(msg);
+          setError(null);
+        }}
+        onError={(err) => {
+          setError(err);
+          setMessage(null);
+        }}
       />
     </div>
   );
