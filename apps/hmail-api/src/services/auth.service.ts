@@ -7,7 +7,7 @@ import { decryptSecret, encryptSecret, hashToken } from "../lib/crypto.js";
 import { normalizeMailboxPassword } from "../lib/mailbox-credentials.js";
 import { mailboxAuthErrorMessage } from "../lib/mail-auth-errors.js";
 import { logLoginRejected } from "../lib/mail-auth-log.js";
-import { matchProviderPresetFromHosts } from "../data/mail-providers.js";
+import { matchProviderPresetFromHosts, resolveSuggestedMailConfigForLogin, savedMailConfigMismatchesLoginSuggestion } from "../data/mail-providers.js";
 import { MailAuthVerificationError, verifyMailboxForLogin } from "./mail-login-verify.service.js";
 import {
   copyTenantMailConfigToUser,
@@ -122,8 +122,45 @@ export async function loginUser(input: {
     password: input.password,
   });
 
-  let mailConfig = existingUser ? resolveEffectiveMailConfig(existingUser) : null;
-  let pendingUserMailConfig = existingUser?.mailConfig ? null : parseLoginMailConfig(input);
+  const suggestedLoginConfig = resolveSuggestedMailConfigForLogin(credentialsEmail, tenant.mail);
+  const savedEffective = existingUser ? resolveEffectiveMailConfig(existingUser) : null;
+  const savedMismatch =
+    savedEffective != null &&
+    savedMailConfigMismatchesLoginSuggestion(credentialsEmail, savedEffective, suggestedLoginConfig);
+  const loginMailConfigInput = parseLoginMailConfig(input);
+
+  let mailConfig = savedEffective;
+  let pendingUserMailConfig =
+    !existingUser?.mailConfig || savedMismatch ? loginMailConfigInput : null;
+
+  if (savedMismatch) {
+    mailConfig = loginMailConfigInput
+      ? {
+          id: "login-override",
+          tenantId: tenant.id,
+          ...loginMailConfigInput,
+          mailOnboardingComplete: true,
+        }
+      : {
+          id: "suggested-login",
+          tenantId: tenant.id,
+          ...suggestedLoginConfig,
+          mailOnboardingComplete: true,
+        };
+  }
+
+  const loginFallbackConfigs: TenantMailConfig[] = [];
+  if (savedMismatch && savedEffective) {
+    loginFallbackConfigs.push({
+      id: "suggested-login",
+      tenantId: tenant.id,
+      ...suggestedLoginConfig,
+      mailOnboardingComplete: true,
+    });
+    if (tenant.mail?.mailOnboardingComplete) {
+      loginFallbackConfigs.push(tenant.mail);
+    }
+  }
 
   if (!mailConfig && isLocalTester && tenant.mail) {
     mailConfig = {
@@ -173,13 +210,16 @@ export async function loginUser(input: {
     password: mailPassword,
     mailConfig,
   };
+  const primaryImapHost = mailConfig.imapHost;
 
   if (!isLocalTester) {
     try {
-      mailConfig = await verifyMailboxForLogin(credentials);
+      mailConfig = await verifyMailboxForLogin(credentials, {
+        fallbacks: loginFallbackConfigs,
+      });
     } catch (err) {
       const phase = err instanceof MailAuthVerificationError ? err.phase : "imap";
-      const message = mailboxAuthErrorMessage(credentialsEmail, phase, err);
+      const message = mailboxAuthErrorMessage(credentialsEmail, phase, err, primaryImapHost);
       logLoginRejected({ email: credentialsEmail, phase, message });
       throw new AuthError(message);
     }
@@ -213,7 +253,7 @@ export async function loginUser(input: {
   }
 
   try {
-    if (!user.mailConfig && mailConfig) {
+    if ((savedMismatch || !user.mailConfig) && mailConfig) {
       await saveUserMailConfig(user.id, {
         providerPreset: matchProviderPresetFromHosts(mailConfig),
         imapHost: mailConfig.imapHost,

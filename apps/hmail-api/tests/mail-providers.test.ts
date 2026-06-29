@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   inferProviderPresetFromEmail,
+  mailConfigsMatch,
   resolveSuggestedMailConfigForLogin,
+  savedMailConfigMismatchesLoginSuggestion,
 } from "../src/data/mail-providers.js";
 
 describe("mail provider suggestions", () => {
@@ -41,5 +43,28 @@ describe("mail provider suggestions", () => {
   it("falls back to hostinger when no domain match and no tenant mail", () => {
     const suggested = resolveSuggestedMailConfigForLogin("user@company.com", null);
     expect(suggested.providerPreset).toBe("hostinger");
+  });
+
+  it("detects when a saved Microsoft config does not match a custom-domain mailbox", () => {
+    const suggested = resolveSuggestedMailConfigForLogin("info@onoseimmigration.com", {
+      imapHost: "imap.hostinger.com",
+      imapPort: 993,
+      imapSecure: true,
+      smtpHost: "smtp.hostinger.com",
+      smtpPort: 465,
+      smtpSecure: true,
+      mailOnboardingComplete: true,
+    });
+    const saved = {
+      imapHost: "outlook.office365.com",
+      imapPort: 993,
+      imapSecure: true,
+      smtpHost: "smtp.office365.com",
+      smtpPort: 587,
+      smtpSecure: false,
+    };
+
+    expect(savedMailConfigMismatchesLoginSuggestion("info@onoseimmigration.com", saved, suggested)).toBe(true);
+    expect(mailConfigsMatch(saved, suggested)).toBe(false);
   });
 });

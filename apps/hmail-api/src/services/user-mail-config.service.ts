@@ -4,6 +4,7 @@ import {
   isMailProviderPresetKey,
   resolveMailConfigFromPreset,
   resolveSuggestedMailConfigForLogin,
+  savedMailConfigMismatchesLoginSuggestion,
   type MailConfigInput,
   type MailProviderPresetKey,
 } from "../data/mail-providers.js";
@@ -85,9 +86,23 @@ export async function getLoginPreflight(tenantSlug: string, email: string) {
   const testerBypass = isPmailTesterBypassEnabled() && isTesterEmail && isTesterTenant;
 
   const suggestedMailConfig = resolveSuggestedMailConfigForLogin(normalizedEmail, tenant.mail);
+  const savedMismatch =
+    user?.mailConfig != null &&
+    savedMailConfigMismatchesLoginSuggestion(
+      normalizedEmail,
+      {
+        imapHost: user.mailConfig.imapHost,
+        imapPort: user.mailConfig.imapPort,
+        imapSecure: user.mailConfig.imapSecure,
+        smtpHost: user.mailConfig.smtpHost,
+        smtpPort: user.mailConfig.smtpPort,
+        smtpSecure: user.mailConfig.smtpSecure,
+      },
+      suggestedMailConfig,
+    );
 
   return {
-    needsProviderSetup: testerBypass ? false : !user?.mailConfig,
+    needsProviderSetup: testerBypass ? false : !user?.mailConfig || savedMismatch,
     displayName: displayName ?? (isTesterEmail ? "PMail Tester" : null),
     testerBypass,
     suggestedTenantSlug:

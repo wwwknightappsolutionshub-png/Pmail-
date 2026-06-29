@@ -1,4 +1,5 @@
 import { isGoogleMailbox } from "./mailbox-credentials.js";
+import { inferProviderPresetFromEmail } from "../data/mail-providers.js";
 
 export type MailAuthFailurePhase = "imap" | "smtp";
 
@@ -33,8 +34,18 @@ export function mailboxAuthErrorMessage(
   email: string,
   phase: MailAuthFailurePhase,
   err?: unknown,
+  attemptedHost?: string,
 ): string {
-  if (isGoogleMailbox(email)) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const host = attemptedHost?.trim().toLowerCase() ?? "";
+  const isMicrosoftHost = host.includes("outlook.office365.com") || host.includes("imap-mail.outlook.com");
+  const inferredProvider = inferProviderPresetFromEmail(normalizedEmail);
+
+  if (isMicrosoftHost && inferredProvider !== "microsoft") {
+    return `This account is saved with Microsoft 365 (${attemptedHost}) but ${normalizedEmail} is not a Microsoft mailbox. Choose Hostinger on sign-in, or ask an admin to reset your PMail+ user so the correct provider is used.`;
+  }
+
+  if (isGoogleMailbox(normalizedEmail)) {
     return phase === "smtp"
       ? "Gmail accepted IMAP but SMTP failed. Use a Google App Password and keep Google selected with smtp.gmail.com:587."
       : "Gmail could not sign in. In Gmail go to Settings → Forwarding and POP/IMAP → enable IMAP. If 2-Step Verification is on, create an App Password at myaccount.google.com/apppasswords and use that here (not your regular Gmail password).";

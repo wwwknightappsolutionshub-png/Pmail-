@@ -266,3 +266,38 @@ export function resolveSuggestedMailConfigForLogin(
 
   return resolveMailConfigFromPreset("hostinger");
 }
+
+export type MailHostConfig = Pick<
+  MailConfigInput,
+  "imapHost" | "imapPort" | "imapSecure" | "smtpHost" | "smtpPort" | "smtpSecure"
+>;
+
+export function mailConfigHostsKey(config: MailHostConfig): string {
+  return [
+    config.imapHost.trim().toLowerCase(),
+    config.imapPort,
+    config.imapSecure,
+    config.smtpHost.trim().toLowerCase(),
+    config.smtpPort,
+    config.smtpSecure,
+  ].join("|");
+}
+
+export function mailConfigsMatch(a: MailHostConfig, b: MailHostConfig): boolean {
+  return mailConfigHostsKey(a) === mailConfigHostsKey(b);
+}
+
+export function savedMailConfigMismatchesLoginSuggestion(
+  email: string,
+  saved: MailHostConfig,
+  suggested: MailConfigInput,
+): boolean {
+  if (mailConfigsMatch(saved, suggested)) return false;
+
+  const inferred = inferProviderPresetFromEmail(email);
+  if (inferred) {
+    return !mailConfigsMatch(saved, resolveMailConfigFromPreset(inferred));
+  }
+
+  return !mailConfigsMatch(saved, suggested);
+}

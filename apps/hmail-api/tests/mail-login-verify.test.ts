@@ -22,6 +22,17 @@ describe("mail auth errors", () => {
     );
     expect(message).toContain("mail.onoseimmigration.com");
   });
+
+  it("explains when a saved Microsoft host is used for a non-Microsoft mailbox", () => {
+    const message = mailboxAuthErrorMessage(
+      "info@onoseimmigration.com",
+      "imap",
+      new Error("AUTHENTICATIONFAILED"),
+      "outlook.office365.com",
+    );
+    expect(message).toContain("Microsoft 365");
+    expect(message).toContain("outlook.office365.com");
+  });
 });
 
 describe("login mail config candidates", () => {

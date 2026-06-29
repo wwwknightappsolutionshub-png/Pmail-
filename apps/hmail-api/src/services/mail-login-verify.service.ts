@@ -2,6 +2,7 @@ import type { TenantMailConfig } from "@prisma/client";
 import {
   inferProviderPresetFromEmail,
   MAIL_PROVIDER_PRESETS,
+  mailConfigsMatch,
   matchProviderPresetFromHosts,
 } from "../data/mail-providers.js";
 import type { MailCredentials } from "./imap.service.js";
@@ -48,36 +49,51 @@ export function buildCustomDomainMailboxHosts(email: string): Pick<
   };
 }
 
-export function listLoginMailConfigCandidates(email: string, primary: TenantMailConfig): TenantMailConfig[] {
-  const candidates: TenantMailConfig[] = [primary];
+export function listLoginMailConfigCandidates(
+  email: string,
+  primary: TenantMailConfig,
+  options?: { fallbacks?: TenantMailConfig[] },
+): TenantMailConfig[] {
+  const candidates: TenantMailConfig[] = [];
 
-  const customDomainHosts = buildCustomDomainMailboxHosts(email);
-  if (!customDomainHosts) return candidates;
-
-  const pushCandidate = (hosts: typeof customDomainHosts) => {
+  const pushCandidate = (
+    hosts: Pick<
+      TenantMailConfig,
+      "imapHost" | "imapPort" | "imapSecure" | "smtpHost" | "smtpPort" | "smtpSecure"
+    >,
+  ) => {
     const next: TenantMailConfig = {
       ...primary,
       ...hosts,
     };
-    if (!candidates.some((entry) => entry.imapHost === next.imapHost && entry.smtpHost === next.smtpHost)) {
+    if (!candidates.some((entry) => mailConfigsMatch(entry, next))) {
       candidates.push(next);
     }
   };
 
-  if (isHostingerMailConfig(primary)) {
-    pushCandidate(customDomainHosts);
+  pushCandidate(primary);
+  for (const fallback of options?.fallbacks ?? []) {
+    pushCandidate(fallback);
   }
 
+  const customDomainHosts = buildCustomDomainMailboxHosts(email);
+  if (!customDomainHosts) return candidates;
+
   const hostinger = hostingerPresetHosts();
-  if (primary.imapHost === customDomainHosts.imapHost && primary.smtpHost === customDomainHosts.smtpHost) {
-    pushCandidate({
-      imapHost: hostinger.imapHost,
-      imapPort: hostinger.imapPort,
-      imapSecure: hostinger.imapSecure,
-      smtpHost: hostinger.smtpHost,
-      smtpPort: hostinger.smtpPort,
-      smtpSecure: hostinger.smtpSecure,
-    });
+  for (const candidate of [...candidates]) {
+    if (isHostingerMailConfig(candidate)) {
+      pushCandidate(customDomainHosts);
+    }
+    if (candidate.imapHost === customDomainHosts.imapHost && candidate.smtpHost === customDomainHosts.smtpHost) {
+      pushCandidate({
+        imapHost: hostinger.imapHost,
+        imapPort: hostinger.imapPort,
+        imapSecure: hostinger.imapSecure,
+        smtpHost: hostinger.smtpHost,
+        smtpPort: hostinger.smtpPort,
+        smtpSecure: hostinger.smtpSecure,
+      });
+    }
   }
 
   return candidates;
@@ -85,8 +101,9 @@ export function listLoginMailConfigCandidates(email: string, primary: TenantMail
 
 export async function verifyMailboxForLogin(
   credentials: MailCredentials,
+  options?: { fallbacks?: TenantMailConfig[] },
 ): Promise<TenantMailConfig> {
-  const candidates = listLoginMailConfigCandidates(credentials.email, credentials.mailConfig);
+  const candidates = listLoginMailConfigCandidates(credentials.email, credentials.mailConfig, options);
   let lastImapError: unknown;
   let lastSmtpError: unknown;
 
