@@ -133,6 +133,17 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
       return;
     }
 
+    if (showProviderSetup && mailConfig.providerPreset === "custom") {
+      if (!mailConfig.imapHost.trim()) {
+        setLoginError("Enter your incoming mail server (IMAP) from your provider's manual settings.");
+        return;
+      }
+      if (!mailConfig.smtpHost.trim()) {
+        setLoginError("Enter your outgoing mail server (SMTP) from your provider's manual settings.");
+        return;
+      }
+    }
+
     if (suggestedTenantSlug && !isTesterRoute) {
       setLoginError("Use the tester workspace link above, or open /login/pmail-tester for local demo login.");
       return;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
 import { formatMailConfigSummary, inferProviderPresetFromEmail } from "../constants/mailProviders";
@@ -42,15 +42,8 @@ export function LoginFormCard({
   onRequestWorkspaceAccess,
 }: LoginFormCardProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [customProviderExpanded, setCustomProviderExpanded] = useState(false);
   const isGoogleProvider =
     mailConfig.providerPreset === "google" || inferProviderPresetFromEmail(email) === "google";
-
-  useEffect(() => {
-    if (mailConfig.providerPreset !== "custom") {
-      setCustomProviderExpanded(false);
-    }
-  }, [mailConfig.providerPreset]);
 
   return (
     <div className={`login-form-card${className ? ` ${className}` : ""}`}>
@@ -106,6 +99,79 @@ export function LoginFormCard({
           </section>
         ) : null}
 
+        {showProviderSetup && showCustomFields ? (
+          <section className="login-form-section login-form-section--server" aria-label="Custom mail server settings">
+            <h3 className="login-custom-server-heading">Manual mail client settings</h3>
+            <p className="login-provider-hint login-custom-server-intro">
+              Copy the incoming and outgoing server details from your hosting panel (cPanel, Hostinger, GoDaddy, etc.).
+              Many providers use a hostname like <strong>mail.yourdomain.com</strong> or a shared server such as{" "}
+              <strong>srv04.hostnethub.com</strong>.
+            </p>
+            <div className="mail-onboarding-custom-grid">
+              <label>
+                Incoming server (IMAP)
+                <input
+                  value={mailConfig.imapHost}
+                  onChange={(e) => setMailConfig({ ...mailConfig, imapHost: e.target.value })}
+                  placeholder="e.g. mail.yourdomain.com or srv04.hostnethub.com"
+                  required
+                  autoComplete="off"
+                />
+              </label>
+              <label>
+                IMAP port
+                <input
+                  type="number"
+                  value={mailConfig.imapPort}
+                  onChange={(e) => setMailConfig({ ...mailConfig, imapPort: Number(e.target.value) })}
+                  placeholder="993"
+                  required
+                />
+              </label>
+              <label>
+                Outgoing server (SMTP)
+                <input
+                  value={mailConfig.smtpHost}
+                  onChange={(e) => setMailConfig({ ...mailConfig, smtpHost: e.target.value })}
+                  placeholder="e.g. mail.yourdomain.com or srv04.hostnethub.com"
+                  required
+                  autoComplete="off"
+                />
+              </label>
+              <label>
+                SMTP port
+                <input
+                  type="number"
+                  value={mailConfig.smtpPort}
+                  onChange={(e) => setMailConfig({ ...mailConfig, smtpPort: Number(e.target.value) })}
+                  placeholder="465"
+                  required
+                />
+              </label>
+              <label className="login-check-row">
+                <input
+                  type="checkbox"
+                  checked={mailConfig.imapSecure}
+                  onChange={(e) => setMailConfig({ ...mailConfig, imapSecure: e.target.checked })}
+                />
+                Incoming SSL/TLS (recommended — port 993)
+              </label>
+              <label className="login-check-row">
+                <input
+                  type="checkbox"
+                  checked={mailConfig.smtpSecure}
+                  onChange={(e) => setMailConfig({ ...mailConfig, smtpSecure: e.target.checked })}
+                />
+                Outgoing SSL/TLS (recommended — port 465)
+              </label>
+            </div>
+            <p className="login-provider-hint login-custom-server-ports">
+              Common secure ports: IMAP <strong>993</strong>, SMTP <strong>465</strong>. Non-SSL setups often use IMAP{" "}
+              <strong>143</strong> and SMTP <strong>25</strong> or <strong>587</strong>.
+            </p>
+          </section>
+        ) : null}
+
         {showProviderSetup ? <hr className="login-form-divider" aria-hidden="true" /> : null}
 
         <section className="login-form-section login-form-section--credentials" aria-label="Mailbox credentials">
@@ -148,76 +214,6 @@ export function LoginFormCard({
             Use your current mail provider password not a new password or app password if you are using gmail and others
           </p>
         </section>
-
-        {showProviderSetup && showCustomFields ? <hr className="login-form-divider" aria-hidden="true" /> : null}
-
-        {showProviderSetup && showCustomFields ? (
-          <section className="login-form-section login-form-section--server" aria-label="Server settings">
-            <button
-              type="button"
-              className="login-custom-provider-toggle"
-              aria-expanded={customProviderExpanded}
-              onClick={() => setCustomProviderExpanded((current) => !current)}
-            >
-              <span>Custom server settings</span>
-              <span aria-hidden="true">{customProviderExpanded ? "▾" : "▸"}</span>
-            </button>
-            {customProviderExpanded ? (
-              <div className="mail-onboarding-custom-grid">
-                <label>
-                  IMAP host
-                  <input
-                    value={mailConfig.imapHost}
-                    onChange={(e) => setMailConfig({ ...mailConfig, imapHost: e.target.value })}
-                    required
-                  />
-                </label>
-                <label>
-                  IMAP port
-                  <input
-                    type="number"
-                    value={mailConfig.imapPort}
-                    onChange={(e) => setMailConfig({ ...mailConfig, imapPort: Number(e.target.value) })}
-                    required
-                  />
-                </label>
-                <label>
-                  SMTP host
-                  <input
-                    value={mailConfig.smtpHost}
-                    onChange={(e) => setMailConfig({ ...mailConfig, smtpHost: e.target.value })}
-                    required
-                  />
-                </label>
-                <label>
-                  SMTP port
-                  <input
-                    type="number"
-                    value={mailConfig.smtpPort}
-                    onChange={(e) => setMailConfig({ ...mailConfig, smtpPort: Number(e.target.value) })}
-                    required
-                  />
-                </label>
-                <label className="login-check-row">
-                  <input
-                    type="checkbox"
-                    checked={mailConfig.imapSecure}
-                    onChange={(e) => setMailConfig({ ...mailConfig, imapSecure: e.target.checked })}
-                  />
-                  IMAP SSL/TLS
-                </label>
-                <label className="login-check-row">
-                  <input
-                    type="checkbox"
-                    checked={mailConfig.smtpSecure}
-                    onChange={(e) => setMailConfig({ ...mailConfig, smtpSecure: e.target.checked })}
-                  />
-                  SMTP SSL/TLS
-                </label>
-              </div>
-            ) : null}
-          </section>
-        ) : null}
 
         <hr className="login-form-divider" aria-hidden="true" />
 

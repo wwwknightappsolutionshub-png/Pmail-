@@ -690,8 +690,29 @@ html:has(.login-page) #root {
   background: #f1f5f9;
 }
 
-.login-form-section--server .mail-onboarding-custom-grid {
+.login-custom-server-heading {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.login-custom-server-intro {
+  margin-bottom: 0.75rem;
+}
+
+.login-custom-server-ports {
   margin-top: 0.75rem;
+}
+
+.login-form-section--server {
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--login-border, #dbe3ec);
+  border-radius: 0.75rem;
+  background: #f8fafc;
+}
+
+.login-form-section--server .mail-onboarding-custom-grid {
+  margin-top: 0;
 }
 
 .login-check-row {

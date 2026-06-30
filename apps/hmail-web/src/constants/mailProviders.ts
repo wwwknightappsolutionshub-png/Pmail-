@@ -276,5 +276,8 @@ export function formatMailConfigSummary(config: Pick<LoginMailConfigValues, "pro
   }
   const preset = MAIL_PROVIDER_LIST.find((entry) => entry.key === config.providerPreset);
   const label = preset?.label ?? "Custom";
+  if (config.providerPreset === "custom" && (!config.imapHost.trim() || !config.smtpHost.trim())) {
+    return `${label} — enter incoming and outgoing server settings below`;
+  }
   return `${label} · IMAP ${config.imapHost}:${config.imapPort} · SMTP ${config.smtpHost}:${config.smtpPort}`;
 }
