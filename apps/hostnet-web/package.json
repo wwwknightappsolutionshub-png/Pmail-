@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && node scripts/generate-og-assets.mjs && vite build && node scripts/generate-sitemap.mjs && node scripts/prerender-marketing.mjs",
     "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "og:assets": "node scripts/generate-og-assets.mjs",
+    "sitemap": "node scripts/generate-sitemap.mjs",
+    "prerender": "node scripts/prerender-marketing.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -18,6 +21,9 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "playwright": "^1.51.1",
+    "sharp": "^0.35.2",
+    "sirv": "^3.0.1",
     "typescript": "^5.7.3",
     "vite": "^6.1.0"
   }

@@ -8,6 +8,8 @@ export type SiteSection = {
   imageUrl: string | null;
   ctaLabel: string | null;
   ctaUrl: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
   sortOrder: number;
   isPublished: boolean;
   updatedAt?: string;

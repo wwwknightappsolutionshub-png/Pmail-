@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#0d9488"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="80" y="250" fill="#f8fafc" font-family="Segoe UI, system-ui, sans-serif" font-size="64" font-weight="700">Prohost Cloud</text>
+  <text x="80" y="330" fill="#ccfbf1" font-family="Segoe UI, system-ui, sans-serif" font-size="34">Enterprise hosting · PMail+ branded mail · VPS</text>
+  <text x="80" y="420" fill="#94a3b8" font-family="Segoe UI, system-ui, sans-serif" font-size="24">White-label panels, industry mail workspaces, and infrastructure for modern teams</text>
+</svg>

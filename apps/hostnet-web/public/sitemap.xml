@@ -1,42 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://prohost.cloud/</loc>
+    <loc>http://localhost:5174/</loc>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://prohost.cloud/use-case</loc>
-    <changefreq>weekly</changefreq>
+    <loc>http://localhost:5174/use-case</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://prohost.cloud/use-case/demo/legal</loc>
+    <loc>http://localhost:5174/hosting</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>http://localhost:5174/addons</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>http://localhost:5174/use-case/demo/legal</loc>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://prohost.cloud/use-case/demo/real-estate</loc>
+    <loc>http://localhost:5174/use-case/demo/real-estate</loc>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://prohost.cloud/use-case/demo/accounting</loc>
+    <loc>http://localhost:5174/use-case/demo/accounting</loc>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://prohost.cloud/use-case/demo/recruitment</loc>
+    <loc>http://localhost:5174/use-case/demo/recruitment</loc>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://prohost.cloud/use-case/demo/b2b-services</loc>
+    <loc>http://localhost:5174/use-case/demo/b2b-services</loc>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://prohost.cloud/use-case/demo/healthcare</loc>
+    <loc>http://localhost:5174/use-case/demo/healthcare</loc>
+    <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

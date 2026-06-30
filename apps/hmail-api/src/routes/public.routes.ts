@@ -50,6 +50,12 @@ import {
 import { recordPublicGrowthAnalyticsEvent } from "../services/growth-public-analytics.service.js";
 import { resolveMarketingAssetFile } from "../services/marketing-asset.service.js";
 import { getPmailClientRefreshAt } from "../services/pmail-platform-config.service.js";
+import {
+  buildPublicSitemapXml,
+  getPublicHomeSeo,
+  listPublicSitemapPaths,
+  resolvePublicSiteOrigin,
+} from "../services/public-sitemap.service.js";
 
 export const publicRouter = Router();
 
@@ -58,6 +64,36 @@ publicRouter.get("/pmail-client-refresh", async (_req, res, next) => {
     const refreshAt = await getPmailClientRefreshAt();
     res.setHeader("Cache-Control", "no-store");
     res.json({ refreshAt });
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/sitemap.xml", async (_req, res, next) => {
+  try {
+    const xml = await buildPublicSitemapXml();
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.send(xml);
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/sitemap-paths", async (_req, res, next) => {
+  try {
+    const origin = resolvePublicSiteOrigin();
+    const paths = await listPublicSitemapPaths();
+    res.json({ origin, paths });
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/site-seo", async (_req, res, next) => {
+  try {
+    const seo = await getPublicHomeSeo();
+    res.json({ seo });
   } catch (err) {
     next(err);
   }

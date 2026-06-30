@@ -49,7 +49,7 @@ export function buildCanonicalUrl(origin: string, path: string): string {
 export function applyPageSeo(config: PageSeoConfig, origin = getMarketingSiteOrigin()) {
   const path = config.canonicalPath ?? (typeof window !== "undefined" ? window.location.pathname : "/");
   const url = buildCanonicalUrl(origin, path);
-  const imagePath = config.ogImagePath ?? "/favicon.svg";
+  const imagePath = config.ogImagePath ?? "/og-image.png";
   const imageUrl = buildCanonicalUrl(origin, imagePath);
 
   document.title = config.title;

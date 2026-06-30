@@ -1681,6 +1681,8 @@ model SiteSection {
   imageUrl     String?
   ctaLabel     String?
   ctaUrl       String?
+  metaTitle    String?
+  metaDescription String?
   sortOrder    Int      @default(0)
   isPublished  Boolean  @default(true)
   createdAt    DateTime @default(now())

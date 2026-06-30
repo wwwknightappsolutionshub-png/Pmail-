@@ -25,7 +25,7 @@ export function resolvePmailSeo(pathname: string, tenantSlug?: string): PageSeoC
         "PMail+ login, branded mail sign in, secure webmail, business email login, Prohost Cloud mail",
       canonicalPath: pathname,
       robots: "noindex, nofollow",
-      ogImagePath: "/pwa-512.png",
+      ogImagePath: "/og-pmail.png",
       jsonLd: {
         "@context": "https://schema.org",
         "@type": "WebApplication",
@@ -47,7 +47,7 @@ export function resolvePmailSeo(pathname: string, tenantSlug?: string): PageSeoC
       keywords: "PMail+ onboarding, branded mail setup, workspace mail welcome, Prohost Cloud PMail",
       canonicalPath: pathname,
       robots: "noindex, nofollow",
-      ogImagePath: "/pwa-512.png",
+      ogImagePath: "/og-pmail.png",
     };
   }
 

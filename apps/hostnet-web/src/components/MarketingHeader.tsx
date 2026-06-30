@@ -72,6 +72,15 @@ export function MarketingHeader({ active }: Props) {
           <a href={sectionHref("pmail")} className={navClass("bespoke")} onClick={() => setMenuOpen(false)}>
             Bespoke mail
           </a>
+          <Link to="/hosting" className="marketing-nav-link" onClick={() => setMenuOpen(false)}>
+            Hosting
+          </Link>
+          <Link to="/addons" className="marketing-nav-link" onClick={() => setMenuOpen(false)}>
+            Add-ons
+          </Link>
+          <Link to="/use-case" className="marketing-nav-link" onClick={() => setMenuOpen(false)}>
+            Use cases
+          </Link>
           <a href={sectionHref("growth")} className="marketing-nav-link" onClick={() => setMenuOpen(false)}>
             Growth
           </a>

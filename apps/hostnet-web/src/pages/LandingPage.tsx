@@ -47,6 +47,8 @@ import {
   sectionByKey,
 
 } from "../lib/landingContent";
+import { applyPageSeo } from "../lib/seo";
+import { resolveMarketingSeo } from "../lib/seoConfig";
 
 import {
 
@@ -78,13 +80,20 @@ export function LandingPage() {
 
   }, []);
 
-
-
   const sections = data?.sections ?? [];
 
-
-
   const hero = useMemo(() => sectionByKey(sections, "hero"), [sections]);
+
+  useEffect(() => {
+    const base = resolveMarketingSeo("/");
+    if (hero?.metaTitle || hero?.metaDescription) {
+      applyPageSeo({
+        ...base,
+        title: hero.metaTitle?.trim() || base.title,
+        description: hero.metaDescription?.trim() || base.description,
+      });
+    }
+  }, [hero?.metaTitle, hero?.metaDescription]);
 
   const enterprise = useMemo(() => sectionByKey(sections, "enterprise"), [sections]);
 

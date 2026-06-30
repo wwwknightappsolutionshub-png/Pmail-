@@ -6,9 +6,22 @@ import { pmailBuildPerformance } from "../../scripts/vite-performance.mjs";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, resolve(__dirname, "../.."), "");
   const apiTarget = `http://localhost:${env.API_PORT || "4000"}`;
+  const googleVerification = env.VITE_GOOGLE_SITE_VERIFICATION?.trim();
 
   return {
-    plugins: [react()],
+    plugins: [
+      react(),
+      {
+        name: "html-seo-inject",
+        transformIndexHtml(html) {
+          if (!googleVerification) return html;
+          return html.replace(
+            "</head>",
+            `    <meta name="google-site-verification" content="${googleVerification}" />\n  </head>`,
+          );
+        },
+      },
+    ],
     server: {
       port: 5174,
       proxy: {

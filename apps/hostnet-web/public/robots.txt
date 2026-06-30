@@ -2,10 +2,13 @@ User-agent: *
 Allow: /
 Allow: /use-case
 Allow: /use-case/demo/
+Allow: /hosting
+Allow: /addons
 
 Disallow: /admin
 Disallow: /panel
 Disallow: /growth
 Disallow: /checkout
 
+# Dynamic sitemap is also served at /api/public/sitemap.xml when API is on the same host.
 Sitemap: https://prohost.cloud/sitemap.xml

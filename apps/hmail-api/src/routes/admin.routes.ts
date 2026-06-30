@@ -88,6 +88,8 @@ const sectionSchema = z.object({
   imageUrl: z.string().nullable().optional(),
   ctaLabel: z.string().nullable().optional(),
   ctaUrl: z.string().nullable().optional(),
+  metaTitle: z.string().nullable().optional(),
+  metaDescription: z.string().nullable().optional(),
   sortOrder: z.number().int().optional(),
   isPublished: z.boolean().optional(),
 });

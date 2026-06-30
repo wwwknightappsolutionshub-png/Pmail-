@@ -1,0 +1,87 @@
+.marketing-catalog-page {
+  min-height: 100dvh;
+}
+
+.marketing-catalog-main {
+  padding: 2.5rem 1rem 4rem;
+  max-width: 1100px;
+}
+
+.marketing-catalog-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  color: var(--muted, #64748b);
+  margin: 0 0 0.5rem;
+}
+
+.marketing-catalog-lead {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 52rem;
+  margin: 0 0 2rem;
+}
+
+.marketing-catalog-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.marketing-catalog-card {
+  background: var(--card, rgba(15, 23, 42, 0.55));
+  border: 1px solid var(--border, rgba(148, 163, 184, 0.2));
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.marketing-catalog-card h2 {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 1.25rem;
+}
+
+.marketing-catalog-card ul {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+}
+
+.marketing-catalog-price {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+
+.marketing-catalog-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(13, 148, 136, 0.18);
+  color: #5eead4;
+  margin-bottom: 0.5rem;
+}
+
+.marketing-catalog-back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--accent, #14b8a6);
+  text-decoration: none;
+}
+
+.marketing-catalog-detail-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin: 1.5rem 0 2rem;
+}
+
+.marketing-catalog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.marketing-catalog-cta {
+  margin-top: 2rem;
+}

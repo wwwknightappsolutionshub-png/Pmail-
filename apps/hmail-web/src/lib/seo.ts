@@ -49,7 +49,7 @@ export function buildCanonicalUrl(origin: string, path: string): string {
 export function applyPageSeo(config: PageSeoConfig, origin = getPmailSiteOrigin()) {
   const path = config.canonicalPath ?? (typeof window !== "undefined" ? window.location.pathname : "/");
   const url = buildCanonicalUrl(origin, path);
-  const imagePath = config.ogImagePath ?? "/pwa-512.png";
+  const imagePath = config.ogImagePath ?? "/og-pmail.png";
   const imageUrl = buildCanonicalUrl(origin, imagePath);
 
   document.title = config.title;

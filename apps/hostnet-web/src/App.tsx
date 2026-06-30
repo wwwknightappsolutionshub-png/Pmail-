@@ -6,6 +6,18 @@ import { RouteSeo } from "./components/RouteSeo";
 const LandingPage = lazy(() => import("./pages/LandingPage").then((m) => ({ default: m.LandingPage })));
 const UseCasePage = lazy(() => import("./pages/UseCasePage").then((m) => ({ default: m.UseCasePage })));
 const UseCaseDemoPage = lazy(() => import("./pages/UseCaseDemoPage").then((m) => ({ default: m.UseCaseDemoPage })));
+const MarketingAddonsPage = lazy(() =>
+  import("./pages/MarketingAddonsPage").then((m) => ({ default: m.MarketingAddonsPage })),
+);
+const MarketingAddonDetailPage = lazy(() =>
+  import("./pages/MarketingAddonDetailPage").then((m) => ({ default: m.MarketingAddonDetailPage })),
+);
+const HostingPlansPage = lazy(() =>
+  import("./pages/HostingPlansPage").then((m) => ({ default: m.HostingPlansPage })),
+);
+const HostingPlanDetailPage = lazy(() =>
+  import("./pages/HostingPlanDetailPage").then((m) => ({ default: m.HostingPlanDetailPage })),
+);
 const AdminLoginPage = lazy(() => import("./pages/admin/AdminLoginPage").then((m) => ({ default: m.AdminLoginPage })));
 const AdminDashboardPage = lazy(() =>
   import("./pages/admin/AdminDashboardPage").then((m) => ({ default: m.AdminDashboardPage })),
@@ -104,6 +116,38 @@ export function App() {
           element={
             <LazyRoute>
               <UseCaseDemoPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/hosting"
+          element={
+            <LazyRoute>
+              <HostingPlansPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/hosting/:slug"
+          element={
+            <LazyRoute>
+              <HostingPlanDetailPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/addons"
+          element={
+            <LazyRoute>
+              <MarketingAddonsPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/addons/:slug"
+          element={
+            <LazyRoute>
+              <MarketingAddonDetailPage />
             </LazyRoute>
           }
         />

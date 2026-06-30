@@ -5,12 +5,17 @@ import { resolveMarketingSeo } from "../lib/seoConfig";
 
 export function RouteSeo() {
   const { pathname } = useLocation();
-  const { useCaseId } = useParams<{ useCaseId?: string }>();
+  const { useCaseId, slug } = useParams<{
+    useCaseId?: string;
+    slug?: string;
+  }>();
 
   useEffect(() => {
-    const config = resolveMarketingSeo(pathname, useCaseId);
+    const planSlug = pathname.startsWith("/hosting/") ? slug : undefined;
+    const addonSlug = pathname.startsWith("/addons/") ? slug : undefined;
+    const config = resolveMarketingSeo(pathname, { useCaseId, planSlug, addonSlug });
     applyPageSeo(config);
-  }, [pathname, useCaseId]);
+  }, [pathname, useCaseId, slug]);
 
   return null;
 }

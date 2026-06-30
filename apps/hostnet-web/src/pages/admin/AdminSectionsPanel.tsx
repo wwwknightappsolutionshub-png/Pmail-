@@ -196,6 +196,8 @@ function SectionEditor({
   const [imageUrl, setImageUrl] = useState(section.imageUrl ?? "");
   const [ctaLabel, setCtaLabel] = useState(section.ctaLabel ?? "");
   const [ctaUrl, setCtaUrl] = useState(section.ctaUrl ?? "");
+  const [metaTitle, setMetaTitle] = useState(section.metaTitle ?? "");
+  const [metaDescription, setMetaDescription] = useState(section.metaDescription ?? "");
   const [sortOrder, setSortOrder] = useState(section.sortOrder);
   const [isPublished, setIsPublished] = useState(section.isPublished);
   const [saving, setSaving] = useState(false);
@@ -210,6 +212,8 @@ function SectionEditor({
     setImageUrl(section.imageUrl ?? "");
     setCtaLabel(section.ctaLabel ?? "");
     setCtaUrl(section.ctaUrl ?? "");
+    setMetaTitle(section.metaTitle ?? "");
+    setMetaDescription(section.metaDescription ?? "");
     setSortOrder(section.sortOrder);
     setIsPublished(section.isPublished);
     setDirty(false);
@@ -245,6 +249,8 @@ function SectionEditor({
         imageUrl: imageUrl || null,
         ctaLabel: ctaLabel || null,
         ctaUrl: ctaUrl || null,
+        metaTitle: section.sectionKey === "hero" ? metaTitle || null : undefined,
+        metaDescription: section.sectionKey === "hero" ? metaDescription || null : undefined,
         sortOrder,
         isPublished,
       });
@@ -343,6 +349,34 @@ function SectionEditor({
             Sort order
             <input type="number" value={sortOrder} onChange={(e) => { setSortOrder(Number(e.target.value)); markDirty(); }} />
           </label>
+
+          {section.sectionKey === "hero" ? (
+            <>
+              <label className="admin-sections-field-wide">
+                SEO title (home page)
+                <input
+                  value={metaTitle}
+                  onChange={(e) => {
+                    setMetaTitle(e.target.value);
+                    markDirty();
+                  }}
+                  placeholder="Overrides browser title for prohost.cloud home"
+                />
+              </label>
+              <label className="admin-sections-field-wide">
+                SEO description (home page)
+                <textarea
+                  value={metaDescription}
+                  onChange={(e) => {
+                    setMetaDescription(e.target.value);
+                    markDirty();
+                  }}
+                  rows={3}
+                  placeholder="Meta description for search results"
+                />
+              </label>
+            </>
+          ) : null}
 
           {isContactSection ? (
             <div className="admin-sections-field-wide">

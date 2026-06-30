@@ -10,6 +10,8 @@ export type SiteSectionInput = {
   imageUrl?: string | null;
   ctaLabel?: string | null;
   ctaUrl?: string | null;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   sortOrder?: number;
   isPublished?: boolean;
 };
@@ -33,6 +35,8 @@ function serializeSection(section: SiteSection) {
     imageUrl: section.imageUrl,
     ctaLabel: section.ctaLabel,
     ctaUrl: section.ctaUrl,
+    metaTitle: section.metaTitle,
+    metaDescription: section.metaDescription,
     sortOrder: section.sortOrder,
     isPublished: section.isPublished,
     updatedAt: section.updatedAt.toISOString(),
@@ -70,6 +74,8 @@ export async function createSection(input: SiteSectionInput) {
       imageUrl: input.imageUrl ?? null,
       ctaLabel: input.ctaLabel ?? null,
       ctaUrl: input.ctaUrl ?? null,
+      metaTitle: input.metaTitle ?? null,
+      metaDescription: input.metaDescription ?? null,
       sortOrder: input.sortOrder ?? 0,
       isPublished: input.isPublished ?? true,
     },
@@ -91,6 +97,8 @@ export async function updateSection(id: string, input: Partial<SiteSectionInput>
       ...(input.imageUrl !== undefined ? { imageUrl: input.imageUrl } : {}),
       ...(input.ctaLabel !== undefined ? { ctaLabel: input.ctaLabel } : {}),
       ...(input.ctaUrl !== undefined ? { ctaUrl: input.ctaUrl } : {}),
+      ...(input.metaTitle !== undefined ? { metaTitle: input.metaTitle } : {}),
+      ...(input.metaDescription !== undefined ? { metaDescription: input.metaDescription } : {}),
       ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
       ...(input.isPublished !== undefined ? { isPublished: input.isPublished } : {}),
     },
