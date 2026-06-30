@@ -9,10 +9,11 @@ APP_ROOT="${APP_ROOT:-/var/www/hostnet-panel}"
 cd "$APP_ROOT"
 git fetch origin
 git pull origin "$BRANCH"
-npm install
+# NODE_ENV=production in .env omits devDependencies (vite, playwright, etc.) — force include for builds.
+npm install --include=dev
 npm run db:migrate -w hmail-api
 npm run db:generate -w hmail-api
-npx playwright install chromium 2>/dev/null || true
+npm exec -w hostnet-web -- playwright install chromium 2>/dev/null || true
 npm run build -w hmail-api
 npm run build -w hmail-web
 npm run build -w hostnet-web

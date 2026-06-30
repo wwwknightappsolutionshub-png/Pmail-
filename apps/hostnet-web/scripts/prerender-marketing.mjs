@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 import { createServer } from "node:http";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "dotenv";
-import { chromium } from "playwright";
-import sirv from "sirv";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const appRoot = resolve(__dirname, "..");
@@ -38,6 +36,17 @@ try {
   console.warn("[prerender] Using default route list:", err instanceof Error ? err.message : err);
 }
 
+let chromium;
+let sirv;
+try {
+  ({ chromium } = await import("playwright"));
+  sirv = (await import("sirv")).default;
+} catch (err) {
+  console.warn("[prerender] Skipped — install build deps with: npm install --include=dev");
+  console.warn(err instanceof Error ? err.message : err);
+  process.exit(0);
+}
+
 const serve = sirv(distDir, { dev: false, single: "index.html" });
 const port = 4179;
 
@@ -67,7 +76,7 @@ try {
 
   await browser.close();
 } catch (err) {
-  console.warn("[prerender] Skipped — install Chromium with: npx playwright install chromium");
+  console.warn("[prerender] Skipped — install Chromium with: npm exec -w hostnet-web -- playwright install chromium");
   console.warn(err instanceof Error ? err.message : err);
 } finally {
   server.close();
