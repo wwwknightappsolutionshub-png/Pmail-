@@ -333,6 +333,20 @@ export async function syncCareerMailSignalsForUser(tenantId: string, userId: str
   }
 
   await refreshCareerScore(userId);
+
+  const settings = await prisma.userJobHunterSettings.findUnique({ where: { userId } });
+  const { hasCareerUpsellSignals, maybeSendInboxAddonUpsellEmails } = await import(
+    "./pmail-inbox-addon-upsell.service.js"
+  );
+  const careerSignalsDetected = hasCareerUpsellSignals({
+    careerScore: settings?.careerScore ?? 0,
+    manualJobHuntingOverride: settings?.manualJobHuntingOverride ?? false,
+    upsertedApplications,
+  });
+  void maybeSendInboxAddonUpsellEmails({ tenantId, userId, careerSignalsDetected }).catch((err) => {
+    console.error("[job-hunter] inbox addon upsell failed", err);
+  });
+
   return { scannedMessages, upsertedApplications, skipped: null as null };
 }
 

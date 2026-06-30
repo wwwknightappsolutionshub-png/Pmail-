@@ -4120,8 +4120,7 @@ html:has(.pmail-demo-shell--light) body {
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-tabs-shell--overflow-end::before {
-    width: 2.75rem;
-    background: linear-gradient(90deg, transparent, var(--surface-tabs, rgba(8, 14, 26, 0.96)) 70%);
+    display: none;
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-tabs-shell--overflow-start::after {

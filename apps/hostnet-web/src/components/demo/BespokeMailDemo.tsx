@@ -1695,6 +1695,8 @@ export function BespokeMailDemo({
     if (forcedWorkspace) {
       if (nextWorkspace !== forcedWorkspace) {
         onWorkspaceTabNavigate?.(nextWorkspace);
+      } else if (nextWorkspace === "career" && onCareerTabClick) {
+        onCareerTabClick();
       }
       return;
     }
@@ -2410,7 +2412,13 @@ export function BespokeMailDemo({
           <button
             type="button"
             className={`bespoke-demo-workspace-tab${activeWorkspace === "career" ? " bespoke-demo-workspace-tab--active" : ""}`}
-            onClick={() => (onCareerTabClick && forcedWorkspace !== "career" ? onCareerTabClick() : openWorkspaceTool("career", "Career"))}
+            onClick={() => {
+              if (onCareerTabClick) {
+                onCareerTabClick();
+                return;
+              }
+              openWorkspaceTool("career", "Career");
+            }}
           >
             Career
           </button>

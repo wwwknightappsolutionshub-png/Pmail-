@@ -113,6 +113,9 @@ function readSidebarCollapsedPreference(): boolean | null {
 }
 
 function defaultSidebarCollapsed(): boolean {
+  if (typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches) {
+    return false;
+  }
   return true;
 }
 

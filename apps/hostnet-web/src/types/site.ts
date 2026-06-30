@@ -443,6 +443,7 @@ export type PmailPlatformConfig = {
   mailPushEnabled: boolean;
   mailPushDefaultForUsers: boolean;
   pwaPushAutoSubscribe: boolean;
+  inboxAddonUpsellEnabled: boolean;
   vapidConfigured: boolean;
   clientRefreshAt: string;
   updatedAt: string;

@@ -52,7 +52,14 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
     if (poll) void load();
   }, [poll?.polledAt, isSuperAdmin]);
 
-  async function updatePushConfig(patch: Partial<Pick<PmailPlatformConfig, "mailPushEnabled" | "mailPushDefaultForUsers" | "pwaPushAutoSubscribe">>) {
+  async function updatePushConfig(
+    patch: Partial<
+      Pick<
+        PmailPlatformConfig,
+        "mailPushEnabled" | "mailPushDefaultForUsers" | "pwaPushAutoSubscribe" | "inboxAddonUpsellEnabled"
+      >
+    >,
+  ) {
     if (!pushConfig) return;
     setPushSaving(true);
     setPushError("");
@@ -159,6 +166,7 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
           <div><dt>Platform mail push</dt><dd>{push.mailPushEnabled ? "Enabled" : "Disabled"}</dd></div>
           <div><dt>Default for users</dt><dd>{push.mailPushDefaultForUsers ? "On" : "Off"}</dd></div>
           <div><dt>PWA auto-subscribe</dt><dd>{push.pwaPushAutoSubscribe ? "On" : "Off"}</dd></div>
+          <div><dt>Inbox upsell emails</dt><dd>{pushConfig?.inboxAddonUpsellEnabled !== false ? "On" : "Off"}</dd></div>
           {pushStats ? (
             <>
               <div><dt>Users with push on</dt><dd>{pushStats.pushEnabledUsers}</dd></div>
@@ -201,6 +209,15 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
                 onChange={(e) => void updatePushConfig({ pwaPushAutoSubscribe: e.target.checked })}
               />
               Auto-subscribe PWA on login
+            </label>
+            <label className="admin-toggle">
+              <input
+                type="checkbox"
+                checked={pushConfig.inboxAddonUpsellEnabled}
+                disabled={pushSaving}
+                onChange={(e) => void updatePushConfig({ inboxAddonUpsellEnabled: e.target.checked })}
+              />
+              Auto-send inbox-based add-on upsell emails (e.g. Job Hunter)
             </label>
             {pushError ? <p className="admin-alert admin-alert-error">{pushError}</p> : null}
             {pushBroadcastResult ? <p className="admin-alert admin-alert-success">{pushBroadcastResult}</p> : null}

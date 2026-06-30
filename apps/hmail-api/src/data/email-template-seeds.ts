@@ -470,4 +470,65 @@ Upgrade here: {{ctaUrl}}`,
 <p><a href="{{loginUrl}}">Return to your demo workspace</a> while access is still active.</p>
 <p class="muted">Need help choosing a plan? Reply to this email or request full workspace access at {{registerUrl}}.</p>`),
   },
+  {
+    slug: "pmail-account-welcome",
+    name: "PMail+ account welcome",
+    category: "pmail",
+    subject: "Welcome to {{productName}} — your branded mail workspace",
+    variables: [
+      "fullName",
+      "productName",
+      "ctaUrl",
+      "loginUrl",
+      "workspaceAddonsList",
+      "verticalAddonsList",
+      "workspaceAddonsHtml",
+      "verticalAddonsHtml",
+    ],
+    textBody: `Hi {{fullName}},
+
+Welcome to {{productName}} — the branded mail workspace from Prohost Cloud.
+
+PMail+ connects your existing mailbox (Gmail, Outlook, and more) to a unified inbox with CRM, reminders, open tracking, file vault, industry workspaces, and optional business-vertical add-ons.
+
+Workspace add-ons available in PMail+:
+{{workspaceAddonsList}}
+
+Business vertical add-ons (industry toolkits):
+{{verticalAddonsList}}
+
+Sign in anytime: {{loginUrl}}
+Explore add-ons: {{ctaUrl}}`,
+    htmlBody: WRAPPER(`
+<p>Hi <strong>{{fullName}}</strong>,</p>
+<p>Welcome to <strong>{{productName}}</strong> — your branded mail workspace from Prohost Cloud.</p>
+<p>PMail+ connects your existing mailbox to a unified inbox with CRM, reminders, calendar, open tracking, file vault, e-sign, and industry-specific toolkits you can activate when you need them.</p>
+<p><strong>Workspace add-ons</strong></p>
+{{workspaceAddonsHtml}}
+<p><strong>Business vertical add-ons</strong></p>
+{{verticalAddonsHtml}}
+<p><a class="btn" href="{{loginUrl}}">Open PMail+</a></p>
+<p><a href="{{ctaUrl}}">Browse the add-on marketplace</a></p>
+<p class="muted">You received this email because you signed in or connected a mailbox to PMail+.</p>`),
+  },
+  {
+    slug: "job-hunter-inbox-upsell",
+    name: "Job Hunter inbox signal upsell",
+    category: "pmail",
+    subject: "Activate {{addonName}} — we noticed career activity in your mailbox",
+    variables: ["fullName", "productName", "addonName", "ctaUrl"],
+    textBody: `Hi {{fullName}},
+
+We scanned your inbox and sent mail in {{productName}} and noticed job-search activity — applications, recruiter messages, interview invites, or careers-related mail.
+
+Activate {{addonName}} to unlock CV Hub, application tracking, interview prep, and privacy-first career intelligence inside your mail workspace.
+
+Activate now: {{ctaUrl}}`,
+    htmlBody: WRAPPER(`
+<p>Hi <strong>{{fullName}}</strong>,</p>
+<p>We noticed <strong>career and job-search activity</strong> in your {{productName}} inbox and sent mail — things like applications, recruiter outreach, interview scheduling, or careers newsletters.</p>
+<p>Activate <strong>{{addonName}}</strong> to unlock CV Hub, application tracking, interview prep, and privacy-first career tools built into your mailbox workspace.</p>
+<p><a class="btn" href="{{ctaUrl}}">Activate {{addonName}}</a></p>
+<p class="muted">You can turn off automatic inbox upsell emails from the Prohost super admin panel.</p>`),
+  },
 ];

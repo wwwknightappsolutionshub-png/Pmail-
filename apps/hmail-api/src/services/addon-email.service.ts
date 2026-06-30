@@ -408,3 +408,168 @@ export async function sendPanelWorkspaceTrialEmail(input: {
   });
 }
 
+export async function sendPmailAccountWelcomeEmail(input: {
+  tenantId: string;
+  userEmail: string;
+  fullName: string;
+  workspaceAddonsList: string;
+  verticalAddonsList: string;
+  workspaceAddonsHtml: string;
+  verticalAddonsHtml: string;
+}): Promise<boolean> {
+  const env = getEnv();
+  const marketplaceUrl = resolveMarketplaceUrl();
+  const loginUrl = `${process.env.CORS_ORIGIN?.split(",")[0]?.trim() ?? "http://localhost:5173"}/login`;
+
+  let content: { subject: string; text: string; html: string };
+  try {
+    const rendered = await renderEmailTemplate("pmail-account-welcome", {
+      fullName: input.fullName,
+      ctaUrl: marketplaceUrl,
+      loginUrl,
+      productName: "PMail+",
+      workspaceAddonsList: input.workspaceAddonsList,
+      verticalAddonsList: input.verticalAddonsList,
+      workspaceAddonsHtml: input.workspaceAddonsHtml,
+      verticalAddonsHtml: input.verticalAddonsHtml,
+    });
+    content = {
+      subject: rendered.subject,
+      text: rendered.text?.trim() || rendered.subject,
+      html: rendered.html,
+    };
+  } catch {
+    content = {
+      subject: "Welcome to PMail+",
+      text: `Hi ${input.fullName},\n\nWelcome to PMail+. Explore workspace and industry add-ons: ${marketplaceUrl}`,
+      html: `<p>Hi ${input.fullName},</p><p>Welcome to PMail+.</p><p><a href="${marketplaceUrl}">Explore add-ons</a></p>`,
+    };
+  }
+
+  const emailType = "pmail_account_welcome";
+  const alreadySent = await prisma.addonEmailLog.findFirst({
+    where: { tenantId: input.tenantId, userEmail: input.userEmail, emailType },
+  });
+  if (alreadySent) return false;
+
+  const from = process.env.NURTURE_SMTP_FROM ?? "noreply@hmail.local";
+  const host = process.env.NURTURE_SMTP_HOST;
+
+  if (host) {
+    const transporter = nodemailer.createTransport({
+      host,
+      port: Number(process.env.NURTURE_SMTP_PORT ?? 587),
+      secure: process.env.NURTURE_SMTP_SECURE === "true",
+      requireTLS: process.env.NURTURE_SMTP_SECURE !== "true" && Number(process.env.NURTURE_SMTP_PORT ?? 587) === 587,
+      auth: process.env.NURTURE_SMTP_USER
+        ? {
+            user: process.env.NURTURE_SMTP_USER,
+            pass: process.env.NURTURE_SMTP_PASS ?? "",
+          }
+        : undefined,
+    });
+
+    try {
+      await transporter.sendMail({
+        from,
+        to: input.userEmail,
+        subject: content.subject,
+        text: content.text,
+        html: content.html,
+      });
+    } catch (err) {
+      console.error("[pmail-account-welcome] nurture SMTP send failed", err);
+      return false;
+    }
+  } else if (env.NODE_ENV === "development") {
+    console.info(`[pmail-account-welcome] → ${input.userEmail}: ${content.subject}`);
+  }
+
+  await prisma.addonEmailLog.create({
+    data: {
+      tenantId: input.tenantId,
+      userEmail: input.userEmail,
+      emailType,
+    },
+  });
+  return true;
+}
+
+export async function sendJobHunterInboxUpsellEmail(input: {
+  tenantId: string;
+  userEmail: string;
+  addonSlug: string;
+}): Promise<void> {
+  const env = getEnv();
+  const marketplaceUrl = `${resolveMarketplaceUrl()}?highlight=${encodeURIComponent(input.addonSlug)}`;
+  const fullName = input.userEmail.split("@")[0] || "there";
+  const emailType = "job_hunter_inbox_upsell";
+
+  const alreadySent = await prisma.addonEmailLog.findFirst({
+    where: { tenantId: input.tenantId, userEmail: input.userEmail, emailType },
+  });
+  if (alreadySent) return;
+
+  let content: { subject: string; text: string; html: string };
+  try {
+    const rendered = await renderEmailTemplate("job-hunter-inbox-upsell", {
+      fullName,
+      ctaUrl: marketplaceUrl,
+      productName: "PMail+",
+      addonName: "Job Hunter",
+    });
+    content = {
+      subject: rendered.subject,
+      text: rendered.text?.trim() || rendered.subject,
+      html: rendered.html,
+    };
+  } catch {
+    content = {
+      subject: "Unlock Job Hunter — we noticed career activity in your mailbox",
+      text: `Hi ${fullName},\n\nWe detected job-search signals in your inbox and sent mail. Activate Job Hunter in PMail+ to track applications, build your CV, and prep for interviews.\n\n${marketplaceUrl}`,
+      html: `<p>Hi ${fullName},</p><p>We detected job-search signals in your mailbox. Activate <strong>Job Hunter</strong> in PMail+ to unlock career tools.</p><p><a href="${marketplaceUrl}">Activate Job Hunter</a></p>`,
+    };
+  }
+
+  const from = process.env.NURTURE_SMTP_FROM ?? "noreply@hmail.local";
+  const host = process.env.NURTURE_SMTP_HOST;
+
+  if (host) {
+    const transporter = nodemailer.createTransport({
+      host,
+      port: Number(process.env.NURTURE_SMTP_PORT ?? 587),
+      secure: process.env.NURTURE_SMTP_SECURE === "true",
+      requireTLS: process.env.NURTURE_SMTP_SECURE !== "true" && Number(process.env.NURTURE_SMTP_PORT ?? 587) === 587,
+      auth: process.env.NURTURE_SMTP_USER
+        ? {
+            user: process.env.NURTURE_SMTP_USER,
+            pass: process.env.NURTURE_SMTP_PASS ?? "",
+          }
+        : undefined,
+    });
+
+    try {
+      await transporter.sendMail({
+        from,
+        to: input.userEmail,
+        subject: content.subject,
+        text: content.text,
+        html: content.html,
+      });
+    } catch (err) {
+      console.error("[job-hunter-inbox-upsell] nurture SMTP send failed", err);
+      return;
+    }
+  } else if (env.NODE_ENV === "development") {
+    console.info(`[job-hunter-inbox-upsell] → ${input.userEmail}: ${content.subject}`);
+  }
+
+  await prisma.addonEmailLog.create({
+    data: {
+      tenantId: input.tenantId,
+      userEmail: input.userEmail,
+      emailType,
+    },
+  });
+}
+

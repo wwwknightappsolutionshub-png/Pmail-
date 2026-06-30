@@ -164,6 +164,7 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
       renderMobileFooterNav={<ShellMailFooterNav uiThemeVersion={uiThemeVersion} />}
       showCareerTab={hasJobHunterAccess()}
       forcedWorkspace="career"
+      onCareerTabClick={() => navigate("/career")}
       onWorkspaceTabNavigate={onWorkspaceTabNavigate}
         />
       </MailFooterNavBridgeProvider>

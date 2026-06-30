@@ -188,6 +188,7 @@ export const api = {
     mailPushEnabled?: boolean;
     mailPushDefaultForUsers?: boolean;
     pwaPushAutoSubscribe?: boolean;
+    inboxAddonUpsellEnabled?: boolean;
   }) =>
     request<{ config: PmailPlatformConfig }>("/api/admin/pmail-platform-config", {
       method: "PATCH",

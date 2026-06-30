@@ -137,6 +137,7 @@ model User {
   prospectDemoExpiresAt DateTime?
   prospectDemoPasswordHash String?
   prospectDemoUpsellEmailSent Boolean @default(false)
+  pmailAccountWelcomeEmailSent Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -2634,6 +2635,7 @@ model PmailPlatformConfig {
   mailPushEnabled         Boolean  @default(true)
   mailPushDefaultForUsers Boolean  @default(true)
   pwaPushAutoSubscribe    Boolean  @default(true)
+  inboxAddonUpsellEnabled Boolean  @default(true)
   clientRefreshAt         DateTime @default(now())
   updatedAt               DateTime @updatedAt
 }

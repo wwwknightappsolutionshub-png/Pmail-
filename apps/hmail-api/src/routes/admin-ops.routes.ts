@@ -103,6 +103,7 @@ const pmailPlatformConfigSchema = z.object({
   mailPushEnabled: z.boolean().optional(),
   mailPushDefaultForUsers: z.boolean().optional(),
   pwaPushAutoSubscribe: z.boolean().optional(),
+  inboxAddonUpsellEnabled: z.boolean().optional(),
 });
 
 const pmailPushBroadcastSchema = z.object({

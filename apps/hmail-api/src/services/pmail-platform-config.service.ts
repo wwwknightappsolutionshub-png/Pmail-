@@ -5,6 +5,7 @@ export type PmailPlatformConfigPayload = {
   mailPushEnabled: boolean;
   mailPushDefaultForUsers: boolean;
   pwaPushAutoSubscribe: boolean;
+  inboxAddonUpsellEnabled: boolean;
   vapidConfigured: boolean;
   clientRefreshAt: string;
   updatedAt: string;
@@ -14,12 +15,14 @@ const DEFAULTS = {
   mailPushEnabled: true,
   mailPushDefaultForUsers: true,
   pwaPushAutoSubscribe: true,
+  inboxAddonUpsellEnabled: true,
 } as const;
 
 function serialize(row: {
   mailPushEnabled: boolean;
   mailPushDefaultForUsers: boolean;
   pwaPushAutoSubscribe: boolean;
+  inboxAddonUpsellEnabled: boolean;
   clientRefreshAt: Date;
   updatedAt: Date;
 }): PmailPlatformConfigPayload {
@@ -27,6 +30,7 @@ function serialize(row: {
     mailPushEnabled: row.mailPushEnabled,
     mailPushDefaultForUsers: row.mailPushDefaultForUsers,
     pwaPushAutoSubscribe: row.pwaPushAutoSubscribe,
+    inboxAddonUpsellEnabled: row.inboxAddonUpsellEnabled,
     vapidConfigured: Boolean(getVapidPublicKey()),
     clientRefreshAt: row.clientRefreshAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -69,6 +73,7 @@ export async function updatePmailPlatformConfig(input: {
   mailPushEnabled?: boolean;
   mailPushDefaultForUsers?: boolean;
   pwaPushAutoSubscribe?: boolean;
+  inboxAddonUpsellEnabled?: boolean;
 }): Promise<PmailPlatformConfigPayload> {
   const row = await prisma.pmailPlatformConfig.upsert({
     where: { id: "default" },
@@ -77,6 +82,7 @@ export async function updatePmailPlatformConfig(input: {
       mailPushEnabled: input.mailPushEnabled ?? DEFAULTS.mailPushEnabled,
       mailPushDefaultForUsers: input.mailPushDefaultForUsers ?? DEFAULTS.mailPushDefaultForUsers,
       pwaPushAutoSubscribe: input.pwaPushAutoSubscribe ?? DEFAULTS.pwaPushAutoSubscribe,
+      inboxAddonUpsellEnabled: input.inboxAddonUpsellEnabled ?? DEFAULTS.inboxAddonUpsellEnabled,
     },
     update: {
       ...(input.mailPushEnabled !== undefined ? { mailPushEnabled: input.mailPushEnabled } : {}),
@@ -84,6 +90,9 @@ export async function updatePmailPlatformConfig(input: {
         ? { mailPushDefaultForUsers: input.mailPushDefaultForUsers }
         : {}),
       ...(input.pwaPushAutoSubscribe !== undefined ? { pwaPushAutoSubscribe: input.pwaPushAutoSubscribe } : {}),
+      ...(input.inboxAddonUpsellEnabled !== undefined
+        ? { inboxAddonUpsellEnabled: input.inboxAddonUpsellEnabled }
+        : {}),
     },
   });
 
