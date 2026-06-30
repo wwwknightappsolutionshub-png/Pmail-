@@ -62,7 +62,15 @@ export function AdminTenantOpsPanel({
         />
       )}
       {subTab === "mail" && (
-        <MailForm
+        <>
+          <EducationTenantSuppress
+            tenantId={tenant.id}
+            suppressed={ops.tenant.addonEducationSuppressed ?? false}
+            onReload={reload}
+            onError={onError}
+            onMessage={onMessage}
+          />
+          <MailForm
           tenantId={tenant.id}
           mail={ops.mail}
           onSaved={async () => {
@@ -71,6 +79,7 @@ export function AdminTenantOpsPanel({
           }}
           onError={onError}
         />
+        </>
       )}
       {subTab === "users" && (
         <UsersPanel tenantId={tenant.id} users={ops.users} onReload={reload} onError={onError} onMessage={onMessage} />
@@ -87,6 +96,49 @@ export function AdminTenantOpsPanel({
           onMessage={onMessage}
         />
       )}
+    </div>
+  );
+}
+
+function EducationTenantSuppress({
+  tenantId,
+  suppressed,
+  onReload,
+  onError,
+  onMessage,
+}: {
+  tenantId: string;
+  suppressed: boolean;
+  onReload: () => Promise<unknown>;
+  onError: (msg: string) => void;
+  onMessage: (msg: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+
+  async function toggle(next: boolean) {
+    setBusy(true);
+    try {
+      await api.suppressTenantAddonEducation(tenantId, next);
+      await onReload();
+      onMessage(next ? "Education drip suppressed for tenant" : "Education drip resumed for tenant");
+    } catch (err) {
+      onError(err instanceof ApiError ? err.message : "Failed to update tenant education suppress");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="form-grid" style={{ marginBottom: "1rem" }}>
+      <label className="admin-checkbox-label">
+        <input
+          type="checkbox"
+          checked={suppressed}
+          disabled={busy}
+          onChange={(e) => void toggle(e.target.checked)}
+        />
+        Suppress PMail+ education drip for all users in this tenant
+      </label>
     </div>
   );
 }

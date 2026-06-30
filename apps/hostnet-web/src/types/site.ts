@@ -241,6 +241,22 @@ export type AdminMailUserRecord = TenantMailUser & {
     name: string;
     isActive: boolean;
   };
+  addonEducationOptOut?: boolean;
+  addonEducationSuppressed?: boolean;
+};
+
+export type AddonEducationCampaignStep = {
+  id: string;
+  campaignType: string;
+  stepKey: string;
+  templateSlug: string;
+  sortOrder: number;
+  isActive: boolean;
+  intervalHours: number;
+  resendIntervalHours: number;
+  maxResends: number;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type AdminMailUserSession = {
@@ -274,6 +290,7 @@ export type TenantOpsPayload = {
     slug: string;
     name: string;
     isActive: boolean;
+    addonEducationSuppressed?: boolean;
     createdAt: string;
     counts: {
       users: number;

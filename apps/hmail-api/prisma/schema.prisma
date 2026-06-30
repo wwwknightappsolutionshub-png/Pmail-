@@ -13,6 +13,7 @@ model Tenant {
   slug      String   @unique
   name      String
   isActive  Boolean  @default(true)
+  addonEducationSuppressed Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -53,6 +54,7 @@ model Tenant {
   jobApplyAssistQueues        JobApplyAssistQueue[]
   membershipApplications MembershipApplication[]
   pmailProspects PmailProspect[]
+  addonEducationSends AddonEducationEmailSend[]
   growthWorkspace GrowthWorkspace?
   reContacts ReContact[]
   reListings ReListing[]
@@ -196,6 +198,8 @@ model User {
   pmailReferralsSent         PmailReferralLead[] @relation("PmailReferralSender")
   pmailReferralsConverted    PmailReferralLead[] @relation("PmailReferralConverted")
   pmailProspects             PmailProspect[]
+  addonEducationState        UserAddonEducationState?
+  addonEducationSends        AddonEducationEmailSend[]
 
   @@unique([tenantId, email])
   @@index([businessVertical])
@@ -2605,6 +2609,76 @@ model EmailTemplate {
   updatedAt     DateTime @updatedAt
 
   @@index([category])
+}
+
+model AddonEducationCampaignStep {
+  id                  String   @id @default(uuid())
+  campaignType        String
+  stepKey             String
+  templateSlug        String
+  sortOrder           Int
+  isActive            Boolean  @default(true)
+  intervalHours       Int      @default(48)
+  resendIntervalHours Int      @default(48)
+  maxResends          Int      @default(5)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([campaignType, stepKey])
+  @@index([campaignType, sortOrder])
+}
+
+model UserAddonEducationState {
+  userId                   String   @id
+  panelStepIndex           Int      @default(0)
+  panelStatus              String   @default("pending_welcome")
+  panelPausedStepKey       String?
+  panelNextEligibleAt      DateTime?
+  verticalStatus           String   @default("pending")
+  verticalStepKey          String?
+  verticalNextEligibleAt   DateTime?
+  verticalCompletedAt      DateTime?
+  addonEducationOptOut     Boolean  @default(false)
+  addonEducationSuppressed Boolean  @default(false)
+  enrolledAt               DateTime?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AddonEducationEmailSend {
+  id            String    @id @default(uuid())
+  userId        String
+  tenantId      String
+  userEmail     String
+  campaignType  String
+  stepKey       String
+  templateSlug  String
+  trackingToken String    @unique
+  sentAt        DateTime  @default(now())
+  readAt        DateTime?
+  resendCount   Int       @default(0)
+  status        String    @default("sent")
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clicks AddonEducationEmailClick[]
+
+  @@index([userId, campaignType, stepKey])
+  @@index([trackingToken])
+}
+
+model AddonEducationEmailClick {
+  id         String    @id @default(uuid())
+  sendId     String
+  clickToken String    @unique
+  url        String
+  clickedAt  DateTime?
+
+  send AddonEducationEmailSend @relation(fields: [sendId], references: [id], onDelete: Cascade)
+
+  @@index([sendId])
 }
 
 model PlatformEmailLog {

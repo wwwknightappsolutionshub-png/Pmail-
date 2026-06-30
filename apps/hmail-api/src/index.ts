@@ -24,6 +24,10 @@ import { seedAddonMarketing, ensureAddonMarketing } from "./services/addon-marke
 import { cleanupLegacySiteSections } from "./services/cms.service.js";
 import { seedHostingPlans } from "./services/hosting-plans.service.js";
 import { seedEmailTemplates } from "./services/email-template.service.js";
+import {
+  seedAddonEducationCampaignSteps,
+  seedAddonEducationTemplates,
+} from "./services/addon-education-drip.service.js";
 import { seedPublicFormDefinitions } from "./services/form-definition.service.js";
 
 import { seedTestimonials } from "./services/testimonial.service.js";
@@ -41,6 +45,8 @@ void Promise.all([
   cleanupLegacySiteSections(),
   seedPublicFormDefinitions(),
   seedEmailTemplates(),
+  seedAddonEducationTemplates(),
+  seedAddonEducationCampaignSteps(),
   seedTestimonials(),
   seedGrowthPromptTemplates(),
 ]).catch((err) => {

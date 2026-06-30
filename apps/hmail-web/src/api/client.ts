@@ -1796,6 +1796,13 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
+  educationPreferences: () =>
+    request<{ preferences: { optOut: boolean } }>("/api/mail/education-preferences"),
+  updateEducationPreferences: (body: { optOut: boolean }) =>
+    request<{ preferences: { optOut: boolean } }>("/api/mail/education-preferences", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
   createSignature: (body: { name: string; body: string; avatarUrl?: string; isDefault?: boolean }) =>
     request<{ signature: unknown }>("/api/mail/signatures", { method: "POST", body: JSON.stringify(body) }),
   updateSignature: (id: string, body: Partial<{ name: string; body: string; avatarUrl: string; isDefault: boolean }>) =>

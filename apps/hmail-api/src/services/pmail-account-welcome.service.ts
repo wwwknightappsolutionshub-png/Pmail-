@@ -100,4 +100,9 @@ export async function ensurePmailAccountWelcomeEmail(userId: string): Promise<vo
     where: { id: userId },
     data: { pmailAccountWelcomeEmailSent: true },
   });
+
+  const { activateAddonEducationAfterWelcome } = await import("./addon-education-drip.service.js");
+  void activateAddonEducationAfterWelcome(userId).catch((err) => {
+    console.error("[pmail-account-welcome] addon education enroll failed:", err);
+  });
 }

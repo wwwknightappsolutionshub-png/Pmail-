@@ -11,6 +11,7 @@ export type AdminTab =
   | "accounts"
   | "sales-pipeline"
   | "email-templates"
+  | "addon-education"
   | "marketing"
   | "vps"
   | "billing"
@@ -148,6 +149,15 @@ export const ADMIN_NAV: NavGroup[] = [
         ),
       },
       {
+        id: "addon-education",
+        label: "Education drip",
+        icon: (
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M4 4h12v3H4V4zm0 5h12v2H4V9zm0 4h8v2H4v-2z" />
+          </svg>
+        ),
+      },
+      {
         id: "marketing",
         label: "Marketing",
         icon: (
@@ -233,6 +243,10 @@ export const ADMIN_TAB_META: Record<AdminTab, { title: string; description: stri
   "email-templates": {
     title: "Email templates",
     description: "Branded transactional and marketing templates with visual editor and test send.",
+  },
+  "addon-education": {
+    title: "PMail+ education drip",
+    description: "Panel workspace and vertical add-on education sequences, timing rules, and step order.",
   },
   marketing: {
     title: "Marketing engine",

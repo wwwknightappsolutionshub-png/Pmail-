@@ -55,6 +55,8 @@ export type AdminMailUserRecord = {
     isActive: boolean;
   };
   presence: UserPresenceSnapshot;
+  addonEducationOptOut?: boolean;
+  addonEducationSuppressed?: boolean;
 };
 
 function emptyPresence(): UserPresenceSnapshot {
@@ -181,7 +183,10 @@ export async function getMailUserPresenceStats() {
 }
 
 function serializeMailUserRecord(
-  user: User & { tenant: { id: string; slug: string; name: string; isActive: boolean } },
+  user: User & {
+    tenant: { id: string; slug: string; name: string; isActive: boolean };
+    addonEducationState?: { addonEducationOptOut: boolean; addonEducationSuppressed: boolean } | null;
+  },
   presence: UserPresenceSnapshot,
 ): AdminMailUserRecord {
   return {
@@ -193,6 +198,8 @@ function serializeMailUserRecord(
     createdAt: user.createdAt.toISOString(),
     tenant: user.tenant,
     presence,
+    addonEducationOptOut: user.addonEducationState?.addonEducationOptOut ?? false,
+    addonEducationSuppressed: user.addonEducationState?.addonEducationSuppressed ?? false,
   };
 }
 
@@ -228,6 +235,9 @@ export async function listGlobalMailUsers(input: {
       where,
       include: {
         tenant: { select: { id: true, slug: true, name: true, isActive: true } },
+        addonEducationState: {
+          select: { addonEducationOptOut: true, addonEducationSuppressed: true },
+        },
       },
       orderBy: [{ lastLoginAt: "desc" }, { email: "asc" }],
       skip,
@@ -271,6 +281,9 @@ export async function listOnlineMailUsers() {
     where: { id: { in: userIds } },
     include: {
       tenant: { select: { id: true, slug: true, name: true, isActive: true } },
+      addonEducationState: {
+        select: { addonEducationOptOut: true, addonEducationSuppressed: true },
+      },
     },
     orderBy: [{ lastLoginAt: "desc" }, { email: "asc" }],
   });

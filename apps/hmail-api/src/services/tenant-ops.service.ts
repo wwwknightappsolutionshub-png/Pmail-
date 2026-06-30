@@ -112,6 +112,7 @@ export async function getTenantOperations(tenantId: string) {
       slug: tenant.slug,
       name: tenant.name,
       isActive: tenant.isActive,
+      addonEducationSuppressed: tenant.addonEducationSuppressed,
       createdAt: tenant.createdAt.toISOString(),
       counts: tenant._count,
     },

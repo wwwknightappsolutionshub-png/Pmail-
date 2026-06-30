@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { auditAdminMutation } from "../lib/admin-audit-helper.js";
+import { requireSuperAdmin } from "../middleware/requireSuperAdmin.js";
 import {
   createEmailTemplate,
   deleteEmailTemplate,
@@ -21,6 +22,13 @@ import {
 } from "../services/marketing-ai.service.js";
 import { getSalesPipelineOverview } from "../services/sales-pipeline.service.js";
 import { saveMarketingAsset } from "../services/marketing-asset.service.js";
+import {
+  listAddonEducationCampaignSteps,
+  reorderAddonEducationCampaignSteps,
+  setTenantAddonEducationSuppressed,
+  setUserAddonEducationSuppressed,
+  updateAddonEducationCampaignStep,
+} from "../services/addon-education-drip.service.js";
 
 const templateSchema = z.object({
   slug: z.string().min(1),
@@ -255,6 +263,101 @@ adminMarketingRouter.delete("/sessions/:id", async (req, res, next) => {
     await deleteMarketingSession(paramId(req.params.id));
     res.status(204).send();
   } catch (err) {
+    next(err);
+  }
+});
+
+const campaignStepPatchSchema = z.object({
+  templateSlug: z.string().min(1).optional(),
+  sortOrder: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional(),
+  intervalHours: z.number().int().min(1).optional(),
+  resendIntervalHours: z.number().int().min(1).optional(),
+  maxResends: z.number().int().min(0).optional(),
+});
+
+adminMarketingRouter.get("/addon-education/steps", async (req, res, next) => {
+  try {
+    const campaignType = typeof req.query.campaignType === "string" ? req.query.campaignType : undefined;
+    const steps = await listAddonEducationCampaignSteps(campaignType);
+    res.json({ steps });
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminMarketingRouter.patch("/addon-education/steps/:id", async (req, res, next) => {
+  try {
+    const body = campaignStepPatchSchema.parse(req.body);
+    const step = await updateAddonEducationCampaignStep(paramId(req.params.id), body);
+    await auditAdminMutation(req, "addon_education.step.update", "addon_education_step", paramId(req.params.id));
+    res.json({ step });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+adminMarketingRouter.post("/addon-education/steps/reorder", async (req, res, next) => {
+  try {
+    const body = z
+      .object({
+        campaignType: z.string().min(1),
+        orderedIds: z.array(z.string().min(1)).min(1),
+      })
+      .parse(req.body);
+    await reorderAddonEducationCampaignSteps(body.campaignType, body.orderedIds);
+    await auditAdminMutation(req, "addon_education.steps.reorder", "addon_education_campaign", body.campaignType);
+    const steps = await listAddonEducationCampaignSteps(body.campaignType);
+    res.json({ steps });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+adminMarketingRouter.patch("/addon-education/tenants/:tenantId/suppress", requireSuperAdmin, async (req, res, next) => {
+  try {
+    const suppressed = Boolean(req.body?.suppressed);
+    await setTenantAddonEducationSuppressed(paramId(req.params.tenantId), suppressed);
+    await auditAdminMutation(
+      req,
+      suppressed ? "addon_education.tenant.suppress" : "addon_education.tenant.unsuppress",
+      "tenant",
+      paramId(req.params.tenantId),
+    );
+    res.json({ ok: true, suppressed });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+adminMarketingRouter.patch("/addon-education/users/:userId/suppress", requireSuperAdmin, async (req, res, next) => {
+  try {
+    const suppressed = Boolean(req.body?.suppressed);
+    await setUserAddonEducationSuppressed(paramId(req.params.userId), suppressed);
+    await auditAdminMutation(
+      req,
+      suppressed ? "addon_education.user.suppress" : "addon_education.user.unsuppress",
+      "user",
+      paramId(req.params.userId),
+    );
+    res.json({ ok: true, suppressed });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
     next(err);
   }
 });

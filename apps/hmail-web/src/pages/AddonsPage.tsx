@@ -92,10 +92,27 @@ export function AddonsPage() {
   const [paying, setPaying] = useState(false);
   const [trialStarting, setTrialStarting] = useState<string | null>(null);
   const [activatingStandard, setActivatingStandard] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const highlight = searchParams.get("highlight");
   const subscribed = searchParams.get("subscribed");
   const cancelled = searchParams.get("cancelled");
+  const educationOptOut = searchParams.get("education-opt-out");
+  const [educationNotice, setEducationNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (educationOptOut !== "1") return;
+    void api
+      .updateEducationPreferences({ optOut: true })
+      .then(() => {
+        setEducationNotice("You have been unsubscribed from PMail+ education emails.");
+        const next = new URLSearchParams(searchParams);
+        next.delete("education-opt-out");
+        setSearchParams(next, { replace: true });
+      })
+      .catch((err) => {
+        setEducationNotice(err instanceof ApiError ? err.message : "Unable to update email preferences");
+      });
+  }, [educationOptOut, searchParams, setSearchParams]);
 
   const businessVertical = (user?.businessVertical ?? "free-basic") as WorkspaceVertical;
   const initialWorkspace = resolveInitialWorkspace(businessVertical);
@@ -381,6 +398,12 @@ export function AddonsPage() {
         {(error || checkoutError) ? (
           <div className="addons-error" role="alert">
             {checkoutError || error}
+          </div>
+        ) : null}
+
+        {educationNotice ? (
+          <div className="addons-success" role="status">
+            {educationNotice}
           </div>
         ) : null}
 

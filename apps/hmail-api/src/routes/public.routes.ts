@@ -15,6 +15,10 @@ import {
   testMailProviderConnection,
 } from "../services/mail-onboarding.service.js";
 import { recordTrackingOpen, recordLinkClick } from "../services/tracking.service.js";
+import {
+  recordAddonEducationClick,
+  recordAddonEducationOpen,
+} from "../services/addon-education-drip.service.js";
 import { recordVaultDownload } from "../services/file-vault.service.js";
 import { recordEsignDownload } from "../services/esign.service.js";
 import { recordSlaReportDownload } from "../services/email-sla.service.js";
@@ -375,6 +379,34 @@ const TRACKING_GIF = Buffer.from(
   "R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==",
   "base64",
 );
+
+publicRouter.get("/education/track/:token.gif", async (req, res, next) => {
+  try {
+    const token = String(req.params.token).replace(/\.gif$/, "");
+    await recordAddonEducationOpen(token);
+    res.setHeader("Content-Type", "image/gif");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("X-Tracking-Notice", "Education open-tracking pixel; see /api/public/privacy");
+    res.send(TRACKING_GIF);
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/education/click/:token", async (req, res, next) => {
+  try {
+    const destination = await recordAddonEducationClick(String(req.params.token));
+    if (!destination) {
+      res.status(404).json({ error: "Link not found" });
+      return;
+    }
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("X-Tracking-Notice", "Education link-click redirect; see /api/public/privacy");
+    res.redirect(302, destination);
+  } catch (err) {
+    next(err);
+  }
+});
 
 publicRouter.get("/track/:token.gif", async (req, res, next) => {
   try {

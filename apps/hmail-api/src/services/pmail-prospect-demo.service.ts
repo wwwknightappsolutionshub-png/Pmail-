@@ -293,6 +293,11 @@ export async function provisionPmailProspectDemo(prospectId: string): Promise<Pr
     },
   });
 
+  const { activateAddonEducationAfterWelcome } = await import("./addon-education-drip.service.js");
+  void activateAddonEducationAfterWelcome(user.id).catch((err) => {
+    console.error("[pmail-prospect-demo] addon education enroll failed:", err);
+  });
+
   return {
     tenantId: tenant.id,
     tenantSlug: tenant.slug,

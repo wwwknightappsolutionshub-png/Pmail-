@@ -16,6 +16,10 @@ import {
 } from "../services/imap.service.js";
 import { tenantHasAddonAccess } from "../services/addon.service.js";
 import {
+  getUserAddonEducationPreferences,
+  setUserAddonEducationOptOut,
+} from "../services/addon-education-drip.service.js";
+import {
   createAutoReply,
   createSignature,
   deleteAutoReply,
@@ -443,6 +447,30 @@ mailRouter.get("/messages/:uid/attachments/:partId", async (req, res, next) => {
     res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
     res.send(file.content);
   } catch (err) {
+    next(err);
+  }
+});
+
+mailRouter.get("/education-preferences", async (req, res, next) => {
+  try {
+    const preferences = await getUserAddonEducationPreferences(req.auth!.user.id);
+    res.json({ preferences });
+  } catch (err) {
+    next(err);
+  }
+});
+
+mailRouter.patch("/education-preferences", async (req, res, next) => {
+  try {
+    const optOut = Boolean(req.body?.optOut);
+    await setUserAddonEducationOptOut(req.auth!.user.id, optOut);
+    const preferences = await getUserAddonEducationPreferences(req.auth!.user.id);
+    res.json({ preferences });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
     next(err);
   }
 });

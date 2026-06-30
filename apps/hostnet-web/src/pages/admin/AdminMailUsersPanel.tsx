@@ -40,6 +40,22 @@ export function AdminMailUsersPanel({ tenants, pollKey, isSuperAdmin = false, on
   const [userSessions, setUserSessions] = useState<AdminMailUserSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [flushingSessions, setFlushingSessions] = useState(false);
+  const [suppressingUserId, setSuppressingUserId] = useState<string | null>(null);
+
+  async function toggleEducationSuppress(userId: string, suppressed: boolean) {
+    setSuppressingUserId(userId);
+    try {
+      await api.suppressUserAddonEducation(userId, suppressed);
+      setUsers((prev) =>
+        prev.map((user) => (user.id === userId ? { ...user, addonEducationSuppressed: suppressed } : user)),
+      );
+      onMessage?.(suppressed ? "Education drip suppressed for user" : "Education drip resumed for user");
+    } catch (err) {
+      onError(err instanceof ApiError ? err.message : "Failed to update education suppress");
+    } finally {
+      setSuppressingUserId(null);
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -306,6 +322,7 @@ export function AdminMailUsersPanel({ tenants, pollKey, isSuperAdmin = false, on
                     <th>Last active</th>
                     <th>Sessions</th>
                     <th>Active</th>
+                    {isSuperAdmin ? <th>Education</th> : null}
                     <th />
                   </tr>
                 </thead>
@@ -329,6 +346,24 @@ export function AdminMailUsersPanel({ tenants, pollKey, isSuperAdmin = false, on
                         <td>{formatWhen(user.presence.lastActiveAt)}</td>
                         <td>{user.presence.activeSessionCount}</td>
                         <td>{user.isActive ? "Yes" : "No"}</td>
+                        {isSuperAdmin ? (
+                          <td>
+                            {user.addonEducationOptOut ? (
+                              <span className="muted">User opted out</span>
+                            ) : (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                disabled={suppressingUserId === user.id}
+                                onClick={() =>
+                                  void toggleEducationSuppress(user.id, !user.addonEducationSuppressed)
+                                }
+                              >
+                                {user.addonEducationSuppressed ? "Resume drip" : "Suppress drip"}
+                              </button>
+                            )}
+                          </td>
+                        ) : null}
                         <td>
                           <button type="button" className="btn btn-secondary btn-sm" onClick={() => toggleSessions(user.id)}>
                             {expandedUserId === user.id ? "Hide" : "Sessions"}
@@ -337,7 +372,7 @@ export function AdminMailUsersPanel({ tenants, pollKey, isSuperAdmin = false, on
                       </tr>
                       {expandedUserId === user.id ? (
                         <tr key={`${user.id}-sessions`} className="admin-mail-user-sessions-row">
-                          <td colSpan={9}>
+                          <td colSpan={isSuperAdmin ? 10 : 9}>
                             {sessionsLoading ? (
                               <p className="muted">Loading sessions…</p>
                             ) : userSessions.length === 0 ? (

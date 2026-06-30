@@ -687,6 +687,34 @@ export const api = {
       body: JSON.stringify({ to, variables }),
     }),
 
+  adminAddonEducationSteps: (campaignType?: string) =>
+    request<{ steps: import("../types/site").AddonEducationCampaignStep[] }>(
+      `/api/admin/marketing/addon-education/steps${campaignType ? `?campaignType=${encodeURIComponent(campaignType)}` : ""}`,
+    ),
+  updateAdminAddonEducationStep: (
+    id: string,
+    body: Partial<import("../types/site").AddonEducationCampaignStep>,
+  ) =>
+    request<{ step: import("../types/site").AddonEducationCampaignStep }>(
+      `/api/admin/marketing/addon-education/steps/${id}`,
+      { method: "PATCH", body: JSON.stringify(body) },
+    ),
+  reorderAdminAddonEducationSteps: (campaignType: string, orderedIds: string[]) =>
+    request<{ steps: import("../types/site").AddonEducationCampaignStep[] }>(
+      "/api/admin/marketing/addon-education/steps/reorder",
+      { method: "POST", body: JSON.stringify({ campaignType, orderedIds }) },
+    ),
+  suppressTenantAddonEducation: (tenantId: string, suppressed: boolean) =>
+    request<{ ok: boolean; suppressed: boolean }>(
+      `/api/admin/marketing/addon-education/tenants/${tenantId}/suppress`,
+      { method: "PATCH", body: JSON.stringify({ suppressed }) },
+    ),
+  suppressUserAddonEducation: (userId: string, suppressed: boolean) =>
+    request<{ ok: boolean; suppressed: boolean }>(
+      `/api/admin/marketing/addon-education/users/${userId}/suppress`,
+      { method: "PATCH", body: JSON.stringify({ suppressed }) },
+    ),
+
   adminMarketingConfig: () =>
     request<{ config: import("../types/site").MarketingPlatformConfig }>("/api/admin/marketing/config"),
   updateAdminMarketingConfig: (body: Partial<{

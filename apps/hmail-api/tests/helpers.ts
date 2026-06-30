@@ -144,6 +144,10 @@ export async function resetTestDatabase(): Promise<void> {
   await prisma.b2bProposalTemplate.deleteMany();
   await prisma.hcReferralTemplate.deleteMany();
   await prisma.addonEmailLog.deleteMany();
+  await prisma.addonEducationEmailClick.deleteMany();
+  await prisma.addonEducationEmailSend.deleteMany();
+  await prisma.userAddonEducationState.deleteMany();
+  await prisma.addonEducationCampaignStep.deleteMany();
   await prisma.tenantAddonTrial.deleteMany();
   await prisma.tenantAddonSubscription.deleteMany();
   await prisma.addonMarketing.deleteMany();

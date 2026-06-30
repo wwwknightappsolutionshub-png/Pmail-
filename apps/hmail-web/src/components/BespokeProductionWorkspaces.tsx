@@ -7,6 +7,7 @@ import { JobHunterPanel } from "./JobHunterPanel";
 import { ProductionWorkspaceFrame } from "./ProductionWorkspaceFrame";
 import { ProviderSettingsPanel } from "./ProviderSettingsPanel";
 import { PwaPushSettings } from "./PwaPushSettings";
+import { AddonEducationOptOutSettings } from "./AddonEducationOptOutSettings";
 import { CalendarPanel, ComposeSettingsPanel, WorkspaceCrmPanel, WorkspaceRemindersPanel } from "./WorkspacePanels";
 import { toolAddonSlug } from "../constants/addonTools";
 import { virtualViewTitle, VIEW_CALENDAR, VIEW_CONTACTS, VIEW_JOB_HUNTER_SETTINGS, VIEW_WORKSPACE_CRM, VIEW_WORKSPACE_REMINDERS } from "../constants/mailViews";
@@ -96,6 +97,7 @@ export function renderBespokeProductionWorkspace(
         <div className="bespoke-production-settings-stack">
           <ComposeSettingsPanel onMessage={onWorkspaceMessage} />
           <ProviderSettingsPanel />
+          <AddonEducationOptOutSettings />
           <PwaPushSettings />
         </div>
       );

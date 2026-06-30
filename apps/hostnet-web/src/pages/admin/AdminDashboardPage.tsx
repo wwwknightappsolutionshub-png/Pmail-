@@ -9,6 +9,7 @@ import { AdminSectionsPanel } from "./AdminSectionsPanel";
 import { AdminDashboardHome } from "./AdminDashboardHome";
 import { AdminSalesPipelinePage } from "./AdminSalesPipelinePage";
 import { AdminEmailTemplatesPanel } from "./AdminEmailTemplatesPanel";
+import { AdminAddonEducationPanel } from "./AdminAddonEducationPanel";
 import { AdminTestimonialsPanel } from "./AdminTestimonialsPanel";
 import { AdminMailUsersPanel } from "./AdminMailUsersPanel";
 import { AdminMarketingPanel } from "./AdminMarketingPanel";
@@ -345,6 +346,19 @@ export function AdminDashboardPage() {
 
           {tab === "email-templates" && (
             <AdminEmailTemplatesPanel
+              onError={(err) => {
+                setError(err);
+                setMessage(null);
+              }}
+              onMessage={(msg) => {
+                setMessage(msg);
+                setError(null);
+              }}
+            />
+          )}
+
+          {tab === "addon-education" && (
+            <AdminAddonEducationPanel
               onError={(err) => {
                 setError(err);
                 setMessage(null);
