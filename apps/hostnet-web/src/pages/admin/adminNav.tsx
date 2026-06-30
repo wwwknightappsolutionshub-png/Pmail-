@@ -13,6 +13,7 @@ export type AdminTab =
   | "email-templates"
   | "addon-education"
   | "marketing"
+  | "seo"
   | "vps"
   | "billing"
   | "system"
@@ -166,6 +167,16 @@ export const ADMIN_NAV: NavGroup[] = [
           </svg>
         ),
       },
+      {
+        id: "seo",
+        label: "SEO center",
+        icon: (
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M8.5 3a5.5 5.5 0 104.2 9.1l3.2 3.2 1.4-1.4-3.2-3.2A5.5 5.5 0 008.5 3zm0 2a3.5 3.5 0 110 7 3.5 3.5 0 010-7z" />
+          </svg>
+        ),
+        superAdminOnly: true,
+      },
     ],
   },
   {
@@ -251,6 +262,10 @@ export const ADMIN_TAB_META: Record<AdminTab, { title: string; description: stri
   marketing: {
     title: "Marketing engine",
     description: "SEO, Google Ads guidance, AI strategist, and conversion playbooks to drive revenue from day one.",
+  },
+  seo: {
+    title: "SEO command center",
+    description: "Weekly and monthly discoverability monitoring, Search Console sync, recurring tasks, and blog articles.",
   },
   vps: {
     title: "VPS instances",

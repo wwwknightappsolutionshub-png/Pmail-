@@ -19,3 +19,4 @@ npm run build -w hostnet-web
 sudo systemctl restart hmail-api
 echo "Deploy complete on branch: $BRANCH"
 echo "SEO: set VITE_HOSTNET_WEB_URL, VITE_HMAIL_URL, PUBLIC_SITE_URL, and VITE_GOOGLE_SITE_VERIFICATION in .env before build."
+echo "SEO center: super-admin → SEO center for monitoring, articles, and optional GSC API sync."

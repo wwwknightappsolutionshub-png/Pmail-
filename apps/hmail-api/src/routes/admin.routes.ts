@@ -59,6 +59,7 @@ import { auditAdminMutation } from "../lib/admin-audit-helper.js";
 import { adminOpsRouter } from "./admin-ops.routes.js";
 import { adminSalesRouter } from "./admin-sales.routes.js";
 import { adminMarketingRouter } from "./admin-marketing.routes.js";
+import { adminSeoRouter } from "./admin-seo.routes.js";
 import { listMarketingLeads, updateMarketingLead, getMarketingLeadStats } from "../services/marketing-leads.service.js";
 import { getPmailReferralLeadStats, listPmailReferralLeads } from "../services/referral-lead.service.js";
 import {
@@ -708,3 +709,4 @@ adminRouter.patch("/pmail-prospects/:id", requireSuperAdmin, async (req, res, ne
 adminRouter.use(adminOpsRouter);
 adminRouter.use("/sales", adminSalesRouter);
 adminRouter.use("/marketing", adminMarketingRouter);
+adminRouter.use("/seo", adminSeoRouter);

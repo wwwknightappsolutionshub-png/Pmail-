@@ -13,6 +13,7 @@ import { AdminAddonEducationPanel } from "./AdminAddonEducationPanel";
 import { AdminTestimonialsPanel } from "./AdminTestimonialsPanel";
 import { AdminMailUsersPanel } from "./AdminMailUsersPanel";
 import { AdminMarketingPanel } from "./AdminMarketingPanel";
+import { AdminSeoCenterPanel } from "./AdminSeoCenterPanel";
 import { AdminPageHeader } from "./AdminPageHeader";
 import { AdminPlatformAdminsPanel } from "./AdminPlatformAdminsPanel";
 import { AdminTenantOpsPanel } from "./AdminTenantOpsPanel";
@@ -37,6 +38,7 @@ export function AdminDashboardPage() {
   const [tenantOpsId, setTenantOpsId] = useState<string | null>(null);
   const [commandOpen, setCommandOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [seoActionCount, setSeoActionCount] = useState(0);
   const { snapshot: poll } = useAdminPoll(Boolean(admin));
 
   useCommandPaletteShortcut(() => setCommandOpen(true));
@@ -62,6 +64,14 @@ export function AdminDashboardPage() {
       .catch(() => setAdmin(null))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!admin || admin.role !== "super_admin") return;
+    api
+      .adminSeoOverview()
+      .then((res) => setSeoActionCount(res.overview.actionCount))
+      .catch(() => setSeoActionCount(0));
+  }, [admin, tab]);
 
   async function logout() {
     await api.adminLogout();
@@ -116,6 +126,11 @@ export function AdminDashboardPage() {
                     {item.id === "mail-users" && (poll?.presence.onlineNow ?? 0) > 0 ? (
                       <span className="admin-nav-badge" aria-label={`${poll?.presence.onlineNow} users online`}>
                         {poll?.presence.onlineNow}
+                      </span>
+                    ) : null}
+                    {item.id === "seo" && seoActionCount > 0 ? (
+                      <span className="admin-nav-badge" aria-label={`${seoActionCount} SEO actions needed`}>
+                        {seoActionCount}
                       </span>
                     ) : null}
                   </button>
@@ -372,6 +387,19 @@ export function AdminDashboardPage() {
 
           {tab === "marketing" && (
             <AdminMarketingPanel
+              onError={(err) => {
+                setError(err);
+                setMessage(null);
+              }}
+              onMessage={(msg) => {
+                setMessage(msg);
+                setError(null);
+              }}
+            />
+          )}
+
+          {tab === "seo" && admin.role === "super_admin" && (
+            <AdminSeoCenterPanel
               onError={(err) => {
                 setError(err);
                 setMessage(null);

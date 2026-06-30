@@ -18,6 +18,15 @@ const HostingPlansPage = lazy(() =>
 const HostingPlanDetailPage = lazy(() =>
   import("./pages/HostingPlanDetailPage").then((m) => ({ default: m.HostingPlanDetailPage })),
 );
+const MarketingBlogPage = lazy(() =>
+  import("./pages/MarketingBlogPage").then((m) => ({ default: m.MarketingBlogPage })),
+);
+const MarketingBlogArticlePage = lazy(() =>
+  import("./pages/MarketingBlogArticlePage").then((m) => ({ default: m.MarketingBlogArticlePage })),
+);
+const MarketingAnalytics = lazy(() =>
+  import("./components/MarketingAnalytics").then((m) => ({ default: m.MarketingAnalytics })),
+);
 const AdminLoginPage = lazy(() => import("./pages/admin/AdminLoginPage").then((m) => ({ default: m.AdminLoginPage })));
 const AdminDashboardPage = lazy(() =>
   import("./pages/admin/AdminDashboardPage").then((m) => ({ default: m.AdminDashboardPage })),
@@ -94,6 +103,9 @@ export function App() {
   return (
     <MarketingThemeProvider>
       <RouteSeo />
+      <LazyRoute>
+        <MarketingAnalytics />
+      </LazyRoute>
       <Routes>
         <Route
           path="/"
@@ -148,6 +160,22 @@ export function App() {
           element={
             <LazyRoute>
               <MarketingAddonDetailPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/blog"
+          element={
+            <LazyRoute>
+              <MarketingBlogPage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/blog/:slug"
+          element={
+            <LazyRoute>
+              <MarketingBlogArticlePage />
             </LazyRoute>
           }
         />

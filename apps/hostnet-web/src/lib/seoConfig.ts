@@ -131,7 +131,7 @@ function slugToLabel(slug: string): string {
 
 export function resolveMarketingSeo(
   pathname: string,
-  params?: { useCaseId?: string; planSlug?: string; addonSlug?: string },
+  params?: { useCaseId?: string; planSlug?: string; addonSlug?: string; articleSlug?: string },
 ): PageSeoConfig {
   const origin = getMarketingSiteOrigin();
   const useCaseId = params?.useCaseId;
@@ -273,6 +273,39 @@ export function resolveMarketingSeo(
     return { ...NOINDEX, canonicalPath: pathname };
   }
 
+  if (pathname === "/blog") {
+    return {
+      title: `Resources & Guides | Hosting, PMail+ & Growth | ${BRAND}`,
+      description:
+        "Articles on enterprise hosting, white-label mail, reseller panels, and PMail+ workspace tools from the Prohost Cloud team.",
+      keywords: "hosting blog, PMail+ guides, reseller hosting tips, business email resources, Prohost Cloud articles",
+      canonicalPath: "/blog",
+      ogImagePath: DEFAULT_OG,
+      jsonLd: breadcrumbJsonLd(origin, [
+        { name: "Home", path: "/" },
+        { name: "Resources", path: "/blog" },
+      ]),
+    };
+  }
+
+  const blogMatch = pathname.match(/^\/blog\/([^/]+)$/);
+  if (blogMatch) {
+    const slug = params?.articleSlug ?? blogMatch[1];
+    const label = slugToLabel(slug);
+    return {
+      title: `${label} | ${BRAND} Resources`,
+      description: `Read ${label} on Prohost Cloud — hosting, PMail+, and growth resources for modern teams.`,
+      canonicalPath: `/blog/${slug}`,
+      ogImagePath: DEFAULT_OG,
+      ogType: "article",
+      jsonLd: breadcrumbJsonLd(origin, [
+        { name: "Home", path: "/" },
+        { name: "Resources", path: "/blog" },
+        { name: label, path: `/blog/${slug}` },
+      ]),
+    };
+  }
+
   return {
     ...NOINDEX,
     title: `${BRAND}`,
@@ -285,5 +318,6 @@ export const MARKETING_SITEMAP_PATHS = [
   "/use-case",
   "/hosting",
   "/addons",
+  "/blog",
   ...BESPOKE_MAIL_USE_CASES.map((useCase) => `/use-case/demo/${useCase.id}`),
 ] as const;

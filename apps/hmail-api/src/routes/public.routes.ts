@@ -56,6 +56,11 @@ import {
   listPublicSitemapPaths,
   resolvePublicSiteOrigin,
 } from "../services/public-sitemap.service.js";
+import {
+  getPublishedPlatformArticleBySlug,
+  listPublishedPlatformArticles,
+} from "../services/platform-marketing-article.service.js";
+import { getPlatformSeoPublicConfig } from "../services/platform-seo.service.js";
 
 export const publicRouter = Router();
 
@@ -92,8 +97,30 @@ publicRouter.get("/sitemap-paths", async (_req, res, next) => {
 
 publicRouter.get("/site-seo", async (_req, res, next) => {
   try {
-    const seo = await getPublicHomeSeo();
-    res.json({ seo });
+    const [seo, platformSeo] = await Promise.all([getPublicHomeSeo(), getPlatformSeoPublicConfig()]);
+    res.json({ seo, platformSeo });
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/articles", async (_req, res, next) => {
+  try {
+    const articles = await listPublishedPlatformArticles();
+    res.json({ articles });
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/articles/:slug", async (req, res, next) => {
+  try {
+    const article = await getPublishedPlatformArticleBySlug(String(req.params.slug));
+    if (!article) {
+      res.status(404).json({ error: "Article not found" });
+      return;
+    }
+    res.json({ article });
   } catch (err) {
     next(err);
   }

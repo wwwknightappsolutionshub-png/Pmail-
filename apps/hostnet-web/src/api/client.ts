@@ -1026,6 +1026,80 @@ export const api = {
       body: JSON.stringify(body),
     }),
   growthContentLlmStatus: () => request<{ configured: boolean }>("/api/growth/content/llm-status"),
+
+  publicArticles: () => request<{ articles: import("../types/site").PlatformMarketingArticle[] }>("/api/public/articles"),
+  publicArticle: (slug: string) =>
+    request<{ article: import("../types/site").PlatformMarketingArticle }>(`/api/public/articles/${encodeURIComponent(slug)}`),
+
+  adminSeoOverview: () => request<{ overview: import("../types/site").PlatformSeoOverview }>("/api/admin/seo/overview"),
+  adminSeoUpdateSettings: (body: Partial<{
+    siteUrl: string;
+    gscPropertyUrl: string | null;
+    gscRefreshToken: string | null;
+    ga4MeasurementId: string | null;
+    bingSiteVerification: string | null;
+    defaultLocale: string;
+    alternateLocales: string[];
+  }>) =>
+    request<{ settings: import("../types/site").PlatformSeoSettings }>("/api/admin/seo/settings", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  adminSeoScan: (period: "weekly" | "monthly" = "weekly") =>
+    request<{ snapshot: import("../types/site").PlatformSeoSnapshot }>("/api/admin/seo/scan", {
+      method: "POST",
+      body: JSON.stringify({ period }),
+    }),
+  adminSeoSyncGsc: () =>
+    request<{ connected: boolean; keywords: import("../types/site").PlatformSeoKeyword[] }>("/api/admin/seo/sync/gsc", {
+      method: "POST",
+      body: JSON.stringify({}),
+    }),
+  adminSeoCompleteTask: (id: string, status: "done" | "skipped" = "done") =>
+    request<{ task: import("../types/site").PlatformSeoTask }>(`/api/admin/seo/tasks/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
+  adminSeoArticles: () =>
+    request<{ articles: import("../types/site").PlatformMarketingArticle[] }>("/api/admin/seo/articles"),
+  adminSeoCreateArticle: (body: {
+    title: string;
+    slug?: string;
+    excerpt?: string | null;
+    bodyHtml?: string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    locale?: string;
+    faq?: import("../types/site").PlatformArticleFaqItem[];
+    isPublished?: boolean;
+  }) =>
+    request<{ article: import("../types/site").PlatformMarketingArticle }>("/api/admin/seo/articles", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  adminSeoUpdateArticle: (
+    id: string,
+    body: Partial<{
+      title: string;
+      slug: string;
+      excerpt: string | null;
+      bodyHtml: string;
+      metaTitle: string | null;
+      metaDescription: string | null;
+      locale: string;
+      faq: import("../types/site").PlatformArticleFaqItem[];
+      isPublished: boolean;
+    }>,
+  ) =>
+    request<{ article: import("../types/site").PlatformMarketingArticle }>(`/api/admin/seo/articles/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  adminSeoUpsertKeyword: (body: { keyword: string; targetPath?: string | null }) =>
+    request<{ keyword: import("../types/site").PlatformSeoKeyword }>("/api/admin/seo/keywords", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
 
 export function formatPrice(cents: number, period = "monthly"): string {

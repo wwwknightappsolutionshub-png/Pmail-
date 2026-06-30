@@ -2850,3 +2850,188 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── SEO command center ─────────────────────────────────────── */
+
+.admin-seo-center {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.admin-seo-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-seo-summary-card {
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 0.85rem 1rem;
+  background: var(--admin-surface);
+}
+
+.admin-seo-summary-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--admin-muted);
+  margin-bottom: 0.35rem;
+}
+
+.admin-seo-summary-value {
+  font-size: 1.35rem;
+}
+
+.admin-seo-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-seo-tab {
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.admin-seo-tab.active {
+  border-color: var(--admin-accent);
+  background: rgba(13, 148, 136, 0.12);
+}
+
+.admin-seo-panel {
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 1rem;
+  background: var(--admin-surface);
+}
+
+.admin-seo-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.admin-seo-task-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.admin-seo-task-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border);
+  border-left-width: 4px;
+}
+
+.admin-seo-task-card h4 {
+  margin: 0.35rem 0;
+}
+
+.admin-seo-task-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+}
+
+.admin-seo-task-meta {
+  font-size: 0.8rem;
+  margin: 0.35rem 0 0;
+}
+
+.admin-seo-severity-critical,
+.admin-seo-task-card.admin-seo-severity-critical {
+  border-left-color: #dc2626;
+}
+
+.admin-seo-severity-critical .admin-seo-task-badge,
+.admin-seo-summary-value.admin-seo-severity-critical {
+  background: rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+}
+
+.admin-seo-severity-warning,
+.admin-seo-task-card.admin-seo-severity-warning {
+  border-left-color: #d97706;
+}
+
+.admin-seo-severity-warning .admin-seo-task-badge,
+.admin-seo-summary-value.admin-seo-severity-warning {
+  background: rgba(217, 119, 6, 0.15);
+  color: #fcd34d;
+}
+
+.admin-seo-severity-info,
+.admin-seo-task-card.admin-seo-severity-info {
+  border-left-color: #2563eb;
+}
+
+.admin-seo-severity-info .admin-seo-task-badge {
+  background: rgba(37, 99, 235, 0.15);
+  color: #93c5fd;
+}
+
+.admin-seo-severity-ok,
+.admin-seo-task-card.admin-seo-severity-ok {
+  border-left-color: #16a34a;
+}
+
+.admin-seo-severity-ok .admin-seo-task-badge,
+.admin-seo-summary-value.admin-seo-severity-ok {
+  background: rgba(22, 163, 74, 0.15);
+  color: #86efac;
+}
+
+.admin-seo-form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 42rem;
+}
+
+.admin-seo-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.admin-seo-form input,
+.admin-seo-form textarea {
+  width: 100%;
+}
+
+.admin-seo-checkbox {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-seo-form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-seo-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.admin-seo-inline-form input {
+  min-width: 180px;
+  flex: 1;
+}

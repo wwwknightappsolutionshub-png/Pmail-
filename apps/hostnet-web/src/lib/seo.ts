@@ -6,6 +6,8 @@ export type PageSeoConfig = {
   robots?: string;
   ogType?: string;
   ogImagePath?: string;
+  locale?: string;
+  hreflang?: Array<{ locale: string; path: string }>;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 };
 
@@ -64,7 +66,23 @@ export function applyPageSeo(config: PageSeoConfig, origin = getMarketingSiteOri
   upsertMeta("og:type", config.ogType ?? "website", "property");
   upsertMeta("og:site_name", "Prohost Cloud", "property");
   upsertMeta("og:image", imageUrl, "property");
-  upsertMeta("og:locale", "en_CA", "property");
+  upsertMeta("og:locale", config.locale ?? "en_CA", "property");
+
+  document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((node) => node.remove());
+  if (config.hreflang?.length) {
+    for (const alt of config.hreflang) {
+      const link = document.createElement("link");
+      link.rel = "alternate";
+      link.hreflang = alt.locale;
+      link.href = buildCanonicalUrl(origin, alt.path);
+      document.head.appendChild(link);
+    }
+    const defaultAlt = document.createElement("link");
+    defaultAlt.rel = "alternate";
+    defaultAlt.hreflang = "x-default";
+    defaultAlt.href = url;
+    document.head.appendChild(defaultAlt);
+  }
 
   upsertMeta("twitter:card", "summary_large_image");
   upsertMeta("twitter:title", config.title);

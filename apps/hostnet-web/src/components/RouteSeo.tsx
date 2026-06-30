@@ -13,7 +13,8 @@ export function RouteSeo() {
   useEffect(() => {
     const planSlug = pathname.startsWith("/hosting/") ? slug : undefined;
     const addonSlug = pathname.startsWith("/addons/") ? slug : undefined;
-    const config = resolveMarketingSeo(pathname, { useCaseId, planSlug, addonSlug });
+    const articleSlug = pathname.startsWith("/blog/") ? slug : undefined;
+    const config = resolveMarketingSeo(pathname, { useCaseId, planSlug, addonSlug, articleSlug });
     applyPageSeo(config);
   }, [pathname, useCaseId, slug]);
 

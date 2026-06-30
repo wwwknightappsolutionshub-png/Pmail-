@@ -1,6 +1,7 @@
 import { listPublishedAddonMarketing } from "./addon-marketing.service.js";
 import { listPublishedSections } from "./cms.service.js";
 import { listPublicHostingPlans } from "./hosting-plans.service.js";
+import { listPublishedPlatformArticles } from "./platform-marketing-article.service.js";
 
 const USE_CASE_DEMO_IDS = [
   "legal",
@@ -16,6 +17,7 @@ const STATIC_MARKETING_PATHS = [
   "/use-case",
   "/hosting",
   "/addons",
+  "/blog",
   ...USE_CASE_DEMO_IDS.map((id) => `/use-case/demo/${id}`),
 ] as const;
 
@@ -28,9 +30,10 @@ export function resolvePublicSiteOrigin(): string {
 }
 
 export async function listPublicSitemapPaths(): Promise<string[]> {
-  const [hostingPlans, addonMarketing] = await Promise.all([
+  const [hostingPlans, addonMarketing, articles] = await Promise.all([
     listPublicHostingPlans(),
     listPublishedAddonMarketing(),
+    listPublishedPlatformArticles(),
   ]);
 
   const paths = new Set<string>(STATIC_MARKETING_PATHS);
@@ -39,6 +42,9 @@ export async function listPublicSitemapPaths(): Promise<string[]> {
   }
   for (const addon of addonMarketing.filter((entry) => entry.landingFeatured)) {
     paths.add(`/addons/${addon.slug}`);
+  }
+  for (const article of articles) {
+    paths.add(`/blog/${article.slug}`);
   }
   return [...paths].sort();
 }

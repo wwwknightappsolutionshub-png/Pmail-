@@ -689,3 +689,95 @@ export type MarketingAiSessionSummary = {
   title: string;
   updatedAt: string;
 };
+
+export type PlatformArticleFaqItem = {
+  question: string;
+  answer: string;
+};
+
+export type PlatformMarketingArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  bodyHtml: string;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  ogImageUrl: string | null;
+  locale: string;
+  faq: PlatformArticleFaqItem[];
+  isPublished: boolean;
+  publishedAt: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PlatformSeoTaskSeverity = "critical" | "warning" | "info" | "ok";
+
+export type PlatformSeoTask = {
+  id: string;
+  taskKey: string;
+  title: string;
+  description: string | null;
+  cadence: string;
+  severity: PlatformSeoTaskSeverity;
+  dueAt: string | null;
+  completedAt: string | null;
+  status: string;
+  autoDetected: boolean;
+  metadata: Record<string, unknown> | null;
+  updatedAt: string;
+};
+
+export type PlatformSeoKeyword = {
+  id: string;
+  keyword: string;
+  targetPath: string | null;
+  currentPosition: number | null;
+  previousPosition: number | null;
+  positionDelta: number | null;
+  impressions: number | null;
+  clicks: number | null;
+  lastSyncedAt: string | null;
+  updatedAt: string;
+};
+
+export type PlatformSeoSnapshot = {
+  id: string;
+  period: string;
+  healthScore: number;
+  sitemapUrlCount: number;
+  avgPosition: number | null;
+  totalImpressions: number;
+  totalClicks: number;
+  issues: Array<{ code: string; message: string; severity: PlatformSeoTaskSeverity }>;
+  capturedAt: string;
+};
+
+export type PlatformSeoSettings = {
+  id: string;
+  siteUrl: string;
+  gscPropertyUrl: string | null;
+  gscConnectedAt: string | null;
+  gscConfigured: boolean;
+  ga4MeasurementId: string | null;
+  bingSiteVerification: string | null;
+  defaultLocale: string;
+  alternateLocales: string[];
+  lastWeeklyScanAt: string | null;
+  lastMonthlyScanAt: string | null;
+  gscOverviewUrl: string;
+  updatedAt: string;
+};
+
+export type PlatformSeoOverview = {
+  settings: PlatformSeoSettings;
+  healthScore: number | null;
+  actionCount: number;
+  tasks: PlatformSeoTask[];
+  keywords: PlatformSeoKeyword[];
+  weeklySnapshots: PlatformSeoSnapshot[];
+  monthlySnapshots: PlatformSeoSnapshot[];
+  latestSnapshot: PlatformSeoSnapshot | null;
+};

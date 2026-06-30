@@ -19,6 +19,7 @@ let routes = [
   "/use-case",
   "/hosting",
   "/addons",
+  "/blog",
   "/use-case/demo/legal",
   "/use-case/demo/real-estate",
   "/use-case/demo/accounting",

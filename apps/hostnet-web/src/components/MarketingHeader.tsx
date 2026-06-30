@@ -81,6 +81,9 @@ export function MarketingHeader({ active }: Props) {
           <Link to="/use-case" className="marketing-nav-link" onClick={() => setMenuOpen(false)}>
             Use cases
           </Link>
+          <Link to="/blog" className="marketing-nav-link" onClick={() => setMenuOpen(false)}>
+            Resources
+          </Link>
           <a href={sectionHref("growth")} className="marketing-nav-link" onClick={() => setMenuOpen(false)}>
             Growth
           </a>

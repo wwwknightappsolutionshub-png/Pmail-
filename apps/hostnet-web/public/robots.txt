@@ -4,6 +4,7 @@ Allow: /use-case
 Allow: /use-case/demo/
 Allow: /hosting
 Allow: /addons
+Allow: /blog
 
 Disallow: /admin
 Disallow: /panel
