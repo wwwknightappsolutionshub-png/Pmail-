@@ -423,4 +423,51 @@ Upgrade here: {{ctaUrl}}`,
 <p><a class="btn" href="{{ctaUrl}}">Unlock Auto Reply</a></p>
 <p class="muted">After the complimentary period, Auto Reply is gated until you subscribe from the Addon Marketplace.</p>`),
   },
+  {
+    slug: "pmail-prospect-welcome",
+    name: "PMail+ prospect demo welcome",
+    category: "pmail",
+    subject: "Welcome to {{productName}} — your demo workspace is ready",
+    variables: [
+      "fullName",
+      "productName",
+      "loginUrl",
+      "workEmail",
+      "demoPassword",
+      "expiresAtLabel",
+      "trialHours",
+      "addonsUrl",
+    ],
+    textBody:
+      "Hi {{fullName}}, your {{trialHours}}-hour {{productName}} demo is ready. Sign in at {{loginUrl}} with {{workEmail}} / {{demoPassword}}. Access expires {{expiresAtLabel}}.",
+    htmlBody: WRAPPER(`
+<p>Hi <strong>{{fullName}}</strong>,</p>
+<p>Welcome to <strong>{{productName}}</strong>. Your personal demo workspace is ready — explore mail, workspace tools, and industry panels without connecting a live mailbox yet.</p>
+<p><strong>Your demo login</strong></p>
+<ul>
+<li>Sign-in page: <a href="{{loginUrl}}">{{loginUrl}}</a></li>
+<li>Email: <code>{{workEmail}}</code></li>
+<li>Password: <code>{{demoPassword}}</code></li>
+<li>Access valid until: <strong>{{expiresAtLabel}}</strong> ({{trialHours}} hours)</li>
+</ul>
+<p><a class="btn" href="{{loginUrl}}">Open your PMail+ demo</a></p>
+<p class="muted">This demo uses a sample inbox and accounting workspace data, similar to our internal PMail+ tester experience.</p>
+<p class="muted">When you're ready to keep going, explore upgrades from your workspace or reply to this email.</p>`),
+  },
+  {
+    slug: "pmail-prospect-upsell",
+    name: "PMail+ prospect demo upgrade reminder",
+    category: "pmail",
+    subject: "Your {{productName}} demo ends in {{hoursLeft}} hours — upgrade to keep access",
+    variables: ["fullName", "productName", "loginUrl", "hoursLeft", "addonsUrl", "registerUrl"],
+    textBody:
+      "Hi {{fullName}}, your {{productName}} demo ends in {{hoursLeft}} hours. Sign in: {{loginUrl}} · Upgrade: {{addonsUrl}}",
+    htmlBody: WRAPPER(`
+<p>Hi <strong>{{fullName}}</strong>,</p>
+<p>Your <strong>{{productName}}</strong> demo workspace expires in about <strong>{{hoursLeft}} hours</strong>.</p>
+<p>Upgrade now to keep CRM, reminders, open tracking, file vault, industry workspaces, and the rest of your PMail+ toolkit unlocked beyond the demo window.</p>
+<p><a class="btn" href="{{addonsUrl}}">View upgrade options</a></p>
+<p><a href="{{loginUrl}}">Return to your demo workspace</a> while access is still active.</p>
+<p class="muted">Need help choosing a plan? Reply to this email or request full workspace access at {{registerUrl}}.</p>`),
+  },
 ];

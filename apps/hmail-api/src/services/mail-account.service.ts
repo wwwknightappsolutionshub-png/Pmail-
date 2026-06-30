@@ -56,7 +56,7 @@ function serializeAccount(account: UserMailAccount, activeId: string | null) {
 
 function shouldSkipProviderVerify(mailConfig: TenantMailConfig): boolean {
   if (process.env.NODE_ENV === "test") return true;
-  return mailConfig.imapHost === "local.pmail.test";
+  return mailConfig.imapHost === "local.pmail.test" || mailConfig.imapHost === "demo.pmail.prohost";
 }
 
 export async function ensurePrimaryMailAccount(

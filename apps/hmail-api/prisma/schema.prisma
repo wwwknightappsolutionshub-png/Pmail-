@@ -52,6 +52,7 @@ model Tenant {
   jobApplyAssistCreditWallets JobApplyAssistCreditWallet[]
   jobApplyAssistQueues        JobApplyAssistQueue[]
   membershipApplications MembershipApplication[]
+  pmailProspects PmailProspect[]
   growthWorkspace GrowthWorkspace?
   reContacts ReContact[]
   reListings ReListing[]
@@ -133,6 +134,9 @@ model User {
   panelWorkspaceTrialStartedAt DateTime?
   panelWorkspaceDay5EmailSent Boolean @default(false)
   panelWorkspaceDay7ReminderSent Boolean @default(false)
+  prospectDemoExpiresAt DateTime?
+  prospectDemoPasswordHash String?
+  prospectDemoUpsellEmailSent Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -190,6 +194,7 @@ model User {
   addonSubscriptions         UserAddonSubscription[]
   pmailReferralsSent         PmailReferralLead[] @relation("PmailReferralSender")
   pmailReferralsConverted    PmailReferralLead[] @relation("PmailReferralConverted")
+  pmailProspects             PmailProspect[]
 
   @@unique([tenantId, email])
   @@index([businessVertical])
@@ -2495,12 +2500,25 @@ model PmailProspect {
   status        String    @default("interested")
   notes         String?
   convertedAt   DateTime?
+  tenantId      String?
+  userId        String?
+  demoTenantSlug String?
+  demoProvisionedAt DateTime?
+  demoExpiresAt DateTime?
+  demoWelcomeEmailSent Boolean @default(false)
+  demoUpsellEmailSent Boolean @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([email])
   @@index([status])
   @@index([createdAt])
+  @@index([tenantId])
+  @@index([userId])
+  @@index([demoExpiresAt])
 }
 
 model MembershipApplication {

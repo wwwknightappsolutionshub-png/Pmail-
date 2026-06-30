@@ -24,6 +24,11 @@ import {
   isPmailTesterLogin,
 } from "./pmail-tester.service.js";
 import {
+  isProspectDemoUserActive,
+  PMAIL_PROSPECT_DEMO_MAIL_HOST,
+  verifyPmailProspectDemoLogin,
+} from "./pmail-prospect-demo.service.js";
+import {
   ensurePrimaryMailAccount,
   getActiveMailAccountSummary,
 } from "./mail-account.service.js";
@@ -122,6 +127,32 @@ export async function loginUser(input: {
     password: input.password,
   });
 
+  if (existingUser?.prospectDemoExpiresAt && !isProspectDemoUserActive(existingUser.prospectDemoExpiresAt)) {
+    throw new AuthError(
+      "Your PMail+ demo access has expired. Submit a new workspace access request or upgrade to continue.",
+    );
+  }
+
+  const prospectDemoAuth = await verifyPmailProspectDemoLogin({
+    email: credentialsEmail,
+    tenantId: tenant.id,
+    password: input.password,
+  });
+  const isProspectDemoLogin = prospectDemoAuth.valid;
+
+  if (
+    existingUser?.prospectDemoPasswordHash &&
+    !isProspectDemoLogin &&
+    !isLocalTester
+  ) {
+    if (prospectDemoAuth.expired) {
+      throw new AuthError(
+        "Your PMail+ demo access has expired. Submit a new workspace access request or upgrade to continue.",
+      );
+    }
+    throw new AuthError("Invalid email or password.");
+  }
+
   const suggestedLoginConfig = resolveSuggestedMailConfigForLogin(credentialsEmail, tenant.mail);
   const savedEffective = existingUser ? resolveEffectiveMailConfig(existingUser) : null;
   const savedMismatch =
@@ -176,6 +207,20 @@ export async function loginUser(input: {
     };
   }
 
+  if (!mailConfig && isProspectDemoLogin) {
+    mailConfig = {
+      id: "prospect-demo-mail",
+      tenantId: tenant.id,
+      imapHost: PMAIL_PROSPECT_DEMO_MAIL_HOST,
+      imapPort: 993,
+      imapSecure: true,
+      smtpHost: PMAIL_PROSPECT_DEMO_MAIL_HOST,
+      smtpPort: 465,
+      smtpSecure: true,
+      mailOnboardingComplete: true,
+    };
+  }
+
   if (!mailConfig && !pendingUserMailConfig) {
     if (tenant.mail?.mailOnboardingComplete) {
       pendingUserMailConfig = {
@@ -212,7 +257,7 @@ export async function loginUser(input: {
   };
   const primaryImapHost = mailConfig.imapHost;
 
-  if (!isLocalTester) {
+  if (!isLocalTester && !isProspectDemoLogin) {
     try {
       mailConfig = await verifyMailboxForLogin(credentials, {
         fallbacks: loginFallbackConfigs,
@@ -376,6 +421,14 @@ export async function getSessionUser(token: string): Promise<{
   });
 
   if (!session || !session.user.isActive || !session.user.tenant.isActive) {
+    return null;
+  }
+
+  if (
+    session.user.prospectDemoExpiresAt &&
+    !isProspectDemoUserActive(session.user.prospectDemoExpiresAt)
+  ) {
+    await prisma.session.deleteMany({ where: { id: session.id } });
     return null;
   }
 

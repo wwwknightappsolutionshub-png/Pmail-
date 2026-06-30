@@ -12,6 +12,16 @@ export type PmailProspectRow = {
   status: "interested" | "contacted" | "invited" | "converted" | "closed";
   notes: string | null;
   convertedAt: string | null;
+  tenantId: string | null;
+  userId: string | null;
+  demoTenantSlug: string | null;
+  demoProvisionedAt: string | null;
+  demoExpiresAt: string | null;
+  demoWelcomeEmailSent: boolean;
+  demoUpsellEmailSent: boolean;
+  demoActive: boolean;
+  demoLoginUrl: string | null;
+  demoTrialHours: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -77,7 +87,7 @@ export function AdminPmailProspectsPanel({
       <header className="admin-leads-toolbar">
         <div>
           <h3>PMail+ Prospects</h3>
-          <p className="muted">Workspace access requests captured before mailbox sign-in.</p>
+          <p className="muted">Workspace access requests auto-provision a 72-hour PMail+ demo and welcome email.</p>
         </div>
         {stats ? (
           <div className="admin-leads-funnel">
@@ -122,7 +132,8 @@ export function AdminPmailProspectsPanel({
               <th>Name</th>
               <th>Email</th>
               <th>Company</th>
-              <th>Referrer</th>
+              <th>Demo tenant</th>
+              <th>Demo expires</th>
               <th>Status</th>
               <th>Requested</th>
             </tr>
@@ -133,7 +144,8 @@ export function AdminPmailProspectsPanel({
                 <td>{prospect.fullName}</td>
                 <td>{prospect.email}</td>
                 <td>{prospect.company || "—"}</td>
-                <td>{prospect.referrerEmail || "—"}</td>
+                <td>{prospect.demoTenantSlug || "—"}</td>
+                <td>{formatDate(prospect.demoExpiresAt)}</td>
                 <td>
                   <span className={`admin-status-pill admin-status-pill--${prospect.status}`}>
                     {STATUS_LABELS[prospect.status]}

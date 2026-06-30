@@ -6,6 +6,7 @@ import type {
   MailMessageSortField,
   MailMessageSortOrder,
 } from "./imap.service.js";
+import { isPmailProspectDemoMailHost } from "./pmail-prospect-demo.service.js";
 
 const FIXTURE_FOLDERS: MailFolder[] = [
   {
@@ -140,6 +141,7 @@ function fixtureMessages(email: string): FixtureMessage[] {
 }
 
 export function useLocalPmailFixture(credentials: MailCredentials): boolean {
+  if (isPmailProspectDemoMailHost(credentials.mailConfig.imapHost)) return true;
   if (process.env.NODE_ENV === "production" || process.env.NODE_ENV === "test") return false;
   return credentials.mailConfig.imapHost === "local.pmail.test";
 }

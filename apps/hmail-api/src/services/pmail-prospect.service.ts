@@ -1,9 +1,14 @@
 import { prisma } from "../lib/prisma.js";
+import {
+  ensureProspectDemoProvisioned,
+  isProspectDemoUserActive,
+  PMAIL_PROSPECT_DEMO_TRIAL_HOURS,
+} from "./pmail-prospect-demo.service.js";
 
 export const PMAIL_PROSPECT_STATUSES = ["interested", "contacted", "invited", "converted", "closed"] as const;
 export type PmailProspectStatus = (typeof PMAIL_PROSPECT_STATUSES)[number];
 
-function serializeProspect(row: {
+type ProspectRow = {
   id: string;
   tenantSlug: string | null;
   fullName: string;
@@ -13,9 +18,19 @@ function serializeProspect(row: {
   status: string;
   notes: string | null;
   convertedAt: Date | null;
+  tenantId: string | null;
+  userId: string | null;
+  demoTenantSlug: string | null;
+  demoProvisionedAt: Date | null;
+  demoExpiresAt: Date | null;
+  demoWelcomeEmailSent: boolean;
+  demoUpsellEmailSent: boolean;
   createdAt: Date;
   updatedAt: Date;
-}) {
+};
+
+function serializeProspect(row: ProspectRow) {
+  const demoActive = isProspectDemoUserActive(row.demoExpiresAt);
   return {
     id: row.id,
     tenantSlug: row.tenantSlug,
@@ -26,9 +41,37 @@ function serializeProspect(row: {
     status: row.status,
     notes: row.notes,
     convertedAt: row.convertedAt?.toISOString() ?? null,
+    tenantId: row.tenantId,
+    userId: row.userId,
+    demoTenantSlug: row.demoTenantSlug,
+    demoProvisionedAt: row.demoProvisionedAt?.toISOString() ?? null,
+    demoExpiresAt: row.demoExpiresAt?.toISOString() ?? null,
+    demoWelcomeEmailSent: row.demoWelcomeEmailSent,
+    demoUpsellEmailSent: row.demoUpsellEmailSent,
+    demoActive,
+    demoLoginUrl: row.demoTenantSlug ? `/login/${row.demoTenantSlug}` : null,
+    demoTrialHours: PMAIL_PROSPECT_DEMO_TRIAL_HOURS,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+async function provisionProspectDemoIfNeeded(row: ProspectRow) {
+  if (row.demoProvisionedAt && isProspectDemoUserActive(row.demoExpiresAt)) {
+    return row;
+  }
+
+  try {
+    await ensureProspectDemoProvisioned(row.id);
+  } catch (err) {
+    console.error("[pmail-prospect] demo provisioning failed", err);
+    throw new Error(
+      "We saved your request but could not provision your demo workspace right now. Please try again in a minute or contact support.",
+    );
+  }
+
+  const refreshed = await prisma.pmailProspect.findUniqueOrThrow({ where: { id: row.id } });
+  return refreshed;
 }
 
 export async function registerPmailProspect(input: {
@@ -52,8 +95,10 @@ export async function registerPmailProspect(input: {
     where: { email, status: { in: ["interested", "contacted", "invited"] } },
     orderBy: { createdAt: "desc" },
   });
+
   if (existing) {
-    return serializeProspect(existing);
+    const provisioned = await provisionProspectDemoIfNeeded(existing);
+    return serializeProspect(provisioned);
   }
 
   const row = await prisma.pmailProspect.create({
@@ -67,7 +112,8 @@ export async function registerPmailProspect(input: {
     },
   });
 
-  return serializeProspect(row);
+  const provisioned = await provisionProspectDemoIfNeeded(row);
+  return serializeProspect(provisioned);
 }
 
 export async function listPmailProspects(options: {

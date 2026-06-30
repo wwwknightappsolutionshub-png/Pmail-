@@ -51,8 +51,9 @@ export function ProspectAccessForm({
       <div className={`login-form-card prospect-access-card${className ? ` ${className}` : ""}`}>
         <h2 className="prospect-access-title">Request received</h2>
         <p className="prospect-access-lead">
-          Thanks for your interest in {productName}. Our team will review your request and follow up by email.
-          You can still connect your mailbox now if you already have one.
+          Thanks for your interest in {productName}. We&apos;re provisioning your personal demo workspace now —
+          check <strong>{email}</strong> in the next minute for your welcome email with sign-in details.
+          Your demo access is valid for 72 hours.
         </p>
         {onBackToSignIn ? (
           <button type="button" className="prospect-access-link-btn" onClick={onBackToSignIn}>
