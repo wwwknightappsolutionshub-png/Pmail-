@@ -27,3 +27,8 @@ export async function flushPmailUserSessionsAndCaches(): Promise<FlushPmailSessi
     clientRefreshAt,
   };
 }
+
+export async function revokePmailUserSessions(userId: string): Promise<{ deletedSessions: number }> {
+  const deleted = await prisma.session.deleteMany({ where: { userId } });
+  return { deletedSessions: deleted.count };
+}

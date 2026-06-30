@@ -34,6 +34,11 @@ export type AdminMailUserSessionRecord = {
   ipAddress: string | null;
   userAgent: string | null;
   isOnline: boolean;
+  user: {
+    email: string;
+    displayName: string | null;
+    tenant: { id: string; slug: string; name: string };
+  } | null;
 };
 
 export type AdminMailUserRecord = {
@@ -64,6 +69,11 @@ function serializeSessionRecord(session: {
   expiresAt: Date;
   ipAddress: string | null;
   userAgent: string | null;
+  user?: {
+    email: string;
+    displayName: string | null;
+    tenant: { id: string; slug: string; name: string };
+  } | null;
 }): AdminMailUserSessionRecord {
   const now = Date.now();
   const isOnline =
@@ -79,6 +89,7 @@ function serializeSessionRecord(session: {
     ipAddress: session.ipAddress,
     userAgent: session.userAgent,
     isOnline,
+    user: session.user ?? null,
   };
 }
 
@@ -290,6 +301,13 @@ export async function listActiveMailUserSessions(input?: { userId?: string; limi
       expiresAt: true,
       ipAddress: true,
       userAgent: true,
+      user: {
+        select: {
+          email: true,
+          displayName: true,
+          tenant: { select: { id: true, slug: true, name: true } },
+        },
+      },
     },
   });
 

@@ -252,6 +252,11 @@ export type AdminMailUserSession = {
   ipAddress: string | null;
   userAgent: string | null;
   isOnline: boolean;
+  user?: {
+    email: string;
+    displayName: string | null;
+    tenant: { id: string; slug: string; name: string };
+  } | null;
 };
 
 export type AdminMailUserPresenceStats = {

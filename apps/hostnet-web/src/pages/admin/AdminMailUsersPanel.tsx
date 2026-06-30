@@ -225,7 +225,14 @@ export function AdminMailUsersPanel({ tenants, pollKey, isSuperAdmin = false, on
                       </span>
                     </td>
                     <td>
-                      <code>{session.userId.slice(0, 8)}…</code>
+                      {session.user ? (
+                        <span title={session.user.email}>
+                          {session.user.displayName?.trim() || session.user.email}
+                          <span className="muted"> · {session.user.tenant.slug}</span>
+                        </span>
+                      ) : (
+                        <code>{session.userId.slice(0, 8)}…</code>
+                      )}
                     </td>
                     <td>{formatWhen(session.lastActiveAt)}</td>
                     <td>{formatWhen(session.expiresAt)}</td>
