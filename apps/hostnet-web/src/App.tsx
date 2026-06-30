@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { MarketingThemeProvider } from "./hooks/useMarketingTheme";
+import { RouteSeo } from "./components/RouteSeo";
 
 const LandingPage = lazy(() => import("./pages/LandingPage").then((m) => ({ default: m.LandingPage })));
 const UseCasePage = lazy(() => import("./pages/UseCasePage").then((m) => ({ default: m.UseCasePage })));
@@ -80,6 +81,7 @@ function LazyRoute({ children }: { children: ReactNode }) {
 export function App() {
   return (
     <MarketingThemeProvider>
+      <RouteSeo />
       <Routes>
         <Route
           path="/"

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /use-case
+Allow: /use-case/demo/
+
+Disallow: /admin
+Disallow: /panel
+Disallow: /growth
+Disallow: /checkout
+
+Sitemap: https://prohost.cloud/sitemap.xml

@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /mail
+Disallow: /career
+Disallow: /addons
+Disallow: /welcome
+Allow: /login
+
+# PMail+ is a private mail workspace — only the sign-in entry may be crawled for brand discovery.
+# Authenticated inbox and workspace routes are not intended for search indexing.

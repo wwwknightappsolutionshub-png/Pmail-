@@ -4,6 +4,7 @@ import { useAuth } from "./context/AuthContext";
 import { LoginPage } from "./pages/LoginPage";
 import { PmailLoadingScreen } from "./components/PmailLoadingScreen";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
+import { RouteSeo } from "./components/RouteSeo";
 
 const WelcomePage = lazy(() => import("./pages/WelcomePage").then((m) => ({ default: m.WelcomePage })));
 const BespokeMailShellPage = lazy(() =>
@@ -74,7 +75,9 @@ function DiscoverRedirect() {
 
 export function App() {
   return (
-    <Routes>
+    <>
+      <RouteSeo />
+      <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/login/:tenantSlug" element={<LoginPage />} />
       <Route
@@ -200,5 +203,6 @@ export function App() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
