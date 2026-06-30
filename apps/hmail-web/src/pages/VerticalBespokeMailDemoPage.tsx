@@ -82,6 +82,7 @@ type VerticalBespokeMailDemoPageProps = {
   renderWorkspace?: (workspace: BespokeWorkspace) => ReactNode | null;
   showCareerTab?: boolean;
   onCareerTabClick?: () => void;
+  careerTabHref?: string;
   forcedWorkspace?: BespokeWorkspace;
   onWorkspaceTabNavigate?: (workspace: BespokeWorkspace) => void;
   requestedWorkspace?: BespokeWorkspace | null;
@@ -130,6 +131,7 @@ export function VerticalBespokeMailDemoPage({
   renderWorkspace,
   showCareerTab,
   onCareerTabClick,
+  careerTabHref,
   forcedWorkspace,
   onWorkspaceTabNavigate,
   requestedWorkspace,
@@ -207,6 +209,7 @@ export function VerticalBespokeMailDemoPage({
         renderWorkspace={renderWorkspace}
         showCareerTab={showCareerTab}
         onCareerTabClick={onCareerTabClick}
+        careerTabHref={careerTabHref}
         forcedWorkspace={forcedWorkspace}
         onWorkspaceTabNavigate={onWorkspaceTabNavigate}
         requestedWorkspace={requestedWorkspace}

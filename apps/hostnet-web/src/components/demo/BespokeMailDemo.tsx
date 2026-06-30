@@ -157,6 +157,8 @@ type Props = {
   showCareerTab?: boolean;
   /** When set, Career tab opens the full /career workspace instead of the inline panel. */
   onCareerTabClick?: () => void;
+  /** Router href for the Career tab (more reliable on mobile than button + navigate). */
+  careerTabHref?: string;
   /** Lock the shell to one workspace tab (e.g. career route keeps PMail+ ribbon on Career). */
   forcedWorkspace?: BespokeWorkspace;
   /** Fired when user selects a different workspace tab while forcedWorkspace is set. */
@@ -511,6 +513,7 @@ export function BespokeMailDemo({
   renderWorkspace,
   showCareerTab = false,
   onCareerTabClick,
+  careerTabHref,
   forcedWorkspace,
   onWorkspaceTabNavigate,
   requestedWorkspace,
@@ -749,17 +752,18 @@ export function BespokeMailDemo({
     const el = workspaceTabsRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
-    const overflow = scrollWidth - clientWidth > 4;
+    const threshold = window.matchMedia("(max-width: 767px)").matches ? 2 : 4;
+    const overflow = scrollWidth - clientWidth > threshold;
     setWorkspaceTabsHasOverflow(overflow);
-    setWorkspaceTabsCanScrollForward(overflow && scrollLeft + clientWidth < scrollWidth - 4);
-    setWorkspaceTabsCanScrollBackward(overflow && scrollLeft > 4);
+    setWorkspaceTabsCanScrollForward(overflow && scrollLeft + clientWidth < scrollWidth - threshold);
+    setWorkspaceTabsCanScrollBackward(overflow && scrollLeft > threshold);
   }, []);
 
   const scrollWorkspaceTabsForward = useCallback(() => {
     const el = workspaceTabsRef.current;
     if (!el) return;
 
-    const tabs = Array.from(el.querySelectorAll<HTMLButtonElement>(".bespoke-demo-workspace-tab"));
+    const tabs = Array.from(el.querySelectorAll<HTMLElement>(".bespoke-demo-workspace-tab"));
     const viewportRight = el.scrollLeft + el.clientWidth;
     const nextHidden = tabs.find((tab) => tab.offsetLeft + tab.offsetWidth > viewportRight + 4);
 
@@ -767,6 +771,23 @@ export function BespokeMailDemo({
       nextHidden.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
     } else {
       el.scrollBy({ left: Math.max(180, Math.round(el.clientWidth * 0.72)), behavior: "smooth" });
+    }
+
+    window.setTimeout(updateWorkspaceTabsScroll, 320);
+  }, [updateWorkspaceTabsScroll]);
+
+  const scrollWorkspaceTabsBackward = useCallback(() => {
+    const el = workspaceTabsRef.current;
+    if (!el) return;
+
+    const tabs = Array.from(el.querySelectorAll<HTMLElement>(".bespoke-demo-workspace-tab"));
+    const viewportLeft = el.scrollLeft;
+    const prevHidden = [...tabs].reverse().find((tab) => tab.offsetLeft < viewportLeft - 4);
+
+    if (prevHidden) {
+      prevHidden.scrollIntoView({ behavior: "smooth", inline: "end", block: "nearest" });
+    } else {
+      el.scrollBy({ left: -Math.max(180, Math.round(el.clientWidth * 0.72)), behavior: "smooth" });
     }
 
     window.setTimeout(updateWorkspaceTabsScroll, 320);
@@ -1081,7 +1102,19 @@ export function BespokeMailDemo({
   const remindersTabCount = useLiveTabCounts ? workspaceTabCounts!.reminders : pendingReminderCount;
   const calendarTabCount = useLiveTabCounts ? workspaceTabCounts!.calendar : calendarEvents.length;
   const messagingTabCount = useLiveTabCounts ? workspaceTabCounts!.messaging : messagingThreads.length;
-  const showWorkspaceTabsMore = workspaceTabsHasOverflow && workspaceTabsCanScrollForward;
+  const showWorkspaceTabsMoreForward = workspaceTabsHasOverflow && workspaceTabsCanScrollForward;
+  const showWorkspaceTabsMoreBackward =
+    isMobileWorkspaceTabs &&
+    workspaceTabsHasOverflow &&
+    workspaceTabsCanScrollBackward &&
+    !workspaceTabsCanScrollForward;
+
+  const handleCareerTabActivate = useCallback(() => {
+    if (renderInboxWorkspace) {
+      onLeaveMailSearch?.();
+    }
+    onCareerTabClick?.();
+  }, [onCareerTabClick, onLeaveMailSearch, renderInboxWorkspace]);
 
   useLayoutEffect(() => {
     if (!workspaceReady) return;
@@ -2339,8 +2372,23 @@ export function BespokeMailDemo({
           workspaceTabsHasOverflow ? " bespoke-demo-workspace-tabs-shell--overflow" : ""
         }${workspaceTabsCanScrollBackward ? " bespoke-demo-workspace-tabs-shell--overflow-start" : ""}${
           workspaceTabsCanScrollForward ? " bespoke-demo-workspace-tabs-shell--overflow-end" : ""
+        }${showWorkspaceTabsMoreBackward ? " bespoke-demo-workspace-tabs-shell--more-back" : ""}${
+          showWorkspaceTabsMoreForward ? " bespoke-demo-workspace-tabs-shell--more-forward" : ""
         }`}
       >
+        {showWorkspaceTabsMoreBackward ? (
+          <button
+            type="button"
+            className="bespoke-demo-workspace-tabs-more bespoke-demo-workspace-tabs-more--back bespoke-demo-workspace-tabs-more--mobile-left"
+            aria-label="Scroll workspace tabs back"
+            title="Previous tabs"
+            onClick={scrollWorkspaceTabsBackward}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M15.41 16.59 10.83 12l4.58-4.59L14 6l-6 6 6 6z" />
+            </svg>
+          </button>
+        ) : null}
         <div className="bespoke-demo-workspace-tabs" ref={workspaceTabsRef}>
         <button
           type="button"
@@ -2409,22 +2457,35 @@ export function BespokeMailDemo({
           Brand Settings
         </button>
         {showCareerTab ? (
-          <button
-            type="button"
-            className={`bespoke-demo-workspace-tab${activeWorkspace === "career" ? " bespoke-demo-workspace-tab--active" : ""}`}
-            onClick={() => {
-              if (onCareerTabClick) {
-                onCareerTabClick();
-                return;
-              }
-              openWorkspaceTool("career", "Career");
-            }}
-          >
-            Career
-          </button>
+          careerTabHref || onCareerTabClick ? (
+            <Link
+              to={careerTabHref ?? "/career"}
+              data-workspace-tab="career"
+              className={`bespoke-demo-workspace-tab${
+                activeWorkspace === "career" || highlightedWorkspace === "career"
+                  ? " bespoke-demo-workspace-tab--active"
+                  : ""
+              }`}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleCareerTabActivate();
+              }}
+            >
+              Career
+            </Link>
+          ) : (
+            <button
+              type="button"
+              data-workspace-tab="career"
+              className={`bespoke-demo-workspace-tab${activeWorkspace === "career" ? " bespoke-demo-workspace-tab--active" : ""}`}
+              onClick={() => openWorkspaceTool("career", "Career")}
+            >
+              Career
+            </button>
+          )
         ) : null}
         </div>
-        {showWorkspaceTabsMore ? (
+        {showWorkspaceTabsMoreForward ? (
           <button
             type="button"
             className={`bespoke-demo-workspace-tabs-more${

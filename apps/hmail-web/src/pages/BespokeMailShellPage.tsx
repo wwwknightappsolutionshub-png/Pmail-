@@ -409,6 +409,7 @@ function BespokeMailShellContent() {
         renderMobileFooterNav={mobileFooterNav}
         onOpenAddons={openAddonsMarketplace}
         showCareerTab={careerNavUnlocked}
+        careerTabHref="/career"
         onCareerTabClick={() => navigate("/career")}
         requestedWorkspace={requestedWorkspace}
         onRequestedWorkspaceHandled={() => setRequestedWorkspace(null)}

@@ -978,6 +978,28 @@ body.pmail-search-overlay-open {
   display: none;
 }
 
+.bespoke-demo-workspace-tabs-more--back {
+  border-left: none;
+  border-right: 1px solid var(--border);
+  background: linear-gradient(270deg, transparent, var(--surface-tabs) 28%);
+  padding: 0 0.55rem 0 0.75rem;
+}
+
+.bespoke-demo-workspace-tabs-more--mobile-left {
+  min-width: 2.5rem;
+  padding: 0 0.35rem 0 0.55rem;
+  justify-content: center;
+  box-shadow: 8px 0 12px color-mix(in srgb, var(--surface-tabs) 85%, transparent);
+}
+
+.bespoke-demo-workspace-tabs-shell--more-back .bespoke-demo-workspace-tabs {
+  padding-left: 0.25rem;
+}
+
+.bespoke-demo-workspace-tabs-shell--more-forward .bespoke-demo-workspace-tabs {
+  padding-right: 0.15rem;
+}
+
 .bespoke-demo-workspace-toolbar {
   position: relative;
   z-index: calc(var(--pmail-search-layer, 9000) - 20);
@@ -1033,6 +1055,11 @@ body.pmail-search-overlay-open {
   color: var(--muted);
   font-size: 0.88rem;
   font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  position: relative;
+  z-index: 3;
 }
 
 .bespoke-demo-workspace-tab:hover {

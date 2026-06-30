@@ -4124,8 +4124,19 @@ html:has(.pmail-demo-shell--light) body {
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-tabs-shell--overflow-start::after {
-    width: 1.5rem;
-    background: linear-gradient(270deg, transparent, var(--surface-tabs, rgba(8, 14, 26, 0.96)) 70%);
+    display: none;
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-tabs-more--back {
+    display: inline-flex !important;
+    flex-shrink: 0;
+    z-index: 4;
+    min-width: 2.5rem;
+    border-right: 1px solid var(--border);
+    border-left: none;
+    color: var(--accent-light, #2dd4bf);
+    background: linear-gradient(270deg, transparent, var(--surface-tabs, rgba(8, 14, 26, 0.96)) 35%);
+    box-shadow: 8px 0 14px color-mix(in srgb, var(--surface-tabs, rgba(8, 14, 26, 0.96)) 90%, transparent);
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-tabs-more {
@@ -4156,7 +4167,7 @@ html:has(.pmail-demo-shell--light) body {
   .pmail-demo-shell .bespoke-demo-workspace-tabs {
     position: static;
     top: auto;
-    z-index: auto;
+    z-index: 2;
     flex-wrap: nowrap;
     max-width: 100%;
     overflow-x: auto;
@@ -4166,14 +4177,7 @@ html:has(.pmail-demo-shell--light) body {
     gap: 0.35rem;
     padding: 0.45rem 0.25rem 0.45rem 0.65rem;
     transition: padding-top 0.22s ease;
-  }
-
-  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) + .bespoke-demo-workspace-tabs-shell .bespoke-demo-workspace-tabs {
-    padding-top: max(0.45rem, env(safe-area-inset-top));
-  }
-
-  .pmail-demo-shell .bespoke-demo-workspace-tabs::-webkit-scrollbar {
-    display: none;
+    touch-action: pan-x;
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-tab {
@@ -4184,6 +4188,16 @@ html:has(.pmail-demo-shell--light) body {
     max-width: none;
     overflow: visible;
     text-overflow: clip;
+    touch-action: manipulation;
+    z-index: 3;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar:has(.bespoke-demo-topbar-center--search-collapsed) + .bespoke-demo-workspace-tabs-shell .bespoke-demo-workspace-tabs {
+    padding-top: max(0.45rem, env(safe-area-inset-top));
+  }
+
+  .pmail-demo-shell .bespoke-demo-workspace-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-toolbar:has(.bespoke-demo-toolbar-block--tools:empty) {
