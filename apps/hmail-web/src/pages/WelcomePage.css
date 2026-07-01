@@ -1,20 +1,21 @@
-/* Welcome / discover onboarding layout */
-
 /* Slides 1–4: wizard fills the viewport, login hidden */
 .welcome-layout--fullscreen-slides {
   display: flex !important;
   flex-direction: column !important;
   grid-template-columns: unset !important;
+  flex: 1;
+  min-height: 0;
 }
 
 .welcome-layout--fullscreen-slides .welcome-brand-panel--wizard {
   flex: 1;
   min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: clamp(1rem, 3vw, 2rem) max(1rem, env(safe-area-inset-left)) clamp(1.25rem, 3vw, 2rem)
+  justify-content: stretch;
+  padding: clamp(0.65rem, 2vw, 1.25rem) max(1rem, env(safe-area-inset-left)) max(0.75rem, env(safe-area-inset-bottom))
     max(1rem, env(safe-area-inset-right));
   width: 100%;
   box-sizing: border-box;
@@ -29,7 +30,8 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  min-height: min(100%, calc(100dvh - 3.5rem - env(safe-area-inset-top)));
+  min-height: 0;
+  height: 100%;
 }
 
 /* Slide 5: CTA left + login right */

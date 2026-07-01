@@ -54,6 +54,31 @@ html:has(.login-page) #root {
   font-family: var(--font-app);
 }
 
+.login-pull-indicator {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: var(--login-muted, #64748b);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: height 0.15s ease;
+}
+
+.login-pull-indicator span {
+  padding-bottom: 0.35rem;
+}
+
+.login-pull-indicator.is-ready {
+  color: var(--brand-accent, #0d9488);
+}
+
+.login-pull-indicator.is-refreshing {
+  color: var(--brand-primary, #0d4f6c);
+}
+
 .login-topbar {
   display: flex;
   align-items: center;

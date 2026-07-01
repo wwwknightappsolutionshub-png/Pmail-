@@ -13,7 +13,7 @@ type ProductOnboardingCtaPanelProps = {
 
 export function ProductOnboardingCtaPanel({
   slide,
-  productName,
+  productName: _productName,
   className = "",
   onBack,
   showSignInHint = false,
@@ -27,9 +27,7 @@ export function ProductOnboardingCtaPanel({
     >
       <ProductOnboardingWizardBackground />
 
-      <div className="product-onboarding-wizard-top">
-        <span className="product-onboarding-wizard-brand">{productName}</span>
-      </div>
+      <div className="product-onboarding-wizard-top product-onboarding-wizard-top--empty" aria-hidden="true" />
 
       <div className="product-onboarding-wizard-stage product-onboarding-wizard-stage--static">
         <ProductOnboardingSlideView slide={slide} active />

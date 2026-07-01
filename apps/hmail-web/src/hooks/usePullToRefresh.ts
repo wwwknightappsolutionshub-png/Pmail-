@@ -3,6 +3,19 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 const PULL_THRESHOLD_PX = 72;
 const PULL_MAX_PX = 120;
 
+function isScrollChainAtTop(target: EventTarget | null, root: HTMLElement): boolean {
+  let element = target instanceof Element ? target : null;
+
+  while (element && element !== root) {
+    if (element instanceof HTMLElement && element.scrollHeight > element.clientHeight + 1) {
+      if (element.scrollTop > 2) return false;
+    }
+    element = element.parentElement;
+  }
+
+  return root.scrollTop <= 2;
+}
+
 type PullToRefreshState = {
   pullDistance: number;
   isRefreshing: boolean;
@@ -16,12 +29,14 @@ export function usePullToRefresh(
   scrollRef: RefObject<HTMLElement | null>,
   onRefresh: () => Promise<void>,
   enabled = true,
+  respectNestedScroll = false,
 ): PullToRefreshState {
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const onRefreshRef = useRef(onRefresh);
   const pullDistanceRef = useRef(0);
   const startYRef = useRef(0);
+  const touchTargetRef = useRef<EventTarget | null>(null);
   const pullingRef = useRef(false);
   const isRefreshingRef = useRef(false);
 
@@ -46,15 +61,19 @@ export function usePullToRefresh(
       setPullDistance(0);
     };
 
+    const scrollChainAtTop = (target: EventTarget | null) =>
+      respectNestedScroll ? isScrollChainAtTop(target, el) : el.scrollTop <= 2;
+
     const onTouchStart = (event: TouchEvent) => {
-      if (isRefreshingRef.current || el.scrollTop > 2) return;
+      if (isRefreshingRef.current || !scrollChainAtTop(event.target)) return;
+      touchTargetRef.current = event.target;
       startYRef.current = event.touches[0]?.clientY ?? 0;
       pullingRef.current = true;
     };
 
     const onTouchMove = (event: TouchEvent) => {
       if (!pullingRef.current || isRefreshingRef.current) return;
-      if (el.scrollTop > 2) {
+      if (!scrollChainAtTop(touchTargetRef.current)) {
         resetPull();
         return;
       }
@@ -105,7 +124,7 @@ export function usePullToRefresh(
       el.removeEventListener("touchend", onTouchEnd);
       el.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, [scrollRef, enabled]);
+  }, [scrollRef, enabled, respectNestedScroll]);
 
   return {
     pullDistance,

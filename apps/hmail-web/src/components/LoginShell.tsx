@@ -1,6 +1,9 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
+import { hardRefreshPmailClient } from "../clientRefresh";
+import { usePullToRefresh } from "../hooks/usePullToRefresh";
+import { isMobileScreen } from "../utils/pwaPlatform";
 import { HMailLogo } from "./HMailLogo";
 import type { TenantBranding } from "../types/mail";
 import "../pages/LoginPage.css";
@@ -28,6 +31,23 @@ export function LoginShell({
   exploreHref = "/welcome",
   showExploreLink = false,
 }: LoginShellProps) {
+  const pageRef = useRef<HTMLDivElement>(null);
+  const enablePullToRefresh = isMobileScreen();
+  const hardRefresh = useCallback(() => hardRefreshPmailClient(), []);
+  const { pullDistance, isRefreshing, threshold } = usePullToRefresh(
+    pageRef,
+    hardRefresh,
+    enablePullToRefresh,
+    true,
+  );
+  const showPullIndicator = enablePullToRefresh && (pullDistance > 0 || isRefreshing);
+  const pullIndicatorHeight = isRefreshing ? threshold : pullDistance;
+  const pullIndicatorLabel = isRefreshing
+    ? "Updating app…"
+    : pullDistance >= threshold
+      ? "Release to update"
+      : "Pull to update app";
+
   const brandStyle = {
     "--brand-primary": branding.primaryColor,
     "--brand-accent": branding.accentColor,
@@ -52,7 +72,18 @@ export function LoginShell({
   }, []);
 
   return (
-    <div className="login-page" style={brandStyle}>
+    <div ref={pageRef} className="login-page" style={brandStyle}>
+      {showPullIndicator ? (
+        <div
+          className={`login-pull-indicator${isRefreshing ? " is-refreshing" : ""}${
+            pullDistance >= threshold ? " is-ready" : ""
+          }`}
+          style={{ height: `${pullIndicatorHeight}px` }}
+          aria-live="polite"
+        >
+          <span>{pullIndicatorLabel}</span>
+        </div>
+      ) : null}
       <header className="login-topbar">
         <HMailLogo
           size="sm"
