@@ -58,6 +58,10 @@ const envSchema = z.object({
     .string()
     .transform((v) => v !== "false")
     .default("true"),
+  SEO_MONITORING_JOB_ENABLED: z
+    .string()
+    .transform((v) => v !== "false")
+    .default("true"),
   PMAIL_BOT_SPAM_FILTER_MAX_SCAN: z.coerce.number().int().positive().default(50),
   ATTACHMENT_CATEGORIZE_MAX_SCAN: z.coerce.number().int().positive().default(200),
   DROPBOX_SIGN_API_KEY: z.string().optional(),
