@@ -41,8 +41,9 @@ export function GmailConnectWizard() {
   if (!slide) return null;
 
   return (
-    <aside className="gmail-connect-wizard" aria-label="How to connect Gmail with an App Password">
+    <aside className="gmail-connect-wizard" aria-label="How to generate the App Password in your Gmail">
       <div className="gmail-connect-wizard__header">
+        <span className="gmail-connect-wizard__badge">Gmail setup guide</span>
         <p className="gmail-connect-wizard__title">{GMAIL_WIZARD_HEADING}</p>
         <span className="gmail-connect-wizard__counter">
           Step {slide.step} of {GMAIL_CONNECT_STEP_COUNT}

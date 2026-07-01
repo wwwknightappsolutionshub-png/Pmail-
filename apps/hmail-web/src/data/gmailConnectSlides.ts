@@ -24,7 +24,7 @@ export const GMAIL_SECURITY_URL = "https://myaccount.google.com/security";
 export const GMAIL_APP_PASSWORDS_URL = "https://myaccount.google.com/apppasswords";
 export const GOOGLE_ACCOUNT_URL = "https://myaccount.google.com/";
 
-export const GMAIL_WIZARD_HEADING = "This Is How To Generate APP Password Needed To Login";
+export const GMAIL_WIZARD_HEADING = "How to Generate the APP Password In Your Gmail";
 
 export const GMAIL_CONNECT_SLIDES: GmailConnectSlide[] = [
   {

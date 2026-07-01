@@ -4,9 +4,10 @@ import type { ProductOnboardingSlide } from "../data/productOnboardingSlides";
 type ProductOnboardingSlideViewProps = {
   slide: ProductOnboardingSlide;
   active?: boolean;
+  style?: CSSProperties;
 };
 
-export function ProductOnboardingSlideView({ slide, active = true }: ProductOnboardingSlideViewProps) {
+export function ProductOnboardingSlideView({ slide, active = true, style }: ProductOnboardingSlideViewProps) {
   const hasSections = Boolean(slide.sections?.length);
 
   return (
@@ -15,6 +16,7 @@ export function ProductOnboardingSlideView({ slide, active = true }: ProductOnbo
         slide.variant === "cta" ? " product-onboarding-slide--cta" : ""
       }${hasSections ? " product-onboarding-slide--verticals" : ""}`}
       data-slide={slide.id}
+      style={style}
     >
       <div className="product-onboarding-slide-inner">
         <div className="product-onboarding-slide-icon" aria-hidden="true">
