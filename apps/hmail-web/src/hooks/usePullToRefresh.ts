@@ -26,7 +26,7 @@ type PullToRefreshState = {
  * Touch pull-to-refresh for a scroll container that is scrolled to the top.
  */
 export function usePullToRefresh(
-  scrollRef: RefObject<HTMLElement | null>,
+  scrollTarget: RefObject<HTMLElement | null> | HTMLElement | null,
   onRefresh: () => Promise<void>,
   enabled = true,
   respectNestedScroll = false,
@@ -53,8 +53,13 @@ export function usePullToRefresh(
   }, [pullDistance]);
 
   useEffect(() => {
-    const el = scrollRef.current;
+    const el =
+      scrollTarget && typeof scrollTarget === "object" && "current" in scrollTarget
+        ? scrollTarget.current
+        : scrollTarget;
     if (!el || !enabled) return;
+
+    el.style.setProperty("touch-action", "pan-y");
 
     const resetPull = () => {
       pullingRef.current = false;
@@ -119,12 +124,13 @@ export function usePullToRefresh(
     el.addEventListener("touchcancel", onTouchEnd);
 
     return () => {
+      el.style.removeProperty("touch-action");
       el.removeEventListener("touchstart", onTouchStart);
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
       el.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, [scrollRef, enabled, respectNestedScroll]);
+  }, [scrollTarget, enabled, respectNestedScroll]);
 
   return {
     pullDistance,

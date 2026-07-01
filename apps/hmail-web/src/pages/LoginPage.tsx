@@ -52,7 +52,7 @@ export function LoginPage() {
       branding={branding}
       exploreHref={exploreHref}
       showExploreLink
-      layoutClassName="welcome-layout welcome-layout--wizard welcome-layout--cta-split"
+      layoutClassName="welcome-layout welcome-layout--wizard welcome-layout--cta-split login-layout--signin-primary"
       brandPanelClassName="welcome-brand-panel--wizard"
       formPanelClassName="welcome-form-panel--cta"
       leftPanel={<ProductOnboardingCtaPanel slide={ctaSlide} productName={branding.productName} />}

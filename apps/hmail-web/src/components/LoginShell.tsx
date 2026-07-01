@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { hardRefreshPmailClient } from "../clientRefresh";
@@ -31,14 +31,17 @@ export function LoginShell({
   exploreHref = "/welcome",
   showExploreLink = false,
 }: LoginShellProps) {
-  const pageRef = useRef<HTMLDivElement>(null);
-  const enablePullToRefresh = isMobileScreen();
+  const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
+  const [enablePullToRefresh, setEnablePullToRefresh] = useState(() => isMobileScreen());
+  const bindPageRef = useCallback((node: HTMLDivElement | null) => {
+    setScrollRoot(node);
+  }, []);
   const hardRefresh = useCallback(() => hardRefreshPmailClient(), []);
   const { pullDistance, isRefreshing, threshold } = usePullToRefresh(
-    pageRef,
+    scrollRoot,
     hardRefresh,
     enablePullToRefresh,
-    true,
+    false,
   );
   const showPullIndicator = enablePullToRefresh && (pullDistance > 0 || isRefreshing);
   const pullIndicatorHeight = isRefreshing ? threshold : pullDistance;
@@ -71,17 +74,26 @@ export function LoginShell({
     };
   }, []);
 
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setEnablePullToRefresh(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
   return (
-    <div ref={pageRef} className="login-page" style={brandStyle}>
-      {showPullIndicator ? (
+    <div ref={bindPageRef} className="login-page" style={brandStyle}>
+      {enablePullToRefresh ? (
         <div
-          className={`login-pull-indicator${isRefreshing ? " is-refreshing" : ""}${
-            pullDistance >= threshold ? " is-ready" : ""
-          }`}
-          style={{ height: `${pullIndicatorHeight}px` }}
+          className={`login-pull-indicator login-pull-indicator--fixed${
+            showPullIndicator ? " is-visible" : ""
+          }${isRefreshing ? " is-refreshing" : ""}${pullDistance >= threshold ? " is-ready" : ""}`}
+          style={{ height: showPullIndicator ? `${pullIndicatorHeight}px` : undefined }}
           aria-live="polite"
+          aria-hidden={!showPullIndicator}
         >
-          <span>{pullIndicatorLabel}</span>
+          <span>{showPullIndicator ? pullIndicatorLabel : "Pull down to update app"}</span>
         </div>
       ) : null}
       <header className="login-topbar">
