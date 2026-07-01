@@ -644,6 +644,8 @@ html:has(.login-page) #root {
 .login-provider-section {
   display: grid;
   gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .login-provider-label {
