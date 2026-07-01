@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
-import { formatMailConfigSummary, inferProviderPresetFromEmail } from "../constants/mailProviders";
+import { formatMailConfigSummary } from "../constants/mailProviders";
 import { LoginProviderSelectToast } from "./LoginProviderSelectToast";
 import { GmailConnectWizard } from "./GmailConnectWizard";
 import { ProviderPresetPicker } from "./ProviderPresetPicker";
@@ -42,8 +42,7 @@ export function LoginFormCard({
   onRequestWorkspaceAccess,
 }: LoginFormCardProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const isGoogleProvider =
-    mailConfig.providerPreset === "google" || inferProviderPresetFromEmail(email) === "google";
+  const isGoogleProvider = mailConfig.providerPreset === "google";
 
   return (
     <div className={`login-form-card${className ? ` ${className}` : ""}`}>
@@ -211,7 +210,9 @@ export function LoginFormCard({
           </label>
 
           <p className="login-provider-hint">
-            Use your current mail provider password not a new password or app password if you are using gmail and others
+            {isGoogleProvider
+              ? "For Gmail, paste the 16-character App Password you created — not your normal Gmail password."
+              : "Use your current mail provider password not a new password or app password if you are using gmail and others"}
           </p>
         </section>
 

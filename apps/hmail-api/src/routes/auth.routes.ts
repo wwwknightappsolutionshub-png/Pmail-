@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import {
   AuthError,
   getAuthContext,
@@ -22,6 +22,7 @@ import {
 } from "../services/user-mail-config.service.js";
 import { isMailProviderPresetKey, resolveMailConfigFromPreset } from "../data/mail-providers.js";
 import { getEnv } from "../config/env.js";
+import { toClientError } from "../lib/client-error.js";
 import { requireAuth } from "../middleware/auth.js";
 import { touchSessionPresence } from "../services/user-presence.service.js";
 import { isBusinessVertical, selectBusinessVertical } from "../services/business-vertical.service.js";
@@ -97,11 +98,15 @@ authRouter.get("/login-preflight", async (req, res, next) => {
     const result = await getLoginPreflight(tenantSlug, email);
     res.json(result);
   } catch (err) {
-    if (err instanceof Error) {
-      res.status(400).json({ error: err.message });
+    if (err instanceof ZodError) {
+      res.status(400).json({ error: "Enter a valid email address to continue." });
       return;
     }
-    next(err);
+    const clientError = toClientError(err);
+    res.status(clientError.status).json({
+      error: clientError.message,
+      ...(clientError.code ? { code: clientError.code } : {}),
+    });
   }
 });
 
@@ -191,13 +196,16 @@ authRouter.post("/login", async (req, res, next) => {
       res.status(401).json({ error: err.message });
       return;
     }
-    if (err instanceof Error) {
-      console.error("[auth/login]", err);
-      const status = err.message.includes("database schema") ? 503 : 400;
-      res.status(status).json({ error: err.message });
+    if (err instanceof ZodError) {
+      res.status(400).json({ error: "Invalid login request" });
       return;
     }
-    next(err);
+    const clientError = toClientError(err);
+    console.error("[auth/login]", err);
+    res.status(clientError.status).json({
+      error: clientError.message,
+      ...(clientError.code ? { code: clientError.code } : {}),
+    });
   }
 });
 

@@ -1,6 +1,10 @@
 import { useCallback, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { GMAIL_CONNECT_SLIDES, GMAIL_CONNECT_STEP_COUNT } from "../data/gmailConnectSlides";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import {
+  GMAIL_CONNECT_SLIDES,
+  GMAIL_CONNECT_STEP_COUNT,
+  GMAIL_WIZARD_HEADING,
+} from "../data/gmailConnectSlides";
 import { GmailConnectScreenArt } from "./GmailConnectScreenArt";
 import "./GmailConnectWizard.css";
 
@@ -21,11 +25,11 @@ export function GmailConnectWizard() {
   if (!slide) return null;
 
   return (
-    <aside className="gmail-connect-wizard" aria-label="How to connect Gmail">
+    <aside className="gmail-connect-wizard" aria-label="How to connect Gmail with an App Password">
       <div className="gmail-connect-wizard__header">
-        <p className="gmail-connect-wizard__title">Connect Gmail in {GMAIL_CONNECT_STEP_COUNT} steps</p>
+        <p className="gmail-connect-wizard__title">{GMAIL_WIZARD_HEADING}</p>
         <span className="gmail-connect-wizard__counter">
-          Step {slide.step} of {GMAIL_CONNECT_SLIDES.length}
+          Step {slide.step} of {GMAIL_CONNECT_STEP_COUNT}
         </span>
       </div>
 
@@ -40,19 +44,32 @@ export function GmailConnectWizard() {
               className="gmail-connect-wizard__slide"
               aria-hidden={entry.id !== slide.id}
             >
-              <GmailConnectScreenArt screen={entry.screen} />
-              <h3 className="gmail-connect-wizard__slide-title">{entry.title}</h3>
-              <p className="gmail-connect-wizard__slide-body">{entry.body}</p>
-              {entry.tips?.length ? (
-                <ul className="gmail-connect-wizard__tips">
-                  {entry.tips.map((tip) => (
-                    <li key={tip}>{tip}</li>
-                  ))}
-                </ul>
-              ) : null}
+              <div className="gmail-connect-wizard__art-wrap">
+                <GmailConnectScreenArt screen={entry.screen} />
+              </div>
+              <div className="gmail-connect-wizard__copy">
+                {entry.requiredBeforeNext ? (
+                  <span className="gmail-connect-wizard__required">Required before next step</span>
+                ) : null}
+                <h3 className="gmail-connect-wizard__slide-title">{entry.title}</h3>
+                <p className="gmail-connect-wizard__slide-body">{entry.body}</p>
+                {entry.tips?.length ? (
+                  <ul className="gmail-connect-wizard__tips">
+                    {entry.tips.map((tip) => (
+                      <li key={tip}>{tip}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
               {entry.actionHref && entry.actionLabel ? (
-                <a href={entry.actionHref} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={entry.actionHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="gmail-connect-wizard__action"
+                >
                   {entry.actionLabel}
+                  <ExternalLink size={14} aria-hidden="true" />
                 </a>
               ) : null}
             </article>
@@ -80,7 +97,12 @@ export function GmailConnectWizard() {
             <ChevronLeft size={16} aria-hidden />
             Back
           </button>
-          <button type="button" className="gmail-connect-wizard__nav-btn gmail-connect-wizard__nav-btn--primary" onClick={goNext} disabled={isLast}>
+          <button
+            type="button"
+            className="gmail-connect-wizard__nav-btn gmail-connect-wizard__nav-btn--primary"
+            onClick={goNext}
+            disabled={isLast}
+          >
             Next
             <ChevronRight size={16} aria-hidden />
           </button>

@@ -1,5 +1,6 @@
 import type { AuthUser, MailFolder, MailListResult, MailMessageDetail, MailSortField, MailSortOrder, TenantBranding } from "../types/mail";
 import type { MailContact, MailContactCollection } from "../types/contact";
+import { formatUserFacingError } from "../utils/userFacingErrors";
 
 function resolveApiBase(): string {
   return import.meta.env.PROD ? (import.meta.env.VITE_API_BASE_URL ?? "") : "";
@@ -228,7 +229,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       // ignore
     }
-    throw new ApiError(message, res.status);
+    throw new ApiError(formatUserFacingError(new Error(message), message), res.status);
   }
 
   if (res.status === 204) return undefined as T;

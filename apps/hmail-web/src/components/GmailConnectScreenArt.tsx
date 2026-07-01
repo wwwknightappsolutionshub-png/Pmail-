@@ -184,33 +184,60 @@ export function GmailImapTabScreen({ className }: ScreenProps) {
 
 export function GmailTwoStepScreen({ className }: ScreenProps) {
   return (
-    <ScreenFrame className={className} url="myaccount.google.com">
+    <ScreenFrame className={className} url="myaccount.google.com/security">
+      <svg viewBox="0 0 520 240" className="gmail-connect-screen__svg">
+        <rect width="520" height="240" fill="#f8f9fa" />
+        <rect width="520" height="48" fill="#fff" stroke="#e8eaed" />
+        <text x="24" y="30" fill="#5f6368" fontSize="11" fontFamily="Roboto, Arial, sans-serif">
+          Google Account › Security
+        </text>
+        <rect x="24" y="64" width="472" height="56" rx="8" fill="#fff" stroke="#1a73e8" strokeWidth="2" className="gmail-connect-screen__highlight" />
+        <text x="40" y="88" fill="#202124" fontSize="11" fontWeight="700" fontFamily="Roboto, Arial, sans-serif">
+          2-Step Verification
+        </text>
+        <text x="40" y="106" fill="#5f6368" fontSize="10" fontFamily="Roboto, Arial, sans-serif">
+          Tap here on the next step to turn this on
+        </text>
+        <text x="400" y="98" fill="#5f6368" fontSize="10" fontFamily="Roboto, Arial, sans-serif">
+          ›
+        </text>
+      </svg>
+    </ScreenFrame>
+  );
+}
+
+export function GmailActivateTwoStepScreen({ className }: ScreenProps) {
+  return (
+    <ScreenFrame className={className} url="myaccount.google.com/signinoptions/two-step-verification">
       <svg viewBox="0 0 520 280" className="gmail-connect-screen__svg">
         <rect width="520" height="280" fill="#f8f9fa" />
         <rect width="520" height="48" fill="#fff" stroke="#e8eaed" />
         <text x="24" y="30" fill="#5f6368" fontSize="11" fontFamily="Roboto, Arial, sans-serif">
-          Google Account
-        </text>
-        <text x="24" y="72" fill="#202124" fontSize="15" fontWeight="600" fontFamily="Roboto, Arial, sans-serif">
-          Security
-        </text>
-        <rect x="24" y="88" width="472" height="64" rx="8" fill="#fff" stroke="#dadce0" />
-        <text x="40" y="112" fill="#202124" fontSize="11" fontWeight="600" fontFamily="Roboto, Arial, sans-serif">
           2-Step Verification
         </text>
-        <text x="40" y="130" fill="#5f6368" fontSize="10" fontFamily="Roboto, Arial, sans-serif">
-          Adds an extra layer of security to your account
+        <text x="24" y="72" fill="#202124" fontSize="15" fontWeight="600" fontFamily="Roboto, Arial, sans-serif">
+          Protect your account
         </text>
-        <rect x="390" y="104" width="84" height="24" rx="12" fill="#e6f4ea" stroke="#34a853" strokeWidth="1.5" className="gmail-connect-screen__highlight" />
-        <text x="408" y="120" fill="#137333" fontSize="10" fontWeight="700" fontFamily="Roboto, Arial, sans-serif">
-          On
+        <text x="24" y="94" fill="#5f6368" fontSize="10" fontFamily="Roboto, Arial, sans-serif">
+          Required before App passwords can be created
         </text>
-        <rect x="24" y="164" width="472" height="52" rx="8" fill="#fff" stroke="#dadce0" />
-        <text x="40" y="194" fill="#202124" fontSize="11" fontFamily="Roboto, Arial, sans-serif">
-          App passwords
+        <rect x="24" y="112" width="472" height="72" rx="8" fill="#fff" stroke="#dadce0" />
+        <text x="40" y="136" fill="#202124" fontSize="11" fontWeight="600" fontFamily="Roboto, Arial, sans-serif">
+          2-Step Verification
         </text>
-        <text x="380" y="194" fill="#5f6368" fontSize="10" fontFamily="Roboto, Arial, sans-serif">
-          Available when 2-Step is on
+        <text x="40" y="154" fill="#5f6368" fontSize="10" fontFamily="Roboto, Arial, sans-serif">
+          Status: Off — turn on to continue
+        </text>
+        <rect x="360" y="126" width="120" height="32" rx="16" fill="#1a73e8" className="gmail-connect-screen__highlight" />
+        <text x="386" y="147" fill="#fff" fontSize="10" fontWeight="700" fontFamily="Roboto, Arial, sans-serif">
+          Turn on
+        </text>
+        <rect x="24" y="198" width="472" height="58" rx="8" fill="#e6f4ea" stroke="#34a853" strokeWidth="1.5" />
+        <text x="40" y="222" fill="#137333" fontSize="10" fontWeight="700" fontFamily="Roboto, Arial, sans-serif">
+          When finished
+        </text>
+        <text x="40" y="240" fill="#3c4043" fontSize="9.5" fontFamily="Roboto, Arial, sans-serif">
+          Status must show On before you search for App passwords.
         </text>
       </svg>
     </ScreenFrame>
@@ -358,6 +385,8 @@ export function GmailConnectScreenArt({ screen }: { screen: GmailConnectSlide["s
       return <GmailImapTabScreen />;
     case "two-step":
       return <GmailTwoStepScreen />;
+    case "activate-two-step":
+      return <GmailActivateTwoStepScreen />;
     case "app-password-search":
       return <GmailAppPasswordSearchScreen />;
     case "app-password":

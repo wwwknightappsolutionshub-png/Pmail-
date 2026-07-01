@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
+import { toClientError } from "../lib/client-error.js";
 
 function schemaDriftMessage(code: "P2021" | "P2022"): string {
   const isSqlite = (process.env.DATABASE_URL ?? "").startsWith("file:");
@@ -22,9 +23,16 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
   }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError && (err.code === "P2021" || err.code === "P2022")) {
-    res.status(503).json({ error: schemaDriftMessage(err.code) });
+    res.status(503).json({ error: schemaDriftMessage(err.code), code: "schema_out_of_date" });
     return;
   }
+
+  const clientError = toClientError(err);
+  if (clientError.code === "database_unavailable" || clientError.status === 503) {
+    res.status(clientError.status).json({ error: clientError.message, code: clientError.code });
+    return;
+  }
+
   if (err instanceof Error && err.message.includes("database schema is out of date")) {
     res.status(503).json({ error: err.message });
     return;

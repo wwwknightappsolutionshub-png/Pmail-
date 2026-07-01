@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { api, ApiError } from "../api/client";
+import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { PMAIL_TESTER_TENANT_SLUG } from "../constants/tenant";
 import {
@@ -13,6 +13,7 @@ import {
   type LoginMailConfigValues,
   type MailProviderPresetKey,
 } from "../constants/mailProviders";
+import { formatUserFacingError } from "../utils/userFacingErrors";
 import { clearReferralRef, persistReferralRef, readReferralRef } from "../utils/referralStorage";
 
 export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: () => void }) {
@@ -102,6 +103,9 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
           setTesterBypass(false);
           setSuggestedTenantSlug(null);
           setGreetingName(null);
+          setLoginError(
+            "Could not verify mailbox setup right now. You can still choose your provider and try signing in.",
+          );
         }
       })
       .finally(() => {
@@ -171,7 +175,7 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
       setUser(result.user);
       navigate("/");
     } catch (err) {
-      setLoginError(err instanceof ApiError ? err.message : "Login failed");
+      setLoginError(formatUserFacingError(err, "Login failed"));
     } finally {
       setSubmitting(false);
     }
