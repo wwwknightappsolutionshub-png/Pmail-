@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { prisma } from "../lib/prisma.js";
+import { splitBrandedSignatureBlocks } from "./default-signature.service.js";
 import { markReferralLeadReadByTrackingToken } from "./referral-lead.service.js";
 import { notifySenderOfTrackingOpen } from "./tracking-open-notification.service.js";
 
@@ -19,6 +20,15 @@ export function buildLinkClickUrl(clickToken: string, apiPublicBase: string): st
 
 const HREF_ATTR_RE = /(<a\b[^>]*\shref\s*=\s*)(["'])(.*?)\2/gi;
 
+export function isExcludedFromLinkTracking(href: string): boolean {
+  const lower = href.trim().toLowerCase();
+  if (lower.includes("/welcome/prohost")) return true;
+  if (lower.includes("/pwa-192.png") || lower.includes("/pmail-app-icon.png") || lower.includes("/favicon.svg")) {
+    return true;
+  }
+  return false;
+}
+
 export function isTrackableHref(href: string): boolean {
   const trimmed = href.trim();
   if (!trimmed || trimmed.startsWith("#")) {
@@ -29,22 +39,31 @@ export function isTrackableHref(href: string): boolean {
     lower.startsWith("mailto:") ||
     lower.startsWith("tel:") ||
     lower.startsWith("javascript:") ||
-    lower.startsWith("data:")
+    lower.startsWith("data:") ||
+    lower.startsWith("cid:")
   ) {
     return false;
   }
   if (lower.includes("/api/public/track/")) {
     return false;
   }
+  if (isExcludedFromLinkTracking(trimmed)) {
+    return false;
+  }
   return /^https?:\/\//i.test(trimmed);
 }
 
+/** Open-tracking pixel — avoid display:none so Gmail/Outlook load it when images are enabled. */
 export function injectTrackingPixel(html: string, pixelUrl: string): string {
-  const pixel = `<img src="${pixelUrl}" width="1" height="1" alt="" style="display:none" />`;
-  if (html.includes("</body>")) {
-    return html.replace("</body>", `${pixel}</body>`);
+  const pixel = `<img src="${pixelUrl}" width="1" height="1" alt="" border="0" style="border:0;width:1px;height:1px;min-height:1px;min-width:1px;max-height:1px;max-width:1px;" />`;
+  if (html.includes("<body")) {
+    const withTop = html.replace(/<body([^>]*)>/i, `<body$1>${pixel}`);
+    if (withTop.includes("</body>")) {
+      return withTop.replace("</body>", `${pixel}</body>`);
+    }
+    return `${withTop}${pixel}`;
   }
-  return `${html}${pixel}`;
+  return `${pixel}${html}${pixel}`;
 }
 
 export async function createSentTracking(
@@ -63,11 +82,13 @@ export async function createSentTracking(
   });
 }
 
-export async function wrapTrackedLinksInHtml(
+async function wrapTrackedLinksInHtmlSegment(
   html: string,
   sentTrackingId: string,
   apiPublicBase: string,
 ): Promise<string> {
+  if (!html.trim()) return html;
+
   const urlToToken = new Map<string, string>();
   const hrefRe = new RegExp(HREF_ATTR_RE.source, HREF_ATTR_RE.flags);
   let match: RegExpExecArray | null;
@@ -102,6 +123,19 @@ export async function wrapTrackedLinksInHtml(
     const trackUrl = buildLinkClickUrl(token, apiPublicBase);
     return `${prefix}${quote}${trackUrl}${quote}`;
   });
+}
+
+export async function wrapTrackedLinksInHtml(
+  html: string,
+  sentTrackingId: string,
+  apiPublicBase: string,
+): Promise<string> {
+  const { prefix, signature, suffix } = splitBrandedSignatureBlocks(html);
+  const wrappedPrefix = await wrapTrackedLinksInHtmlSegment(prefix, sentTrackingId, apiPublicBase);
+  const wrappedSuffix = suffix
+    ? await wrapTrackedLinksInHtmlSegment(suffix, sentTrackingId, apiPublicBase)
+    : "";
+  return `${wrappedPrefix}${signature ?? ""}${wrappedSuffix}`;
 }
 
 export async function recordTrackingOpen(token: string) {

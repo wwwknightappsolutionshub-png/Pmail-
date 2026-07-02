@@ -41,6 +41,7 @@ export interface SendMailInput {
     filename: string;
     content: Buffer;
     contentType?: string;
+    cid?: string;
   }>;
 }
 

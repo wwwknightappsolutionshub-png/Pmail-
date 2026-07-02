@@ -69,6 +69,21 @@
   opacity: 0.75;
 }
 
+.recipient-typeahead--compact .recipient-typeahead__list {
+  max-height: 9rem;
+  z-index: 60;
+}
+
+@media (max-width: 767px) {
+  .recipient-typeahead--compact .recipient-typeahead__list {
+    max-height: 7.5rem;
+  }
+
+  .recipient-typeahead__option {
+    padding: 0.45rem 0.65rem;
+  }
+}
+
 .pmail-demo-shell--light .recipient-typeahead__list {
   background: #fff;
   border-color: #dbeafe;

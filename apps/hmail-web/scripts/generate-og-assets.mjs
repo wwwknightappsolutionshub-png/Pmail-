@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -23,3 +23,7 @@ const pmailSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="6
 await mkdir(publicDir, { recursive: true });
 await sharp(Buffer.from(pmailSvg)).png().toFile(resolve(publicDir, "og-pmail.png"));
 console.log("Generated apps/hmail-web/public/og-pmail.png");
+
+const pwa192 = resolve(publicDir, "pwa-192.png");
+await sharp(pwa192).png().toFile(resolve(publicDir, "pmail-app-icon.png"));
+console.log("Generated apps/hmail-web/public/pmail-app-icon.png from pwa-192.png");

@@ -437,7 +437,8 @@ export function MailPage({
 
   const activeFolderKind = isVirtual ? null : resolveFolderKind(activeFolderMeta);
   const activeFolderLabel = getFolderTitle(activeFolder, activeFolderMeta);
-  const listUserDisplayName = user?.displayName?.trim() || user?.email?.split("@")[0] || "User";
+  const activeMailboxEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
+  const listUserDisplayName = user?.displayName?.trim() || activeMailboxEmail.split("@")[0] || "User";
   const showBulkBar = activeFolderKind ? folderSupportsBulkActions(activeFolderKind) : false;
   const showInboxSwitcher = !isVirtual && hasMultiInboxAddon;
 
@@ -1520,12 +1521,14 @@ export function MailPage({
 
         <section className="mail-list-pane">
           {embedded ? (
-            <p className="mail-list-breadcrumb" aria-label={`Welcome back, ${listUserDisplayName}. You are: ${activeFolderLabel}`}>
+            <p className="mail-list-breadcrumb" aria-label={`Welcome back, ${listUserDisplayName}. You are: ${activeFolderLabel} (${activeMailboxEmail})`}>
               <span className="mail-list-breadcrumb-welcome">Welcome back, {listUserDisplayName}</span>
               <span className="mail-list-breadcrumb-sep" aria-hidden="true">
                 |
               </span>
-              <span className="mail-list-breadcrumb-current">You are: {activeFolderLabel}</span>
+              <span className="mail-list-breadcrumb-current">
+                You are: {activeFolderLabel} · {activeMailboxEmail}
+              </span>
             </p>
           ) : null}
           <header className={`list-header ${isVirtual ? "list-header--virtual" : ""}`}>

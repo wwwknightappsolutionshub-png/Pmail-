@@ -87,8 +87,8 @@ function BespokeMailShellContent() {
     [],
   );
 
-  const displayName = user?.displayName?.trim() || user?.email?.split("@")[0] || "User";
   const displayEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
+  const displayName = user?.displayName?.trim() || displayEmail.split("@")[0] || "User";
 
   const workspaceTabCounts = useWorkspaceTabCounts(Boolean(user), displayEmail, organizationUsers);
 

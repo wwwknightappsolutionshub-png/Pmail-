@@ -14,6 +14,7 @@ type RecipientTypeaheadProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  compact?: boolean;
 };
 
 const SOURCE_LABEL: Record<RecipientSuggestion["source"], string> = {
@@ -22,12 +23,15 @@ const SOURCE_LABEL: Record<RecipientSuggestion["source"], string> = {
   sent: "Sent",
 };
 
+const MIN_QUERY_LENGTH = 2;
+
 export function RecipientTypeahead({
   id,
   value,
   onChange,
   placeholder = "Recipients",
   disabled = false,
+  compact = false,
 }: RecipientTypeaheadProps) {
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -36,12 +40,19 @@ export function RecipientTypeahead({
   const [suggestions, setSuggestions] = useState<RecipientSuggestion[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
 
+  const trimmedValue = value.trim();
+  const canSuggest = trimmedValue.length >= MIN_QUERY_LENGTH;
+
   useEffect(() => {
-    if (!open) return;
+    if (!open || !canSuggest) {
+      setSuggestions([]);
+      setLoading(false);
+      return;
+    }
     const timer = window.setTimeout(() => {
       setLoading(true);
       void api
-        .recipientSuggestions(value)
+        .recipientSuggestions(trimmedValue, compact ? 4 : 20)
         .then((result) => {
           setSuggestions(result.suggestions);
           setActiveIndex(result.suggestions.length > 0 ? 0 : -1);
@@ -50,7 +61,7 @@ export function RecipientTypeahead({
         .finally(() => setLoading(false));
     }, 220);
     return () => window.clearTimeout(timer);
-  }, [value, open]);
+  }, [trimmedValue, open, canSuggest, compact]);
 
   useEffect(() => {
     const onDocClick = (event: MouseEvent) => {
@@ -84,8 +95,10 @@ export function RecipientTypeahead({
     }
   };
 
+  const showList = open && canSuggest && (loading || suggestions.length > 0);
+
   return (
-    <div className="recipient-typeahead" ref={rootRef}>
+    <div className={`recipient-typeahead${compact ? " recipient-typeahead--compact" : ""}`} ref={rootRef}>
       <input
         id={id}
         type="text"
@@ -95,17 +108,22 @@ export function RecipientTypeahead({
         placeholder={placeholder}
         autoComplete="off"
         role="combobox"
-        aria-expanded={open}
+        aria-expanded={showList}
         aria-controls={listId}
         aria-autocomplete="list"
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          if (canSuggest) setOpen(true);
+        }}
         onChange={(event) => {
           onChange(event.target.value);
-          setOpen(true);
+          setOpen(event.target.value.trim().length >= MIN_QUERY_LENGTH);
         }}
         onKeyDown={onKeyDown}
+        onBlur={() => {
+          window.setTimeout(() => setOpen(false), 120);
+        }}
       />
-      {open && (loading || suggestions.length > 0) ? (
+      {showList ? (
         <ul className="recipient-typeahead__list" id={listId} role="listbox">
           {loading ? <li className="recipient-typeahead__status">Searching…</li> : null}
           {!loading

@@ -59,6 +59,26 @@ describe("link click tracking (open-tracking extension)", () => {
       expect(links[0]?.originalUrl).toBe("https://example.com/a");
       expect(links[1]?.originalUrl).toBe("https://other.test/b");
     });
+
+    it("does not rewrite Explore Now or branded signature links", async () => {
+      const { user } = await createAuthenticatedAgent(app);
+      const tracking = await testPrisma.sentMessageTracking.create({
+        data: {
+          userId: user.id,
+          toEmail: "recipient@test.local",
+          subject: "Signature",
+          trackingToken: "tok-signature",
+        },
+      });
+
+      const exploreUrl = "https://mail.prohost.cloud/welcome/prohost/";
+      const html = `<p>Hello</p><a href="https://example.com/doc">Doc</a><div data-pmail-signature="branded"><a href="${exploreUrl}">Explore Now</a></div>`;
+      const wrapped = await wrapTrackedLinksInHtml(html, tracking.id, "http://localhost:4000");
+
+      expect(wrapped).toContain(`href="${exploreUrl}"`);
+      expect(wrapped.match(/\/api\/public\/track\/link\//g)?.length).toBe(1);
+      expect(wrapped).toContain("/api/public/track/link/");
+    });
   });
 
   it("GET /api/public/track/link/:token records click and redirects", async () => {

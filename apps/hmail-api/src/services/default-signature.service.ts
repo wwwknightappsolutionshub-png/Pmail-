@@ -1,11 +1,17 @@
 import { getEnv } from "../config/env.js";
-import { prisma } from "../lib/prisma.js";
+import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
 
 export const PMail_DEFAULT_SIGNATURE_TAGLINE =
   "Do More With PMail+ | Unify Your Multiple Email Accounts";
 
 const SIGNATURE_MARKER = 'data-pmail-signature="branded"';
+export const PMail_SIGNATURE_MARKER = SIGNATURE_MARKER;
+export const PMail_SIGNATURE_LOGO_CID = "pmail-signature-logo@pmail";
+
+const BRANDED_SIGNATURE_BLOCK_RE = /(<div[^>]*data-pmail-signature="branded"[\s\S]*?<\/div>)/i;
 
 function resolveWebOrigin(): string {
   return getEnv().HOSTNET_WEB_URL.replace(/\/$/, "");
@@ -50,23 +56,23 @@ export function resolveActiveSignatureBody(settings: {
   return body || null;
 }
 
-export async function resolveBrandedLogoUrl(tenantId: string): Promise<string> {
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: tenantId },
-    select: { branding: { select: { logoUrl: true } } },
-  });
-  const logo = tenant?.branding?.logoUrl?.trim();
-  if (logo && /^https?:\/\//i.test(logo)) {
-    return logo;
-  }
-  return `${resolvePmailWebOrigin()}/favicon.svg`;
+export function resolveDefaultBrandedSignatureExploreUrl(): string {
+  return `${resolvePmailWebOrigin()}/welcome/prohost/`;
+}
+
+export function resolveDefaultBrandedSignatureLogoUrl(): string {
+  return `${resolvePmailWebOrigin()}/pwa-192.png`;
+}
+
+export async function resolveBrandedLogoUrl(_tenantId: string): Promise<string> {
+  return resolveDefaultBrandedSignatureLogoUrl();
 }
 
 export function buildDefaultBrandedSignatureHtml(input: { logoUrl: string; exploreUrl: string }): string {
   const safeLogo = escapeHtml(input.logoUrl);
   const safeExplore = escapeHtml(input.exploreUrl);
   const tagline = escapeHtml(PMail_DEFAULT_SIGNATURE_TAGLINE);
-  return `<div ${SIGNATURE_MARKER} style="margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;font-family:Segoe UI,system-ui,sans-serif;font-size:13px;color:#334155;line-height:1.5">
+  return `<div ${SIGNATURE_MARKER} style="margin-top:24px;padding-top:16px;border-top:1px solid #e2e8f0;font-family:Segoe UI,system-ui,sans-serif;font-size:13px;color:#334155;line-height:1.5">
 <table cellpadding="0" cellspacing="0" role="presentation"><tr>
 <td style="padding-right:12px;vertical-align:middle"><img src="${safeLogo}" alt="PMail+" width="44" height="44" style="display:block;border-radius:10px" /></td>
 <td style="vertical-align:middle"><strong style="color:#0d4f6c">PMail+</strong><br/><span>${tagline}</span><br/><a href="${safeExplore}" style="display:inline-block;margin-top:8px;padding:8px 14px;background:#0d9488;color:#ffffff;font-weight:600;text-decoration:none;border-radius:8px">Explore Now</a></td>
@@ -78,11 +84,72 @@ export function buildDefaultBrandedSignatureText(exploreUrl: string): string {
 }
 
 export async function getDefaultBrandedSignatureForTenant(tenantId: string) {
-  const exploreUrl = `${resolvePmailWebOrigin()}/welcome/prohost`;
+  const exploreUrl = resolveDefaultBrandedSignatureExploreUrl();
   const logoUrl = await resolveBrandedLogoUrl(tenantId);
   return {
     html: buildDefaultBrandedSignatureHtml({ logoUrl, exploreUrl }),
     text: buildDefaultBrandedSignatureText(exploreUrl),
+  };
+}
+
+export type InlineSignatureLogoAttachment = {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+  cid: string;
+};
+
+let cachedSignatureLogo: Buffer | null = null;
+
+async function loadSignatureLogoBuffer(): Promise<Buffer> {
+  if (cachedSignatureLogo) return cachedSignatureLogo;
+  const apiRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+  const logoPath = resolve(apiRoot, "../assets/pmail-signature-logo.png");
+  cachedSignatureLogo = await readFile(logoPath);
+  return cachedSignatureLogo;
+}
+
+/** Replace remote logo URL with CID so signature images render in Gmail/Outlook. */
+export async function embedBrandedSignatureLogoInline(html: string): Promise<{
+  html: string;
+  inlineAttachment: InlineSignatureLogoAttachment | null;
+}> {
+  if (!html.includes(SIGNATURE_MARKER)) {
+    return { html, inlineAttachment: null };
+  }
+
+  const logoBuffer = await loadSignatureLogoBuffer();
+  const cid = PMail_SIGNATURE_LOGO_CID;
+  const updated = html.replace(
+    /(<div[^>]*data-pmail-signature="branded"[\s\S]*?<img[^>]*\ssrc=")([^"]*)(")/i,
+    `$1cid:${cid}$3`,
+  );
+
+  return {
+    html: updated,
+    inlineAttachment: {
+      filename: "pmail-signature-logo.png",
+      content: logoBuffer,
+      contentType: "image/png",
+      cid,
+    },
+  };
+}
+
+export function splitBrandedSignatureBlocks(html: string): {
+  prefix: string;
+  signature: string | null;
+  suffix: string;
+} {
+  const match = html.match(BRANDED_SIGNATURE_BLOCK_RE);
+  if (!match || match.index === undefined) {
+    return { prefix: html, signature: null, suffix: "" };
+  }
+  const signature = match[1];
+  return {
+    prefix: html.slice(0, match.index),
+    signature,
+    suffix: html.slice(match.index + signature.length),
   };
 }
 

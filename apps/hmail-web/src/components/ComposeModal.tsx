@@ -6,6 +6,7 @@ import { useAddons } from "../context/AddonContext";
 import { htmlToPlainText, RichTextEditor } from "./RichTextEditor";
 import type { PendingUndoSend } from "./UndoSendToast";
 import { isCvLikeAttachment } from "../lib/cvAttachmentDetect";
+import { isMobileScreen } from "../utils/pwaPlatform";
 import "@hostnet-demo/components/demo/BespokeMailDemo.css";
 import { RecipientTypeahead } from "./RecipientTypeahead";
 import "./ComposeModal.css";
@@ -103,6 +104,8 @@ export function ComposeModal({
   const { user } = useAuth();
   const { hasAddon } = useAddons();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isMobileCompose, setIsMobileCompose] = useState(() => isMobileScreen());
+  const fromEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
 
   const [mode, setMode] = useState<ComposeMode>("new");
   const [to, setTo] = useState("");
@@ -142,6 +145,15 @@ export function ComposeModal({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [discardConfirm, setDiscardConfirm] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const media = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobileCompose(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -206,7 +218,7 @@ export function ComposeModal({
           }
           if (settings.defaultBrandedSignature?.html) {
             const sigBlock = settings.defaultBrandedSignature.html.trim();
-            setBodyHtml(initialHtml ? `${initialHtml}${sigBlock}` : sigBlock);
+            setBodyHtml(initialHtml ? `${initialHtml}<br><br>${sigBlock}` : sigBlock);
             return;
           }
         }
@@ -399,10 +411,18 @@ export function ComposeModal({
   };
 
   const handleDiscard = () => {
+    if (isMobileCompose) {
+      onClose();
+      return;
+    }
     if (!discardConfirm) {
       setDiscardConfirm(true);
       return;
     }
+    onClose();
+  };
+
+  const handleTitleClose = () => {
     onClose();
   };
 
@@ -498,9 +518,10 @@ export function ComposeModal({
   };
 
   const subjectLabel = subject.trim() || modeTitle(mode);
-  const windowStyle = maximized ? undefined : { transform: `translate(${position.x}px, ${position.y}px)` };
+  const windowStyle =
+    maximized || isMobileCompose ? undefined : { transform: `translate(${position.x}px, ${position.y}px)` };
 
-  const composeWindow = minimized ? (
+  const composeWindow = minimized && !isMobileCompose ? (
     <div className="gmail-compose gmail-compose--minimized" style={windowStyle}>
       <button type="button" className="gmail-compose__restore" onClick={() => setMinimized(false)}>
         {subjectLabel}
@@ -511,17 +532,17 @@ export function ComposeModal({
     </div>
   ) : (
     <div
-      className={`gmail-compose${maximized ? " gmail-compose--maximized" : ""}`}
+      className={`gmail-compose${maximized ? " gmail-compose--maximized" : ""}${isMobileCompose ? " gmail-compose--mobile-fullscreen" : ""}`}
       role="dialog"
       aria-label={modeTitle(mode)}
-      aria-modal="false"
+      aria-modal={isMobileCompose ? "true" : "false"}
       style={windowStyle}
       onMouseDown={(event) => event.stopPropagation()}
     >
       <header
-        className="gmail-compose__titlebar gmail-compose__titlebar--draggable"
+        className={`gmail-compose__titlebar${isMobileCompose ? "" : " gmail-compose__titlebar--draggable"}`}
         onMouseDown={(event) => {
-          if (maximized) return;
+          if (maximized || isMobileCompose) return;
           setDragging({
             startX: event.clientX,
             startY: event.clientY,
@@ -532,19 +553,23 @@ export function ComposeModal({
       >
         <span>{subjectLabel}</span>
         <div className="gmail-compose__window-actions" onMouseDown={(event) => event.stopPropagation()}>
-          <button type="button" className="gmail-compose__win-btn" onClick={() => setMinimized(true)} aria-label="Minimize">
-            −
-          </button>
-          <button
-            type="button"
-            className="gmail-compose__win-btn"
-            onClick={() => setMaximized((value) => !value)}
-            aria-label={maximized ? "Restore" : "Maximize"}
-          >
-            {maximized ? "⧉" : "□"}
-          </button>
-          <button type="button" className="gmail-compose__win-btn" onClick={handleDiscard} aria-label="Discard">
-            {discardConfirm ? "!" : "×"}
+          {!isMobileCompose ? (
+            <>
+              <button type="button" className="gmail-compose__win-btn" onClick={() => setMinimized(true)} aria-label="Minimize">
+                −
+              </button>
+              <button
+                type="button"
+                className="gmail-compose__win-btn"
+                onClick={() => setMaximized((value) => !value)}
+                aria-label={maximized ? "Restore" : "Maximize"}
+              >
+                {maximized ? "⧉" : "□"}
+              </button>
+            </>
+          ) : null}
+          <button type="button" className="gmail-compose__win-btn" onClick={handleTitleClose} aria-label="Close">
+            ×
           </button>
         </div>
       </header>
@@ -553,13 +578,13 @@ export function ComposeModal({
         <div className="gmail-compose__row">
           <span className="gmail-compose__label">From</span>
           <span className="gmail-compose__static">
-            {fromDisplayName ? `${fromDisplayName} <${user?.email}>` : user?.email}
+            {fromDisplayName ? `${fromDisplayName} <${fromEmail}>` : fromEmail}
           </span>
         </div>
 
         <div className="gmail-compose__row gmail-compose__row--split">
           <span className="gmail-compose__label">To</span>
-          <RecipientTypeahead value={to} onChange={setTo} placeholder="Recipients" />
+          <RecipientTypeahead value={to} onChange={setTo} placeholder="Recipients" compact={isMobileCompose} />
           {!showCc && !showBcc ? (
             <button type="button" className="gmail-compose__cc-toggle" onClick={() => setShowCc(true)}>
               Cc Bcc

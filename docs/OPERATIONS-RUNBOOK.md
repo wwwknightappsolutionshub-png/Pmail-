@@ -92,6 +92,7 @@ Review notices with legal counsel before public launch.
 
 ```env
 NODE_ENV=production
+SEO_MONITORING_JOB_ENABLED=false
 DATABASE_URL=postgresql://...
 API_PORT=4002
 PUBLIC_API_URL=https://api.yourdomain.com

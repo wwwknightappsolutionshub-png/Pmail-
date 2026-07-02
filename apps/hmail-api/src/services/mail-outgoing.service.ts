@@ -11,7 +11,7 @@ import { JOB_HUNTER_ADDON_SLUG } from "./job-hunter-settings.service.js";
 import { appendToSentFolder, type MailCredentials } from "./imap.service.js";
 import { markEmailSlaThreadResponded } from "./email-sla.service.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
-import { appendOutboundSignature } from "./default-signature.service.js";
+import { appendOutboundSignature, embedBrandedSignatureLogoInline } from "./default-signature.service.js";
 import {
   ensureOpenTrackingOnFirstSend,
   hasOpenTrackingAccess,
@@ -90,11 +90,6 @@ export async function executeOutgoingMailSend(input: {
       toEmail: body.to,
       subject: body.subject,
     });
-    const pixelUrl = buildTrackingPixelUrl(trackingRecord.trackingToken, input.apiPublicBase);
-    if (htmlBody) {
-      htmlBody = injectTrackingPixel(htmlBody, pixelUrl);
-      htmlBody = await wrapTrackedLinksInHtml(htmlBody, trackingRecord.id, input.apiPublicBase);
-    }
   }
 
   const signed = await appendOutboundSignature({
@@ -105,6 +100,20 @@ export async function executeOutgoingMailSend(input: {
   });
   htmlBody = signed.html;
   textBody = signed.text;
+
+  let signatureLogoAttachment: Awaited<ReturnType<typeof embedBrandedSignatureLogoInline>>["inlineAttachment"] =
+    null;
+  if (htmlBody) {
+    const embedded = await embedBrandedSignatureLogoInline(htmlBody);
+    htmlBody = embedded.html;
+    signatureLogoAttachment = embedded.inlineAttachment;
+  }
+
+  if (trackingEnabled && trackingRecord && htmlBody) {
+    htmlBody = await wrapTrackedLinksInHtml(htmlBody, trackingRecord.id, input.apiPublicBase);
+    const pixelUrl = buildTrackingPixelUrl(trackingRecord.trackingToken, input.apiPublicBase);
+    htmlBody = injectTrackingPixel(htmlBody, pixelUrl);
+  }
 
   const creds = input.credentials;
 
@@ -117,6 +126,18 @@ export async function executeOutgoingMailSend(input: {
     }
     const documentAttachments = await getUserDocumentsForSend(input.userId, input.tenantId, userDocumentIds);
     mergedAttachments = [...mergedAttachments, ...documentAttachments];
+  }
+
+  if (signatureLogoAttachment) {
+    mergedAttachments = [
+      ...mergedAttachments,
+      {
+        filename: signatureLogoAttachment.filename,
+        content: signatureLogoAttachment.content.toString("base64"),
+        contentType: signatureLogoAttachment.contentType,
+        cid: signatureLogoAttachment.cid,
+      },
+    ];
   }
 
   const mailInput = {
@@ -140,6 +161,7 @@ export async function executeOutgoingMailSend(input: {
           filename: att.filename,
           content: Buffer.from(att.content, "base64"),
           contentType: att.contentType,
+          cid: "cid" in att ? att.cid : undefined,
         }))
       : undefined,
   };

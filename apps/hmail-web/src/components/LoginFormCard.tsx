@@ -112,7 +112,7 @@ export function LoginFormCard({
                 <input
                   value={mailConfig.imapHost}
                   onChange={(e) => setMailConfig({ ...mailConfig, imapHost: e.target.value })}
-                  placeholder="e.g. mail.yourdomain.com or srv04.hostnethub.com"
+                  placeholder="Type in your hostname"
                   required
                   autoComplete="off"
                 />
@@ -132,7 +132,7 @@ export function LoginFormCard({
                 <input
                   value={mailConfig.smtpHost}
                   onChange={(e) => setMailConfig({ ...mailConfig, smtpHost: e.target.value })}
-                  placeholder="e.g. mail.yourdomain.com or srv04.hostnethub.com"
+                  placeholder="Type in your hostname"
                   required
                   autoComplete="off"
                 />

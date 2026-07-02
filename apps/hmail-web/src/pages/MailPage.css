@@ -541,8 +541,8 @@
   }
 
   .mail-app--embedded-in-bespoke .mail-list-breadcrumb-current {
-    flex: 0 1 auto;
-    max-width: 38%;
+    flex: 1 1 auto;
+    max-width: 52%;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
