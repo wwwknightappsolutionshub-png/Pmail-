@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { prisma } from "../lib/prisma.js";
 import { markReferralLeadReadByTrackingToken } from "./referral-lead.service.js";
+import { notifySenderOfTrackingOpen } from "./tracking-open-notification.service.js";
 
 export function createTrackingToken(): string {
   return randomBytes(18).toString("hex");
@@ -110,6 +111,7 @@ export async function recordTrackingOpen(token: string) {
     return null;
   }
   const now = new Date();
+  const isFirstOpen = !row.firstOpenedAt;
   const updated = await prisma.sentMessageTracking.update({
     where: { id: row.id },
     data: {
@@ -119,6 +121,17 @@ export async function recordTrackingOpen(token: string) {
     },
   });
   await markReferralLeadReadByTrackingToken(token);
+  if (isFirstOpen) {
+    void notifySenderOfTrackingOpen({
+      id: row.id,
+      userId: row.userId,
+      toEmail: row.toEmail,
+      subject: row.subject,
+      firstOpenedAt: row.firstOpenedAt,
+    }).catch((err) => {
+      console.error("[tracking-open-notification]", err);
+    });
+  }
   return updated;
 }
 

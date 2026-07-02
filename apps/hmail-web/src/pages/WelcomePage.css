@@ -5,6 +5,11 @@
   grid-template-columns: unset !important;
   flex: 1;
   min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  background: var(--login-navy, #0f2744);
 }
 
 .welcome-layout--fullscreen-slides .welcome-brand-panel--wizard {
@@ -15,14 +20,22 @@
   flex-direction: column;
   align-items: center;
   justify-content: stretch;
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: clamp(0.65rem, 2vw, 1.25rem) max(1rem, env(safe-area-inset-left)) max(0.75rem, env(safe-area-inset-bottom))
     max(1rem, env(safe-area-inset-right));
-  width: 100%;
   box-sizing: border-box;
 }
 
 .welcome-layout--fullscreen-slides .welcome-form-panel--hidden {
   display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
 }
 
 .welcome-layout--fullscreen-slides .product-onboarding-wizard {
@@ -62,12 +75,23 @@
 @media (min-width: 768px) {
   .welcome-layout--fullscreen-slides {
     display: grid !important;
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .welcome-layout--fullscreen-slides .welcome-brand-panel--wizard {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .welcome-layout--cta-split {
     display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    width: 100%;
+    max-width: 100%;
   }
 
   .welcome-layout--cta-split .welcome-brand-panel--wizard {
@@ -128,5 +152,42 @@
   .welcome-layout--cta-split #welcome-sign-in-panel,
   .welcome-layout--cta-split #login-sign-in-panel {
     max-width: 100%;
+  }
+}
+
+/* Tablet landscape: keep onboarding full-bleed (no empty right column) */
+@media (min-width: 768px) and (orientation: landscape) {
+  .welcome-layout--fullscreen-slides {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: calc(100dvh - 3.5rem - env(safe-area-inset-top));
+  }
+
+  .welcome-layout--fullscreen-slides .welcome-brand-panel--wizard {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    padding: clamp(0.5rem, 1.5vw, 1rem) clamp(1rem, 3vw, 2rem);
+  }
+
+  .welcome-layout--fullscreen-slides .product-onboarding-wizard {
+    width: 100%;
+    max-width: min(100%, 56rem);
+    margin: 0 auto;
+  }
+
+  .welcome-layout--fullscreen-slides .product-onboarding-wizard--fullscreen .product-onboarding-slide {
+    padding: 0.5rem 0.65rem 0.75rem;
+  }
+
+  .welcome-layout--cta-split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  .welcome-layout--cta-split .welcome-brand-panel--wizard,
+  .welcome-layout--cta-split .welcome-form-panel--cta {
+    min-width: 0;
+    min-height: 0;
   }
 }

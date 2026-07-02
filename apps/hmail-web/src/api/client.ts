@@ -1850,6 +1850,21 @@ export const api = {
         }>;
       };
     }>(`/api/mail/tracking/${id}`),
+  mailTrackingNotifications: () =>
+    request<{
+      notifications: Array<{
+        id: string;
+        sentMessageTrackingId: string;
+        toEmail: string;
+        subject: string;
+        openedAt: string;
+      }>;
+    }>("/api/mail/tracking/notifications"),
+  markMailTrackingNotificationsRead: (ids: string[]) =>
+    request<{ read: number }>("/api/mail/tracking/notifications/read", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
   listVaultFiles: () =>
     request<{
       files: Array<{

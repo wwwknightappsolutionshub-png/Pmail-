@@ -1101,7 +1101,10 @@ export function BespokeMailDemo({
   const contactsTabCount = useLiveTabCounts ? workspaceTabCounts!.contacts : crmContacts.length;
   const remindersTabCount = useLiveTabCounts ? workspaceTabCounts!.reminders : pendingReminderCount;
   const calendarTabCount = useLiveTabCounts ? workspaceTabCounts!.calendar : calendarEvents.length;
-  const messagingTabCount = useLiveTabCounts ? workspaceTabCounts!.messaging : messagingThreads.length;
+  const messagingDirectoryCount = 1 + organizationChatUsers.length + whatsappContacts.length;
+  const messagingTabCount = renderInboxWorkspace
+    ? workspaceTabCounts?.messaging ?? messagingDirectoryCount
+    : messagingThreads.length;
   const showWorkspaceTabsMoreForward = workspaceTabsHasOverflow && workspaceTabsCanScrollForward;
   const showWorkspaceTabsMoreBackward =
     isMobileWorkspaceTabs &&

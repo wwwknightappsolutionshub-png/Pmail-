@@ -105,6 +105,7 @@ export function ShellMailFooterNav({
           <InboxSwitcher
             ref={bindInboxSwitcherRef}
             variant="bottom-nav"
+            themeVersion={uiThemeVersion}
             activeAccount={user?.activeMailAccount ?? null}
             onSwitched={() => void handleMailboxSwitch()}
             onPaidAddonGate={() => setPaidAddonGate({ slug: "multi-inbox-functionality", name: "Multiple Inboxes" })}

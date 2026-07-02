@@ -1,9 +1,26 @@
 const MOBILE_MAX_WIDTH_PX = 767;
+const TABLET_MAX_WIDTH_PX = 1024;
 const PWA_INSTALL_SESSION_BYPASS_KEY = "pmail:pwa-install-session-bypass";
+const PWA_EXIT_REMINDER_SHOWN_KEY = "pmail:pwa-exit-reminder-shown";
 
 export function isMobileScreen(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH_PX}px)`).matches;
+}
+
+export function isTabletScreen(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(
+    `(min-width: ${MOBILE_MAX_WIDTH_PX + 1}px) and (max-width: ${TABLET_MAX_WIDTH_PX}px)`,
+  ).matches;
+}
+
+/** Phones, tablets, and touch-first devices eligible for install prompts. */
+export function isPwaInstallCandidateDevice(): boolean {
+  if (typeof window === "undefined") return false;
+  if (isIosDevice() || isAndroidDevice()) return true;
+  if (isMobileScreen() || isTabletScreen()) return true;
+  return window.matchMedia("(max-width: 1024px) and (hover: none) and (pointer: coarse)").matches;
 }
 
 export function isStandaloneDisplayMode(): boolean {
@@ -56,9 +73,30 @@ export function hasPwaInstallSessionBypass(): boolean {
   }
 }
 
-export function shouldRequirePwaInstall(pathname = "/"): boolean {
+export function markPwaExitReminderShownForSession(): void {
+  try {
+    sessionStorage.setItem(PWA_EXIT_REMINDER_SHOWN_KEY, "1");
+  } catch {
+    // ignore
+  }
+}
+
+export function hasPwaExitReminderShownForSession(): boolean {
+  try {
+    return sessionStorage.getItem(PWA_EXIT_REMINDER_SHOWN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function shouldOfferPwaInstall(pathname = "/"): boolean {
   if (isLoginPath(pathname)) return false;
   if (isStandaloneDisplayMode()) return false;
   if (hasPwaInstallSessionBypass()) return false;
-  return isPwaInstallGateEnabled() && isMobileScreen();
+  if (!isPwaInstallGateEnabled()) return false;
+  return isPwaInstallCandidateDevice();
+}
+
+export function shouldRequirePwaInstall(pathname = "/"): boolean {
+  return shouldOfferPwaInstall(pathname);
 }

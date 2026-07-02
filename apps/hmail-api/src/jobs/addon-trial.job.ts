@@ -1,5 +1,6 @@
 import { processTrialNurtureEmails } from "../services/addon.service.js";
 import { processPanelWorkspaceTrialEmails } from "../services/panel-workspace-trial.service.js";
+import { processOpenTrackingUpsellEmails } from "../services/open-tracking-entitlement.service.js";
 import { processPmailProspectDemoEmails } from "../services/pmail-prospect-demo.service.js";
 import { processAddonEducationDripEmails } from "../services/addon-education-drip.service.js";
 
@@ -10,6 +11,7 @@ export function startAddonTrialJob(): void {
     try {
       await processTrialNurtureEmails();
       await processPanelWorkspaceTrialEmails();
+      await processOpenTrackingUpsellEmails();
       await processPmailProspectDemoEmails();
       await processAddonEducationDripEmails();
     } catch (err) {

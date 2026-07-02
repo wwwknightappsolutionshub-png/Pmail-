@@ -181,7 +181,7 @@ export function ComposeModal({
     }
     setPriority("normal");
     setRequestReadReceipt(false);
-    setTrackingEnabled(false);
+    setTrackingEnabled(hasAddon("open-tracking"));
     setShowSchedule(false);
     setScheduleDate("");
     setScheduleTime("09:00");
@@ -468,7 +468,7 @@ export function ComposeModal({
         references: initial?.references,
         priority,
         requestReadReceipt,
-        trackingEnabled: hasAddon("open-tracking") ? trackingEnabled : undefined,
+        trackingEnabled: hasAddon("open-tracking") ? trackingEnabled : false,
         vaultFileIds: vaultFiles.length ? vaultFiles.map((file) => file.id) : undefined,
         userDocumentIds: careerDocuments.length ? careerDocuments.map((doc) => doc.id) : undefined,
         attachments: encodedAttachments.length ? encodedAttachments : undefined,

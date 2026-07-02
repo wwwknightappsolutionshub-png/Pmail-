@@ -171,8 +171,20 @@ function BespokeMailShellContent() {
 
   useEffect(() => {
     void refreshComposeSettings().catch(() => setLiveComposeSettings(null));
-    void api.organizationUsers().then((response) => setOrganizationUsers(response.users));
-  }, [refreshComposeSettings]);
+
+    if (!user) {
+      setOrganizationUsers([]);
+      return;
+    }
+
+    const loadOrganizationUsers = () => {
+      void api.organizationUsers().then((response) => setOrganizationUsers(response.users));
+    };
+
+    loadOrganizationUsers();
+    const timer = window.setInterval(loadOrganizationUsers, 30_000);
+    return () => window.clearInterval(timer);
+  }, [refreshComposeSettings, user]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

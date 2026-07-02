@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
 
 export const PMail_DEFAULT_SIGNATURE_TAGLINE =
-  "Do More With PMail+ | Unify Your Multiple Email Accounts | Join Free";
+  "Do More With PMail+ | Unify Your Multiple Email Accounts";
 
 const SIGNATURE_MARKER = 'data-pmail-signature="branded"';
 
@@ -62,27 +62,27 @@ export async function resolveBrandedLogoUrl(tenantId: string): Promise<string> {
   return `${resolvePmailWebOrigin()}/favicon.svg`;
 }
 
-export function buildDefaultBrandedSignatureHtml(input: { logoUrl: string; joinUrl: string }): string {
+export function buildDefaultBrandedSignatureHtml(input: { logoUrl: string; exploreUrl: string }): string {
   const safeLogo = escapeHtml(input.logoUrl);
-  const safeJoin = escapeHtml(input.joinUrl);
+  const safeExplore = escapeHtml(input.exploreUrl);
   const tagline = escapeHtml(PMail_DEFAULT_SIGNATURE_TAGLINE);
   return `<div ${SIGNATURE_MARKER} style="margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;font-family:Segoe UI,system-ui,sans-serif;font-size:13px;color:#334155;line-height:1.5">
 <table cellpadding="0" cellspacing="0" role="presentation"><tr>
 <td style="padding-right:12px;vertical-align:middle"><img src="${safeLogo}" alt="PMail+" width="44" height="44" style="display:block;border-radius:10px" /></td>
-<td style="vertical-align:middle"><strong style="color:#0d4f6c">PMail+</strong><br/><span>${tagline}</span><br/><a href="${safeJoin}" style="color:#0d9488;font-weight:600;text-decoration:none">Join Free</a></td>
+<td style="vertical-align:middle"><strong style="color:#0d4f6c">PMail+</strong><br/><span>${tagline}</span><br/><a href="${safeExplore}" style="display:inline-block;margin-top:8px;padding:8px 14px;background:#0d9488;color:#ffffff;font-weight:600;text-decoration:none;border-radius:8px">Explore Now</a></td>
 </tr></table></div>`;
 }
 
-export function buildDefaultBrandedSignatureText(joinUrl: string): string {
-  return `\n\n--\n${PMail_DEFAULT_SIGNATURE_TAGLINE}\n${joinUrl}`;
+export function buildDefaultBrandedSignatureText(exploreUrl: string): string {
+  return `\n\n--\n${PMail_DEFAULT_SIGNATURE_TAGLINE}\nExplore Now: ${exploreUrl}`;
 }
 
 export async function getDefaultBrandedSignatureForTenant(tenantId: string) {
-  const joinUrl = `${resolveWebOrigin()}/welcome`;
+  const exploreUrl = `${resolvePmailWebOrigin()}/welcome/prohost`;
   const logoUrl = await resolveBrandedLogoUrl(tenantId);
   return {
-    html: buildDefaultBrandedSignatureHtml({ logoUrl, joinUrl }),
-    text: buildDefaultBrandedSignatureText(joinUrl),
+    html: buildDefaultBrandedSignatureHtml({ logoUrl, exploreUrl }),
+    text: buildDefaultBrandedSignatureText(exploreUrl),
   };
 }
 

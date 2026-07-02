@@ -12,6 +12,11 @@ import { appendToSentFolder, type MailCredentials } from "./imap.service.js";
 import { markEmailSlaThreadResponded } from "./email-sla.service.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
 import { appendOutboundSignature } from "./default-signature.service.js";
+import {
+  ensureOpenTrackingOnFirstSend,
+  hasOpenTrackingAccess,
+  resolveOutboundTrackingEnabled,
+} from "./open-tracking-entitlement.service.js";
 import { sendMail } from "./smtp.service.js";
 import {
   buildTrackingPixelUrl,
@@ -56,6 +61,10 @@ export async function executeOutgoingMailSend(input: {
   let textBody = body.text;
   let trackingRecord: Awaited<ReturnType<typeof createSentTracking>> | null = null;
 
+  await ensureOpenTrackingOnFirstSend(input.userId);
+  const trackingEntitled = await hasOpenTrackingAccess(input.userId, input.tenantId);
+  const trackingEnabled = resolveOutboundTrackingEnabled(body.trackingEnabled, trackingEntitled);
+
   const vaultFileIds = body.vaultFileIds ?? [];
   if (vaultFileIds.length > 0) {
     const vaultEntitled = await tenantHasAddonAccess(input.tenantId, FILE_VAULT_ADDON_SLUG);
@@ -76,11 +85,7 @@ export async function executeOutgoingMailSend(input: {
     textBody = merged.text;
   }
 
-  if (body.trackingEnabled) {
-    const entitled = await tenantHasAddonAccess(input.tenantId, "open-tracking");
-    if (!entitled) {
-      throw new Error("Open tracking addon required");
-    }
+  if (trackingEnabled) {
     trackingRecord = await createSentTracking(input.userId, {
       toEmail: body.to,
       subject: body.subject,

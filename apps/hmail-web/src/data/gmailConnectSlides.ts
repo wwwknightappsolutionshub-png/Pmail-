@@ -38,18 +38,8 @@ export const GMAIL_CONNECT_SLIDES: GmailConnectSlide[] = [
     screen: "inbox-settings",
   },
   {
-    id: "confirm-imap",
-    step: 2,
-    title: "Confirm IMAP is enabled",
-    body: "In Settings, open Forwarding and POP/IMAP and confirm IMAP access is on. Personal Gmail accounts usually have this enabled already.",
-    tips: ["Forwarding and POP/IMAP tab", "Look for IMAP access enabled"],
-    actionLabel: "Open IMAP settings",
-    actionHref: GMAIL_IMAP_SETTINGS_URL,
-    screen: "imap-tab",
-  },
-  {
     id: "open-security",
-    step: 3,
+    step: 2,
     title: "Open Google Account Security",
     body: "App Passwords require 2-Step Verification. Open your Google Account Security page first.",
     actionLabel: "Open Google Security",
@@ -58,7 +48,7 @@ export const GMAIL_CONNECT_SLIDES: GmailConnectSlide[] = [
   },
   {
     id: "activate-two-step",
-    step: 4,
+    step: 3,
     title: "Activate 2-Step Verification",
     body: "This step is required before App passwords appear. If 2-Step Verification is Off, turn it on and complete phone or authenticator verification until the status shows On.",
     tips: [
@@ -70,6 +60,16 @@ export const GMAIL_CONNECT_SLIDES: GmailConnectSlide[] = [
     actionHref: GMAIL_TWO_STEP_URL,
     requiredBeforeNext: true,
     screen: "activate-two-step",
+  },
+  {
+    id: "confirm-imap",
+    step: 4,
+    title: "Confirm IMAP is enabled",
+    body: "In Settings, open Forwarding and POP/IMAP and confirm IMAP access is on. Personal Gmail accounts usually have this enabled already.",
+    tips: ["Forwarding and POP/IMAP tab", "Look for IMAP access enabled"],
+    actionLabel: "Open IMAP settings",
+    actionHref: GMAIL_IMAP_SETTINGS_URL,
+    screen: "imap-tab",
   },
   {
     id: "search-app-password",

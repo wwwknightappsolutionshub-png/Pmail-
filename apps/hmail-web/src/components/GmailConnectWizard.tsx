@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import {
   GMAIL_CONNECT_SLIDES,
@@ -9,26 +9,10 @@ import { GmailConnectScreenArt } from "./GmailConnectScreenArt";
 import "./GmailConnectWizard.css";
 
 export function GmailConnectWizard() {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const [stageWidth, setStageWidth] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const slide = GMAIL_CONNECT_SLIDES[activeIndex];
   const isFirst = activeIndex === 0;
   const isLast = activeIndex >= GMAIL_CONNECT_SLIDES.length - 1;
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    const updateWidth = () => {
-      setStageWidth(stage.getBoundingClientRect().width);
-    };
-
-    updateWidth();
-    const observer = new ResizeObserver(updateWidth);
-    observer.observe(stage);
-    return () => observer.disconnect();
-  }, []);
 
   const goPrev = useCallback(() => {
     setActiveIndex((current) => Math.max(0, current - 1));
@@ -41,7 +25,11 @@ export function GmailConnectWizard() {
   if (!slide) return null;
 
   return (
-    <aside className="gmail-connect-wizard" aria-label="How to generate the App Password in your Gmail">
+    <aside
+      className="gmail-connect-wizard"
+      aria-label="How to generate the App Password in your Gmail"
+      style={{ ["--slide-count" as string]: GMAIL_CONNECT_SLIDES.length }}
+    >
       <div className="gmail-connect-wizard__header">
         <span className="gmail-connect-wizard__badge">Gmail setup guide</span>
         <p className="gmail-connect-wizard__title">{GMAIL_WIZARD_HEADING}</p>
@@ -50,20 +38,17 @@ export function GmailConnectWizard() {
         </span>
       </div>
 
-      <div ref={stageRef} className="gmail-connect-wizard__stage" aria-live="polite">
-        <div
-          className="gmail-connect-wizard__track"
-          style={{
-            transform: `translateX(-${activeIndex * stageWidth}px)`,
-            width: stageWidth > 0 ? stageWidth * GMAIL_CONNECT_SLIDES.length : undefined,
-          }}
-        >
-          {GMAIL_CONNECT_SLIDES.map((entry) => (
+      <div
+        className="gmail-connect-wizard__stage"
+        aria-live="polite"
+        style={{ ["--active-index" as string]: activeIndex }}
+      >
+        <div className="gmail-connect-wizard__track">
+          {GMAIL_CONNECT_SLIDES.map((entry, index) => (
             <article
               key={entry.id}
               className="gmail-connect-wizard__slide"
-              aria-hidden={entry.id !== slide.id}
-              style={stageWidth > 0 ? { width: stageWidth, flexBasis: stageWidth } : undefined}
+              aria-hidden={index !== activeIndex}
             >
               <div className="gmail-connect-wizard__art-wrap">
                 <GmailConnectScreenArt screen={entry.screen} />

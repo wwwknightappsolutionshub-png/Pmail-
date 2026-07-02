@@ -34,6 +34,7 @@ interface InboxSwitcherProps {
   activeAccount: MailAccountSummary | null;
   onSwitched: () => void;
   variant?: "sidebar" | "header" | "bottom-nav";
+  themeVersion?: "dark" | "light";
   onPaidAddonGate?: () => void;
   onAccountCountChange?: (count: number) => void;
   onAccountConnected?: () => void;
@@ -46,6 +47,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
     activeAccount,
     onSwitched,
     variant = "sidebar",
+    themeVersion = "dark",
     onPaidAddonGate,
     onAccountCountChange,
     onAccountConnected,
@@ -267,6 +269,16 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
       setError("Email and password are required.");
       return;
     }
+    if (form.providerPreset === "custom") {
+      if (!form.imapHost.trim()) {
+        setError("Enter your incoming mail server (IMAP).");
+        return;
+      }
+      if (!form.smtpHost.trim()) {
+        setError("Enter your outgoing mail server (SMTP).");
+        return;
+      }
+    }
     setAdding(true);
     setError("");
     try {
@@ -354,6 +366,8 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
       {open && entitled ? (
         <div
           className={`inbox-switcher-panel${
+            themeVersion === "light" ? " inbox-switcher-panel--light" : ""
+          }${
             isHeader || isBottomNav ? " inbox-switcher-panel--header inbox-switcher-panel--fixed" : ""
           }${isBottomNav ? " inbox-switcher-panel--bottom-nav" : ""}`}
           style={isHeader || isBottomNav ? panelStyle : undefined}
@@ -429,9 +443,81 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
               </label>
               <ProviderPresetPicker
                 value={form.providerPreset}
-                onChange={(preset) => setForm((prev) => ({ ...prev, ...resolveMailConfigFromPreset(preset) }))}
+                onChange={(preset) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    ...resolveMailConfigFromPreset(preset, preset === "custom" ? prev : undefined),
+                  }))
+                }
                 idPrefix="inbox-switcher"
               />
+              {form.providerPreset === "custom" ? (
+                <div className="inbox-switcher-custom-fields" aria-label="Custom mail server settings">
+                  <p className="inbox-switcher-custom-intro">
+                    Enter the IMAP and SMTP details from your hosting panel or mail provider.
+                  </p>
+                  <div className="inbox-switcher-custom-grid">
+                    <label>
+                      <span>Incoming server (IMAP)</span>
+                      <input
+                        value={form.imapHost}
+                        onChange={(e) => setForm((prev) => ({ ...prev, imapHost: e.target.value }))}
+                        placeholder="e.g. mail.yourdomain.com"
+                        required
+                        autoComplete="off"
+                      />
+                    </label>
+                    <label>
+                      <span>IMAP port</span>
+                      <input
+                        type="number"
+                        value={form.imapPort}
+                        onChange={(e) => setForm((prev) => ({ ...prev, imapPort: Number(e.target.value) }))}
+                        placeholder="993"
+                        required
+                      />
+                    </label>
+                    <label>
+                      <span>Outgoing server (SMTP)</span>
+                      <input
+                        value={form.smtpHost}
+                        onChange={(e) => setForm((prev) => ({ ...prev, smtpHost: e.target.value }))}
+                        placeholder="e.g. mail.yourdomain.com"
+                        required
+                        autoComplete="off"
+                      />
+                    </label>
+                    <label>
+                      <span>SMTP port</span>
+                      <input
+                        type="number"
+                        value={form.smtpPort}
+                        onChange={(e) => setForm((prev) => ({ ...prev, smtpPort: Number(e.target.value) }))}
+                        placeholder="465"
+                        required
+                      />
+                    </label>
+                  </div>
+                  <div className="inbox-switcher-check-group">
+                    <label className="inbox-switcher-check-row">
+                      <input
+                        type="checkbox"
+                        checked={form.imapSecure}
+                        onChange={(e) => setForm((prev) => ({ ...prev, imapSecure: e.target.checked }))}
+                      />
+                      <span>Incoming SSL/TLS (port 993)</span>
+                    </label>
+                    <label className="inbox-switcher-check-row">
+                      <input
+                        type="checkbox"
+                        checked={form.smtpSecure}
+                        onChange={(e) => setForm((prev) => ({ ...prev, smtpSecure: e.target.checked }))}
+                      />
+                      <span>Outgoing SSL/TLS (port 465)</span>
+                    </label>
+                  </div>
+                </div>
+              ) : null}
               <div className="inbox-switcher-form-actions">
                 <button type="button" className="mail-toolbar-btn" disabled={adding} onClick={() => void handleAddAccount()}>
                   {adding ? "Connecting…" : "Connect mailbox"}

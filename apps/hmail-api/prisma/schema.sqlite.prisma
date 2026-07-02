@@ -151,6 +151,7 @@ model User {
   signatures     UserSignature[]
   autoReplies    UserAutoReply[]
   sentTracking   SentMessageTracking[]
+  trackingOpenNotifications TrackingOpenNotification[]
   mailVaultFiles MailVaultFile[]
   mailUnsubscribeLogs MailUnsubscribeLog[]
   categorizedMailAttachments CategorizedMailAttachment[]
@@ -1971,6 +1972,8 @@ model UserComposeSettings {
   activeAutoReplyId               String?
   autoReplyComplimentaryStartedAt DateTime?
   autoReplyUpsellEmailSent        Boolean   @default(false)
+  openTrackingFirstSendAt         DateTime?
+  openTrackingUpsellEmailSent     Boolean   @default(false)
   undoSendSeconds                 Int       @default(10)
   updatedAt                       DateTime  @updatedAt
 
@@ -2019,10 +2022,27 @@ model SentMessageTracking {
   lastOpenedAt  DateTime?
   createdAt     DateTime  @default(now())
 
-  user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  links TrackedEmailLink[]
+  user          User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links         TrackedEmailLink[]
+  openNotifications TrackingOpenNotification[]
 
   @@index([userId])
+}
+
+model TrackingOpenNotification {
+  id                    String    @id @default(uuid())
+  userId                String
+  sentMessageTrackingId String
+  toEmail               String
+  subject               String
+  openedAt              DateTime  @default(now())
+  readAt                DateTime?
+  createdAt             DateTime  @default(now())
+
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentMessage SentMessageTracking @relation(fields: [sentMessageTrackingId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
 }
 
 model TrackedEmailLink {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "../api/client";
 
 export type WorkspaceTabCounts = {
@@ -8,6 +8,19 @@ export type WorkspaceTabCounts = {
   messaging: number;
 };
 
+const REFRESH_INTERVAL_MS = 30_000;
+
+function computeMessagingCount(
+  viewerEmail: string,
+  organizationUsers: Array<{ email: string }>,
+  contactsWithPhone: number,
+): number {
+  const orgPeers = organizationUsers.filter(
+    (member) => member.email.trim().toLowerCase() !== viewerEmail.trim().toLowerCase(),
+  ).length;
+  return 1 + orgPeers + contactsWithPhone;
+}
+
 export function useWorkspaceTabCounts(
   enabled: boolean,
   viewerEmail: string,
@@ -15,46 +28,57 @@ export function useWorkspaceTabCounts(
 ) {
   const [counts, setCounts] = useState<WorkspaceTabCounts | null>(null);
 
+  const load = useCallback(async () => {
+    if (!enabled) {
+      setCounts(null);
+      return;
+    }
+
+    try {
+      const [contactsRes, remindersRes, calendarRes, orgUsersRes] = await Promise.all([
+        api.contacts(),
+        api.workspaceReminders("pending"),
+        api.workspaceCalendar(),
+        organizationUsers.length > 0
+          ? Promise.resolve({ users: organizationUsers })
+          : api.organizationUsers(),
+      ]);
+
+      const orgUsers = orgUsersRes.users;
+      const contactsWithPhone = contactsRes.contacts.filter((contact) => contact.phone?.trim()).length;
+
+      setCounts({
+        contacts: contactsRes.contacts.length,
+        reminders: remindersRes.reminders.length,
+        calendar: calendarRes.events.length,
+        messaging: computeMessagingCount(viewerEmail, orgUsers, contactsWithPhone),
+      });
+    } catch {
+      setCounts(null);
+    }
+  }, [enabled, organizationUsers, viewerEmail]);
+
   useEffect(() => {
     if (!enabled) {
       setCounts(null);
       return;
     }
 
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const [contactsRes, remindersRes, calendarRes] = await Promise.all([
-          api.contacts(),
-          api.workspaceReminders("pending"),
-          api.workspaceCalendar(),
-        ]);
-        if (cancelled) return;
-
-        const orgPeers = organizationUsers.filter(
-          (member) => member.email.trim().toLowerCase() !== viewerEmail.trim().toLowerCase(),
-        ).length;
-        const whatsappContacts = contactsRes.contacts.filter((contact) => contact.phone?.trim()).length;
-
-        setCounts({
-          contacts: contactsRes.contacts.length,
-          reminders: remindersRes.reminders.length,
-          calendar: calendarRes.events.length,
-          messaging: 1 + orgPeers + whatsappContacts,
-        });
-      } catch {
-        if (!cancelled) setCounts(null);
-      }
-    }
-
     void load();
-    const timer = window.setInterval(() => void load(), 60_000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
+    const timer = window.setInterval(() => void load(), REFRESH_INTERVAL_MS);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void load();
+      }
     };
-  }, [enabled, viewerEmail, organizationUsers]);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [enabled, load]);
 
   return counts;
 }

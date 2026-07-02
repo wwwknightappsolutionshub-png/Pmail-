@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type TouchEvent } from "react";
+import { useCallback, useRef, useState, type TouchEvent } from "react";
 import type { ProductOnboardingSlide } from "../data/productOnboardingSlides";
 import { ProductOnboardingCtaPanel } from "./ProductOnboardingCtaPanel";
 import { ProductOnboardingSlideView } from "./ProductOnboardingSlideView";
@@ -28,24 +28,9 @@ export function ProductOnboardingWizard({
 }: ProductOnboardingWizardProps) {
   const touchStartX = useRef<number | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const [stageWidth, setStageWidth] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const slide = slides[activeIndex];
   const isLastSlide = activeIndex >= slides.length - 1;
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    const updateWidth = () => {
-      setStageWidth(stage.getBoundingClientRect().width);
-    };
-
-    updateWidth();
-    const observer = new ResizeObserver(updateWidth);
-    observer.observe(stage);
-    return () => observer.disconnect();
-  }, []);
 
   const goNext = useCallback(() => {
     if (isLastSlide) return;
@@ -93,6 +78,7 @@ export function ProductOnboardingWizard({
     <div
       className={`product-onboarding-wizard${className ? ` ${className}` : ""} product-onboarding-wizard--fullscreen`}
       data-active-slide={slide.id}
+      style={{ ["--slide-count" as string]: slides.length }}
     >
       <ProductOnboardingWizardBackground />
 
@@ -107,23 +93,20 @@ export function ProductOnboardingWizard({
       <div
         ref={stageRef}
         className="product-onboarding-wizard-stage"
+        style={{
+          ["--active-index" as string]: activeIndex,
+          ["--drag-offset" as string]: `${dragOffset}px`,
+        }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div
-          className="product-onboarding-wizard-track"
-          style={{
-            transform: `translateX(calc(-${activeIndex * stageWidth}px + ${dragOffset}px))`,
-            width: stageWidth > 0 ? stageWidth * slides.length : undefined,
-          }}
-        >
+        <div className="product-onboarding-wizard-track">
           {slides.map((entry, index) => (
             <ProductOnboardingSlideView
               key={entry.id}
               slide={entry}
               active={index === activeIndex}
-              style={stageWidth > 0 ? { width: stageWidth, flexBasis: stageWidth } : undefined}
             />
           ))}
         </div>

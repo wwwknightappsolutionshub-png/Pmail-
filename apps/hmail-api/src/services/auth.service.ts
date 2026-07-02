@@ -369,11 +369,7 @@ export async function loginUser(input: {
   }
 
   try {
-    const { ensurePanelWorkspaceWelcomeTrial, ensurePmailTesterPanelWorkspaceTrial } = await import(
-      "./panel-workspace-trial.service.js"
-    );
-    await ensurePanelWorkspaceWelcomeTrial(userWithConfig.id);
-
+    const { ensurePmailTesterPanelWorkspaceTrial } = await import("./panel-workspace-trial.service.js");
     const { ensurePmailAccountWelcomeEmail } = await import("./pmail-account-welcome.service.js");
     void ensurePmailAccountWelcomeEmail(userWithConfig.id).catch((err) => {
       console.error("[auth] pmail account welcome email failed", err);

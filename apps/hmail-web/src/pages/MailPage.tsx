@@ -9,6 +9,9 @@ import { useAddons } from "../context/AddonContext";
 import { AddonUpsellPanel } from "../components/AddonUpsellPanel";
 import { ComposeModal, type ComposeInitial } from "../components/ComposeModal";
 import { UndoSendToast, type PendingUndoSend } from "../components/UndoSendToast";
+import { SentMessageToast } from "../components/SentMessageToast";
+import { OpenTrackingOpenToast } from "../components/OpenTrackingOpenToast";
+import { useOpenTrackingNotifications } from "../hooks/useOpenTrackingNotifications";
 import { CvScannerToast } from "../components/CvScannerToast";
 import type { CareerScannerPreload } from "../components/CareerScannerPanel";
 import {
@@ -76,6 +79,7 @@ import {
   virtualViewTitle,
   VIEW_CONTACTS,
   VIEW_CAREER_SCANNER,
+  VIEW_OPEN_TRACKING,
   type MailSearchState,
   type MailStatusFilter,
 } from "../constants/mailViews";
@@ -333,6 +337,7 @@ export function MailPage({
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeInitial, setComposeInitial] = useState<ComposeInitial | undefined>();
   const [pendingUndoSend, setPendingUndoSend] = useState<PendingUndoSend | null>(null);
+  const [showSentMessageToast, setShowSentMessageToast] = useState(false);
   const [cvScannerToastFile, setCvScannerToastFile] = useState<File | null>(null);
   const [careerScannerPreload, setCareerScannerPreload] = useState<CareerScannerPreload | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
@@ -361,6 +366,9 @@ export function MailPage({
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
   const [mobileMailViewport, setMobileMailViewport] = useState(() => isMobileScreen());
+  const hasOpenTrackingAddon = hasAddon("open-tracking");
+  const { notification: openTrackingNotification, dismissNotification: dismissOpenTrackingNotification } =
+    useOpenTrackingNotifications(hasOpenTrackingAddon);
   const hasMultiInboxAddon = hasAddon("multi-inbox-functionality");
 
   useEffect(() => {
@@ -663,40 +671,31 @@ export function MailPage({
     [activeFolder, appliedSearch, mailFilter, sortBy, sortOrder],
   );
 
-  const refreshAfterSend = useCallback(
-    async (sentFolderPath?: string) => {
-      const sentPath = sentFolderPath ?? sortedFolders.find((f) => resolveFolderKind(f) === "sent")?.path;
-
-      await loadFolders();
-
-      if (sentPath) {
-        setActiveFolder(sentPath);
-        setSelectedUid(null);
-        setSelectedMessage(null);
-        setMobilePane("list");
-        setLoadingMessages(true);
-        try {
-          const result = await api.messages(sentPath, {
-            filter: mailFilter,
-            page: 1,
-            pageSize: PAGE_SIZE,
-            sortBy,
-            sortOrder,
-          });
-          setMessages(result.messages);
-          setMessageTotal(result.total);
-          messagePageRef.current = 1;
-        } catch (err) {
-          setListError(err instanceof Error ? err.message : "Failed to load sent messages");
-        } finally {
-          setLoadingMessages(false);
-        }
-      } else {
-        await loadMessages();
-      }
-    },
-    [sortedFolders, loadFolders, mailFilter, sortBy, sortOrder, loadMessages],
-  );
+  const refreshInboxAfterSend = useCallback(async () => {
+    await loadFolders();
+    const inboxPath = sortedFolders.find((f) => resolveFolderKind(f) === "inbox")?.path ?? "INBOX";
+    setActiveFolder(inboxPath);
+    setSelectedUid(null);
+    setSelectedMessage(null);
+    setMobilePane("list");
+    setLoadingMessages(true);
+    try {
+      messagePageRef.current = 1;
+      const result = await api.messages(inboxPath, {
+        filter: mailFilter,
+        page: 1,
+        pageSize: PAGE_SIZE,
+        sortBy,
+        sortOrder,
+      });
+      setMessages(result.messages);
+      setMessageTotal(result.total);
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Failed to load inbox");
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, [sortedFolders, loadFolders, mailFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     const inboxPath = folders.find((f) => resolveFolderKind(f) === "inbox")?.path;
@@ -1538,6 +1537,7 @@ export function MailPage({
                 <InboxSwitcher
                   ref={inboxSwitcherRef}
                   variant="header"
+                  themeVersion={activeThemeVersion}
                   activeAccount={user?.activeMailAccount ?? null}
                   onSwitched={() => void handleMailboxSwitch()}
                   onPaidAddonGate={() => openPaidAddonGate("multi-inbox-functionality", "Multiple Inboxes")}
@@ -1694,6 +1694,7 @@ export function MailPage({
         <InboxSwitcher
           ref={inboxSwitcherRef}
           variant="bottom-nav"
+          themeVersion={activeThemeVersion}
           activeAccount={user?.activeMailAccount ?? null}
           onSwitched={() => void handleMailboxSwitch()}
           onPaidAddonGate={() => openPaidAddonGate("multi-inbox-functionality", "Multiple Inboxes")}
@@ -1721,7 +1722,8 @@ export function MailPage({
             setPendingUndoSend(result.pendingUndo);
             return;
           }
-          await refreshAfterSend(result?.sentFolder);
+          setShowSentMessageToast(true);
+          await refreshInboxAfterSend();
         }}
         initial={composeInitial}
         jobHunterEnabled={hasJobHunterAddon}
@@ -1741,13 +1743,38 @@ export function MailPage({
         />
       ) : null}
 
+      {showSentMessageToast ? (
+        <SentMessageToast
+          onOpenTracking={() => {
+            setShowSentMessageToast(false);
+            setActiveFolder(VIEW_OPEN_TRACKING);
+            setMobilePane("list");
+          }}
+          onDismiss={() => setShowSentMessageToast(false)}
+        />
+      ) : null}
+
+      {openTrackingNotification ? (
+        <OpenTrackingOpenToast
+          toEmail={openTrackingNotification.toEmail}
+          subject={openTrackingNotification.subject}
+          onOpenTracking={() => {
+            void dismissOpenTrackingNotification();
+            setActiveFolder(VIEW_OPEN_TRACKING);
+            setMobilePane("list");
+          }}
+          onDismiss={() => void dismissOpenTrackingNotification()}
+        />
+      ) : null}
+
       {pendingUndoSend ? (
         <UndoSendToast
           pending={pendingUndoSend}
           onUndone={() => setPendingUndoSend(null)}
-          onSent={(sentFolderPath) => {
+          onSent={() => {
             setPendingUndoSend(null);
-            void refreshAfterSend(sentFolderPath);
+            setShowSentMessageToast(true);
+            void refreshInboxAfterSend();
           }}
         />
       ) : null}

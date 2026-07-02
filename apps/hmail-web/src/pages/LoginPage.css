@@ -817,8 +817,27 @@ html:has(.login-page) #root {
 
   .login-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Onboarding slides 1–4: single full-width column (prevents white gap on the right) */
+  .login-layout.welcome-layout--fullscreen-slides {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .login-layout.welcome-layout--fullscreen-slides .welcome-brand-panel--wizard {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .login-layout.welcome-layout--fullscreen-slides .welcome-form-panel--hidden {
+    display: none !important;
   }
 
   .login-brand-panel {

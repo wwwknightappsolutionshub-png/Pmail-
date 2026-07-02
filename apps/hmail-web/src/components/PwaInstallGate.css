@@ -1,11 +1,14 @@
 .pwa-install-root {
-  min-height: 100dvh;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
 }
 
 .pwa-install-screen {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 10001;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,15 +17,32 @@
   background:
     radial-gradient(circle at top, rgba(13, 148, 136, 0.22), transparent 55%),
     linear-gradient(180deg, #0f2744 0%, #0b1220 100%);
+  pointer-events: auto;
 }
 
 .pwa-install-card {
+  position: relative;
   width: min(100%, 26rem);
   padding: 1.5rem;
   border-radius: 1.25rem;
   border: 1px solid rgba(148, 163, 184, 0.22);
   background: rgba(17, 26, 46, 0.92);
   box-shadow: 0 24px 60px rgba(2, 8, 23, 0.45);
+}
+
+.pwa-install-dismiss {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .pwa-install-brand {
@@ -37,11 +57,11 @@
 }
 
 .pwa-install-kicker {
-  margin: 0 0 0.35rem;
+  margin: 0.75rem 0 0;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8fa3bf;
+  color: #99f6e4;
 }
 
 .pwa-install-card h1 {

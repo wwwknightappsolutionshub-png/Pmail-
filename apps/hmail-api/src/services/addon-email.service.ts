@@ -252,6 +252,65 @@ export async function sendAddonTrialEmail(input: SendAddonEmailInput): Promise<v
 
 
 
+export async function sendOpenTrackingUpsellEmail(input: {
+  tenantId: string;
+  userEmail: string;
+  addonName: string;
+  addonSummary: string;
+}): Promise<void> {
+  const env = getEnv();
+  const marketplaceUrl = `${resolveMarketplaceUrl()}?highlight=open-tracking`;
+  const fullName = input.userEmail.split("@")[0] || "there";
+
+  let content: { subject: string; text: string; html: string };
+  try {
+    const rendered = await renderEmailTemplate("addon-upsell", {
+      fullName,
+      addonName: input.addonName,
+      addonSummary: input.addonSummary,
+      ctaUrl: marketplaceUrl,
+    });
+    content = {
+      subject: rendered.subject,
+      text: rendered.text?.trim() || rendered.subject,
+      html: rendered.html,
+    };
+  } catch {
+    content = {
+      subject: `Keep ${input.addonName} unlocked in PMail+`,
+      text: `${input.addonSummary}\n\n${marketplaceUrl}`,
+      html: `<p>${input.addonSummary}</p><p><a href="${marketplaceUrl}">Explore ${input.addonName}</a></p>`,
+    };
+  }
+
+  const from = process.env.NURTURE_SMTP_FROM ?? "noreply@hmail.local";
+  const host = process.env.NURTURE_SMTP_HOST;
+
+  if (host) {
+    const transporter = nodemailer.createTransport({
+      host,
+      port: Number(process.env.NURTURE_SMTP_PORT ?? 587),
+      secure: process.env.NURTURE_SMTP_SECURE === "true",
+      auth: process.env.NURTURE_SMTP_USER
+        ? {
+            user: process.env.NURTURE_SMTP_USER,
+            pass: process.env.NURTURE_SMTP_PASS ?? "",
+          }
+        : undefined,
+    });
+
+    await transporter.sendMail({
+      from,
+      to: input.userEmail,
+      subject: content.subject,
+      text: content.text,
+      html: content.html,
+    });
+  } else if (env.NODE_ENV === "development") {
+    console.info(`[open-tracking-email] upsell → ${input.userEmail}: ${content.subject}`);
+  }
+}
+
 export async function sendAutoReplyUpsellEmail(input: {
   tenantId: string;
   userEmail: string;

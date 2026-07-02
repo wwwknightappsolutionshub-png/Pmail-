@@ -33,6 +33,15 @@ import {
   getTrackingById,
   listSentTracking,
 } from "../services/tracking.service.js";
+import {
+  ensureOpenTrackingOnFirstSend,
+  hasOpenTrackingAccess,
+  resolveOutboundTrackingEnabled,
+} from "../services/open-tracking-entitlement.service.js";
+import {
+  listUnreadTrackingOpenNotifications,
+  markTrackingOpenNotificationsRead,
+} from "../services/tracking-open-notification.service.js";
 import { getPublicApiBaseUrl } from "../lib/public-url.js";
 import {
   cancelUndoOutgoingMail,
@@ -304,13 +313,10 @@ mailRouter.post("/send", async (req, res, next) => {
         return;
       }
     }
-    if (payload.trackingEnabled) {
-      const trackingEntitled = await tenantHasAddonAccess(auth.user.tenant.id, "open-tracking", auth.user.id);
-      if (!trackingEntitled) {
-        res.status(403).json({ error: "Open tracking addon required" });
-        return;
-      }
-    }
+
+    await ensureOpenTrackingOnFirstSend(auth.user.id);
+    const trackingEntitled = await hasOpenTrackingAccess(auth.user.id, auth.user.tenant.id);
+    payload.trackingEnabled = resolveOutboundTrackingEnabled(payload.trackingEnabled, trackingEntitled);
 
     const undoSeconds = UNDO_SEND_ENABLED ? await getUndoSendSeconds(auth.user.id) : 0;
     if (undoSeconds > 0) {
@@ -1417,26 +1423,62 @@ mailRouter.post("/job-hunter/inferences/delete", requireAddon(JOB_HUNTER_ADDON_S
 
 mailRouter.get("/tracking", async (req, res, next) => {
   try {
-    const entitled = await tenantHasAddonAccess(req.auth!.user.tenant.id, "open-tracking");
+    const auth = req.auth!;
+    const entitled = await hasOpenTrackingAccess(auth.user.id, auth.user.tenant.id);
     if (!entitled) {
       res.status(403).json({ error: "Open tracking addon required" });
       return;
     }
-    const tracking = await listSentTracking(req.auth!.user.id);
+    const tracking = await listSentTracking(auth.user.id);
     res.json({ tracking });
   } catch (err) {
     next(err);
   }
 });
 
-mailRouter.get("/tracking/:id", async (req, res, next) => {
+mailRouter.get("/tracking/notifications", async (req, res, next) => {
   try {
-    const entitled = await tenantHasAddonAccess(req.auth!.user.tenant.id, "open-tracking");
+    const auth = req.auth!;
+    const entitled = await hasOpenTrackingAccess(auth.user.id, auth.user.tenant.id);
     if (!entitled) {
       res.status(403).json({ error: "Open tracking addon required" });
       return;
     }
-    const row = await getTrackingById(req.auth!.user.id, String(req.params.id));
+    const notifications = await listUnreadTrackingOpenNotifications(auth.user.id);
+    res.json({ notifications });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const trackingNotificationsReadSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1),
+});
+
+mailRouter.post("/tracking/notifications/read", async (req, res, next) => {
+  try {
+    const auth = req.auth!;
+    const body = trackingNotificationsReadSchema.parse(req.body);
+    const read = await markTrackingOpenNotificationsRead(auth.user.id, body.ids);
+    res.json({ read });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ error: err.flatten() });
+      return;
+    }
+    next(err);
+  }
+});
+
+mailRouter.get("/tracking/:id", async (req, res, next) => {
+  try {
+    const auth = req.auth!;
+    const entitled = await hasOpenTrackingAccess(auth.user.id, auth.user.tenant.id);
+    if (!entitled) {
+      res.status(403).json({ error: "Open tracking addon required" });
+      return;
+    }
+    const row = await getTrackingById(auth.user.id, String(req.params.id));
     if (!row) {
       res.status(404).json({ error: "Tracking record not found" });
       return;
