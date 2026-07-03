@@ -12,12 +12,7 @@ export type WorkspaceTabCounts = {
 const REFRESH_INTERVAL_MS = 30_000;
 const WORKSPACE_STORAGE_PREFIX = "bespoke-demo-workspace:";
 
-export function useWorkspaceTabCounts(
-  enabled: boolean,
-  viewerEmail: string,
-  organizationUsers: Array<{ email: string }>,
-  demoUseCaseId = "platform",
-) {
+export function useWorkspaceTabCounts(enabled: boolean, demoUseCaseId = "platform") {
   const [counts, setCounts] = useState<WorkspaceTabCounts | null>(null);
 
   const load = useCallback(async () => {
@@ -27,13 +22,10 @@ export function useWorkspaceTabCounts(
     }
 
     try {
-      const [contactsRes, remindersRes, calendarRes, orgUsersRes] = await Promise.all([
+      const [contactsRes, remindersRes, calendarRes] = await Promise.all([
         api.contacts(),
         api.workspaceReminders("pending"),
         api.workspaceCalendar(),
-        organizationUsers.length > 0
-          ? Promise.resolve({ users: organizationUsers })
-          : api.organizationUsers(),
       ]);
 
       setCounts({
@@ -45,7 +37,7 @@ export function useWorkspaceTabCounts(
     } catch {
       setCounts(null);
     }
-  }, [demoUseCaseId, enabled, organizationUsers, viewerEmail]);
+  }, [demoUseCaseId, enabled]);
 
   useEffect(() => {
     if (!enabled) {

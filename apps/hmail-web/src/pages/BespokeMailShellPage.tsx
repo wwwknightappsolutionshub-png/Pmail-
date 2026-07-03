@@ -105,7 +105,7 @@ function BespokeMailShellContent() {
   const displayName = user?.displayName?.trim() || displayEmail.split("@")[0] || "User";
   const demoUseCaseId = VERTICAL_DEMO_IDS[user?.businessVertical ?? "standard"] ?? "platform";
 
-  const workspaceTabCounts = useWorkspaceTabCounts(Boolean(user), displayEmail, organizationUsers, demoUseCaseId);
+  const workspaceTabCounts = useWorkspaceTabCounts(Boolean(user), demoUseCaseId);
   const panelTrialReminder = usePanelWorkspaceTrialReminder(user?.id, panelWorkspaceTrial);
 
   const clearMailSearch = useCallback(() => {
