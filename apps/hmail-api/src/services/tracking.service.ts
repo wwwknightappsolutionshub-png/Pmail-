@@ -20,16 +20,31 @@ export function buildLinkClickUrl(clickToken: string, apiPublicBase: string): st
 
 const HREF_ATTR_RE = /(<a\b[^>]*\shref\s*=\s*)(["'])(.*?)\2/gi;
 
-export function isExcludedFromLinkTracking(href: string): boolean {
+function anchorTagForMatch(html: string, matchIndex: number): string {
+  const start = html.lastIndexOf("<a", matchIndex);
+  if (start < 0) return "";
+  const end = html.indexOf(">", matchIndex);
+  if (end < 0) return html.slice(start);
+  return html.slice(start, end + 1);
+}
+
+export function isExcludedFromLinkTracking(href: string, anchorTag = ""): boolean {
   const lower = href.trim().toLowerCase();
   if (lower.includes("/welcome/prohost")) return true;
-  if (lower.includes("/pwa-192.png") || lower.includes("/pmail-app-icon.png") || lower.includes("/favicon.svg")) {
+  if (
+    lower.includes("/pwa-192.png") ||
+    lower.includes("/pmail-app-icon.png") ||
+    lower.includes("/favicon.svg")
+  ) {
+    return true;
+  }
+  if (/data-pmail-explore\s*=\s*["']1["']/i.test(anchorTag)) {
     return true;
   }
   return false;
 }
 
-export function isTrackableHref(href: string): boolean {
+export function isTrackableHref(href: string, anchorTag = ""): boolean {
   const trimmed = href.trim();
   if (!trimmed || trimmed.startsWith("#")) {
     return false;
@@ -47,7 +62,7 @@ export function isTrackableHref(href: string): boolean {
   if (lower.includes("/api/public/track/")) {
     return false;
   }
-  if (isExcludedFromLinkTracking(trimmed)) {
+  if (isExcludedFromLinkTracking(trimmed, anchorTag)) {
     return false;
   }
   return /^https?:\/\//i.test(trimmed);
@@ -96,7 +111,8 @@ async function wrapTrackedLinksInHtmlSegment(
 
   while ((match = hrefRe.exec(html)) !== null) {
     const href = match[3];
-    if (!isTrackableHref(href) || urlToToken.has(href)) {
+    const anchorTag = anchorTagForMatch(html, match.index);
+    if (!isTrackableHref(href, anchorTag) || urlToToken.has(href)) {
       continue;
     }
     const clickToken = createTrackingToken();

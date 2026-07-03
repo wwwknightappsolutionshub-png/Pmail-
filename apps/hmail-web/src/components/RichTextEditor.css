@@ -125,6 +125,11 @@
   text-decoration: underline;
 }
 
+.rte-editor [data-pmail-signature="branded"] a {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
 @media (min-width: 768px) {
   .rte-editor {
     min-height: 220px;

@@ -11,7 +11,7 @@ import { JOB_HUNTER_ADDON_SLUG } from "./job-hunter-settings.service.js";
 import { appendToSentFolder, type MailCredentials } from "./imap.service.js";
 import { markEmailSlaThreadResponded } from "./email-sla.service.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
-import { appendOutboundSignature, embedBrandedSignatureLogoInline } from "./default-signature.service.js";
+import { appendOutboundSignature, embedBrandedSignatureLogoInline, normalizeOutboundBrandedSignature } from "./default-signature.service.js";
 import {
   ensureOpenTrackingOnFirstSend,
   hasOpenTrackingAccess,
@@ -111,6 +111,7 @@ export async function executeOutgoingMailSend(input: {
   let signatureLogoAttachment: Awaited<ReturnType<typeof embedBrandedSignatureLogoInline>>["inlineAttachment"] =
     null;
   if (htmlBody) {
+    htmlBody = normalizeOutboundBrandedSignature(htmlBody);
     const embedded = await embedBrandedSignatureLogoInline(htmlBody);
     htmlBody = embedded.html;
     signatureLogoAttachment = embedded.inlineAttachment;

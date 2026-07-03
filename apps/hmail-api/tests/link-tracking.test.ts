@@ -72,7 +72,7 @@ describe("link click tracking (open-tracking extension)", () => {
       });
 
       const exploreUrl = "https://mail.prohost.cloud/welcome/prohost/";
-      const html = `<p>Hello</p><a href="https://example.com/doc">Doc</a><div data-pmail-signature="branded"><a href="${exploreUrl}">Explore Now</a></div>`;
+      const html = `<p>Hello</p><a href="https://example.com/doc">Doc</a><div data-pmail-signature="branded"><a href="${exploreUrl}" data-pmail-explore="1">Explore Now</a></div>`;
       const wrapped = await wrapTrackedLinksInHtml(html, tracking.id, "http://localhost:4000");
 
       expect(wrapped).toContain(`href="${exploreUrl}"`);

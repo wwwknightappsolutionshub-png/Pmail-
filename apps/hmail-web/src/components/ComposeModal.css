@@ -208,6 +208,11 @@
   padding-top: 0.75rem;
 }
 
+.gmail-compose-portal .gmail-compose__editor .rte-editor [data-pmail-signature="branded"] a {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
 .gmail-compose__row--actions {
   justify-content: flex-end;
   padding-top: 0;
