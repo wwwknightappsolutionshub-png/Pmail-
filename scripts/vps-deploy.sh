@@ -6,7 +6,7 @@
 set -euo pipefail
 
 BRANCH="${1:-fix/login-placeholders-provider-defaults}"
-EXPECTED_COMMIT="${EXPECTED_COMMIT:-cf1ab4dcac5de849dc1dc68eb89a2ed8077f2174}"
+EXPECTED_COMMIT="${EXPECTED_COMMIT:-6a034a6593f14eb721bdea88a47b206ba7b725df}"
 APP_ROOT="${APP_ROOT:-/var/www/hostnet-panel}"
 
 cd "$APP_ROOT"
