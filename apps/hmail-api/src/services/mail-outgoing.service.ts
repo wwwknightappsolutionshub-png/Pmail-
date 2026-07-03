@@ -40,7 +40,14 @@ export type OutgoingMailPayload = {
   trackingEnabled?: boolean;
   vaultFileIds?: string[];
   userDocumentIds?: string[];
-  attachments?: Array<{ filename: string; content: string; contentType?: string }>;
+  attachments?: OutgoingEncodedAttachment[];
+};
+
+type OutgoingEncodedAttachment = {
+  filename: string;
+  content: string;
+  contentType?: string;
+  cid?: string;
 };
 
 export async function executeOutgoingMailSend(input: {
@@ -118,7 +125,7 @@ export async function executeOutgoingMailSend(input: {
   const creds = input.credentials;
 
   const userDocumentIds = body.userDocumentIds ?? [];
-  let mergedAttachments = body.attachments ?? [];
+  let mergedAttachments: OutgoingEncodedAttachment[] = [...(body.attachments ?? [])];
   if (userDocumentIds.length > 0) {
     const jobHunterEntitled = await tenantHasAddonAccess(input.tenantId, JOB_HUNTER_ADDON_SLUG);
     if (!jobHunterEntitled) {
@@ -161,7 +168,7 @@ export async function executeOutgoingMailSend(input: {
           filename: att.filename,
           content: Buffer.from(att.content, "base64"),
           contentType: att.contentType,
-          cid: "cid" in att ? att.cid : undefined,
+          cid: att.cid,
         }))
       : undefined,
   };
