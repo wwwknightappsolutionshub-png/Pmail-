@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
   hasPwaExitReminderShownForSession,
@@ -7,6 +7,7 @@ import {
   isIosDevice,
   isMobileScreen,
   isPwaInstallCandidateDevice,
+  isPwaInstallGateEnabled,
   isStandaloneDisplayMode,
   markPwaExitReminderShownForSession,
   markPwaInstallAcceptedForSession,
@@ -24,11 +25,22 @@ export function usePwaInstall() {
   const location = useLocation();
   const [sessionBypass, setSessionBypass] = useState(() => hasPwaInstallSessionBypass());
   const [initialDismissed, setInitialDismissed] = useState(false);
-  const [promptVisible, setPromptVisible] = useState(false);
+  const [promptVisible, setPromptVisible] = useState(() => {
+    if (hasPwaInstallSessionBypass() || isStandaloneDisplayMode()) return false;
+    if (!isPwaInstallGateEnabled() || !isPwaInstallCandidateDevice()) return false;
+    return true;
+  });
   const [promptMode, setPromptMode] = useState<PwaInstallPromptMode>("initial");
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installing, setInstalling] = useState(false);
   const [installError, setInstallError] = useState("");
+  const promptVisibleRef = useRef(promptVisible);
+  const promptModeRef = useRef(promptMode);
+  const initialDismissedRef = useRef(initialDismissed);
+
+  promptVisibleRef.current = promptVisible;
+  promptModeRef.current = promptMode;
+  initialDismissedRef.current = initialDismissed;
 
   const isEligible = useCallback(() => {
     if (sessionBypass || hasPwaInstallSessionBypass()) return false;
@@ -46,6 +58,9 @@ export function usePwaInstall() {
     (mode: PwaInstallPromptMode) => {
       if (!isEligible()) return;
       if (mode === "exit-intent" && hasPwaExitReminderShownForSession()) return;
+      if (mode === "exit-intent" && !initialDismissedRef.current && promptModeRef.current === "initial") {
+        return;
+      }
       setPromptMode(mode);
       setPromptVisible(true);
       if (mode === "exit-intent") {
@@ -58,10 +73,10 @@ export function usePwaInstall() {
   const dismissPrompt = useCallback(() => {
     setPromptVisible(false);
     setInstallError("");
-    if (promptMode === "initial") {
+    if (promptModeRef.current === "initial") {
       setInitialDismissed(true);
     }
-  }, [promptMode]);
+  }, []);
 
   const refreshEligibility = useCallback(() => {
     if (sessionBypass || hasPwaInstallSessionBypass()) {
@@ -79,7 +94,7 @@ export function usePwaInstall() {
       setPromptMode("initial");
       setPromptVisible(true);
     }
-  }, [initialDismissed, isEligible, location.pathname]);
+  }, [initialDismissed, isEligible]);
 
   useEffect(() => {
     const viewportQuery = window.matchMedia("(max-width: 1024px)");
@@ -92,7 +107,6 @@ export function usePwaInstall() {
     fullscreenQuery.addEventListener("change", onViewportChange);
     window.addEventListener("resize", onViewportChange);
     window.addEventListener("orientationchange", onViewportChange);
-    document.addEventListener("visibilitychange", onViewportChange);
 
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
@@ -117,10 +131,18 @@ export function usePwaInstall() {
         leftPage = true;
         return;
       }
-      if (document.visibilityState === "visible" && leftPage) {
-        leftPage = false;
-        openPrompt("exit-intent");
+      if (document.visibilityState !== "visible" || !leftPage) return;
+      leftPage = false;
+
+      // iOS Share sheet / app switcher toggles visibility — do not interrupt install flow.
+      if (isIosDevice() && promptVisibleRef.current && promptModeRef.current === "initial") {
+        return;
       }
+      if (!initialDismissedRef.current && promptModeRef.current === "initial") {
+        return;
+      }
+
+      openPrompt("exit-intent");
     };
 
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
@@ -134,7 +156,6 @@ export function usePwaInstall() {
       fullscreenQuery.removeEventListener("change", onViewportChange);
       window.removeEventListener("resize", onViewportChange);
       window.removeEventListener("orientationchange", onViewportChange);
-      document.removeEventListener("visibilitychange", onViewportChange);
       window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
       window.removeEventListener("appinstalled", onAppInstalled);
       document.documentElement.removeEventListener("mouseleave", onExitIntentMouse);
@@ -143,12 +164,13 @@ export function usePwaInstall() {
   }, [openPrompt, refreshEligibility, releaseInstallGate]);
 
   const triggerInstall = useCallback(async () => {
+    if (isIosDevice() && !installPrompt) {
+      setInstallError("");
+      return;
+    }
+
     if (!installPrompt) {
-      if (isIosDevice()) {
-        setInstallError("Tap Share in Safari, then choose Add to Home Screen.");
-      } else {
-        setInstallError("Use your browser menu to install PMail+ or add it to your home screen.");
-      }
+      setInstallError("Use your browser menu to install PMail+ or add it to your home screen.");
       return;
     }
 
@@ -171,10 +193,13 @@ export function usePwaInstall() {
     }
   }, [installPrompt, releaseInstallGate]);
 
+  const needsManualInstall = isIosDevice() || !installPrompt;
+
   return {
     promptVisible,
     promptMode,
     canPromptInstall: Boolean(installPrompt),
+    needsManualInstall,
     installing,
     installError,
     isIos: isIosDevice(),
@@ -185,6 +210,7 @@ export function usePwaInstall() {
     triggerInstall,
     dismissPrompt,
     continueAfterInstall: releaseInstallGate,
+    continueInBrowser: releaseInstallGate,
     refreshGate: refreshEligibility,
   };
 }

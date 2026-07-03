@@ -11,6 +11,7 @@ export function PwaInstallGate({ children }: PwaInstallGateProps) {
     promptVisible,
     promptMode,
     canPromptInstall,
+    needsManualInstall,
     installing,
     installError,
     isIos,
@@ -18,6 +19,7 @@ export function PwaInstallGate({ children }: PwaInstallGateProps) {
     triggerInstall,
     dismissPrompt,
     continueAfterInstall,
+    continueInBrowser,
   } = usePwaInstall();
 
   return (
@@ -52,41 +54,71 @@ export function PwaInstallGate({ children }: PwaInstallGateProps) {
                 ) : null}
               </div>
 
-              <button
-                type="button"
-                className="pwa-install-btn"
-                onClick={() => void triggerInstall()}
-                disabled={installing}
-              >
-                {installing ? "Opening install…" : "Install now"}
-              </button>
-
-              {!canPromptInstall ? (
-                <button type="button" className="pwa-install-btn pwa-install-btn--continue" onClick={continueAfterInstall}>
-                  {isIos ? "I've added PMail+ — continue" : "Continue in browser"}
+              {canPromptInstall ? (
+                <button
+                  type="button"
+                  className="pwa-install-btn"
+                  onClick={() => void triggerInstall()}
+                  disabled={installing}
+                >
+                  {installing ? "Opening install…" : "Install now"}
                 </button>
+              ) : null}
+
+              {needsManualInstall ? (
+                <div className="pwa-install-manual">
+                  <p className="pwa-install-manual-lead">
+                    {isIos
+                      ? "On iPhone and iPad, add PMail+ from Safari’s Share menu:"
+                      : "Add PMail+ to your home screen from your browser menu:"}
+                  </p>
+                  {isIos ? (
+                    <ol className="pwa-install-steps">
+                      <li>
+                        Tap the <strong>Share</strong> button in Safari.
+                      </li>
+                      <li>
+                        Choose <strong>Add to Home Screen</strong>.
+                      </li>
+                      <li>Open PMail+ from your new home screen icon.</li>
+                    </ol>
+                  ) : isAndroid ? (
+                    <ol className="pwa-install-steps">
+                      <li>Open the browser menu (⋮).</li>
+                      <li>
+                        Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.
+                      </li>
+                      <li>Launch PMail+ from the home screen shortcut.</li>
+                    </ol>
+                  ) : (
+                    <ol className="pwa-install-steps">
+                      <li>Use your browser menu to install or add this site to your home screen.</li>
+                      <li>Re-open PMail+ from the installed icon.</li>
+                    </ol>
+                  )}
+                </div>
               ) : null}
 
               {installError ? <p className="pwa-install-error">{installError}</p> : null}
 
-              {isIos ? (
-                <ol className="pwa-install-steps">
-                  <li>Tap the <strong>Share</strong> button in Safari.</li>
-                  <li>Choose <strong>Add to Home Screen</strong>.</li>
-                  <li>Open PMail+ from your new home screen icon.</li>
-                </ol>
-              ) : isAndroid ? (
-                <ol className="pwa-install-steps">
-                  <li>Open the browser menu (⋮).</li>
-                  <li>Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
-                  <li>Launch PMail+ from the home screen shortcut.</li>
-                </ol>
-              ) : (
-                <ol className="pwa-install-steps">
-                  <li>Use your browser menu to install or add this site to your home screen.</li>
-                  <li>Re-open PMail+ from the installed icon.</li>
-                </ol>
-              )}
+              <div className="pwa-install-actions">
+                {needsManualInstall ? (
+                  <button
+                    type="button"
+                    className="pwa-install-btn pwa-install-btn--continue"
+                    onClick={continueAfterInstall}
+                  >
+                    {isIos ? "I've added PMail+ — continue" : "Continue in browser"}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="pwa-install-btn pwa-install-btn--ghost"
+                  onClick={continueInBrowser}
+                >
+                  Continue without installing
+                </button>
+              </div>
 
               <p className="pwa-install-note">
                 {canPromptInstall

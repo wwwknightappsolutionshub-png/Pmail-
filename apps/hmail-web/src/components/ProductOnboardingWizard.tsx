@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type TouchEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type TouchEvent } from "react";
 import type { ProductOnboardingSlide } from "../data/productOnboardingSlides";
 import { ProductOnboardingCtaPanel } from "./ProductOnboardingCtaPanel";
 import { ProductOnboardingSlideView } from "./ProductOnboardingSlideView";
@@ -29,8 +29,34 @@ export function ProductOnboardingWizard({
   const touchStartX = useRef<number | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const [dragOffset, setDragOffset] = useState(0);
+  const [stageWidth, setStageWidth] = useState(0);
   const slide = slides[activeIndex];
   const isLastSlide = activeIndex >= slides.length - 1;
+
+  const measureStage = useCallback(() => {
+    const width = stageRef.current?.clientWidth ?? 0;
+    setStageWidth(width);
+  }, []);
+
+  useLayoutEffect(() => {
+    measureStage();
+  }, [measureStage, slides.length, isCtaSlide]);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return undefined;
+
+    const observer = new ResizeObserver(() => measureStage());
+    observer.observe(stage);
+    window.addEventListener("orientationchange", measureStage);
+    window.addEventListener("resize", measureStage);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("orientationchange", measureStage);
+      window.removeEventListener("resize", measureStage);
+    };
+  }, [measureStage, isCtaSlide]);
 
   const goNext = useCallback(() => {
     if (isLastSlide) return;
@@ -62,6 +88,9 @@ export function ProductOnboardingWizard({
 
   if (!slide) return null;
 
+  const trackOffsetPx = stageWidth > 0 ? -activeIndex * stageWidth + dragOffset : 0;
+  const stageReady = stageWidth > 0;
+
   if (isCtaSlide && slide.variant === "cta") {
     return (
       <ProductOnboardingCtaPanel
@@ -92,7 +121,7 @@ export function ProductOnboardingWizard({
 
       <div
         ref={stageRef}
-        className="product-onboarding-wizard-stage"
+        className={`product-onboarding-wizard-stage${stageReady ? " is-ready" : ""}`}
         style={{
           ["--active-index" as string]: activeIndex,
           ["--drag-offset" as string]: `${dragOffset}px`,
@@ -101,12 +130,19 @@ export function ProductOnboardingWizard({
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div className="product-onboarding-wizard-track">
+        <div
+          className="product-onboarding-wizard-track"
+          style={{
+            transform: `translate3d(${trackOffsetPx}px, 0, 0)`,
+            width: stageWidth > 0 ? stageWidth * slides.length : undefined,
+          }}
+        >
           {slides.map((entry, index) => (
             <ProductOnboardingSlideView
               key={entry.id}
               slide={entry}
               active={index === activeIndex}
+              style={stageWidth > 0 ? { width: stageWidth, flex: "0 0 auto" } : undefined}
             />
           ))}
         </div>

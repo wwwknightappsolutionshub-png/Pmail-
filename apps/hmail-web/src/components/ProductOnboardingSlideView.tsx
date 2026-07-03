@@ -17,6 +17,7 @@ export function ProductOnboardingSlideView({ slide, active = true, style }: Prod
       }${hasSections ? " product-onboarding-slide--verticals" : ""}`}
       data-slide={slide.id}
       style={style}
+      aria-hidden={!active}
     >
       <div className="product-onboarding-slide-inner">
         <div className="product-onboarding-slide-icon" aria-hidden="true">

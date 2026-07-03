@@ -45,6 +45,13 @@
   min-width: 0;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
+}
+
+.welcome-layout--fullscreen-slides .product-onboarding-wizard-stage {
+  overflow: hidden;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 /* Slide 5: CTA left + login right */
@@ -182,12 +189,26 @@
   }
 
   .welcome-layout--cta-split {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, min(480px, 42vw)) !important;
+    width: 100%;
+    max-width: 100%;
   }
 
   .welcome-layout--cta-split .welcome-brand-panel--wizard,
   .welcome-layout--cta-split .welcome-form-panel--cta {
     min-width: 0;
     min-height: 0;
+    width: 100%;
+  }
+
+  .welcome-layout--cta-split .welcome-form-panel--cta {
+    padding: clamp(1rem, 2.5vw, 2rem);
+  }
+
+  .welcome-layout--cta-split #welcome-sign-in-panel,
+  .welcome-layout--cta-split #login-sign-in-panel {
+    width: 100%;
+    max-width: min(420px, 100%);
+    margin-inline: auto;
   }
 }

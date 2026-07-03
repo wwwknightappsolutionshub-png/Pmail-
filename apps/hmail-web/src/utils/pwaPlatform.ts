@@ -56,6 +56,10 @@ export function isLoginPath(pathname: string): boolean {
   return pathname === "/login" || pathname.startsWith("/login/");
 }
 
+export function isWelcomePath(pathname: string): boolean {
+  return pathname === "/welcome" || pathname.startsWith("/welcome/");
+}
+
 /** User accepted install or confirmed manual add — allow this browser session to continue. */
 export function markPwaInstallAcceptedForSession(): void {
   try {
@@ -89,12 +93,12 @@ export function hasPwaExitReminderShownForSession(): boolean {
   }
 }
 
-export function shouldOfferPwaInstall(pathname = "/"): boolean {
-  if (isLoginPath(pathname)) return false;
+export function shouldOfferPwaInstall(_pathname = "/"): boolean {
   if (isStandaloneDisplayMode()) return false;
   if (hasPwaInstallSessionBypass()) return false;
   if (!isPwaInstallGateEnabled()) return false;
-  return isPwaInstallCandidateDevice();
+  if (!isPwaInstallCandidateDevice()) return false;
+  return true;
 }
 
 export function shouldRequirePwaInstall(pathname = "/"): boolean {
