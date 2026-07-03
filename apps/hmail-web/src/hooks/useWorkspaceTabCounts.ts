@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../api/client";
+import { readWorkspaceMessagingThreadCount } from "../utils/workspaceMessagingCount";
 
 export type WorkspaceTabCounts = {
   contacts: number;
@@ -9,22 +10,13 @@ export type WorkspaceTabCounts = {
 };
 
 const REFRESH_INTERVAL_MS = 30_000;
-
-function computeMessagingCount(
-  viewerEmail: string,
-  organizationUsers: Array<{ email: string }>,
-  contactsWithPhone: number,
-): number {
-  const orgPeers = organizationUsers.filter(
-    (member) => member.email.trim().toLowerCase() !== viewerEmail.trim().toLowerCase(),
-  ).length;
-  return 1 + orgPeers + contactsWithPhone;
-}
+const WORKSPACE_STORAGE_PREFIX = "bespoke-demo-workspace:";
 
 export function useWorkspaceTabCounts(
   enabled: boolean,
   viewerEmail: string,
   organizationUsers: Array<{ email: string }>,
+  demoUseCaseId = "platform",
 ) {
   const [counts, setCounts] = useState<WorkspaceTabCounts | null>(null);
 
@@ -44,19 +36,16 @@ export function useWorkspaceTabCounts(
           : api.organizationUsers(),
       ]);
 
-      const orgUsers = orgUsersRes.users;
-      const contactsWithPhone = contactsRes.contacts.filter((contact) => contact.phone?.trim()).length;
-
       setCounts({
         contacts: contactsRes.contacts.length,
         reminders: remindersRes.reminders.length,
         calendar: calendarRes.events.length,
-        messaging: computeMessagingCount(viewerEmail, orgUsers, contactsWithPhone),
+        messaging: readWorkspaceMessagingThreadCount(demoUseCaseId),
       });
     } catch {
       setCounts(null);
     }
-  }, [enabled, organizationUsers, viewerEmail]);
+  }, [demoUseCaseId, enabled, organizationUsers, viewerEmail]);
 
   useEffect(() => {
     if (!enabled) {
@@ -66,6 +55,13 @@ export function useWorkspaceTabCounts(
 
     void load();
     const timer = window.setInterval(() => void load(), REFRESH_INTERVAL_MS);
+    const messagingTimer = window.setInterval(() => {
+      setCounts((current) => {
+        if (!current) return current;
+        const messaging = readWorkspaceMessagingThreadCount(demoUseCaseId);
+        return messaging === current.messaging ? current : { ...current, messaging };
+      });
+    }, 5_000);
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -74,11 +70,20 @@ export function useWorkspaceTabCounts(
     };
     document.addEventListener("visibilitychange", onVisibility);
 
+    const onWorkspaceStorage = (event: StorageEvent) => {
+      if (event.key === `${WORKSPACE_STORAGE_PREFIX}${demoUseCaseId}`) {
+        void load();
+      }
+    };
+    window.addEventListener("storage", onWorkspaceStorage);
+
     return () => {
       window.clearInterval(timer);
+      window.clearInterval(messagingTimer);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("storage", onWorkspaceStorage);
     };
-  }, [enabled, load]);
+  }, [demoUseCaseId, enabled, load]);
 
   return counts;
 }

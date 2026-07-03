@@ -21,6 +21,11 @@ export function panelWorkspaceTrialDaysLeft(startedAt: Date, now = new Date()): 
   return Math.max(0, Math.ceil((endsAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)));
 }
 
+export function panelWorkspaceTrialHoursLeft(startedAt: Date, now = new Date()): number {
+  const endsAt = panelWorkspaceTrialEndsAt(startedAt);
+  return Math.max(0, Math.ceil((endsAt.getTime() - now.getTime()) / (60 * 60 * 1000)));
+}
+
 export function isPanelWorkspaceWelcomeTrialSlug(slug: string): boolean {
   return PANEL_WORKSPACE_WELCOME_TRIAL_SLUG_SET.has(slug);
 }
@@ -43,12 +48,13 @@ export type PanelWorkspaceTrialStatus = {
   startedAt: string | null;
   endsAt: string | null;
   daysLeft: number | null;
+  hoursLeft: number | null;
 };
 
 export async function getPanelWorkspaceTrialStatus(userId: string): Promise<PanelWorkspaceTrialStatus> {
   const startedAt = await getPanelWorkspaceTrialStartedAt(userId);
   if (!startedAt) {
-    return { active: false, startedAt: null, endsAt: null, daysLeft: null };
+    return { active: false, startedAt: null, endsAt: null, daysLeft: null, hoursLeft: null };
   }
   const endsAt = panelWorkspaceTrialEndsAt(startedAt);
   const active = isPanelWorkspaceWelcomeTrialActive(startedAt);
@@ -57,6 +63,7 @@ export async function getPanelWorkspaceTrialStatus(userId: string): Promise<Pane
     startedAt: startedAt.toISOString(),
     endsAt: endsAt.toISOString(),
     daysLeft: active ? panelWorkspaceTrialDaysLeft(startedAt) : 0,
+    hoursLeft: active ? panelWorkspaceTrialHoursLeft(startedAt) : 0,
   };
 }
 
@@ -125,14 +132,13 @@ export async function processPanelWorkspaceTrialEmails(): Promise<void> {
     if (!trialActive) continue;
 
     const trialEndsAt = panelWorkspaceTrialEndsAt(startedAt);
-    const daysLeft = panelWorkspaceTrialDaysLeft(startedAt, now);
-    const daysElapsed = PANEL_WORKSPACE_WELCOME_TRIAL_DAYS - daysLeft;
+    const hoursLeft = panelWorkspaceTrialHoursLeft(startedAt, now);
 
-    if (!user.panelWorkspaceDay5EmailSent && daysElapsed >= 5) {
+    if (!user.panelWorkspaceDay5EmailSent && hoursLeft <= 72) {
       await sendPanelWorkspaceTrialEmail({
         tenantId: user.tenantId,
         userEmail: user.email,
-        emailType: "day5_upsell",
+        emailType: "hours72_reminder",
         trialEndsAt,
       });
       await prisma.user.update({
@@ -141,11 +147,11 @@ export async function processPanelWorkspaceTrialEmails(): Promise<void> {
       });
     }
 
-    if (!user.panelWorkspaceDay7ReminderSent && daysLeft <= 1) {
+    if (!user.panelWorkspaceDay7ReminderSent && hoursLeft <= 24) {
       await sendPanelWorkspaceTrialEmail({
         tenantId: user.tenantId,
         userEmail: user.email,
-        emailType: "day7_final",
+        emailType: "hours24_reminder",
         trialEndsAt,
       });
       await prisma.user.update({

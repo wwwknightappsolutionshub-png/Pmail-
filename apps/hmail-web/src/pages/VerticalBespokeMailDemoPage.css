@@ -3768,6 +3768,7 @@ html:has(.pmail-demo-shell--light) body {
 
   .pmail-shell-mobile-footer .paid-addon-toast-overlay {
     z-index: 15002;
+    pointer-events: auto;
   }
 
   .pmail-demo-shell .mail-app--embedded-in-bespoke .mail-bottom-nav {

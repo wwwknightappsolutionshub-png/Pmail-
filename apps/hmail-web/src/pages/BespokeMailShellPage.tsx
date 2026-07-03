@@ -11,11 +11,13 @@ import { GmailMailSearch } from "../components/GmailMailSearch";
 import { ContactSyncToast } from "../components/ContactSyncToast";
 import { SecondaryMailboxToast } from "../components/SecondaryMailboxToast";
 import { SignatureReminderToast } from "../components/SignatureReminderToast";
+import { PanelWorkspaceTrialReminderToast } from "../components/PanelWorkspaceTrialReminderToast";
 import { renderBespokeProductionWorkspace } from "../components/BespokeProductionWorkspaces";
 import { useInboxContactSync } from "../hooks/useInboxContactSync";
 import { useAutoMailPush } from "../hooks/useAutoMailPush";
 import { useMobileTopbarChromeCollapse } from "../hooks/useMobileTopbarChromeCollapse";
 import { useWorkspaceTabCounts } from "../hooks/useWorkspaceTabCounts";
+import { usePanelWorkspaceTrialReminder } from "../hooks/usePanelWorkspaceTrialReminder";
 import { useSecondaryMailboxNotifications } from "../hooks/useSecondaryMailboxNotifications";
 import { useSignatureReminder } from "../hooks/useSignatureReminder";
 import {
@@ -31,6 +33,18 @@ import {
 import { MailPage } from "./MailPage";
 import { VerticalBespokeMailDemoPage } from "./VerticalBespokeMailDemoPage";
 import { shouldHideVerticalIndustryRibbon } from "../utils/verticalIndustryRibbon";
+import type { BusinessVertical } from "../types/mail";
+
+const VERTICAL_DEMO_IDS: Record<BusinessVertical, string> = {
+  standard: "platform",
+  "free-basic": "platform",
+  legal: "legal",
+  "real-estate": "real-estate",
+  accounting: "accounting",
+  recruitment: "recruitment",
+  "b2b-services": "b2b-services",
+  healthcare: "healthcare",
+};
 
 type LiveComposeSettings = {
   autoReplyEnabled: boolean;
@@ -89,8 +103,10 @@ function BespokeMailShellContent() {
 
   const displayEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
   const displayName = user?.displayName?.trim() || displayEmail.split("@")[0] || "User";
+  const demoUseCaseId = VERTICAL_DEMO_IDS[user?.businessVertical ?? "standard"] ?? "platform";
 
-  const workspaceTabCounts = useWorkspaceTabCounts(Boolean(user), displayEmail, organizationUsers);
+  const workspaceTabCounts = useWorkspaceTabCounts(Boolean(user), displayEmail, organizationUsers, demoUseCaseId);
+  const panelTrialReminder = usePanelWorkspaceTrialReminder(user?.id, panelWorkspaceTrial);
 
   const clearMailSearch = useCallback(() => {
     setSearchDraft(EMPTY_MAIL_SEARCH);
@@ -431,6 +447,14 @@ function BespokeMailShellContent() {
           onOpenBrandSettings={signatureReminder.openBrandSettings}
           onDismiss={signatureReminder.dismiss}
           onDontAskAgain={signatureReminder.dontAskAgain}
+        />
+      ) : null}
+      {panelTrialReminder.activeReminder && panelTrialReminder.hoursLeft != null ? (
+        <PanelWorkspaceTrialReminderToast
+          kind={panelTrialReminder.activeReminder}
+          hoursLeft={panelTrialReminder.hoursLeft}
+          onOpenMarketplace={openAddonsMarketplace}
+          onDismiss={panelTrialReminder.dismiss}
         />
       ) : null}
       {contactSyncNotice ? (

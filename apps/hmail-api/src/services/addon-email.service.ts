@@ -369,7 +369,7 @@ export async function sendAutoReplyUpsellEmail(input: {
   }
 }
 
-export type PanelWorkspaceTrialEmailType = "welcome" | "day5_upsell" | "day7_final";
+export type PanelWorkspaceTrialEmailType = "welcome" | "hours72_reminder" | "hours24_reminder";
 
 export async function sendPanelWorkspaceTrialEmail(input: {
   tenantId: string;
@@ -384,13 +384,17 @@ export async function sendPanelWorkspaceTrialEmail(input: {
     0,
     Math.ceil((input.trialEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
   );
+  const hoursLeft = Math.max(
+    0,
+    Math.ceil((input.trialEndsAt.getTime() - Date.now()) / (60 * 60 * 1000)),
+  );
 
   const templateSlug =
     input.emailType === "welcome"
       ? "panel-workspace-welcome"
-      : input.emailType === "day5_upsell"
-        ? "panel-workspace-day5-upsell"
-        : "panel-workspace-day7-final";
+      : input.emailType === "hours72_reminder"
+        ? "panel-workspace-72h-reminder"
+        : "panel-workspace-24h-reminder";
 
   let content: { subject: string; text: string; html: string };
   try {
@@ -400,6 +404,7 @@ export async function sendPanelWorkspaceTrialEmail(input: {
       productName: "PMail+",
       trialDays: "7",
       daysLeft: String(daysLeft),
+      hoursLeft: String(hoursLeft),
     });
     content = {
       subject: rendered.subject,
@@ -409,8 +414,8 @@ export async function sendPanelWorkspaceTrialEmail(input: {
   } catch {
     const subjects: Record<PanelWorkspaceTrialEmailType, string> = {
       welcome: "Your PMail+ workspace tools trial is active",
-      day5_upsell: "Upgrade your PMail+ workspace tools",
-      day7_final: "Final reminder — workspace tools lock tomorrow",
+      hours72_reminder: "3 days left on your PMail+ workspace trial",
+      hours24_reminder: "Final reminder — workspace tools lock in 24 hours",
     };
     content = {
       subject: subjects[input.emailType],

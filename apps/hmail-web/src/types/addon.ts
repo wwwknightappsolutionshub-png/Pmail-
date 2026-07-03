@@ -30,6 +30,7 @@ export interface PanelWorkspaceTrialStatus {
   startedAt: string | null;
   endsAt: string | null;
   daysLeft: number | null;
+  hoursLeft?: number | null;
 }
 
 export interface JobHunterEntitlement {

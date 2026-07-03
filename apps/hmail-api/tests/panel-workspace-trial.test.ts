@@ -66,29 +66,56 @@ describe("panel workspace welcome trial", () => {
     expect(isPanelWorkspaceWelcomeTrialActive(startedAt, new Date("2026-01-08T12:00:01Z"))).toBe(false);
   });
 
-  it("sends day-5 upsell and day-7 final reminder emails", async () => {
+  it("sends 72-hour and 24-hour reminder emails", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-07T12:00:00Z"));
 
     const user = await prisma.user.findFirstOrThrow();
     await prisma.user.update({
       where: { id: user.id },
-      data: { panelWorkspaceTrialStartedAt: new Date("2026-01-01T12:00:00Z") },
+      data: {
+        panelWorkspaceTrialStartedAt: new Date("2026-01-01T12:00:00Z"),
+        panelWorkspaceDay5EmailSent: true,
+        panelWorkspaceDay7ReminderSent: false,
+      },
     });
 
     await processPanelWorkspaceTrialEmails();
 
     const updated = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
-    expect(updated.panelWorkspaceDay5EmailSent).toBe(true);
     expect(updated.panelWorkspaceDay7ReminderSent).toBe(true);
 
     const logs = await prisma.addonEmailLog.findMany({
       where: { userEmail: user.email },
       orderBy: { sentAt: "asc" },
     });
-    expect(logs.map((log) => log.emailType)).toEqual([
-      "panel_workspace_day5_upsell",
-      "panel_workspace_day7_final",
-    ]);
+    expect(logs.map((log) => log.emailType)).toEqual(["panel_workspace_hours24_reminder"]);
+  });
+
+  it("sends 72-hour reminder when 72 hours or less remain", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-05T12:00:00Z"));
+
+    const user = await prisma.user.findFirstOrThrow();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        panelWorkspaceTrialStartedAt: new Date("2026-01-01T12:00:00Z"),
+        panelWorkspaceDay5EmailSent: false,
+        panelWorkspaceDay7ReminderSent: false,
+      },
+    });
+
+    await processPanelWorkspaceTrialEmails();
+
+    const updated = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    expect(updated.panelWorkspaceDay5EmailSent).toBe(true);
+    expect(updated.panelWorkspaceDay7ReminderSent).toBe(false);
+
+    const logs = await prisma.addonEmailLog.findMany({
+      where: { userEmail: user.email },
+      orderBy: { sentAt: "asc" },
+    });
+    expect(logs.map((log) => log.emailType)).toEqual(["panel_workspace_hours72_reminder"]);
   });
 });

@@ -122,7 +122,7 @@ export async function listAddonsForTenant(tenantId: string, userId?: string): Pr
     prisma.tenantAddonTrial.findMany({ where: { tenantId } }),
     prisma.tenantAddonSubscription.findMany({ where: { tenantId } }),
     userId ? prisma.userAddonSubscription.findMany({ where: { tenantId, userId } }) : Promise.resolve([]),
-    userId ? prisma.user.findUnique({ where: { id: userId }, select: { email: true } }) : Promise.resolve(null),
+    userId ? prisma.user.findUnique({ where: { id: userId }, select: { email: true, panelWorkspaceTrialStartedAt: true } }) : Promise.resolve(null),
     userId
       ? import("./panel-workspace-trial.service.js").then((m) => m.hasActivePanelWorkspaceWelcomeTrial(userId))
       : Promise.resolve(false),
@@ -132,6 +132,7 @@ export async function listAddonsForTenant(tenantId: string, userId?: string): Pr
   const testerUnlocked =
     env.PMAIL_TESTER_UNLOCK_ALL_ADDONS &&
     user?.email.toLowerCase() === env.PMAIL_TESTER_EMAIL.toLowerCase();
+  const hadPanelWelcomeTrial = Boolean(user?.panelWorkspaceTrialStartedAt);
   const trialByAddon = new Map(trials.map((t) => [t.addonId, t]));
   const subByAddon = new Map(subscriptions.map((s) => [s.addonId, s]));
   const userSubByAddon = new Map(userSubscriptions.map((s) => [s.addonId, s]));
@@ -172,8 +173,13 @@ export async function listAddonsForTenant(tenantId: string, userId?: string): Pr
       activePlatformBundle;
     const panelWelcomeTrialAccess =
       panelWelcomeTrialActive && PANEL_WORKSPACE_WELCOME_TRIAL_SLUG_SET.has(addon.slug);
-    const access =
-      testerUnlocked || verticalBundleAccess || platformBundleAccess || panelWelcomeTrialAccess
+    const panelWelcomeTrialExpiredAccess =
+      !panelWelcomeTrialActive &&
+      hadPanelWelcomeTrial &&
+      PANEL_WORKSPACE_WELCOME_TRIAL_SLUG_SET.has(addon.slug);
+    const access = panelWelcomeTrialExpiredAccess
+      ? { status: "expired" as const, trialDaysLeft: 0 }
+      : testerUnlocked || verticalBundleAccess || platformBundleAccess || panelWelcomeTrialAccess
         ? { status: "active" as const }
         : directAccess;
     const hadTrial = Boolean(trial);
