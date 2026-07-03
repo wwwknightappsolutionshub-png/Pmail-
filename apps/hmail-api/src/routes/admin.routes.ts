@@ -68,6 +68,7 @@ import {
   updatePmailProspect,
   type PmailProspectStatus,
 } from "../services/pmail-prospect.service.js";
+import { getPmailManagementOverview } from "../services/pmail-management.service.js";
 import { provisionTenantFromLead, ProvisioningError } from "../services/provisioning.service.js";
 
 const loginSchema = z.object({
@@ -664,6 +665,15 @@ adminRouter.get("/referral-leads", requireSuperAdmin, async (req, res, next) => 
 const prospectUpdateSchema = z.object({
   status: z.enum(["interested", "contacted", "invited", "converted", "closed"]).optional(),
   notes: z.string().nullable().optional(),
+});
+
+adminRouter.get("/pmail/overview", async (req, res, next) => {
+  try {
+    const overview = await getPmailManagementOverview(req.admin?.role === "super_admin");
+    res.json(overview);
+  } catch (err) {
+    next(err);
+  }
 });
 
 adminRouter.get("/pmail-prospects/stats", requireSuperAdmin, async (_req, res, next) => {
