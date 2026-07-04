@@ -3859,14 +3859,28 @@ html:has(.pmail-demo-shell--light) body {
     flex-wrap: nowrap;
   }
 
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot,
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-avatar,
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn {
     flex: 0 0 auto;
   }
 
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .gmail-mail-search,
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .bespoke-mail-search {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn--refer {
-    display: none !important;
+    flex-shrink: 0;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn span:not(.bespoke-demo-topbar-btn-icon) {

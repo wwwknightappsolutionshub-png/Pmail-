@@ -2315,6 +2315,8 @@ export function BespokeMailDemo({
       className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--refer"
       onClick={() => void handleReferFriend()}
       disabled={referBusy}
+      aria-label={referBusy ? "Sending invitations" : "Refer a friend"}
+      title="Refer a friend"
     >
       <TopbarIcon>
         <path
@@ -2339,9 +2341,11 @@ export function BespokeMailDemo({
           <div className="bespoke-demo-topbar-compact-row">
             <div className="bespoke-demo-topbar-brand">{renderTopbarBrand}</div>
             <div className="bespoke-demo-topbar-compact-actions" aria-label="Workspace actions">
-              <div className="bespoke-demo-topbar-search-slot">{topbarSearchControl}</div>
+              <div className="bespoke-demo-topbar-search-slot">
+                {topbarSearchControl}
+                {topbarReferButton}
+              </div>
               {topbarAccountActions}
-              {topbarReferButton}
             </div>
           </div>
         ) : (

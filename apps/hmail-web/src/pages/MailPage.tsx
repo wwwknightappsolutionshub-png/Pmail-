@@ -67,7 +67,7 @@ import {
   mobileDrawerTooltipHandlers,
   type MobileDrawerTooltipState,
 } from "../components/MobileDrawerTooltip";
-import { Folder, Inbox, SquarePen, Star, X } from "lucide-react";
+import { Folder, Inbox, SquarePen, X } from "lucide-react";
 import { isMobileScreen } from "../utils/pwaPlatform";
 import { useMailListChromeViewport } from "../hooks/useMailListChromeViewport";
 import { useMessageListAtEnd } from "../hooks/useMessageListAtEnd";
@@ -887,17 +887,16 @@ export function MailPage({
     () => ({
       openFolders: openMobileFolders,
       openMessages: openMobileMessages,
-      openStarred: openStarredView,
     }),
-    [openMobileFolders, openMobileMessages, openStarredView],
+    [openMobileFolders, openMobileMessages],
   );
 
   useRegisterMailFooterNav(footerNavHandlers, embedded && Boolean(footerNavBridge));
 
   useEffect(() => {
     if (!embedded || !footerNavBridge) return;
-    footerNavBridge.setState({ mobilePane, starredActive: mailFilter === "starred" });
-  }, [embedded, footerNavBridge, mobilePane, mailFilter]);
+    footerNavBridge.setState({ mobilePane });
+  }, [embedded, footerNavBridge, mobilePane]);
 
   const junkFolder = folders.find((f) => resolveFolderKind(f) === "junk");
   const isTrashFolder = activeFolderKind === "trash";
@@ -1729,14 +1728,8 @@ export function MailPage({
         <MailBottomNavButton
           label="Messages"
           icon={Inbox}
-          active={mobilePane === "list" && mailFilter !== "starred"}
+          active={mobilePane === "list"}
           onClick={openMobileMessages}
-        />
-        <MailBottomNavButton
-          label="Starred"
-          icon={Star}
-          active={mailFilter === "starred"}
-          onClick={openStarredView}
         />
         <InboxSwitcher
           ref={inboxSwitcherRef}

@@ -733,18 +733,6 @@
 
   .mail-bottom-nav--with-switcher {
     justify-content: space-evenly;
-    gap: 0.05rem;
-    padding-inline: 0.25rem;
-  }
-
-  .mail-bottom-nav--with-switcher .mail-bottom-nav-btn {
-    flex: 1 1 0;
-    max-width: 3.25rem;
-  }
-
-  .mail-bottom-nav--with-switcher .inbox-switcher-trigger--bottom-nav {
-    flex: 1 1 0;
-    max-width: 3.25rem;
   }
 }
 

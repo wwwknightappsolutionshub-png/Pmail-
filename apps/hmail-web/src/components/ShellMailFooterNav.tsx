@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Folder, Inbox, SquarePen, Star } from "lucide-react";
+import { Folder, Inbox, SquarePen } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useAddons } from "../context/AddonContext";
 import { useBespokeComposeBridge } from "../context/BespokeComposeBridge";
@@ -71,12 +71,6 @@ export function ShellMailFooterNav({
     footerNav.openMessages();
   }, [footerNav, resetInboxHome]);
 
-  const handleStarred = useCallback(() => {
-    onClearMailSearch?.();
-    activateInbox();
-    footerNav.openStarred();
-  }, [activateInbox, footerNav, onClearMailSearch]);
-
   const handleNewMail = useCallback(() => {
     onClearMailSearch?.();
     activateInbox();
@@ -105,14 +99,8 @@ export function ShellMailFooterNav({
           <MailBottomNavButton
             label="Messages"
             icon={Inbox}
-            active={footerNav.state.mobilePane === "list" && !footerNav.state.starredActive}
+            active={footerNav.state.mobilePane === "list"}
             onClick={handleMessages}
-          />
-          <MailBottomNavButton
-            label="Starred"
-            icon={Star}
-            active={footerNav.state.starredActive === true}
-            onClick={handleStarred}
           />
           <InboxSwitcher
             ref={bindInboxSwitcherRef}
