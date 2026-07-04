@@ -13,7 +13,7 @@ describe("default branded signature", () => {
   it("builds HTML with logo and tagline", () => {
     const html = buildDefaultBrandedSignatureHtml({
       logoUrl: "https://mail.prohost.cloud/pmail-signature-logo.png",
-      exploreUrl: "https://mail.prohost.cloud/welcome/prohost",
+      exploreUrl: "https://mail.prohost.cloud/welcome/prohost/",
     });
     expect(html).toContain('data-pmail-signature="branded"');
     expect(html).toContain('contenteditable="false"');
@@ -21,7 +21,7 @@ describe("default branded signature", () => {
     expect(html).toContain(PMail_DEFAULT_SIGNATURE_TAGLINE);
     expect(html).toContain("https://mail.prohost.cloud/pmail-signature-logo.png");
     expect(html).toContain("Explore Now");
-    expect(html).toContain("https://mail.prohost.cloud/welcome/prohost");
+    expect(html).toContain("https://mail.prohost.cloud/welcome/prohost/");
     expect(html).not.toContain("/api/public/track/link/");
   });
 
@@ -44,7 +44,7 @@ describe("default branded signature", () => {
   it("embeds inline CID logo for branded signatures", async () => {
     const html = buildDefaultBrandedSignatureHtml({
       logoUrl: "https://mail.prohost.cloud/pmail-signature-logo.png",
-      exploreUrl: "https://mail.prohost.cloud/welcome/prohost",
+      exploreUrl: "https://mail.prohost.cloud/welcome/prohost/",
     });
     const embedded = await embedBrandedSignatureLogoInline(html);
     expect(embedded.inlineAttachment).not.toBeNull();

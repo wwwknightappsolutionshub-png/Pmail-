@@ -17,7 +17,7 @@ const BRANDED_SIGNATURE_BLOCK_RE =
   /(<div[^>]*data-pmail-signature="branded"[^>]*>[\s\S]*?<\/table>\s*<\/div>)/i;
 
 const PRODUCTION_WEB_ORIGIN_FALLBACK = "https://mail.prohost.cloud";
-const PRODUCTION_EXPLORE_URL = `${PRODUCTION_WEB_ORIGIN_FALLBACK}/welcome/prohost`;
+const PRODUCTION_EXPLORE_URL = `${PRODUCTION_WEB_ORIGIN_FALLBACK}/welcome/prohost/`;
 const DEFAULT_SIGNATURE_LOGO_PATH = "/pmail-signature-logo.png";
 
 function isLocalDevOrigin(origin: string): boolean {
@@ -157,6 +157,8 @@ function resolveSignatureLogoPaths(): string[] {
     resolve(apiRoot, "assets/pmail-signature-logo.png"),
     resolve(process.cwd(), "apps/hmail-api/assets/pmail-signature-logo.png"),
     resolve(process.cwd(), "assets/pmail-signature-logo.png"),
+    resolve(process.cwd(), "apps/hmail-web/public/pmail-signature-logo.png"),
+    resolve(process.cwd(), "apps/hmail-web/public/pwa-192.png"),
   ];
 }
 

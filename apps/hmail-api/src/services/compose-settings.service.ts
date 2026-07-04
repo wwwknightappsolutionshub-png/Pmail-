@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma.js";
 import { ensureAutoReplyComplimentary, getAutoReplyEntitlement } from "./auto-reply-entitlement.service.js";
 import {
   getDefaultBrandedSignatureForTenant,
+  normalizeOutboundBrandedSignature,
   userHasCustomSignature,
 } from "./default-signature.service.js";
 import { normalizeUndoSendSeconds } from "./mail-outgoing.service.js";
@@ -25,6 +26,14 @@ export async function getComposeSettings(userId: string, tenantId: string, busin
     getAutoReplyEntitlement(userId, tenantId),
   ]);
 
+  const hasCustomSignature = userHasCustomSignature({
+    activeSignatureId: settings?.activeSignatureId ?? signatures[0]?.id ?? null,
+    signatures,
+  });
+  const defaultBrandedSignature = hasCustomSignature
+    ? null
+    : await getDefaultBrandedSignatureForTenant(tenantId);
+
   return {
     displayName: settings?.displayName ?? null,
     undoSendSeconds: settings?.undoSendSeconds ?? 10,
@@ -34,12 +43,12 @@ export async function getComposeSettings(userId: string, tenantId: string, busin
     signatures,
     autoReplies,
     autoReplyEntitlement,
-    defaultBrandedSignature: userHasCustomSignature({
-      activeSignatureId: settings?.activeSignatureId ?? signatures[0]?.id ?? null,
-      signatures,
-    })
-      ? null
-      : await getDefaultBrandedSignatureForTenant(tenantId),
+    defaultBrandedSignature: defaultBrandedSignature
+      ? {
+          html: normalizeOutboundBrandedSignature(defaultBrandedSignature.html),
+          text: defaultBrandedSignature.text,
+        }
+      : null,
   };
 }
 

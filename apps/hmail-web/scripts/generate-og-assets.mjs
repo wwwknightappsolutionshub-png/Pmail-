@@ -27,3 +27,11 @@ console.log("Generated apps/hmail-web/public/og-pmail.png");
 const pwa192 = resolve(publicDir, "pwa-192.png");
 await sharp(pwa192).png().toFile(resolve(publicDir, "pmail-app-icon.png"));
 console.log("Generated apps/hmail-web/public/pmail-app-icon.png from pwa-192.png");
+
+await sharp(pwa192).png().toFile(resolve(publicDir, "pmail-signature-logo.png"));
+console.log("Generated apps/hmail-web/public/pmail-signature-logo.png from pwa-192.png");
+
+const apiAssetsDir = resolve(__dirname, "../../hmail-api/assets");
+await mkdir(apiAssetsDir, { recursive: true });
+await sharp(pwa192).png().toFile(resolve(apiAssetsDir, "pmail-signature-logo.png"));
+console.log("Generated apps/hmail-api/assets/pmail-signature-logo.png from pwa-192.png");
