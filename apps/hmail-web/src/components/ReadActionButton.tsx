@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type ComponentType, type SVGProps } from "react";
+import { useCallback, useEffect, useRef, useState, type ComponentType, type SVGProps } from "react";
 import { createPortal } from "react-dom";
 import {
   CircleX,
@@ -37,8 +37,14 @@ export function ReadActionButton({
 }: ReadActionButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const [showHoverTooltip, setShowHoverTooltip] = useState(false);
+
+  useEffect(() => {
+    setShowHoverTooltip(window.matchMedia("(hover: hover) and (pointer: fine)").matches);
+  }, []);
 
   const updateTooltip = useCallback(() => {
+    if (!showHoverTooltip) return;
     const node = buttonRef.current;
     if (!node) return;
     const rect = node.getBoundingClientRect();
@@ -46,7 +52,7 @@ export function ReadActionButton({
       x: rect.left + rect.width / 2,
       y: rect.top - 8,
     });
-  }, []);
+  }, [showHoverTooltip]);
 
   const hideTooltip = useCallback(() => {
     setTooltipPos(null);
@@ -61,10 +67,10 @@ export function ReadActionButton({
         onClick={onClick}
         disabled={disabled}
         aria-label={label}
-        onMouseEnter={updateTooltip}
-        onMouseLeave={hideTooltip}
-        onFocus={updateTooltip}
-        onBlur={hideTooltip}
+        onMouseEnter={showHoverTooltip ? updateTooltip : undefined}
+        onMouseLeave={showHoverTooltip ? hideTooltip : undefined}
+        onFocus={showHoverTooltip ? updateTooltip : undefined}
+        onBlur={showHoverTooltip ? hideTooltip : undefined}
       >
         <span className="read-action-btn-icon" aria-hidden="true">
           {Icon ? <Icon strokeWidth={1.75} /> : children}

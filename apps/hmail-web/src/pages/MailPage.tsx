@@ -1216,7 +1216,7 @@ export function MailPage({
               }
               runBulkAction("reportSpam", junkFolder.path);
             }}
-            onDelete={() => runBulkAction("delete")}
+            onDelete={() => void runBulkAction("delete")}
             deleteLabel={isTrashFolder ? "Delete permanently" : "Delete"}
             onMove={(targetFolder) => runBulkAction("move", targetFolder)}
             onClearSelection={() => setSelectedUids([])}

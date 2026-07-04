@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CircleX, FolderInput, MailOpen, ShieldAlert, Trash2 } from "lucide-react";
 import type { MailFolder } from "../types/mail";
@@ -29,10 +29,16 @@ interface BulkMoveSelectProps {
 function BulkMoveSelect({ folders, currentFolder, onMove }: BulkMoveSelectProps) {
   const labelRef = useRef<HTMLLabelElement>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const [showHoverTooltip, setShowHoverTooltip] = useState(false);
   const moveLabel = "Move to…";
   const moveTargets = folders.filter((folder) => folder.path !== currentFolder);
 
+  useEffect(() => {
+    setShowHoverTooltip(window.matchMedia("(hover: hover) and (pointer: fine)").matches);
+  }, []);
+
   const updateTooltip = useCallback(() => {
+    if (!showHoverTooltip) return;
     const node = labelRef.current;
     if (!node) return;
     const rect = node.getBoundingClientRect();
@@ -40,7 +46,7 @@ function BulkMoveSelect({ folders, currentFolder, onMove }: BulkMoveSelectProps)
       x: rect.left + rect.width / 2,
       y: rect.top - 8,
     });
-  }, []);
+  }, [showHoverTooltip]);
 
   const hideTooltip = useCallback(() => {
     setTooltipPos(null);
@@ -53,10 +59,10 @@ function BulkMoveSelect({ folders, currentFolder, onMove }: BulkMoveSelectProps)
       <label
         ref={labelRef}
         className="mail-bulk-move mail-bulk-move--icon"
-        onMouseEnter={updateTooltip}
-        onMouseLeave={hideTooltip}
-        onFocus={updateTooltip}
-        onBlur={hideTooltip}
+        onMouseEnter={showHoverTooltip ? updateTooltip : undefined}
+        onMouseLeave={showHoverTooltip ? hideTooltip : undefined}
+        onFocus={showHoverTooltip ? updateTooltip : undefined}
+        onBlur={showHoverTooltip ? hideTooltip : undefined}
       >
         <FolderInput className="mail-bulk-move-icon" strokeWidth={1.75} aria-hidden />
         <span className="sr-only">{moveLabel}</span>

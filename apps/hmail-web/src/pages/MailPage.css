@@ -693,7 +693,18 @@
   }
 
   .mail-bulk-actions__toolbar {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .mail-bulk-actions {
+    flex-shrink: 0;
+    pointer-events: auto;
+  }
+
+  .mail-list-scroll-wrap {
+    isolation: isolate;
+    z-index: 1;
   }
 
   .mail-app--embedded-in-bespoke .mail-view-panel:not(.platform-tools-panel) {
