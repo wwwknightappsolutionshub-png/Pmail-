@@ -396,6 +396,7 @@ function BespokeMailShellContent() {
         onActivateInbox={activateInboxWorkspace}
         onResetInboxHome={resetToInboxHome}
         onClearMailSearch={clearMailSearch}
+        onOpenAddons={openAddonsMarketplace}
       />
     ),
     [uiThemeVersion, activateInboxWorkspace, resetToInboxHome, clearMailSearch],

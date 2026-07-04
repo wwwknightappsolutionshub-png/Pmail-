@@ -18,6 +18,8 @@ type ShellMailFooterNavProps = {
   /** Hard reset to inbox list (Messages footer). */
   onResetInboxHome?: () => void;
   onClearMailSearch?: () => void;
+  /** Open the add-ons marketplace (embedded shell uses full-page navigation). */
+  onOpenAddons?: (highlightSlug?: string) => void;
 };
 
 export function ShellMailFooterNav({
@@ -25,6 +27,7 @@ export function ShellMailFooterNav({
   onActivateInbox,
   onResetInboxHome,
   onClearMailSearch,
+  onOpenAddons,
 }: ShellMailFooterNavProps) {
   const { user } = useAuth();
   const { panelWorkspaceTrial } = useAddons();
@@ -124,7 +127,11 @@ export function ShellMailFooterNav({
           onOpenMarketplace={() => {
             const slug = paidAddonGate.slug;
             setPaidAddonGate(null);
-            navigate(`/addons?highlight=${slug}`);
+            if (onOpenAddons) {
+              onOpenAddons(slug);
+              return;
+            }
+            window.location.assign(`/addons?highlight=${slug}`);
           }}
           onDismiss={() => setPaidAddonGate(null)}
         />

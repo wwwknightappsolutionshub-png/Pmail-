@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import type { PanelWorkspaceTrialStatus } from "../types/addon";
 import "./PaidAddonToast.css";
 
@@ -36,15 +37,28 @@ export function PaidAddonToast({
   onOpenMarketplace,
   onDismiss,
 }: PaidAddonToastProps) {
-  return (
-    <div className="paid-addon-toast-overlay" role="dialog" aria-modal="true" aria-labelledby="paid-addon-toast-title">
+  const overlay = (
+    <div
+      className="paid-addon-toast-overlay paid-addon-toast-overlay--portaled"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="paid-addon-toast-title"
+    >
       <div className="paid-addon-toast">
         <div className="paid-addon-toast-copy">
           <strong id="paid-addon-toast-title">{toastTitle(panelWorkspaceTrial)}</strong>
           <p>{toastBody(addonName, panelWorkspaceTrial)}</p>
         </div>
         <div className="paid-addon-toast-actions">
-          <button type="button" className="paid-addon-toast-primary" onClick={onOpenMarketplace}>
+          <button
+            type="button"
+            className="paid-addon-toast-primary"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onOpenMarketplace();
+            }}
+          >
             Open Add-ons marketplace
           </button>
           <button type="button" className="paid-addon-toast-btn" onClick={onDismiss}>
@@ -54,4 +68,7 @@ export function PaidAddonToast({
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") return overlay;
+  return createPortal(overlay, document.body);
 }

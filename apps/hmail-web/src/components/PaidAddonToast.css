@@ -10,6 +10,10 @@
   pointer-events: auto;
 }
 
+.paid-addon-toast-overlay--portaled {
+  z-index: 16060;
+}
+
 .paid-addon-toast {
   width: min(100%, 28rem);
   padding: 1.35rem 1.25rem;

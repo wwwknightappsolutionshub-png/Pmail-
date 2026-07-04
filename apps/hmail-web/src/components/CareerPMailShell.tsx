@@ -161,7 +161,16 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
       }}
       renderTopbarSearch={topbarSearch}
       renderWorkspace={renderWorkspace}
-      renderMobileFooterNav={<ShellMailFooterNav uiThemeVersion={uiThemeVersion} />}
+      renderMobileFooterNav={
+        <ShellMailFooterNav
+          uiThemeVersion={uiThemeVersion}
+          onOpenAddons={(highlightSlug) => {
+            window.location.assign(
+              highlightSlug ? `/addons?highlight=${highlightSlug}` : "/addons",
+            );
+          }}
+        />
+      }
       showCareerTab={hasJobHunterAccess()}
       forcedWorkspace="career"
       careerTabHref="/career"
