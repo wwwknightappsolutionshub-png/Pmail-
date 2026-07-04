@@ -49,7 +49,6 @@ import { MailBespokeChrome } from "../components/MailBespokeChrome";
 import { HMailLogo } from "../components/HMailLogo";
 import { PmailLoadingScreen } from "../components/PmailLoadingScreen";
 import { MailBulkActions } from "../components/MailBulkActions";
-import { MailFilterBar } from "../components/MailFilterBar";
 import { MailOrderBar } from "../components/MailOrderBar";
 import { MailListLoadMore } from "../components/MailListLoadMore";
 import { GmailMailSearch, isGmailStyleQuery } from "../components/GmailMailSearch";
@@ -1176,14 +1175,6 @@ export function MailPage({
           />
         </div>
         ) : null}
-
-        <MailFilterBar
-          value={mailFilter}
-          onChange={(value) => {
-            setMailFilter(value);
-            messagePageRef.current = 1;
-          }}
-        />
 
         {!embedded ? (
           <MailOrderBar
