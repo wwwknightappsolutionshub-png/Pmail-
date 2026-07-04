@@ -5,14 +5,16 @@ export type MailFooterNavPane = "menu" | "list" | "read";
 
 export type MailFooterNavState = {
   mobilePane: MailFooterNavPane;
+  starredActive?: boolean;
 };
 
 type MailFooterNavHandlers = {
   openFolders: () => void;
   openMessages: () => void;
+  openStarred: () => void;
 };
 
-type PendingFooterAction = "folders" | "messages" | null;
+type PendingFooterAction = "folders" | "messages" | "starred" | null;
 
 type MailFooterNavBridgeValue = {
   state: MailFooterNavState;
@@ -21,6 +23,7 @@ type MailFooterNavBridgeValue = {
   registerInboxSwitcher: (handle: InboxSwitcherHandle | null) => void;
   openFolders: () => void;
   openMessages: () => void;
+  openStarred: () => void;
   openInboxAddForm: () => void;
 };
 
@@ -40,6 +43,7 @@ export function MailFooterNavBridgeProvider({ children }: { children: ReactNode 
     pendingRef.current = null;
     if (pending === "folders") handlersRef.current.openFolders();
     if (pending === "messages") handlersRef.current.openMessages();
+    if (pending === "starred") handlersRef.current.openStarred();
   }, []);
 
   const registerHandlers = useCallback(
@@ -71,6 +75,14 @@ export function MailFooterNavBridgeProvider({ children }: { children: ReactNode 
     pendingRef.current = "messages";
   }, []);
 
+  const openStarred = useCallback(() => {
+    if (handlersRef.current) {
+      handlersRef.current.openStarred();
+      return;
+    }
+    pendingRef.current = "starred";
+  }, []);
+
   const registerInboxSwitcher = useCallback((handle: InboxSwitcherHandle | null) => {
     inboxSwitcherRef.current = handle;
   }, []);
@@ -81,7 +93,7 @@ export function MailFooterNavBridgeProvider({ children }: { children: ReactNode 
 
   return (
     <MailFooterNavBridgeContext.Provider
-      value={{ state, setState, registerHandlers, registerInboxSwitcher, openFolders, openMessages, openInboxAddForm }}
+      value={{ state, setState, registerHandlers, registerInboxSwitcher, openFolders, openMessages, openStarred, openInboxAddForm }}
     >
       {children}
     </MailFooterNavBridgeContext.Provider>

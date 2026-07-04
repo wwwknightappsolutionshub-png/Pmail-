@@ -86,9 +86,9 @@ function BespokeMailShellContent() {
 
   useMobileTopbarChromeCollapse(setMobileTopbarSearchCollapsed);
 
-  const openAddonsMarketplace = useCallback(() => {
+  const openAddonsMarketplace = useCallback((highlightSlug?: string) => {
     setMobileTopbarSearchCollapsed(false);
-    window.location.assign("/addons");
+    window.location.assign(highlightSlug ? `/addons?highlight=${highlightSlug}` : "/addons");
   }, []);
 
   const mailWorkspaceViews = useMemo(
@@ -383,9 +383,10 @@ function BespokeMailShellContent() {
         }}
         onCareerNavUnlockedChange={setCareerNavUnlocked}
         onEmbeddedShellActivate={() => setRequestedWorkspace("inbox")}
+        onOpenAddons={openAddonsMarketplace}
       />
     ),
-    [searchDraft, appliedSearch, uiThemeVersion, mailFolderRequest],
+    [searchDraft, appliedSearch, uiThemeVersion, mailFolderRequest, openAddonsMarketplace],
   );
 
   const mobileFooterNav = useMemo(

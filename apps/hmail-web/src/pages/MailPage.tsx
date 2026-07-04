@@ -58,6 +58,7 @@ import { isDeferredProductionVirtualView } from "../components/deferredProductio
 import { LazyProductionVirtualView } from "../components/LazyProductionVirtualView";
 import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
 import { SenderGroupedMessageList, senderLabel } from "../components/SenderGroupedMessageList";
+import { MessageTableHead } from "../components/MessageTableHead";
 import { SenderAvatar } from "../components/SenderAvatar";
 import { extractEmailFromHeader } from "../utils/senderAvatar";
 import { MailBottomNavButton } from "../components/MailBottomNavButton";
@@ -66,14 +67,19 @@ import {
   mobileDrawerTooltipHandlers,
   type MobileDrawerTooltipState,
 } from "../components/MobileDrawerTooltip";
-import { Folder, Inbox, SquarePen, X } from "lucide-react";
+import { Folder, Inbox, SquarePen, Star, X } from "lucide-react";
 import { isMobileScreen } from "../utils/pwaPlatform";
+import { useMailListChromeViewport } from "../hooks/useMailListChromeViewport";
 import { useMessageListAtEnd } from "../hooks/useMessageListAtEnd";
+import { useMessageListHeadReveal } from "../hooks/useMessageListHeadReveal";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
 import { toolAddonSlug } from "../constants/addonTools";
 import {
   folderSupportsBulkActions,
+  folderUsesCollapsibleListHead,
+  folderUsesSenderGrouping,
+  senderGroupByForList,
   EMPTY_MAIL_SEARCH,
   isVirtualView,
   virtualViewTitle,
@@ -274,6 +280,8 @@ export type MailPageProps = {
   onCareerNavUnlockedChange?: (unlocked: boolean) => void;
   /** When embedded in the bespoke shell, return to the inbox workspace before footer actions. */
   onEmbeddedShellActivate?: () => void;
+  /** When embedded, use shell navigation (full page) to reach the add-ons marketplace. */
+  onOpenAddons?: (highlightSlug?: string) => void;
 };
 
 export function MailPage({
@@ -288,6 +296,7 @@ export function MailPage({
   onActiveFolderChange,
   onCareerNavUnlockedChange,
   onEmbeddedShellActivate,
+  onOpenAddons: onOpenAddonsExternal,
 }: MailPageProps = {}) {
   const { user, logout } = useAuth();
   const { hasAddon, hasJobHunterAccess, panelWorkspaceTrial } = useAddons();
@@ -366,6 +375,7 @@ export function MailPage({
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
   const [mobileMailViewport, setMobileMailViewport] = useState(() => isMobileScreen());
+  const mailListChromeViewport = useMailListChromeViewport();
   const hasOpenTrackingAddon = hasAddon("open-tracking");
   const { notification: openTrackingNotification, dismissNotification: dismissOpenTrackingNotification } =
     useOpenTrackingNotifications(hasOpenTrackingAddon);
@@ -400,9 +410,14 @@ export function MailPage({
 
   const openAddonMarketplace = useCallback(
     (highlightSlug?: string) => {
+      setMobilePane("list");
+      if (onOpenAddonsExternal) {
+        onOpenAddonsExternal(highlightSlug);
+        return;
+      }
       navigate(highlightSlug ? `/addons?highlight=${highlightSlug}` : "/addons");
     },
-    [navigate],
+    [navigate, onOpenAddonsExternal],
   );
 
   const toggleSidebarCollapsed = useCallback(() => {
@@ -420,7 +435,6 @@ export function MailPage({
   const businessVertical = user?.businessVertical ?? null;
   const hasJobHunterAddon = hasJobHunterAccess();
   const inboxPath = useMemo(() => resolveInboxPath(folders), [folders]);
-  const useSenderGrouping = !isVirtualView(activeFolder) && inboxPath === activeFolder;
 
   const sortedFolders = useMemo(() => sortFolders(folders), [folders]);
   const isVirtual = isVirtualView(activeFolder);
@@ -436,7 +450,15 @@ export function MailPage({
     } as MailFolder);
 
   const activeFolderKind = isVirtual ? null : resolveFolderKind(activeFolderMeta);
+  const useSenderGrouping =
+    !isVirtualView(activeFolder) && folderUsesSenderGrouping(activeFolderKind, mailFilter);
+  const senderGroupBy = senderGroupByForList(activeFolderKind, mailFilter);
+  const listHeadRevealEnabled =
+    mailListChromeViewport && folderUsesCollapsibleListHead(activeFolderKind, mailFilter);
+  const listHeadResetKey = `${activeFolder}:${mailFilter}`;
+  const listHeadRevealed = useMessageListHeadReveal(messageListRef, listHeadRevealEnabled, listHeadResetKey);
   const activeFolderLabel = getFolderTitle(activeFolder, activeFolderMeta);
+  const listPaneTitle = mailFilter === "starred" ? "Starred" : activeFolderLabel;
   const activeMailboxEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
   const listUserDisplayName = user?.displayName?.trim() || activeMailboxEmail.split("@")[0] || "User";
   const showBulkBar = activeFolderKind ? folderSupportsBulkActions(activeFolderKind) : false;
@@ -455,13 +477,21 @@ export function MailPage({
       setSelectedUid(null);
       setSelectedMessage(null);
       setSelectedUids([]);
-      setExpandedSenderEmails(new Set());
-      setMailFilter("all");
       clearMailSearch();
       setMobilePane("list");
     },
     [clearMailSearch],
   );
+
+  const openStarredView = useCallback(() => {
+    if (embedded) onEmbeddedShellActivate?.();
+    messagePageRef.current = 1;
+    setMailFilter("starred");
+    setSelectedUid(null);
+    setSelectedMessage(null);
+    setSelectedUids([]);
+    setMobilePane("list");
+  }, [embedded, onEmbeddedShellActivate]);
 
   useEffect(() => {
     if (requestedFolder === undefined) return;
@@ -843,6 +873,7 @@ export function MailPage({
     setCareerScannerPreload(null);
     setCloseDrawerTooltip(null);
     setMessageError("");
+    setMailFilter("all");
     const targetInbox = inboxPath || "INBOX";
     selectFolder(targetInbox);
     requestAnimationFrame(() => {
@@ -856,16 +887,17 @@ export function MailPage({
     () => ({
       openFolders: openMobileFolders,
       openMessages: openMobileMessages,
+      openStarred: openStarredView,
     }),
-    [openMobileFolders, openMobileMessages],
+    [openMobileFolders, openMobileMessages, openStarredView],
   );
 
   useRegisterMailFooterNav(footerNavHandlers, embedded && Boolean(footerNavBridge));
 
   useEffect(() => {
     if (!embedded || !footerNavBridge) return;
-    footerNavBridge.setState({ mobilePane });
-  }, [embedded, footerNavBridge, mobilePane]);
+    footerNavBridge.setState({ mobilePane, starredActive: mailFilter === "starred" });
+  }, [embedded, footerNavBridge, mobilePane, mailFilter]);
 
   const junkFolder = folders.find((f) => resolveFolderKind(f) === "junk");
   const isTrashFolder = activeFolderKind === "trash";
@@ -1119,7 +1151,11 @@ export function MailPage({
     if (virtualView) return virtualView;
 
     const visibleSuggestions = contactSuggestions.filter((e) => !dismissedSuggestions.includes(e));
-    const listPrimaryColumnLabel = selectedUid ? "Subject" : "Sender";
+    const listPrimaryColumnLabel = selectedUid
+      ? "Subject"
+      : senderGroupBy === "to"
+        ? "Recipient"
+        : "Sender";
 
     return (
       <>
@@ -1142,26 +1178,24 @@ export function MailPage({
         </div>
         ) : null}
 
-        {!embedded ? (
-          <>
-            <MailFilterBar
-              value={mailFilter}
-              onChange={(value) => {
-                setMailFilter(value);
-                messagePageRef.current = 1;
-              }}
-            />
+        <MailFilterBar
+          value={mailFilter}
+          onChange={(value) => {
+            setMailFilter(value);
+            messagePageRef.current = 1;
+          }}
+        />
 
-            <MailOrderBar
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onChange={(nextSortBy, nextSortOrder) => {
-                setSortBy(nextSortBy);
-                setSortOrder(nextSortOrder);
-                messagePageRef.current = 1;
-              }}
-            />
-          </>
+        {!embedded ? (
+          <MailOrderBar
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onChange={(nextSortBy, nextSortOrder) => {
+              setSortBy(nextSortBy);
+              setSortOrder(nextSortOrder);
+              messagePageRef.current = 1;
+            }}
+          />
         ) : null}
 
         {statusMessage ? <div className="pane-status">{statusMessage}</div> : null}
@@ -1218,6 +1252,8 @@ export function MailPage({
             }}
             onDelete={() => void runBulkAction("delete")}
             deleteLabel={isTrashFolder ? "Delete permanently" : "Delete"}
+            showMarkRead={!isTrashFolder}
+            showReportSpam={!isTrashFolder}
             onMove={(targetFolder) => runBulkAction("move", targetFolder)}
             onClearSelection={() => setSelectedUids([])}
           />
@@ -1238,7 +1274,11 @@ export function MailPage({
             </div>
           ) : null}
 
-          <div className="message-list message-list--table" ref={messageListRef}>
+          <div
+            className="message-list message-list--table"
+            ref={messageListRef}
+            data-list-head-revealed={listHeadRevealed ? "true" : "false"}
+          >
           {loadingMessages && messages.length === 0 ? (
             <div className="muted pad">Loading messages…</div>
           ) : messages.length === 0 ? (
@@ -1265,22 +1305,18 @@ export function MailPage({
                   onToggleSelectAll={toggleSelectAll}
                   formatDate={formatDate}
                   primaryColumnLabel={listPrimaryColumnLabel}
+                  groupBy={senderGroupBy}
+                  listHeadRevealed={listHeadRevealed}
                 />
               ) : (
                 <>
-                  <div className="message-table-head">
-                    <span>{showBulkBar ? (
-                      <input
-                        type="checkbox"
-                        checked={messages.length > 0 && selectedUids.length === messages.length}
-                        onChange={toggleSelectAll}
-                        aria-label="Select all messages"
-                      />
-                    ) : null}</span>
-                    <span>{listPrimaryColumnLabel}</span>
-                    <span>Excerpt</span>
-                    <span>Received</span>
-                  </div>
+                  <MessageTableHead
+                    showBulkBar={showBulkBar}
+                    allSelected={messages.length > 0 && selectedUids.length === messages.length}
+                    onToggleSelectAll={toggleSelectAll}
+                    primaryColumnLabel={listPrimaryColumnLabel}
+                    revealed={listHeadRevealed}
+                  />
                   {messages.map((msg) => (
                     <div
                       key={msg.uid}
@@ -1484,9 +1520,11 @@ export function MailPage({
             <FolderNav
               folders={folders}
               activeFolder={activeFolder}
+              mailFilter={mailFilter}
               loading={loadingFolders}
               businessVertical={businessVertical}
               onSelect={selectFolder}
+              onSelectStarred={openStarredView}
               onNewFolder={() => setNewFolderOpen(true)}
               onCompose={() => openCompose({ mode: "new" })}
               hasAddon={hasAddon}
@@ -1527,13 +1565,13 @@ export function MailPage({
                 |
               </span>
               <span className="mail-list-breadcrumb-current">
-                You are: {activeFolderLabel} · {activeMailboxEmail}
+                You are: {listPaneTitle} · {activeMailboxEmail}
               </span>
             </p>
           ) : null}
           <header className={`list-header ${isVirtual ? "list-header--virtual" : ""}`}>
             <div className="list-header-main">
-              <h2>{activeFolderLabel}</h2>
+              <h2>{listPaneTitle}</h2>
             </div>
             {showInboxSwitcher ? (
               <div className="list-header-switcher">
@@ -1691,8 +1729,14 @@ export function MailPage({
         <MailBottomNavButton
           label="Messages"
           icon={Inbox}
-          active={mobilePane === "list"}
+          active={mobilePane === "list" && mailFilter !== "starred"}
           onClick={openMobileMessages}
+        />
+        <MailBottomNavButton
+          label="Starred"
+          icon={Star}
+          active={mailFilter === "starred"}
+          onClick={openStarredView}
         />
         <InboxSwitcher
           ref={inboxSwitcherRef}

@@ -13,7 +13,7 @@ import {
   platformToolsSidebarNav,
   toolAddonSlug,
 } from "../constants/addonTools";
-import { VIEW_DOCUMENTS, VIEW_INDUSTRY_TOOLS } from "../constants/mailViews";
+import { VIEW_DOCUMENTS, VIEW_INDUSTRY_TOOLS, type MailStatusFilter } from "../constants/mailViews";
 import { FolderNavIcon } from "./FolderNavIcons";
 import {
   MobileDrawerTooltip,
@@ -24,6 +24,7 @@ import "./FolderNav.css";
 export type FolderKind =
   | "compose"
   | "inbox"
+  | "starred"
   | "drafts"
   | "sent"
   | "trash"
@@ -98,6 +99,7 @@ export function folderDisplayLabel(folder: MailFolder): string {
   const labels: Record<FolderKind, string> = {
     compose: "New mail",
     inbox: "Inbox",
+    starred: "Starred",
     drafts: "Drafts",
     sent: "Sent",
     trash: "Trash",
@@ -200,9 +202,11 @@ function FolderNavFlyout({ label }: { label: string }) {
 interface FolderNavProps {
   folders: MailFolder[];
   activeFolder: string;
+  mailFilter?: MailStatusFilter;
   loading?: boolean;
   businessVertical?: BusinessVertical | null;
   onSelect: (path: string) => void;
+  onSelectStarred?: () => void;
   onNewFolder: () => void;
   onCompose: () => void;
   onOpenAddons: (highlightSlug?: string) => void;
@@ -273,9 +277,11 @@ function renderSpecialItem(
 export function FolderNav({
   folders,
   activeFolder,
+  mailFilter = "all",
   loading,
   businessVertical,
   onSelect,
+  onSelectStarred,
   onNewFolder,
   onCompose,
   onOpenAddons,
@@ -408,6 +414,29 @@ export function FolderNav({
       <p className="folder-nav-heading">Mailboxes</p>
       <div className="folder-nav-group">
         {primary.map(renderItem)}
+        {onSelectStarred ? (
+          <button
+            type="button"
+            className={`folder-nav-item folder-nav-item--starred ${mailFilter === "starred" ? "is-active" : ""} ${armedDrawerKey === "starred" ? "is-drawer-armed" : ""}`}
+            aria-label="Starred"
+            aria-current={mailFilter === "starred" ? "page" : undefined}
+            {...(iconOnlyRail ? {} : { "data-tooltip": "Starred" })}
+            onClick={(event) => {
+              if (iconOnlyRail) {
+                handleDrawerItemPress("starred", "Starred", event, onSelectStarred);
+                return;
+              }
+              onSelectStarred();
+            }}
+          >
+            <FolderNavFlyout label="Starred" />
+            <span className="folder-nav-item-accent" aria-hidden="true" />
+            <span className="folder-nav-icon folder-nav-icon--starred">
+              <FolderNavIcon kind="starred" />
+            </span>
+            <span className="folder-nav-label">Starred</span>
+          </button>
+        ) : null}
         {renderSpecialItem("documents", "Documents", VIEW_DOCUMENTS, activeFolder, onSelect, drawerItemOptions)}
       </div>
 
@@ -470,11 +499,7 @@ export function FolderNav({
           className={`folder-nav-item folder-nav-item--addons ${armedDrawerKey === "addons" ? "is-drawer-armed" : ""}`}
           aria-label="Add-ons"
           {...(iconOnlyRail ? {} : { "data-tooltip": "Add-ons" })}
-          onClick={(event) => {
-            if (iconOnlyRail) {
-              handleDrawerItemPress("addons", "Add-ons", event, () => onOpenAddons());
-              return;
-            }
+          onClick={() => {
             onOpenAddons();
           }}
         >

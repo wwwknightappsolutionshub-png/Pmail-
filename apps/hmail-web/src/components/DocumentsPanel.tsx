@@ -87,36 +87,32 @@ export function DocumentsPanel({ inboxPath, onOpenMessage, jobHunterEnabled }: P
       {!loading && jobHunterEnabled && careerDocuments.length > 0 ? (
         <section className="documents-career-section">
           <h3>Career CVs</h3>
-          <div className="documents-table-wrap">
-            <table className="documents-table">
-              <thead>
-                <tr>
-                  <th>File</th>
-                  <th>Updated</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {careerDocuments.map((document) => (
-                  <tr key={document.id} className={document.isPinned ? "documents-row-pinned" : undefined}>
-                    <td>
-                      <span className="documents-career-badge">Career CV</span>
-                      {document.filename}
-                    </td>
-                    <td>{new Date(document.updatedAt).toLocaleString()}</td>
-                    <td className="documents-actions">
-                      <button type="button" className="documents-link-btn" onClick={() => void downloadDocument(document)}>
-                        Download
-                      </button>
-                      <button type="button" className="documents-link-btn" onClick={() => void togglePin(document)}>
-                        {document.isPinned ? "Unpin" : "Pin"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="documents-list" role="list">
+            {careerDocuments.map((document) => (
+              <li
+                key={document.id}
+                className={`documents-item${document.isPinned ? " documents-item--pinned" : ""}`}
+              >
+                <div className="documents-item-primary">
+                  <span className="documents-career-badge">Career CV</span>
+                  <span className="documents-item-title">{document.filename}</span>
+                </div>
+                <div className="documents-item-meta">
+                  <time className="documents-item-date" dateTime={document.updatedAt}>
+                    {new Date(document.updatedAt).toLocaleString()}
+                  </time>
+                  <div className="documents-actions">
+                    <button type="button" className="documents-link-btn" onClick={() => void downloadDocument(document)}>
+                      Download
+                    </button>
+                    <button type="button" className="documents-link-btn" onClick={() => void togglePin(document)}>
+                      {document.isPinned ? "Unpin" : "Pin"}
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
 
@@ -127,34 +123,25 @@ export function DocumentsPanel({ inboxPath, onOpenMessage, jobHunterEnabled }: P
       {!loading && messages.length > 0 ? (
         <section className="documents-mail-section">
           <h3>Mail attachments</h3>
-          <div className="documents-table-wrap">
-            <table className="documents-table">
-              <thead>
-                <tr>
-                  <th>Subject</th>
-                  <th>From</th>
-                  <th>Received</th>
-                </tr>
-              </thead>
-              <tbody>
-                {messages.map((message) => (
-                  <tr key={`${message.folder}-${message.uid}`}>
-                    <td>
-                      <button
-                        type="button"
-                        className="documents-link-btn"
-                        onClick={() => onOpenMessage(message.folder, message.uid)}
-                      >
-                        {message.subject || "(No subject)"}
-                      </button>
-                    </td>
-                    <td>{message.from}</td>
-                    <td>{new Date(message.date).toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="documents-list" role="list">
+            {messages.map((message) => (
+              <li key={`${message.folder}-${message.uid}`} className="documents-item documents-item--mail">
+                <button
+                  type="button"
+                  className="documents-item-subject documents-link-btn"
+                  onClick={() => onOpenMessage(message.folder, message.uid)}
+                >
+                  {message.subject || "(No subject)"}
+                </button>
+                <div className="documents-item-meta">
+                  <span className="documents-item-from">{message.from}</span>
+                  <time className="documents-item-date" dateTime={message.date}>
+                    {new Date(message.date).toLocaleString()}
+                  </time>
+                </div>
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
     </div>

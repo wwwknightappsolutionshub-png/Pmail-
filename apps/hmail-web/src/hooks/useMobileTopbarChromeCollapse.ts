@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { isMobileScreen } from "../utils/pwaPlatform";
-
-const SCROLL_SURFACE_SELECTOR =
-  ".message-list, .platform-tools-panel__scroll, .platform-tools-panel__results-scroll, .contacts-panel__scroll, .brand-settings__scroll, .bespoke-demo-messaging-directory__scroll, .bespoke-demo-chat-history, .bespoke-production-settings-stack, .bespoke-demo-production-workspace";
+import {
+  isScrollableSurface,
+  matchesScrollCaptureSelector,
+  PMail_SCROLL_CAPTURE_SELECTOR,
+} from "../utils/mailScrollSurfaces";
 
 export function useMobileTopbarChromeCollapse(onCollapse: (collapsed: boolean) => void) {
   useEffect(() => {
@@ -19,8 +21,8 @@ export function useMobileTopbarChromeCollapse(onCollapse: (collapsed: boolean) =
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
       if (!target.closest(".pmail-demo-shell")) return;
-      if (!target.matches(SCROLL_SURFACE_SELECTOR)) return;
-      if (target.scrollHeight <= target.clientHeight + 1) return;
+      if (!matchesScrollCaptureSelector(target, PMail_SCROLL_CAPTURE_SELECTOR)) return;
+      if (!isScrollableSurface(target)) return;
 
       let state = surfaceState.get(target);
       if (!state) {

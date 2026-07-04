@@ -119,7 +119,26 @@ export function isVirtualView(path: string): boolean {
 }
 
 export function folderSupportsBulkActions(folderKind: string): boolean {
-  return folderKind === "inbox" || folderKind === "sent";
+  return folderKind === "inbox" || folderKind === "sent" || folderKind === "trash";
+}
+
+export type SenderGroupBy = "from" | "to";
+
+export function folderUsesSenderGrouping(folderKind: string | null, mailFilter: MailStatusFilter): boolean {
+  if (mailFilter === "starred") return true;
+  if (!folderKind) return false;
+  return folderKind === "inbox" || folderKind === "sent" || folderKind === "junk";
+}
+
+export function senderGroupByForList(folderKind: string | null, mailFilter: MailStatusFilter): SenderGroupBy {
+  if (folderKind === "sent" && mailFilter !== "starred") return "to";
+  return "from";
+}
+
+export function folderUsesCollapsibleListHead(folderKind: string | null, mailFilter: MailStatusFilter): boolean {
+  if (mailFilter === "starred") return true;
+  if (!folderKind) return false;
+  return folderKind === "inbox" || folderKind === "drafts" || folderKind === "sent" || folderKind === "junk" || folderKind === "trash";
 }
 
 export function folderSupportsFilters(_folderKind: string): boolean {

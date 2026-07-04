@@ -5,6 +5,12 @@ export function extractEmailFromHeader(value: string): string {
   return (match?.[1] ?? value).trim().toLowerCase();
 }
 
+/** First address in a To/Cc header — used to group sent mail by recipient. */
+export function extractPrimaryEmailFromHeader(value: string): string {
+  const firstPart = value.split(",")[0]?.trim() ?? value;
+  return extractEmailFromHeader(firstPart);
+}
+
 export function senderLabel(from: string): string {
   const email = extractEmailFromHeader(from);
   const nameMatch = from.match(/^([^<]+)</);

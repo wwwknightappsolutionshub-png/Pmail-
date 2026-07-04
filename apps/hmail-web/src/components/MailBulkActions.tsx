@@ -18,6 +18,8 @@ interface MailBulkActionsProps {
   deleteLabel?: string;
   onMove: (targetFolder: string) => void;
   onClearSelection: () => void;
+  showMarkRead?: boolean;
+  showReportSpam?: boolean;
 }
 
 interface BulkMoveSelectProps {
@@ -116,6 +118,8 @@ export function MailBulkActions({
   deleteLabel = "Delete",
   onMove,
   onClearSelection,
+  showMarkRead = true,
+  showReportSpam = true,
 }: MailBulkActionsProps) {
   if (selectedCount === 0) return null;
 
@@ -123,8 +127,8 @@ export function MailBulkActions({
     <div className="mail-bulk-actions">
       <span className="mail-bulk-count">{selectedCount} selected</span>
       <div className="mail-bulk-actions__toolbar">
-        <ReadActionButton label="Mark read" icon={MailOpen} onClick={onMarkRead} />
-        <ReadActionButton label="Report spam" icon={ShieldAlert} onClick={onReportSpam} />
+        {showMarkRead ? <ReadActionButton label="Mark read" icon={MailOpen} onClick={onMarkRead} /> : null}
+        {showReportSpam ? <ReadActionButton label="Report spam" icon={ShieldAlert} onClick={onReportSpam} /> : null}
         <ReadActionButton label={deleteLabel} icon={Trash2} variant="danger" onClick={onDelete} />
         <BulkMoveSelect folders={folders} currentFolder={currentFolder} onMove={onMove} />
         <ReadActionButton label="Clear" icon={CircleX} onClick={onClearSelection} />

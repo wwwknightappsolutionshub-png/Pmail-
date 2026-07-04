@@ -1,5 +1,5 @@
 const MOBILE_MAX_WIDTH_PX = 767;
-const TABLET_MAX_WIDTH_PX = 1024;
+export const TABLET_MAX_WIDTH_PX = 1024;
 const PWA_INSTALL_SESSION_BYPASS_KEY = "pmail:pwa-install-session-bypass";
 const PWA_EXIT_REMINDER_SHOWN_KEY = "pmail:pwa-exit-reminder-shown";
 

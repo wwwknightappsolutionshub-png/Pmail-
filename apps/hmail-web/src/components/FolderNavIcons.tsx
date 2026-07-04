@@ -40,6 +40,12 @@ export function FolderNavIcon({ kind }: { kind: FolderKind }) {
           {stroke("M4 7.5 10 11l6-3.5")}
         </Svg>
       );
+    case "starred":
+      return (
+        <Svg>
+          {fill("M10 4.2 11.55 7.35l3.45.5-2.5 2.44.59 3.44L10 11.9l-3.09 1.63.59-3.44-2.5-2.44 3.45-.5L10 4.2Z")}
+        </Svg>
+      );
     case "drafts":
       return (
         <Svg>

@@ -110,25 +110,56 @@
   padding-bottom: 0;
 }
 
-/* Split panels: scroll only the right-hand results column */
-.platform-tools-panel--split .platform-tools-split-secondary {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  min-height: 0;
-  max-height: min(72vh, 900px);
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
-  -webkit-overflow-scrolling: touch;
+/* Split panels: scroll only the right-hand results column (wide screens) */
+@media (min-width: 960px) {
+  .platform-tools-panel--split .platform-tools-split-secondary {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 0;
+    max-height: min(72vh, 900px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .platform-tools-panel--split .platform-tools-split-secondary .platform-tools-results__body > .feature-list,
+  .platform-tools-panel--split .platform-tools-split-secondary .auto-reply-rule-list {
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 0.5rem;
+  }
 }
 
-.platform-tools-panel--split .platform-tools-split-secondary .platform-tools-results__body > .feature-list,
-.platform-tools-panel--split .platform-tools-split-secondary .auto-reply-rule-list {
-  max-height: none;
-  overflow: visible;
-  padding-bottom: 0.5rem;
+@media (max-width: 959px) {
+  .platform-tools-panel--split .platform-tools-split-primary {
+    position: static;
+    align-self: stretch;
+  }
+
+  .platform-tools-panel--split .platform-tools-split-secondary {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+    flex-shrink: 0;
+    padding-bottom: 0;
+  }
+
+  .platform-tools-panel--split .platform-tools-split-secondary .platform-tools-results {
+    flex-shrink: 0;
+  }
+
+  .platform-tools-panel--split .platform-tools-split-secondary .platform-tools-results__body > .feature-list,
+  .platform-tools-panel--split .platform-tools-split-secondary .auto-reply-rule-list {
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 0;
+  }
 }
 
 .platform-tools-panel__footer-spacer {
@@ -402,12 +433,6 @@
 
   .platform-tools-panel--split .platform-tools-split-secondary {
     align-self: stretch;
-  }
-}
-
-@media (max-width: 959px) {
-  .platform-tools-panel--split .platform-tools-split-primary {
-    position: static;
   }
 }
 
@@ -812,8 +837,19 @@
 }
 
 @media (max-width: 720px) {
+  .platform-tools-panel {
+    --pt-scroll-pad-bottom: calc(
+      var(--mail-bottom-nav-h, 2.75rem) + 1.25rem + env(safe-area-inset-bottom, 0px)
+    );
+  }
+
   .platform-tools-panel__scroll {
     padding: 0.9rem 0.85rem var(--pt-scroll-pad-bottom);
+  }
+
+  .platform-tools-panel__footer-spacer {
+    min-height: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
+    height: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
   }
 
   .platform-tools-panel .esign-upload-form,

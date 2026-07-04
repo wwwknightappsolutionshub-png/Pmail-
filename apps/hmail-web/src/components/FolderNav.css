@@ -147,6 +147,11 @@
   color: #ccfbf1;
 }
 
+.folder-nav-icon--starred.is-active,
+.folder-nav-item--starred.is-active .folder-nav-icon {
+  color: #fde68a;
+}
+
 .folder-nav-icon--sent.is-active,
 .folder-nav-item--sent.is-active .folder-nav-icon {
   color: #dbeafe;

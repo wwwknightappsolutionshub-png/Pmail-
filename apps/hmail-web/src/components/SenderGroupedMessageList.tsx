@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 import type { MailMessageSummary } from "../types/mail";
+import type { SenderGroupBy } from "../constants/mailViews";
 import { SenderAvatar } from "./SenderAvatar";
-import { extractEmailFromHeader, senderLabel } from "../utils/senderAvatar";
+import { MessageTableHead } from "./MessageTableHead";
+import { extractEmailFromHeader, extractPrimaryEmailFromHeader, senderLabel } from "../utils/senderAvatar";
 
 export { senderLabel };
 
@@ -17,7 +19,18 @@ type Props = {
   onToggleSelectAll: () => void;
   formatDate: (iso: string) => string;
   primaryColumnLabel?: string;
+  groupBy?: SenderGroupBy;
+  listHeadRevealed?: boolean;
 };
+
+function groupKeyForMessage(message: MailMessageSummary, groupBy: SenderGroupBy): string {
+  const header = groupBy === "to" ? message.to : message.from;
+  return groupBy === "to" ? extractPrimaryEmailFromHeader(header) : extractEmailFromHeader(header);
+}
+
+function displayHeaderForMessage(message: MailMessageSummary, groupBy: SenderGroupBy): string {
+  return groupBy === "to" ? message.to : message.from;
+}
 
 export function SenderGroupedMessageList({
   messages,
@@ -31,41 +44,38 @@ export function SenderGroupedMessageList({
   onToggleSelectAll,
   formatDate,
   primaryColumnLabel = "Sender",
+  groupBy = "from",
+  listHeadRevealed = true,
 }: Props) {
   const groups = useMemo(() => {
     const map = new Map<string, MailMessageSummary[]>();
     for (const message of messages) {
-      const email = extractEmailFromHeader(message.from);
+      const email = groupKeyForMessage(message, groupBy);
       const bucket = map.get(email) ?? [];
       bucket.push(message);
       map.set(email, bucket);
     }
-    return [...map.entries()].map(([email, items]) => ({
-      email,
-      label: senderLabel(items[0]?.from ?? email),
-      from: items[0]?.from ?? email,
-      messages: items,
-      unreadCount: items.filter((item) => !item.seen).length,
-    }));
-  }, [messages]);
+    return [...map.entries()].map(([email, items]) => {
+      const header = displayHeaderForMessage(items[0]!, groupBy);
+      return {
+        email,
+        label: senderLabel(header),
+        from: header,
+        messages: items,
+        unreadCount: items.filter((item) => !item.seen).length,
+      };
+    });
+  }, [groupBy, messages]);
 
   return (
     <>
-      <div className="message-table-head">
-        <span>
-          {showBulkBar ? (
-            <input
-              type="checkbox"
-              checked={messages.length > 0 && selectedUids.length === messages.length}
-              onChange={onToggleSelectAll}
-              aria-label="Select all messages"
-            />
-          ) : null}
-        </span>
-        <span>{primaryColumnLabel}</span>
-        <span>Excerpt</span>
-        <span>Received</span>
-      </div>
+      <MessageTableHead
+        showBulkBar={showBulkBar}
+        allSelected={messages.length > 0 && selectedUids.length === messages.length}
+        onToggleSelectAll={onToggleSelectAll}
+        primaryColumnLabel={primaryColumnLabel}
+        revealed={listHeadRevealed}
+      />
       {groups.map((group) => {
         const expanded = expandedSenderEmails.has(group.email);
         return (
@@ -111,7 +121,11 @@ export function SenderGroupedMessageList({
                       className="message-table-cell message-table-cell--subject message-table-cell--grouped-subject"
                       onClick={() => onSelectMessage(msg.uid)}
                     >
-                      <SenderAvatar from={msg.from} className="message-table-sender-avatar" size="sm" />
+                      <SenderAvatar
+                        from={groupBy === "to" ? msg.to : msg.from}
+                        className="message-table-sender-avatar"
+                        size="sm"
+                      />
                       <span className="message-subject-text">{msg.subject || "(No subject)"}</span>
                       {msg.flagged ? (
                         <span className="message-star" aria-label="Starred">
@@ -124,7 +138,7 @@ export function SenderGroupedMessageList({
                       className="message-table-cell message-table-cell--snippet"
                       onClick={() => onSelectMessage(msg.uid)}
                     >
-                      {msg.snippet || msg.from || "—"}
+                      {msg.snippet || (groupBy === "to" ? msg.to : msg.from) || "—"}
                     </button>
                     <button
                       type="button"
