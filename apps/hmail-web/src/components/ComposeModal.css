@@ -206,6 +206,8 @@
   display: block;
   margin-top: 1.25rem;
   padding-top: 0.75rem;
+  pointer-events: none;
+  user-select: none;
 }
 
 .gmail-compose-portal .gmail-compose__editor .rte-editor [data-pmail-signature="branded"] a {

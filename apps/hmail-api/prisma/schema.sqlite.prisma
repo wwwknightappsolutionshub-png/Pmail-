@@ -2719,6 +2719,8 @@ model PmailPlatformConfig {
   mailPushDefaultForUsers Boolean  @default(true)
   pwaPushAutoSubscribe    Boolean  @default(true)
   inboxAddonUpsellEnabled Boolean  @default(true)
+  defaultSignatureLogoUrl String?
+  defaultSignatureExploreUrl String?
   clientRefreshAt         DateTime @default(now())
   updatedAt               DateTime @updatedAt
 }

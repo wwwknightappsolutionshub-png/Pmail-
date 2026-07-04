@@ -104,6 +104,8 @@ const pmailPlatformConfigSchema = z.object({
   mailPushDefaultForUsers: z.boolean().optional(),
   pwaPushAutoSubscribe: z.boolean().optional(),
   inboxAddonUpsellEnabled: z.boolean().optional(),
+  defaultSignatureLogoUrl: z.string().max(2000).nullable().optional(),
+  defaultSignatureExploreUrl: z.string().max(2000).nullable().optional(),
 });
 
 const pmailPushBroadcastSchema = z.object({

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import "./RichTextEditor.css";
 
 interface RichTextEditorProps {
@@ -42,6 +42,14 @@ export function RichTextEditor({ value, onChange, placeholder, toolbarExtra }: R
   const sync = useCallback(() => {
     if (editorRef.current) onChange(editorRef.current.innerHTML);
   }, [onChange]);
+
+  const handleEditorClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    const link = target.closest("a[data-pmail-explore], [data-pmail-signature='branded'] a");
+    if (!(link instanceof HTMLAnchorElement) || !link.href) return;
+    event.preventDefault();
+    window.open(link.href, "_blank", "noopener,noreferrer");
+  }, []);
 
   const runCommand = (command: Command) => {
     if (!editorRef.current) return;
@@ -89,6 +97,7 @@ export function RichTextEditor({ value, onChange, placeholder, toolbarExtra }: R
         data-placeholder={placeholder}
         onInput={sync}
         onBlur={sync}
+        onClick={handleEditorClick}
         suppressContentEditableWarning
       />
     </div>

@@ -17,6 +17,8 @@ const BRANDED_SIGNATURE_BLOCK_RE =
   /(<div[^>]*data-pmail-signature="branded"[^>]*>[\s\S]*?<\/table>\s*<\/div>)/i;
 
 const PRODUCTION_WEB_ORIGIN_FALLBACK = "https://mail.prohost.cloud";
+const PRODUCTION_EXPLORE_URL = `${PRODUCTION_WEB_ORIGIN_FALLBACK}/welcome/prohost`;
+const DEFAULT_SIGNATURE_LOGO_PATH = "/pmail-signature-logo.png";
 
 function isLocalDevOrigin(origin: string): boolean {
   try {
@@ -43,7 +45,21 @@ export function pickPublicWebOrigin(candidates: string[]): string {
 
 function resolvePmailWebOrigin(): string {
   const env = getEnv();
-  return pickPublicWebOrigin([env.HOSTNET_WEB_URL, ...env.CORS_ORIGIN.split(",")]);
+  const corsOrigins = env.CORS_ORIGIN.split(",").map((value) => value.trim()).filter(Boolean);
+  // PMail web (hmail-web) is listed in CORS_ORIGIN — not the Hostnet marketing site.
+  return pickPublicWebOrigin([...corsOrigins, env.HOSTNET_WEB_URL]);
+}
+
+function absolutizePublicAssetUrl(pathOrUrl: string): string {
+  const trimmed = pathOrUrl.trim();
+  if (!trimmed) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("/api/")) {
+    const env = getEnv();
+    const apiBase = (env.PUBLIC_API_URL ?? "").replace(/\/$/, "");
+    if (apiBase) return `${apiBase}${trimmed}`;
+  }
+  return `${resolvePmailWebOrigin()}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`;
 }
 
 function escapeHtml(value: string): string {
@@ -77,14 +93,23 @@ export function resolveActiveSignatureBody(settings: {
 }
 
 export function resolveDefaultBrandedSignatureExploreUrl(): string {
-  return `${resolvePmailWebOrigin()}/welcome/prohost/`;
+  const env = getEnv();
+  if (env.NODE_ENV === "production") {
+    return PRODUCTION_EXPLORE_URL;
+  }
+  return `${resolvePmailWebOrigin()}/welcome/prohost`;
 }
 
 export function resolveDefaultBrandedSignatureLogoUrl(): string {
-  return `${resolvePmailWebOrigin()}/pmail-app-icon.png`;
+  return absolutizePublicAssetUrl(DEFAULT_SIGNATURE_LOGO_PATH);
 }
 
 export async function resolveBrandedLogoUrl(_tenantId: string): Promise<string> {
+  const { getPmailPlatformConfig } = await import("./pmail-platform-config.service.js");
+  const config = await getPmailPlatformConfig();
+  if (config.defaultSignatureLogoUrl?.trim()) {
+    return absolutizePublicAssetUrl(config.defaultSignatureLogoUrl.trim());
+  }
   return resolveDefaultBrandedSignatureLogoUrl();
 }
 
@@ -104,7 +129,10 @@ export function buildDefaultBrandedSignatureText(exploreUrl: string): string {
 }
 
 export async function getDefaultBrandedSignatureForTenant(tenantId: string) {
-  const exploreUrl = resolveDefaultBrandedSignatureExploreUrl();
+  const { getPmailPlatformConfig } = await import("./pmail-platform-config.service.js");
+  const platform = await getPmailPlatformConfig();
+  const exploreUrl =
+    platform.defaultSignatureExploreUrl?.trim() || resolveDefaultBrandedSignatureExploreUrl();
   const logoUrl = await resolveBrandedLogoUrl(tenantId);
   return {
     html: buildDefaultBrandedSignatureHtml({ logoUrl, exploreUrl }),
@@ -132,21 +160,39 @@ function resolveSignatureLogoPaths(): string[] {
   ];
 }
 
-async function loadSignatureLogoBuffer(): Promise<Buffer> {
-  if (cachedSignatureLogo) return cachedSignatureLogo;
+function isDefaultBundledLogoUrl(logoUrl?: string): boolean {
+  if (!logoUrl) return true;
+  const lower = logoUrl.toLowerCase();
+  return (
+    lower.includes("/pmail-signature-logo") ||
+    lower.includes("/pmail-app-icon") ||
+    lower.includes("/pwa-192")
+  );
+}
+
+async function loadSignatureLogoBuffer(logoUrl?: string): Promise<Buffer> {
+  if (cachedSignatureLogo && !logoUrl) return cachedSignatureLogo;
+
+  if (logoUrl && /^https?:\/\//i.test(logoUrl) && !isDefaultBundledLogoUrl(logoUrl)) {
+    const response = await fetch(logoUrl);
+    if (response.ok) {
+      return Buffer.from(await response.arrayBuffer());
+    }
+  }
 
   for (const logoPath of resolveSignatureLogoPaths()) {
     if (!existsSync(logoPath)) continue;
-    cachedSignatureLogo = await readFile(logoPath);
-    return cachedSignatureLogo;
+    const buffer = await readFile(logoPath);
+    if (!logoUrl) cachedSignatureLogo = buffer;
+    return buffer;
   }
 
   throw new Error("PMail signature logo asset not found");
 }
 
 function refreshBrandedSignatureUrls(html: string): string {
-  const exploreUrl = escapeHtml(resolveDefaultBrandedSignatureExploreUrl());
-  const logoUrl = escapeHtml(resolveDefaultBrandedSignatureLogoUrl());
+  const exploreUrl = escapeHtml(PRODUCTION_EXPLORE_URL);
+  const logoUrl = escapeHtml(absolutizePublicAssetUrl(DEFAULT_SIGNATURE_LOGO_PATH));
 
   let updated = html.replace(
     /href\s*=\s*["']https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?\/welcome\/prohost\/?["']/gi,
@@ -209,7 +255,11 @@ export async function embedBrandedSignatureLogoInline(html: string): Promise<{
 
   let logoBuffer: Buffer;
   try {
-    logoBuffer = await loadSignatureLogoBuffer();
+    const logoMatch = html.match(
+      /(<div[^>]*data-pmail-signature="branded"[\s\S]*?<img[^>]*\ssrc=")([^"]*)(")/i,
+    );
+    const logoSrc = logoMatch?.[2];
+    logoBuffer = await loadSignatureLogoBuffer(logoSrc?.startsWith("http") ? logoSrc : undefined);
   } catch {
     return { html, inlineAttachment: null };
   }

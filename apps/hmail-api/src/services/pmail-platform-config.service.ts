@@ -6,6 +6,8 @@ export type PmailPlatformConfigPayload = {
   mailPushDefaultForUsers: boolean;
   pwaPushAutoSubscribe: boolean;
   inboxAddonUpsellEnabled: boolean;
+  defaultSignatureLogoUrl: string | null;
+  defaultSignatureExploreUrl: string | null;
   vapidConfigured: boolean;
   clientRefreshAt: string;
   updatedAt: string;
@@ -23,6 +25,8 @@ function serialize(row: {
   mailPushDefaultForUsers: boolean;
   pwaPushAutoSubscribe: boolean;
   inboxAddonUpsellEnabled: boolean;
+  defaultSignatureLogoUrl: string | null;
+  defaultSignatureExploreUrl: string | null;
   clientRefreshAt: Date;
   updatedAt: Date;
 }): PmailPlatformConfigPayload {
@@ -31,6 +35,8 @@ function serialize(row: {
     mailPushDefaultForUsers: row.mailPushDefaultForUsers,
     pwaPushAutoSubscribe: row.pwaPushAutoSubscribe,
     inboxAddonUpsellEnabled: row.inboxAddonUpsellEnabled,
+    defaultSignatureLogoUrl: row.defaultSignatureLogoUrl,
+    defaultSignatureExploreUrl: row.defaultSignatureExploreUrl,
     vapidConfigured: Boolean(getVapidPublicKey()),
     clientRefreshAt: row.clientRefreshAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -74,6 +80,8 @@ export async function updatePmailPlatformConfig(input: {
   mailPushDefaultForUsers?: boolean;
   pwaPushAutoSubscribe?: boolean;
   inboxAddonUpsellEnabled?: boolean;
+  defaultSignatureLogoUrl?: string | null;
+  defaultSignatureExploreUrl?: string | null;
 }): Promise<PmailPlatformConfigPayload> {
   const row = await prisma.pmailPlatformConfig.upsert({
     where: { id: "default" },
@@ -83,6 +91,8 @@ export async function updatePmailPlatformConfig(input: {
       mailPushDefaultForUsers: input.mailPushDefaultForUsers ?? DEFAULTS.mailPushDefaultForUsers,
       pwaPushAutoSubscribe: input.pwaPushAutoSubscribe ?? DEFAULTS.pwaPushAutoSubscribe,
       inboxAddonUpsellEnabled: input.inboxAddonUpsellEnabled ?? DEFAULTS.inboxAddonUpsellEnabled,
+      defaultSignatureLogoUrl: input.defaultSignatureLogoUrl ?? null,
+      defaultSignatureExploreUrl: input.defaultSignatureExploreUrl ?? null,
     },
     update: {
       ...(input.mailPushEnabled !== undefined ? { mailPushEnabled: input.mailPushEnabled } : {}),
@@ -92,6 +102,12 @@ export async function updatePmailPlatformConfig(input: {
       ...(input.pwaPushAutoSubscribe !== undefined ? { pwaPushAutoSubscribe: input.pwaPushAutoSubscribe } : {}),
       ...(input.inboxAddonUpsellEnabled !== undefined
         ? { inboxAddonUpsellEnabled: input.inboxAddonUpsellEnabled }
+        : {}),
+      ...(input.defaultSignatureLogoUrl !== undefined
+        ? { defaultSignatureLogoUrl: input.defaultSignatureLogoUrl?.trim() || null }
+        : {}),
+      ...(input.defaultSignatureExploreUrl !== undefined
+        ? { defaultSignatureExploreUrl: input.defaultSignatureExploreUrl?.trim() || null }
         : {}),
     },
   });

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api/client";
+import { AdminImageUpload } from "../../components/admin/AdminImageUpload";
 import type { AdminPollSnapshot, AdminSystemStatus, PmailPlatformConfig } from "../../types/site";
 import "./AdminDashboard.css";
 
@@ -56,7 +57,12 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
     patch: Partial<
       Pick<
         PmailPlatformConfig,
-        "mailPushEnabled" | "mailPushDefaultForUsers" | "pwaPushAutoSubscribe" | "inboxAddonUpsellEnabled"
+        | "mailPushEnabled"
+        | "mailPushDefaultForUsers"
+        | "pwaPushAutoSubscribe"
+        | "inboxAddonUpsellEnabled"
+        | "defaultSignatureLogoUrl"
+        | "defaultSignatureExploreUrl"
       >
     >,
   ) {
@@ -264,6 +270,44 @@ export function AdminSystemStatusPanel({ poll, isSuperAdmin = false }: Props) {
           </div>
         ) : null}
       </section>
+
+      {isSuperAdmin && pushConfig ? (
+        <section className="card">
+          <h3>Default PMail+ compose signature</h3>
+          <p className="muted">
+            Shown at the bottom of new messages when a user has no custom signature. Leave blank to use the bundled
+            PMail+ logo and production welcome link.
+          </p>
+          <div className="admin-status-push-controls">
+            <AdminImageUpload
+              label="Signature logo"
+              hint="Upload the PMail+ icon shown beside the default branded footer in compose."
+              value={pushConfig.defaultSignatureLogoUrl ?? ""}
+              onChange={(url) => void updatePushConfig({ defaultSignatureLogoUrl: url || null })}
+              onError={setPushError}
+            />
+            <label>
+              Explore Now link
+              <input
+                type="url"
+                value={pushConfig.defaultSignatureExploreUrl ?? ""}
+                placeholder="https://mail.prohost.cloud/welcome/prohost"
+                disabled={pushSaving}
+                onChange={(e) =>
+                  setPushConfig((current) =>
+                    current ? { ...current, defaultSignatureExploreUrl: e.target.value || null } : current,
+                  )
+                }
+                onBlur={() =>
+                  void updatePushConfig({
+                    defaultSignatureExploreUrl: pushConfig.defaultSignatureExploreUrl?.trim() || null,
+                  })
+                }
+              />
+            </label>
+          </div>
+        </section>
+      ) : null}
 
       {isSuperAdmin ? (
         <section className="card">

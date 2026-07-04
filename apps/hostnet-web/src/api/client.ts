@@ -189,6 +189,8 @@ export const api = {
     mailPushDefaultForUsers?: boolean;
     pwaPushAutoSubscribe?: boolean;
     inboxAddonUpsellEnabled?: boolean;
+    defaultSignatureLogoUrl?: string | null;
+    defaultSignatureExploreUrl?: string | null;
   }) =>
     request<{ config: PmailPlatformConfig }>("/api/admin/pmail-platform-config", {
       method: "PATCH",

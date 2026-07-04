@@ -468,6 +468,8 @@ export type PmailPlatformConfig = {
   mailPushDefaultForUsers: boolean;
   pwaPushAutoSubscribe: boolean;
   inboxAddonUpsellEnabled: boolean;
+  defaultSignatureLogoUrl: string | null;
+  defaultSignatureExploreUrl: string | null;
   vapidConfigured: boolean;
   clientRefreshAt: string;
   updatedAt: string;
