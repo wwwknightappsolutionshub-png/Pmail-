@@ -1,5 +1,5 @@
-import { getEnv } from "../config/env.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
+import { resolveDefaultBrandedSignatureExploreUrl } from "./default-signature.service.js";
 import { renderEmailTemplate } from "./email-template.service.js";
 import { listFolders, listMessages, type MailCredentials } from "./imap.service.js";
 import {
@@ -22,14 +22,6 @@ export type ReferralComposeResult = {
   inboxCount: number;
   sentCount: number;
 };
-
-function resolveAppOrigin(): string {
-  const origins = getEnv()
-    .CORS_ORIGIN.split(",")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-  return origins.find((entry) => entry.includes("5174")) ?? origins[0] ?? "http://localhost:5174";
-}
 
 function parseEmailAddress(value: string): string | null {
   const trimmed = value.trim();
@@ -230,7 +222,7 @@ export async function buildReferralCompose(input: {
   displayName: string | null;
   credentials?: MailCredentials | null;
 }): Promise<ReferralComposeResult> {
-  const referralUrl = `${resolveAppOrigin()}/welcome?ref=${encodeURIComponent(input.email)}`;
+  const referralUrl = resolveDefaultBrandedSignatureExploreUrl();
   const senderName = input.displayName?.trim() || input.email.split("@")[0] || "A PMail+ user";
 
   const signatureFooter = await resolveSignatureFooter(input.userId, input.displayName, input.email);

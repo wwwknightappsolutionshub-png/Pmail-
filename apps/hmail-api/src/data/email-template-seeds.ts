@@ -479,6 +479,7 @@ Upgrade here: {{ctaUrl}}`,
       "fullName",
       "productName",
       "ctaUrl",
+      "exploreUrl",
       "loginUrl",
       "workspaceAddonsList",
       "verticalAddonsList",
@@ -498,6 +499,7 @@ Business vertical add-ons (industry toolkits):
 {{verticalAddonsList}}
 
 Sign in anytime: {{loginUrl}}
+Explore PMail+: {{exploreUrl}}
 Explore add-ons: {{ctaUrl}}`,
     htmlBody: WRAPPER(`
 <p>Hi <strong>{{fullName}}</strong>,</p>
@@ -507,7 +509,7 @@ Explore add-ons: {{ctaUrl}}`,
 {{workspaceAddonsHtml}}
 <p><strong>Business vertical add-ons</strong></p>
 {{verticalAddonsHtml}}
-<p><a class="btn" href="{{loginUrl}}">Open PMail+</a></p>
+<p><a class="btn" href="{{exploreUrl}}">Open PMail+</a></p>
 <p><a href="{{ctaUrl}}">Browse the add-on marketplace</a></p>
 <p class="muted">You received this email because you signed in or connected a mailbox to PMail+.</p>`),
   },

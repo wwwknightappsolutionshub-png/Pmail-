@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma.js";
 
 import { getEnv } from "../config/env.js";
 import { getPrimaryWebOrigin } from "../lib/web-origin.js";
+import { resolveDefaultBrandedSignatureExploreUrl } from "./default-signature.service.js";
 import { renderEmailTemplate } from "./email-template.service.js";
 
 export type AddonEmailType = "welcome" | "day3" | "day6" | "expired";
@@ -467,12 +468,14 @@ export async function sendPmailAccountWelcomeEmail(input: {
   const env = getEnv();
   const marketplaceUrl = resolveMarketplaceUrl();
   const loginUrl = `${getPrimaryWebOrigin()}/login`;
+  const exploreUrl = resolveDefaultBrandedSignatureExploreUrl();
 
   let content: { subject: string; text: string; html: string };
   try {
     const rendered = await renderEmailTemplate("pmail-account-welcome", {
       fullName: input.fullName,
       ctaUrl: marketplaceUrl,
+      exploreUrl,
       loginUrl,
       productName: "PMail+",
       workspaceAddonsList: input.workspaceAddonsList,
