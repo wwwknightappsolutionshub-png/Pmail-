@@ -5,6 +5,8 @@
   background: #fff;
 }
 
+@import "../styles/mailContentOverflow.css";
+
 .rte-toolbar {
   display: flex;
   flex-wrap: wrap;

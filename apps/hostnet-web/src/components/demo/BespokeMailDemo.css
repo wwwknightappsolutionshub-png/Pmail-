@@ -3148,6 +3148,15 @@ body.pmail-search-overlay-open {
   color: var(--text);
   font-size: 0.86rem;
   font-weight: 600;
+  min-width: 0;
+}
+
+.gmail-compose__titlebar > span:first-child {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .gmail-compose__titlebar--draggable {
@@ -3180,7 +3189,9 @@ body.pmail-search-overlay-open {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
   flex: 1;
+  overflow: hidden;
 }
 
 .gmail-compose__row {

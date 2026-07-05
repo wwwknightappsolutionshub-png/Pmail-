@@ -1,0 +1,68 @@
+/* Keep HTML mail bodies and rich-text editors within the viewport on all screen sizes. */
+.read-body,
+.rte-editor {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.read-body > *,
+.rte-editor > * {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.read-body table,
+.rte-editor table {
+  max-width: 100%;
+  width: auto !important;
+  table-layout: fixed;
+  word-break: break-word;
+}
+
+.read-body td,
+.read-body th,
+.rte-editor td,
+.rte-editor th {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.read-body img,
+.rte-editor img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.read-body pre,
+.read-body code,
+.rte-editor pre,
+.rte-editor code {
+  white-space: pre-wrap !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.read-body blockquote,
+.rte-editor blockquote {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.read-body div,
+.read-body p,
+.read-body span,
+.read-body li,
+.rte-editor div,
+.rte-editor p,
+.rte-editor span,
+.rte-editor li {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
