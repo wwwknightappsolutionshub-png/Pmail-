@@ -19,17 +19,18 @@ export type AddonEducationCampaignType = "panel" | "vertical";
 
 const HREF_ATTR_RE = /(<a\b[^>]*\shref\s*=\s*)(["'])(.*?)\2/gi;
 
+import { getPrimaryWebOrigin } from "../lib/web-origin.js";
+
 function resolveMarketplaceUrl(): string {
-  return `${process.env.CORS_ORIGIN?.split(",")[0]?.trim() ?? "http://localhost:5173"}/addons`;
+  return `${getPrimaryWebOrigin()}/addons`;
 }
 
 function resolveApiPublicBase(): string {
-  return process.env.API_PUBLIC_URL?.trim() || process.env.CORS_ORIGIN?.split(",")[0]?.trim() || "http://localhost:4000";
+  return process.env.API_PUBLIC_URL?.trim() || getPrimaryWebOrigin() || "http://localhost:4000";
 }
 
 function resolveOptOutUrl(): string {
-  const base = process.env.CORS_ORIGIN?.split(",")[0]?.trim() ?? "http://localhost:5173";
-  return `${base}/addons?education-opt-out=1`;
+  return `${getPrimaryWebOrigin()}/addons?education-opt-out=1`;
 }
 
 function hoursFromNow(hours: number): Date {

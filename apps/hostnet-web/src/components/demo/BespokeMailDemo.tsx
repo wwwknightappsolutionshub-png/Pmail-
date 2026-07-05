@@ -2464,19 +2464,28 @@ export function BespokeMailDemo({
           Brand Settings
         </button>
         {showCareerTab ? (
-          careerTabHref || onCareerTabClick ? (
-            <Link
-              to={careerTabHref ?? "/career"}
+          onCareerTabClick ? (
+            <button
+              type="button"
               data-workspace-tab="career"
               className={`bespoke-demo-workspace-tab${
                 activeWorkspace === "career" || highlightedWorkspace === "career"
                   ? " bespoke-demo-workspace-tab--active"
                   : ""
               }`}
-              onClick={(event) => {
-                event.stopPropagation();
-                handleCareerTabActivate();
-              }}
+              onClick={() => handleCareerTabActivate()}
+            >
+              Career
+            </button>
+          ) : careerTabHref ? (
+            <Link
+              to={careerTabHref}
+              data-workspace-tab="career"
+              className={`bespoke-demo-workspace-tab${
+                activeWorkspace === "career" || highlightedWorkspace === "career"
+                  ? " bespoke-demo-workspace-tab--active"
+                  : ""
+              }`}
             >
               Career
             </Link>

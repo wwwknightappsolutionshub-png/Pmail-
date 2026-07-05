@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -7,7 +7,8 @@ import { useRegisterBespokeCompose } from "../context/BespokeComposeBridge";
 import { useOptionalMailFooterNavBridge, useRegisterMailFooterNav } from "../context/MailFooterNavBridge";
 import { useAddons } from "../context/AddonContext";
 import { AddonUpsellPanel } from "../components/AddonUpsellPanel";
-import { ComposeModal, type ComposeInitial } from "../components/ComposeModal";
+import type { ComposeInitial } from "../components/ComposeModal";
+import { sanitizeMailHtml } from "../lib/sanitizeHtml";
 import { UndoSendToast, type PendingUndoSend } from "../components/UndoSendToast";
 import { SentMessageToast } from "../components/SentMessageToast";
 import { OpenTrackingOpenToast } from "../components/OpenTrackingOpenToast";
@@ -282,6 +283,10 @@ export type MailPageProps = {
   /** When embedded, use shell navigation (full page) to reach the add-ons marketplace. */
   onOpenAddons?: (highlightSlug?: string) => void;
 };
+
+const ComposeModal = lazy(() =>
+  import("../components/ComposeModal").then((module) => ({ default: module.ComposeModal })),
+);
 
 export function MailPage({
   embedded = false,
@@ -1435,7 +1440,7 @@ export function MailPage({
             setSelectedUid(null);
             setMobilePane("list");
           }}
-          onOpenCareer={() => navigate("/career")}
+          onOpenCareer={() => window.location.assign("/career")}
           onOpenAddons={(highlightSlug) =>
             navigate(highlightSlug ? `/addons?highlight=${highlightSlug}` : "/addons")
           }
@@ -1694,7 +1699,7 @@ export function MailPage({
 
               <article className="read-body">
                 {selectedMessage.html ? (
-                  <div dangerouslySetInnerHTML={{ __html: selectedMessage.html }} />
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeMailHtml(selectedMessage.html) }} />
                 ) : (
                   <pre>{selectedMessage.text}</pre>
                 )}
@@ -1742,25 +1747,29 @@ export function MailPage({
       </nav>
       ) : null}
 
-      <ComposeModal
-        open={composeOpen}
-        onClose={() => {
-          setComposeOpen(false);
-          setComposeInitial(undefined);
-        }}
-        onSent={async (result) => {
-          if (result?.pendingUndo) {
-            setPendingUndoSend(result.pendingUndo);
-            return;
-          }
-          setShowSentMessageToast(true);
-          await refreshInboxAfterSend();
-        }}
-        initial={composeInitial}
-        jobHunterEnabled={hasJobHunterAddon}
-        themeVersion={activeThemeVersion}
-        onCvAttachmentAdded={handleCvAttachmentAdded}
-      />
+      {composeOpen ? (
+        <Suspense fallback={null}>
+          <ComposeModal
+            open={composeOpen}
+            onClose={() => {
+              setComposeOpen(false);
+              setComposeInitial(undefined);
+            }}
+            onSent={async (result) => {
+              if (result?.pendingUndo) {
+                setPendingUndoSend(result.pendingUndo);
+                return;
+              }
+              setShowSentMessageToast(true);
+              await refreshInboxAfterSend();
+            }}
+            initial={composeInitial}
+            jobHunterEnabled={hasJobHunterAddon}
+            themeVersion={activeThemeVersion}
+            onCvAttachmentAdded={handleCvAttachmentAdded}
+          />
+        </Suspense>
+      ) : null}
 
       {cvScannerToastFile ? (
         <CvScannerToast

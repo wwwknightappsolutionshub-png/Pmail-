@@ -166,33 +166,6 @@
   background: #fff;
 }
 
-.mail-filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  padding: 0.55rem 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  background: #fff;
-}
-
-.mail-filter-chip {
-  border: 1px solid #dbe3ec;
-  border-radius: 999px;
-  padding: 0.35rem 0.75rem;
-  background: #f8fafc;
-  color: #475569;
-  font-family: "Exo", sans-serif;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.mail-filter-chip.is-active {
-  background: var(--brand-primary, #0d4f6c);
-  border-color: var(--brand-primary, #0d4f6c);
-  color: #fff;
-}
-
 .mail-bulk-actions {
   display: flex;
   flex-wrap: nowrap;

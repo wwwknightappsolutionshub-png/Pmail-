@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, type MouseEvent, type ReactNode } from "react";
+import { sanitizeComposeLinkUrl, sanitizeMailHtml } from "../lib/sanitizeHtml";
 import "./RichTextEditor.css";
 
 interface RichTextEditorProps {
@@ -34,13 +35,14 @@ export function RichTextEditor({ value, onChange, placeholder, toolbarExtra }: R
 
   useEffect(() => {
     if (!editorRef.current) return;
-    if (editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value;
+    const sanitized = sanitizeMailHtml(value);
+    if (editorRef.current.innerHTML !== sanitized) {
+      editorRef.current.innerHTML = sanitized;
     }
   }, [value]);
 
   const sync = useCallback(() => {
-    if (editorRef.current) onChange(editorRef.current.innerHTML);
+    if (editorRef.current) onChange(sanitizeMailHtml(editorRef.current.innerHTML));
   }, [onChange]);
 
   const handleEditorClick = useCallback((event: MouseEvent<HTMLDivElement>) => {
@@ -57,7 +59,8 @@ export function RichTextEditor({ value, onChange, placeholder, toolbarExtra }: R
 
     if (command === "createLink") {
       const url = window.prompt("Enter link URL");
-      if (url) document.execCommand("createLink", false, url);
+      const safeUrl = url ? sanitizeComposeLinkUrl(url) : null;
+      if (safeUrl) document.execCommand("createLink", false, safeUrl);
     } else {
       document.execCommand(command, false);
     }

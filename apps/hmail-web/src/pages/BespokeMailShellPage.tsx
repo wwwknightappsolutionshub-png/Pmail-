@@ -91,6 +91,11 @@ function BespokeMailShellContent() {
     window.location.assign(highlightSlug ? `/addons?highlight=${highlightSlug}` : "/addons");
   }, []);
 
+  const openCareerWorkspace = useCallback(() => {
+    setMobileTopbarSearchCollapsed(false);
+    window.location.assign("/career");
+  }, []);
+
   const mailWorkspaceViews = useMemo(
     () => ({
       contacts: VIEW_CONTACTS,
@@ -440,7 +445,7 @@ function BespokeMailShellContent() {
         onOpenAddons={openAddonsMarketplace}
         showCareerTab={careerNavUnlocked}
         careerTabHref="/career"
-        onCareerTabClick={() => navigate("/career")}
+        onCareerTabClick={openCareerWorkspace}
         requestedWorkspace={requestedWorkspace}
         onRequestedWorkspaceHandled={() => setRequestedWorkspace(null)}
       />

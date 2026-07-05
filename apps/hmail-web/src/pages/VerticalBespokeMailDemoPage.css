@@ -3469,7 +3469,6 @@ html:has(.pmail-demo-shell--light) body {
   color: var(--text);
 }
 
-.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-filter-chip,
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-toolbar-btn,
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-page-btn,
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-order-select,
@@ -3485,7 +3484,6 @@ html:has(.pmail-demo-shell--light) body {
   color: var(--accent-dark);
 }
 
-.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-filter-chip.is-active,
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-toolbar-btn--active,
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-page-btn.is-active {
   border-color: var(--accent-border);
@@ -3613,7 +3611,6 @@ html:has(.pmail-demo-shell--light) body {
 
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-pagination,
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-order-bar,
-.pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-filter-bar,
 .pmail-demo-shell--light .mail-app--embedded-in-bespoke.mail-app--light .mail-bulk-actions {
   background: var(--surface-inset);
   border-color: var(--border-subtle);

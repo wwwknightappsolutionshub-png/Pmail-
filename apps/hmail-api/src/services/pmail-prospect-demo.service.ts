@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { getEnv } from "../config/env.js";
+import { getPrimaryWebOrigin } from "../lib/web-origin.js";
 import { hashPassword, verifyPassword } from "../lib/crypto.js";
 import { prisma } from "../lib/prisma.js";
 import { slugifyOrgName, ensureUniqueTenantSlug } from "./provisioning.service.js";
@@ -27,8 +27,7 @@ function generateDemoPassword(): string {
 }
 
 function getPmailWebBaseUrl(): string {
-  const env = getEnv();
-  return env.CORS_ORIGIN.split(",")[0]?.trim() || "http://localhost:5173";
+  return getPrimaryWebOrigin();
 }
 
 function prospectDemoExpiresAt(from = new Date()): Date {

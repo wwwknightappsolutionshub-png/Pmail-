@@ -23,68 +23,45 @@ export async function processBillingLifecycle(): Promise<{
   const now = new Date();
   const graceMs = graceDays() * 24 * 60 * 60 * 1000;
 
-  const expiredHosting = await prisma.hostingPlanSubscription.findMany({
-    where: {
-      status: "active",
-      currentPeriodEnd: { lt: now },
-    },
-  });
-
   let markedPastDue = 0;
-  for (const sub of expiredHosting) {
-    await prisma.hostingPlanSubscription.update({
-      where: { id: sub.id },
-      data: { status: "past_due", pastDueSince: now },
-    });
-    markedPastDue += 1;
-  }
+  let canceled = 0;
 
-  const expiredAddons = await prisma.tenantAddonSubscription.findMany({
+  const expiredHosting = await prisma.hostingPlanSubscription.updateMany({
     where: {
       status: "active",
       currentPeriodEnd: { lt: now },
     },
+    data: { status: "past_due", pastDueSince: now },
   });
+  markedPastDue += expiredHosting.count;
 
-  for (const sub of expiredAddons) {
-    await prisma.tenantAddonSubscription.update({
-      where: { id: sub.id },
-      data: { status: "past_due", pastDueSince: now },
-    });
-    markedPastDue += 1;
-  }
+  const expiredAddons = await prisma.tenantAddonSubscription.updateMany({
+    where: {
+      status: "active",
+      currentPeriodEnd: { lt: now },
+    },
+    data: { status: "past_due", pastDueSince: now },
+  });
+  markedPastDue += expiredAddons.count;
 
   const graceCutoff = new Date(now.getTime() - graceMs);
-  const overdueHosting = await prisma.hostingPlanSubscription.findMany({
+  const overdueHosting = await prisma.hostingPlanSubscription.updateMany({
     where: {
       status: "past_due",
       pastDueSince: { lt: graceCutoff },
     },
+    data: { status: "canceled", canceledAt: now },
   });
+  canceled += overdueHosting.count;
 
-  let canceled = 0;
-  for (const sub of overdueHosting) {
-    await prisma.hostingPlanSubscription.update({
-      where: { id: sub.id },
-      data: { status: "canceled", canceledAt: now },
-    });
-    canceled += 1;
-  }
-
-  const overdueAddons = await prisma.tenantAddonSubscription.findMany({
+  const overdueAddons = await prisma.tenantAddonSubscription.updateMany({
     where: {
       status: "past_due",
       pastDueSince: { lt: graceCutoff },
     },
+    data: { status: "canceled", canceledAt: now },
   });
-
-  for (const sub of overdueAddons) {
-    await prisma.tenantAddonSubscription.update({
-      where: { id: sub.id },
-      data: { status: "canceled", canceledAt: now },
-    });
-    canceled += 1;
-  }
+  canceled += overdueAddons.count;
 
   return { markedPastDue, canceled };
 }

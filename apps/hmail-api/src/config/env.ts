@@ -110,6 +110,26 @@ const envSchema = z.object({
   MICROSOFT_GRAPH_ACCESS_TOKEN: z.string().optional(),
 });
 
+envSchema.superRefine((data, ctx) => {
+  if (data.NODE_ENV !== "production") return;
+
+  if (!data.COOKIE_SECURE) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "COOKIE_SECURE must be true in production",
+      path: ["COOKIE_SECURE"],
+    });
+  }
+
+  if (data.PMAIL_TESTER_BYPASS_AUTH) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "PMAIL_TESTER_BYPASS_AUTH must be false in production",
+      path: ["PMAIL_TESTER_BYPASS_AUTH"],
+    });
+  }
+});
+
 export type Env = z.infer<typeof envSchema>;
 
 let cached: Env | null = null;

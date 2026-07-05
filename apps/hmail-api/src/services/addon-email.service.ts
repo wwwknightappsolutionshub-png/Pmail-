@@ -3,40 +3,23 @@ import nodemailer from "nodemailer";
 import { prisma } from "../lib/prisma.js";
 
 import { getEnv } from "../config/env.js";
-
+import { getPrimaryWebOrigin } from "../lib/web-origin.js";
 import { renderEmailTemplate } from "./email-template.service.js";
-
-
 
 export type AddonEmailType = "welcome" | "day3" | "day6" | "expired";
 
-
-
 interface SendAddonEmailInput {
-
   tenantId: string;
-
   addonId: string;
-
   addonName: string;
-
   userEmail: string;
-
   emailType: AddonEmailType;
-
   trialEndsAt?: Date;
-
 }
-
-
 
 function resolveMarketplaceUrl(): string {
-
-  return `${process.env.CORS_ORIGIN?.split(",")[0]?.trim() ?? "http://localhost:5173"}/addons`;
-
+  return `${getPrimaryWebOrigin()}/addons`;
 }
-
-
 
 async function buildDay6ReferralUpsell(input: SendAddonEmailInput): Promise<{
 
@@ -483,7 +466,7 @@ export async function sendPmailAccountWelcomeEmail(input: {
 }): Promise<boolean> {
   const env = getEnv();
   const marketplaceUrl = resolveMarketplaceUrl();
-  const loginUrl = `${process.env.CORS_ORIGIN?.split(",")[0]?.trim() ?? "http://localhost:5173"}/login`;
+  const loginUrl = `${getPrimaryWebOrigin()}/login`;
 
   let content: { subject: string; text: string; html: string };
   try {

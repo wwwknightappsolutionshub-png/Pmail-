@@ -1,11 +1,11 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { Navigate, Route, Routes, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-import { LoginPage } from "./pages/LoginPage";
 import { PmailLoadingScreen } from "./components/PmailLoadingScreen";
 import { RouteLoadingFallback } from "./components/RouteLoadingFallback";
 import { RouteSeo } from "./components/RouteSeo";
 
+const LoginPage = lazy(() => import("./pages/LoginPage").then((m) => ({ default: m.LoginPage })));
 const WelcomePage = lazy(() => import("./pages/WelcomePage").then((m) => ({ default: m.WelcomePage })));
 const BespokeMailShellPage = lazy(() =>
   import("./pages/BespokeMailShellPage").then((m) => ({ default: m.BespokeMailShellPage })),
@@ -78,8 +78,22 @@ export function App() {
     <>
       <RouteSeo />
       <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/login/:tenantSlug" element={<LoginPage />} />
+      <Route
+        path="/login"
+        element={
+          <LazyRoute subtitle="Loading sign in…">
+            <LoginPage />
+          </LazyRoute>
+        }
+      />
+      <Route
+        path="/login/:tenantSlug"
+        element={
+          <LazyRoute subtitle="Loading sign in…">
+            <LoginPage />
+          </LazyRoute>
+        }
+      />
       <Route
         path="/welcome"
         element={

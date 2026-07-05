@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import compression from "compression";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import { getEnv } from "./config/env.js";
@@ -35,7 +36,13 @@ export function createApp() {
   const app = express();
 
   app.set("trust proxy", 1);
-  app.use(helmet());
+  app.use(
+    helmet({
+      hsts: env.NODE_ENV === "production" ? { maxAge: 31536000, includeSubDomains: true } : false,
+      crossOriginResourcePolicy: { policy: "same-site" },
+    }),
+  );
+  app.use(compression({ threshold: 1024 }));
   app.use(
     cors({
       origin: parseCorsOrigins(env.CORS_ORIGIN),
@@ -91,6 +98,8 @@ export function createApp() {
   });
 
   app.use("/api/auth/login", loginLimiter);
+  app.use("/api/auth/tester/login", loginLimiter);
+  app.use("/api/auth/tenant", loginLimiter);
   app.use("/api/admin/auth/login", loginLimiter);
   app.use("/api/panel/auth/login", loginLimiter);
   app.use("/api/public/leads", publicWriteLimiter);

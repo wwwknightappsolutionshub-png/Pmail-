@@ -193,14 +193,6 @@
   scrollbar-width: thin;
 }
 
-.bespoke-prod-folders-rail .mail-filter-bar {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding: 0;
-  background: transparent;
-  border: 0;
-}
-
 .bespoke-prod-tool-chip,
 .bespoke-prod-folder-chip {
   flex: 0 0 auto;
@@ -691,7 +683,6 @@
   }
 
   .mail-order-bar,
-  .mail-filter-bar,
   .mail-bulk-actions,
   .mail-pagination {
     max-width: 100%;
@@ -699,12 +690,6 @@
     box-sizing: border-box;
   }
 
-  .mail-filter-bar {
-    flex-wrap: wrap;
-    overflow-x: hidden;
-  }
-
-  .mail-filter-chip,
   .mail-order-select,
   .mail-toolbar-btn:not(.read-action-btn) {
     max-width: 100%;
@@ -1569,7 +1554,6 @@
 .mail-app .mail-search-panel,
 .mail-app .mail-order-bar,
 .mail-app .mail-pagination-bar,
-.mail-app .mail-filter-bar,
 .mail-app .mail-bulk-actions,
 .mail-app .contact-suggest-banner,
 .mail-app .mail-view-panel:not(.platform-tools-panel) {
@@ -1637,7 +1621,6 @@
   color: var(--text);
 }
 
-.mail-app .mail-filter-chip,
 .mail-app .mail-toolbar-btn,
 .mail-app .mail-page-btn,
 .mail-app .contact-suggest-banner button {
@@ -1646,7 +1629,6 @@
   color: var(--text);
 }
 
-.mail-app .mail-filter-chip.is-active,
 .mail-app .mail-toolbar-btn--active,
 .mail-app .mail-page-btn.is-active {
   border-color: color-mix(in srgb, var(--brand-accent, #14b8a6) 45%, transparent);
@@ -2376,7 +2358,6 @@
   color: var(--text);
 }
 
-.mail-app.mail-app--light .mail-filter-chip,
 .mail-app.mail-app--light .mail-toolbar-btn,
 .mail-app.mail-app--light .mail-page-btn,
 .mail-app.mail-app--light .contact-suggest-banner button,
@@ -2386,7 +2367,6 @@
   color: var(--text-secondary);
 }
 
-.mail-app.mail-app--light .mail-filter-chip.is-active,
 .mail-app.mail-app--light .mail-toolbar-btn--active,
 .mail-app.mail-app--light .mail-page-btn.is-active {
   border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 38%, transparent);
@@ -2439,7 +2419,6 @@
 
 .mail-app.mail-app--light .mail-pagination,
 .mail-app.mail-app--light .mail-order-bar,
-.mail-app.mail-app--light .mail-filter-bar,
 .mail-app.mail-app--light .mail-bulk-actions {
   background: var(--list-chrome-bg);
   border-color: var(--list-chrome-border);

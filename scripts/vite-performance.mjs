@@ -35,8 +35,16 @@ export function pmailBuildPerformance() {
             return "admin";
           }
 
-          if (id.includes("growth/") && id.includes("hostnet-web")) {
+          if (id.includes("hostnet-web") && id.includes("growth/")) {
             return "growth";
+          }
+
+          if (id.includes("hmail-web") && id.includes("ComposeModal")) {
+            return "compose";
+          }
+
+          if (id.includes("workbox") || id.includes("vite-plugin-pwa")) {
+            return "pwa";
           }
 
           return undefined;

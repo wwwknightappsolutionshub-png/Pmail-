@@ -174,7 +174,7 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
       showCareerTab={hasJobHunterAccess()}
       forcedWorkspace="career"
       careerTabHref="/career"
-      onCareerTabClick={() => navigate("/career")}
+      onCareerTabClick={() => window.location.assign("/career")}
       onWorkspaceTabNavigate={onWorkspaceTabNavigate}
         />
       </MailFooterNavBridgeProvider>
