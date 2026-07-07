@@ -1,3 +1,84 @@
+.gmail-connect-help {
+  display: grid;
+  gap: 0.65rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.gmail-connect-help__gate {
+  margin: 0;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--login-border, #dbe3ec);
+  border-radius: 0.75rem;
+  background: #f8fafc;
+}
+
+.gmail-connect-help__gate-question {
+  margin: 0 0 0.65rem;
+  padding: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--login-text, #0f172a);
+}
+
+.gmail-connect-help__gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.gmail-connect-help__gate-btn {
+  flex: 1 1 auto;
+  min-height: 2.35rem;
+  border: 1px solid var(--login-border, #dbe3ec);
+  border-radius: 0.55rem;
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  color: var(--login-text, #0f172a);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gmail-connect-help__gate-btn:hover,
+.gmail-connect-help__gate-btn:focus-visible {
+  border-color: color-mix(in srgb, var(--brand-primary, #0d4f6c) 35%, #dbe3ec);
+  background: color-mix(in srgb, var(--brand-primary, #0d4f6c) 6%, #ffffff);
+  outline: none;
+}
+
+.gmail-connect-help__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--brand-primary, #0d4f6c);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gmail-connect-help__toggle svg {
+  transition: transform 0.18s ease;
+}
+
+.gmail-connect-help__toggle.is-expanded svg {
+  transform: rotate(180deg);
+}
+
+.gmail-connect-help__toggle:hover,
+.gmail-connect-help__toggle:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
 .gmail-connect-wizard {
   --gmail-blue: #1a73e8;
   --gmail-navy: #0d47a1;
@@ -264,6 +345,24 @@
   text-decoration: none;
 }
 
+.gmail-connect-wizard__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+}
+
+.gmail-connect-wizard__done input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--gmail-blue);
+}
+
 .gmail-connect-wizard__footer {
   display: flex;
   flex-direction: column;
@@ -347,6 +446,7 @@
 }
 
 @media (max-width: 767px) {
+  .login-page .login-form-section--gmail-help .gmail-connect-wizard,
   .login-page .login-provider-section .gmail-connect-wizard {
     margin-left: -0.55rem;
     margin-right: -0.55rem;
@@ -398,6 +498,7 @@
 }
 
 @media (min-width: 768px) and (max-width: 1099px) {
+  .login-page .login-form-section--gmail-help .gmail-connect-wizard,
   .login-page .login-provider-section .gmail-connect-wizard {
     margin-left: auto;
     margin-right: auto;
@@ -410,6 +511,7 @@
 }
 
 @media (orientation: landscape) and (max-height: 640px) {
+  .login-page .login-form-section--gmail-help .gmail-connect-wizard,
   .login-page .login-provider-section .gmail-connect-wizard {
     margin-left: auto;
     margin-right: auto;

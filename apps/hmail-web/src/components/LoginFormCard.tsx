@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, EyeOff, Sparkles } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { formatMailConfigSummary } from "../constants/mailProviders";
 import { LoginProviderSelectToast } from "./LoginProviderSelectToast";
 import { GmailConnectWizard } from "./GmailConnectWizard";
@@ -43,6 +43,7 @@ export function LoginFormCard({
 }: LoginFormCardProps) {
   const [showPassword, setShowPassword] = useState(false);
   const isGoogleProvider = mailConfig.providerPreset === "google";
+  const showProviderSummary = mailConfig.providerPreset === "custom" || showCustomFields;
 
   return (
     <div className={`login-form-card${className ? ` ${className}` : ""}`}>
@@ -56,7 +57,7 @@ export function LoginFormCard({
           {isTesterRoute
             ? "Demo workspace login — no mail provider setup required. Use the seeded tester credentials to explore all paid add-ons."
             : showProviderSetup
-              ? "For your first sign-in, confirm your personal or organizational mail provider. We automatically apply recommended settings from your email domain where supported, then authenticate with your mailbox credentials."
+              ? "Sign in with your existing mailbox to access workspace tools and add-ons."
               : "Connect your existing mailbox to access workspace tools and add-ons."}
         </p>
       </div>
@@ -71,16 +72,19 @@ export function LoginFormCard({
           </div>
         ) : null}
 
-        {onRequestWorkspaceAccess ? (
-          <section className="login-form-section login-form-section--prospect" aria-label="Workspace access">
-            <button type="button" className="login-prospect-cta" onClick={onRequestWorkspaceAccess}>
-              <Sparkles className="login-prospect-cta__icon" size={18} strokeWidth={2.25} aria-hidden="true" />
-              <span className="login-prospect-cta__label">Request workspace access without connecting mail</span>
-            </button>
-          </section>
-        ) : null}
-
-        {onRequestWorkspaceAccess ? <hr className="login-form-divider" aria-hidden="true" /> : null}
+        <section className="login-form-section login-form-section--credentials" aria-label="Mailbox credentials">
+          <label>
+            Email address
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Type in your email id"
+              required
+              autoComplete="username"
+            />
+          </label>
+        </section>
 
         {showProviderSetup ? (
           <section className="login-form-section login-form-section--provider" aria-label="Mail provider">
@@ -91,8 +95,9 @@ export function LoginFormCard({
                 onChange={applyPreset}
                 idPrefix="login-provider"
               />
-              <p className="login-provider-summary">{formatMailConfigSummary(mailConfig)}</p>
-              {isGoogleProvider ? <GmailConnectWizard /> : null}
+              {showProviderSummary ? (
+                <p className="login-provider-summary">{formatMailConfigSummary(mailConfig)}</p>
+              ) : null}
               {preflightLoading ? <p className="login-provider-hint">Checking mailbox setup…</p> : null}
             </div>
           </section>
@@ -171,29 +176,19 @@ export function LoginFormCard({
           </section>
         ) : null}
 
-        {showProviderSetup ? <hr className="login-form-divider" aria-hidden="true" /> : null}
-
-        <section className="login-form-section login-form-section--credentials" aria-label="Mailbox credentials">
+        <section className="login-form-section login-form-section--credentials" aria-label="Mailbox password">
           <label>
-            Your Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Type in your email id"
-              required
-              autoComplete="username"
-            />
-          </label>
-
-          <label>
-            Password
+            {isGoogleProvider ? "Google App Password (16 characters)" : "Password"}
             <span className="login-password-field">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Type in your password / app password"
+                placeholder={
+                  isGoogleProvider
+                    ? "Paste your 16-character Google App Password"
+                    : "Type in your mail provider password"
+                }
                 required
                 autoComplete="current-password"
               />
@@ -211,8 +206,8 @@ export function LoginFormCard({
 
           <p className="login-provider-hint">
             {isGoogleProvider
-              ? "For Gmail, paste the 16-character App Password you created — not your normal Gmail password."
-              : "Use your current mail provider password not a new password or app password if you are using gmail and others"}
+              ? "Use the special password for PMail+ from Google — not your normal Gmail password."
+              : "Use the same password you use to sign in to your mail provider."}
           </p>
         </section>
 
@@ -225,6 +220,26 @@ export function LoginFormCard({
             {submitting ? "Authenticating…" : isTesterRoute ? "Sign in to tester workspace" : "Sign in to mailbox"}
           </button>
         </section>
+
+        {showProviderSetup && isGoogleProvider ? (
+          <section className="login-form-section login-form-section--gmail-help" aria-label="Gmail setup help">
+            <GmailConnectWizard key={mailConfig.providerPreset ?? "google"} />
+          </section>
+        ) : null}
+
+        {onRequestWorkspaceAccess ? (
+          <>
+            <hr className="login-form-divider" aria-hidden="true" />
+            <section className="login-form-section login-form-section--prospect-footer" aria-label="Workspace access">
+              <p className="login-prospect-footer">
+                Not ready to connect mail?{" "}
+                <button type="button" className="login-prospect-link" onClick={onRequestWorkspaceAccess}>
+                  Request workspace access without connecting mail
+                </button>
+              </p>
+            </section>
+          </>
+        ) : null}
       </form>
     </div>
   );

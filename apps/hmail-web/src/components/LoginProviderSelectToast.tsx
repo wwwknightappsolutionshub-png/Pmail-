@@ -14,9 +14,9 @@ export function LoginProviderSelectToast({ onDismiss }: LoginProviderSelectToast
     >
       <div className="login-provider-select-toast">
         <div className="login-provider-select-toast-copy">
-          <strong id="login-provider-select-toast-title">HOORAY !!</strong>
+          <strong id="login-provider-select-toast-title">Select your email provider</strong>
           <p className="login-provider-select-toast-subtitle">
-            Please select your current email provider from the list below
+            Choose the service that hosts your mailbox so we can apply the right settings.
           </p>
         </div>
         <div className="login-provider-select-toast-actions">
