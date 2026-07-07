@@ -84,17 +84,15 @@ export function LoginShell({
 
   return (
     <div ref={bindPageRef} className="login-page" style={brandStyle}>
-      {enablePullToRefresh ? (
+      {enablePullToRefresh && showPullIndicator ? (
         <div
-          className={`login-pull-indicator login-pull-indicator--fixed${
-            showPullIndicator ? " is-visible" : ""
-          }${isRefreshing ? " is-refreshing" : ""}${pullDistance >= threshold ? " is-ready" : ""}`}
-          style={{ height: showPullIndicator ? `${pullIndicatorHeight}px` : undefined }}
+          className={`login-pull-indicator login-pull-indicator--fixed is-visible${
+            isRefreshing ? " is-refreshing" : ""
+          }${pullDistance >= threshold ? " is-ready" : ""}`}
+          style={{ height: `${pullIndicatorHeight}px` }}
           aria-live="polite"
-          aria-hidden={!showPullIndicator}
-        >
-          <span>{showPullIndicator ? pullIndicatorLabel : "Pull down to update app"}</span>
-        </div>
+          aria-label={pullIndicatorLabel}
+        />
       ) : null}
       <header className="login-topbar">
         <HMailLogo
