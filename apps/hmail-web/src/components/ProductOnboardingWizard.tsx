@@ -12,6 +12,7 @@ type ProductOnboardingWizardProps = {
   activeIndex: number;
   onActiveIndexChange: (index: number) => void;
   onSkipToSignIn: () => void;
+  onContinueToSignIn?: () => void;
   productName: string;
   className?: string;
   isCtaSlide?: boolean;
@@ -22,6 +23,7 @@ export function ProductOnboardingWizard({
   activeIndex,
   onActiveIndexChange,
   onSkipToSignIn,
+  onContinueToSignIn,
   productName,
   className = "",
   isCtaSlide = false,
@@ -98,6 +100,7 @@ export function ProductOnboardingWizard({
         productName={productName}
         className={className}
         onBack={activeIndex > 0 ? goPrev : undefined}
+        onContinueToSignIn={onContinueToSignIn}
         showSignInHint
       />
     );

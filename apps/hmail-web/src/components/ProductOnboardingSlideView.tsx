@@ -27,6 +27,9 @@ export function ProductOnboardingSlideView({ slide, active = true, style }: Prod
         <p className="product-onboarding-slide-eyebrow">{slide.eyebrow}</p>
         <h2 className="product-onboarding-slide-title">{slide.title}</h2>
         <p className="product-onboarding-slide-lead">{slide.lead}</p>
+        {slide.highlight ? (
+          <p className="product-onboarding-slide-highlight">{slide.highlight}</p>
+        ) : null}
         {slide.bullets.length > 0 ? (
           <ul className="product-onboarding-slide-bullets">
             {slide.bullets.map((bullet, bulletIndex) => (

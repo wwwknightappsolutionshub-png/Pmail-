@@ -8,6 +8,7 @@ type ProductOnboardingCtaPanelProps = {
   productName: string;
   className?: string;
   onBack?: () => void;
+  onContinueToSignIn?: () => void;
   showSignInHint?: boolean;
 };
 
@@ -16,6 +17,7 @@ export function ProductOnboardingCtaPanel({
   productName: _productName,
   className = "",
   onBack,
+  onContinueToSignIn,
   showSignInHint = false,
 }: ProductOnboardingCtaPanelProps) {
   return (
@@ -46,10 +48,16 @@ export function ProductOnboardingCtaPanel({
                 type="button"
                 className="product-onboarding-wizard-nav-btn product-onboarding-wizard-nav-btn--cta-hint"
                 onClick={() => {
-                  document.getElementById("welcome-sign-in-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  if (onContinueToSignIn) {
+                    onContinueToSignIn();
+                  } else {
+                    document
+                      .getElementById("welcome-sign-in-panel")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
                 }}
               >
-                Sign in below →
+                Continue to sign in →
               </button>
             ) : null}
           </div>

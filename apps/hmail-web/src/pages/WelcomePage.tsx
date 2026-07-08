@@ -33,6 +33,7 @@ export function WelcomePage() {
 
   const [slideIndex, setSlideIndex] = useState(0);
   const [accessMode, setAccessMode] = useState<"signin" | "prospect">("signin");
+  const [showSignIn, setShowSignIn] = useState(false);
 
   useEffect(() => {
     persistReferralRef(referralRef);
@@ -49,7 +50,13 @@ export function WelcomePage() {
 
   const isCtaSlide = slideIndex >= slides.length - 1;
 
+  const handleSlideChange = (index: number) => {
+    if (index < slides.length - 1) setShowSignIn(false);
+    setSlideIndex(index);
+  };
+
   const skipToSignIn = () => {
+    setShowSignIn(false);
     setSlideIndex(slides.length - 1);
   };
 
@@ -79,7 +86,9 @@ export function WelcomePage() {
     <LoginShell
       branding={branding}
       layoutClassName={`welcome-layout welcome-layout--wizard${
-        isCtaSlide ? " welcome-layout--cta-split" : " welcome-layout--fullscreen-slides"
+        isCtaSlide
+          ? ` welcome-layout--cta-split ${showSignIn ? "welcome-cta-step-signin" : "welcome-cta-step-tour"}`
+          : " welcome-layout--fullscreen-slides"
       }`}
       brandPanelClassName="welcome-brand-panel--wizard"
       formPanelClassName={isCtaSlide ? "welcome-form-panel--cta" : "welcome-form-panel--hidden"}
@@ -87,13 +96,25 @@ export function WelcomePage() {
         <ProductOnboardingWizard
           slides={slides}
           activeIndex={slideIndex}
-          onActiveIndexChange={setSlideIndex}
+          onActiveIndexChange={handleSlideChange}
           onSkipToSignIn={skipToSignIn}
+          onContinueToSignIn={() => setShowSignIn(true)}
           productName={branding.productName}
           isCtaSlide={isCtaSlide}
         />
       }
-      rightPanel={<div id="welcome-sign-in-panel">{loginPanel}</div>}
+      rightPanel={
+        <div id="welcome-sign-in-panel">
+          <button
+            type="button"
+            className="welcome-cta-back"
+            onClick={() => setShowSignIn(false)}
+          >
+            ← Back to tour
+          </button>
+          {loginPanel}
+        </div>
+      }
       overlay={
         loginForm.submitting ? (
           <PmailLoadingScreen

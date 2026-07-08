@@ -385,6 +385,26 @@
   text-wrap: balance;
 }
 
+.product-onboarding-slide-highlight {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin: 0.85rem 0 0;
+  padding: 0.32rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--pow-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--pow-accent) 16%, transparent);
+  color: #ccfbf1;
+  font-size: clamp(0.72rem, 2vw, 0.82rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.product-onboarding-slide.is-active .product-onboarding-slide-highlight {
+  animation: pow-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
+}
+
 .product-onboarding-slide-bullets {
   margin: 1.5rem 0 0;
   padding: 0;
@@ -777,6 +797,10 @@
     text-align: center;
   }
 
+  .product-onboarding-slide-highlight {
+    align-self: center;
+  }
+
   .product-onboarding-slide-bullets {
     margin-left: auto;
     margin-right: auto;
@@ -859,6 +883,7 @@
   .product-onboarding-slide.is-active .product-onboarding-slide-eyebrow,
   .product-onboarding-slide.is-active .product-onboarding-slide-title,
   .product-onboarding-slide.is-active .product-onboarding-slide-lead,
+  .product-onboarding-slide.is-active .product-onboarding-slide-highlight,
   .product-onboarding-slide.is-active .product-onboarding-slide-bullets li,
   .product-onboarding-slide.is-active .product-onboarding-slide-section {
     animation: none;

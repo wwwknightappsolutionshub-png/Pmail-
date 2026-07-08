@@ -8,6 +8,7 @@ export type ProductOnboardingSlide = {
   eyebrow: string;
   title: string;
   lead: string;
+  highlight?: string;
   bullets: string[];
   sections?: ProductOnboardingSlideSection[];
   icon: string;
@@ -20,56 +21,61 @@ export function buildProductOnboardingSlides(input: {
 }): ProductOnboardingSlide[] {
   const { productName, referrerLabel } = input;
   const invitedLead = referrerLabel
-    ? `${referrerLabel} invited you to try ${productName} — branded mail and workspace tools on Prohost Cloud.`
-    : `${productName} is branded mail plus a focused workspace on Prohost Cloud — connect your existing mailbox and work from one place.`;
+    ? `${referrerLabel} invited you to try ${productName} — connect your Gmail, Microsoft 365, or any other custom mailbox in one branded workspace.`
+    : "Connect your Gmail, Microsoft 365, or any other custom mailbox in one branded workspace.";
 
   return [
     {
       id: "welcome",
       eyebrow: "Welcome",
-      title: `Welcome to ${productName}`,
+      title: `${productName} — Your Mailbox, Upgraded`,
       lead: invitedLead,
+      highlight: "No Migration Needed",
       bullets: [
-        "Connect your existing mailbox — no migration required",
-        "Install as a mobile app or work from desktop",
-        "Built for operators who need tools, not another inbox clone",
+        "Keep the email address you already use",
+        "Works on your phone as an app, or on desktop",
+        "One workspace — not just another inbox",
       ],
       icon: "✦",
     },
     {
-      id: "workspace",
-      eyebrow: "The workspace",
-      title: "Your mail, CRM, and tools — together",
-      lead: "Go beyond a basic inbox. PMail+ keeps correspondence, contacts, reminders, calendar, and documents in one branded environment.",
-      bullets: [
-        "Categorized inbox with sender grouping and fast search",
-        "Workspace tabs: Contacts, CRM, Reminders, Calendar, and Messaging",
-        "Compose with signatures, templates, scheduled send, and auto-reply",
-        "Add-ons and trials — subscribe only to what your work needs",
-        "Refer colleagues to unlock complimentary platform tools",
-      ],
-      icon: "◉",
-    },
-    {
       id: "platform",
       eyebrow: "Platform tools",
-      title: "What makes PMail+ distinctive",
-      lead: "Power features that stay inside your mail flow — no juggling separate apps.",
+      title: "Why PMail+ Now?",
+      lead: "PMail+ helps you go beyond the regular basic mail experience to an upgraded workspace with extra tools added to the regular mailing tools.",
       bullets: [
-        "Open & link tracking with read receipts",
-        "File vault and Mail2PDF exports",
-        "Multi-inbox switching and inbox cleanup",
-        "Attachment auto-categorize and e-sign from email",
-        "WhatsApp handoff, full calendar, and Job Hunter career workspace",
-        "PWA with pull-to-refresh, push notifications, and offline cues",
+        "Multi-inbox — access multiple accounts in one workspace",
+        "Auto-categorize inbox mails — save time",
+        "Auto Contacts",
+        "Open tracking — be notified when a recipient opens your mail",
+        "File vault",
+        "Mail2PDF — convert mail trail to PDF",
+        "E-sign",
+        "Attachment vault",
+        "Calendar",
+        "Reminder",
+        "Job Hunter",
       ],
       icon: "⚡",
     },
     {
+      id: "workspace",
+      eyebrow: "The workspace",
+      title: "All-in-One Mailing",
+      lead: "Go beyond just a basic inbox. PMail+ helps organize your correspondence, contacts, and received documents locked in one branded workspace.",
+      bullets: [
+        "Multiple email accounts in one workspace with a one-click switch",
+        "Categorized inbox with sender grouping that enhances fast search",
+        "Workspace tabs for a better mailing experience",
+        "Schedule send, compose with your branded email signature, reply templates, auto-reply",
+      ],
+      icon: "◉",
+    },
+    {
       id: "verticals",
       eyebrow: "Industry workspaces",
-      title: "Business vertical tools",
-      lead: "Activate industry bundles beside your mail — tailored panels for how your sector actually works.",
+      title: "Wired For Your Business Needs",
+      lead: "PMail+ is designed to support your daily business needs and save you time switching between separate business apps and your mail.",
       bullets: [],
       sections: [
         {
@@ -107,8 +113,8 @@ export function buildProductOnboardingCtaSlide(_productName: string): ProductOnb
   return {
     id: "cta",
     eyebrow: "Get started",
-    title: "Ready to open your workspace?",
-    lead: "Connect your mailbox to sign in, or request access if you are not ready to link mail yet.",
+    title: "Ready to Explore?",
+    lead: "Curious how it feels inside? Simply connect your current Gmail, Microsoft 365, Yahoo, or any other custom mailbox. No migration needed — simply link up.",
     bullets: [
       "Sign in with Microsoft 365, Google, Hostinger, and more",
       "Request workspace access without connecting mail",

@@ -79,6 +79,28 @@
   max-width: 420px;
 }
 
+/* Back-to-tour control only shows on the mobile/tablet sign-in step */
+.welcome-cta-back {
+  display: none;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+  padding: 0.4rem 0.2rem;
+  border: none;
+  background: transparent;
+  color: var(--brand-primary, #0d4f6c);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.welcome-cta-back:hover,
+.welcome-cta-back:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
 @media (min-width: 768px) {
   .welcome-layout--fullscreen-slides {
     display: grid !important;
@@ -158,6 +180,45 @@
 
   .welcome-layout--cta-split #welcome-sign-in-panel,
   .welcome-layout--cta-split #login-sign-in-panel {
+    max-width: 100%;
+  }
+}
+
+/* Two-step CTA on mobile + tablet (< 1100px): show the tour OR the sign-in form, never both on one page */
+@media (max-width: 1099px) {
+  .welcome-layout--cta-split.welcome-cta-step-tour,
+  .welcome-layout--cta-split.welcome-cta-step-signin {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: unset !important;
+  }
+
+  .welcome-cta-step-tour .welcome-form-panel--cta {
+    display: none !important;
+  }
+
+  .welcome-cta-step-tour .welcome-brand-panel--wizard {
+    flex: 1 0 auto;
+  }
+
+  .welcome-cta-step-signin .welcome-brand-panel--wizard {
+    display: none !important;
+  }
+
+  .welcome-cta-step-signin .welcome-form-panel--cta {
+    display: flex !important;
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: 100%;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .welcome-cta-step-signin .welcome-cta-back {
+    display: inline-flex;
+  }
+
+  .welcome-cta-step-signin #welcome-sign-in-panel {
     max-width: 100%;
   }
 }
