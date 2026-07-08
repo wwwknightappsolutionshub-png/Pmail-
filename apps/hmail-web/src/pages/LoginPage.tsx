@@ -55,7 +55,13 @@ export function LoginPage() {
       layoutClassName="welcome-layout welcome-layout--wizard welcome-layout--cta-split login-layout--signin-primary"
       brandPanelClassName="welcome-brand-panel--wizard"
       formPanelClassName="welcome-form-panel--cta"
-      leftPanel={<ProductOnboardingCtaPanel slide={ctaSlide} productName={branding.productName} />}
+      leftPanel={
+        <ProductOnboardingCtaPanel
+          slide={ctaSlide}
+          productName={branding.productName}
+          onRequestWorkspaceAccess={() => setAccessMode("prospect")}
+        />
+      }
       rightPanel={<div id="login-sign-in-panel">{loginPanel}</div>}
       overlay={
         loginForm.submitting ? (

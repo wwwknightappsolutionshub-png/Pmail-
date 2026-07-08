@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type TouchEvent } from "react";
-import type { ProductOnboardingSlide } from "../data/productOnboardingSlides";
+import type {
+  ProductOnboardingSlide,
+  ProductOnboardingSlideActionIntent,
+} from "../data/productOnboardingSlides";
 import { ProductOnboardingCtaPanel } from "./ProductOnboardingCtaPanel";
 import { ProductOnboardingSlideView } from "./ProductOnboardingSlideView";
 import { ProductOnboardingWizardBackground } from "./ProductOnboardingWizardBackground";
@@ -13,6 +16,7 @@ type ProductOnboardingWizardProps = {
   onActiveIndexChange: (index: number) => void;
   onSkipToSignIn: () => void;
   onContinueToSignIn?: () => void;
+  onRequestWorkspaceAccess?: () => void;
   productName: string;
   className?: string;
   isCtaSlide?: boolean;
@@ -24,10 +28,16 @@ export function ProductOnboardingWizard({
   onActiveIndexChange,
   onSkipToSignIn,
   onContinueToSignIn,
+  onRequestWorkspaceAccess,
   productName,
   className = "",
   isCtaSlide = false,
 }: ProductOnboardingWizardProps) {
+  const handleSlideAction = (intent: ProductOnboardingSlideActionIntent) => {
+    if (intent === "request-workspace-access") {
+      onRequestWorkspaceAccess?.();
+    }
+  };
   const touchStartX = useRef<number | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const [dragOffset, setDragOffset] = useState(0);
@@ -101,6 +111,7 @@ export function ProductOnboardingWizard({
         className={className}
         onBack={activeIndex > 0 ? goPrev : undefined}
         onContinueToSignIn={onContinueToSignIn}
+        onRequestWorkspaceAccess={onRequestWorkspaceAccess}
         showSignInHint
       />
     );
@@ -145,6 +156,7 @@ export function ProductOnboardingWizard({
               key={entry.id}
               slide={entry}
               active={index === activeIndex}
+              onAction={handleSlideAction}
               style={stageWidth > 0 ? { width: stageWidth, flex: "0 0 auto" } : undefined}
             />
           ))}

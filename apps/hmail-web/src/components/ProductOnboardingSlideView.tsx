@@ -1,13 +1,23 @@
 import type { CSSProperties } from "react";
-import type { ProductOnboardingSlide } from "../data/productOnboardingSlides";
+import { Link } from "react-router-dom";
+import type {
+  ProductOnboardingSlide,
+  ProductOnboardingSlideActionIntent,
+} from "../data/productOnboardingSlides";
 
 type ProductOnboardingSlideViewProps = {
   slide: ProductOnboardingSlide;
   active?: boolean;
   style?: CSSProperties;
+  onAction?: (intent: ProductOnboardingSlideActionIntent) => void;
 };
 
-export function ProductOnboardingSlideView({ slide, active = true, style }: ProductOnboardingSlideViewProps) {
+export function ProductOnboardingSlideView({
+  slide,
+  active = true,
+  style,
+  onAction,
+}: ProductOnboardingSlideViewProps) {
   const hasSections = Boolean(slide.sections?.length);
 
   return (
@@ -38,6 +48,36 @@ export function ProductOnboardingSlideView({ slide, active = true, style }: Prod
               </li>
             ))}
           </ul>
+        ) : null}
+        {slide.actions?.length ? (
+          <div className="product-onboarding-slide-actions">
+            {slide.actions.map((action, actionIndex) =>
+              action.to ? (
+                <Link
+                  key={action.label}
+                  to={action.to}
+                  className="product-onboarding-slide-action"
+                  style={{ "--pow-stagger": actionIndex } as CSSProperties}
+                  tabIndex={active ? undefined : -1}
+                >
+                  {action.label}
+                </Link>
+              ) : (
+                <button
+                  key={action.label}
+                  type="button"
+                  className="product-onboarding-slide-action"
+                  style={{ "--pow-stagger": actionIndex } as CSSProperties}
+                  tabIndex={active ? undefined : -1}
+                  onClick={() => {
+                    if (action.intent) onAction?.(action.intent);
+                  }}
+                >
+                  {action.label}
+                </button>
+              ),
+            )}
+          </div>
         ) : null}
         {slide.sections?.length ? (
           <div className="product-onboarding-slide-sections">

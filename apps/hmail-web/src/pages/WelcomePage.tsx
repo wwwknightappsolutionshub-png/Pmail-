@@ -99,6 +99,10 @@ export function WelcomePage() {
           onActiveIndexChange={handleSlideChange}
           onSkipToSignIn={skipToSignIn}
           onContinueToSignIn={() => setShowSignIn(true)}
+          onRequestWorkspaceAccess={() => {
+            setAccessMode("prospect");
+            setShowSignIn(true);
+          }}
           productName={branding.productName}
           isCtaSlide={isCtaSlide}
         />

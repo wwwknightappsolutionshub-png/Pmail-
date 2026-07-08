@@ -388,7 +388,7 @@
 .product-onboarding-slide-highlight {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
+  align-self: center;
   margin: 0.85rem 0 0;
   padding: 0.32rem 0.85rem;
   border-radius: 999px;
@@ -443,6 +443,59 @@
   color: #5eead4;
   font-size: 0.85rem;
   font-weight: 700;
+}
+
+/* ── Actionable slide links ── */
+.product-onboarding-slide-actions {
+  margin: 0.85rem 0 0;
+  display: grid;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 34rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.product-onboarding-slide-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.85rem;
+  padding: 0.6rem 1rem 0.6rem 1.1rem;
+  font: inherit;
+  font-size: clamp(0.92rem, 2.4vw, 1.02rem);
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  text-decoration: none;
+  color: #ecfeff;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--pow-accent) 42%, transparent);
+  background: color-mix(in srgb, var(--pow-accent) 15%, transparent);
+  cursor: pointer;
+  transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+.product-onboarding-slide-action::after {
+  content: "→";
+  flex: 0 0 auto;
+  font-size: 1.05rem;
+  color: #5eead4;
+  transition: transform 0.25s ease;
+}
+
+.product-onboarding-slide-action:hover,
+.product-onboarding-slide-action:focus-visible {
+  background: color-mix(in srgb, var(--pow-accent) 26%, transparent);
+  border-color: color-mix(in srgb, var(--pow-accent) 65%, transparent);
+  transform: translateY(-1px);
+}
+
+.product-onboarding-slide-action:hover::after,
+.product-onboarding-slide-action:focus-visible::after {
+  transform: translateX(3px);
 }
 
 /* ── Vertical industry grid ── */
@@ -656,7 +709,7 @@
 }
 
 .product-onboarding-wizard--fullscreen .product-onboarding-slide {
-  justify-content: center;
+  justify-content: safe center;
   align-items: center;
   min-height: 100%;
   height: 100%;
@@ -667,7 +720,7 @@
 }
 
 .product-onboarding-wizard--fullscreen .product-onboarding-slide-inner {
-  margin: auto;
+  margin: 0 auto;
   width: 100%;
 }
 
@@ -795,10 +848,6 @@
   .product-onboarding-slide-eyebrow {
     width: 100%;
     text-align: center;
-  }
-
-  .product-onboarding-slide-highlight {
-    align-self: center;
   }
 
   .product-onboarding-slide-bullets {

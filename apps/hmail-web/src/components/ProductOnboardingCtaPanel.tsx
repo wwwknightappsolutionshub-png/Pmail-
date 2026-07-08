@@ -1,4 +1,7 @@
-import type { ProductOnboardingSlide } from "../data/productOnboardingSlides";
+import type {
+  ProductOnboardingSlide,
+  ProductOnboardingSlideActionIntent,
+} from "../data/productOnboardingSlides";
 import { ProductOnboardingSlideView } from "./ProductOnboardingSlideView";
 import { ProductOnboardingWizardBackground } from "./ProductOnboardingWizardBackground";
 import "./ProductOnboardingWizard.css";
@@ -9,6 +12,7 @@ type ProductOnboardingCtaPanelProps = {
   className?: string;
   onBack?: () => void;
   onContinueToSignIn?: () => void;
+  onRequestWorkspaceAccess?: () => void;
   showSignInHint?: boolean;
 };
 
@@ -18,8 +22,14 @@ export function ProductOnboardingCtaPanel({
   className = "",
   onBack,
   onContinueToSignIn,
+  onRequestWorkspaceAccess,
   showSignInHint = false,
 }: ProductOnboardingCtaPanelProps) {
+  const handleSlideAction = (intent: ProductOnboardingSlideActionIntent) => {
+    if (intent === "request-workspace-access") {
+      onRequestWorkspaceAccess?.();
+    }
+  };
   return (
     <div
       className={`product-onboarding-wizard product-onboarding-wizard--cta product-onboarding-wizard--login-cta${
@@ -32,7 +42,7 @@ export function ProductOnboardingCtaPanel({
       <div className="product-onboarding-wizard-top product-onboarding-wizard-top--empty" aria-hidden="true" />
 
       <div className="product-onboarding-wizard-stage product-onboarding-wizard-stage--static">
-        <ProductOnboardingSlideView slide={slide} active />
+        <ProductOnboardingSlideView slide={slide} active onAction={handleSlideAction} />
       </div>
 
       {onBack || showSignInHint ? (

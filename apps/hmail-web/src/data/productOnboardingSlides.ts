@@ -3,6 +3,14 @@ export type ProductOnboardingSlideSection = {
   items: string[];
 };
 
+export type ProductOnboardingSlideActionIntent = "request-workspace-access";
+
+export type ProductOnboardingSlideAction = {
+  label: string;
+  to?: string;
+  intent?: ProductOnboardingSlideActionIntent;
+};
+
 export type ProductOnboardingSlide = {
   id: string;
   eyebrow: string;
@@ -10,6 +18,7 @@ export type ProductOnboardingSlide = {
   lead: string;
   highlight?: string;
   bullets: string[];
+  actions?: ProductOnboardingSlideAction[];
   sections?: ProductOnboardingSlideSection[];
   icon: string;
   variant?: "default" | "cta";
@@ -117,8 +126,10 @@ export function buildProductOnboardingCtaSlide(_productName: string): ProductOnb
     lead: "Curious how it feels inside? Simply connect your current Gmail, Microsoft 365, Yahoo, or any other custom mailbox. No migration needed — simply link up.",
     bullets: [
       "Sign in with Microsoft 365, Google, Hostinger, and more",
-      "Request workspace access without connecting mail",
-      "Explore add-ons and upgrades inside your workspace",
+    ],
+    actions: [
+      { label: "Request workspace access without connecting mail", intent: "request-workspace-access" },
+      { label: "Explore add-ons and upgrades inside your workspace", to: "/addons" },
     ],
     icon: "→",
     variant: "cta",
