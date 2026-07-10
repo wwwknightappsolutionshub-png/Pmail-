@@ -48,6 +48,16 @@ const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const VAULT_MAX_FILE_BYTES = 100 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
 
+/** Empty paragraphs above the signature so the caret has a visible typing area. */
+const COMPOSE_SIGNATURE_SPACER = "<p><br></p><p><br></p>";
+
+function withComposeSignature(bodyHtml: string, signatureHtml: string): string {
+  const sig = signatureHtml.trim();
+  if (!sig) return bodyHtml;
+  const body = bodyHtml.trim();
+  return body ? `${body}${COMPOSE_SIGNATURE_SPACER}${sig}` : `${COMPOSE_SIGNATURE_SPACER}${sig}`;
+}
+
 interface ComposeVaultFile {
   id: string;
   originalName: string;
@@ -167,6 +177,7 @@ export function ComposeModal({
     setShowBcc(Boolean(initial?.bcc));
     setSubject(initial?.subject ?? "");
     const initialHtml = initial?.html ?? (initial?.text ? `<p>${initial.text.replace(/\n/g, "<br>")}</p>` : "");
+    setBodyHtml("");
     setAttachments([]);
     setVaultFiles([]);
     setCareerDocuments([]);
@@ -212,13 +223,11 @@ export function ComposeModal({
         if (nextMode === "new") {
           const activeSig = settings.signatures.find((s) => s.id === settings.activeSignatureId);
           if (activeSig?.body) {
-            const sigBlock = activeSig.body.trim();
-            setBodyHtml(initialHtml ? `${initialHtml}<br><br>${sigBlock}` : sigBlock);
+            setBodyHtml(withComposeSignature(initialHtml, activeSig.body));
             return;
           }
           if (settings.defaultBrandedSignature?.html) {
-            const sigBlock = settings.defaultBrandedSignature.html.trim();
-            setBodyHtml(initialHtml ? `${initialHtml}<br><br>${sigBlock}` : sigBlock);
+            setBodyHtml(withComposeSignature(initialHtml, settings.defaultBrandedSignature.html));
             return;
           }
         }
@@ -650,6 +659,8 @@ export function ComposeModal({
             value={bodyHtml}
             onChange={setBodyHtml}
             placeholder="Write your message…"
+            autoFocus
+            placeCaretAtStart
             toolbarExtra={
               <>
                 <label className="rte-toolbar-control">

@@ -207,8 +207,8 @@
 
 .gmail-compose-portal .gmail-compose__editor .rte-editor [data-pmail-signature="branded"] {
   display: block;
-  margin-top: 1.25rem;
-  padding-top: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
   pointer-events: none;
   user-select: none;
 }
@@ -216,6 +216,17 @@
 .gmail-compose-portal .gmail-compose__editor .rte-editor [data-pmail-signature="branded"] a {
   pointer-events: auto;
   cursor: pointer;
+}
+
+/* Keep a clear typing runway above the footer signature */
+.gmail-compose-portal .gmail-compose__editor .rte-editor > p:first-child {
+  min-height: 1.35em;
+}
+
+.gmail-compose-portal .gmail-compose__editor .rte-editor > p:nth-child(2):has(+ [data-pmail-signature="branded"]),
+.gmail-compose-portal .gmail-compose__editor .rte-editor > p:nth-child(2):has(+ * [data-pmail-signature="branded"]) {
+  min-height: 1.35em;
+  margin-bottom: 0.35rem;
 }
 
 .gmail-compose__row--actions {

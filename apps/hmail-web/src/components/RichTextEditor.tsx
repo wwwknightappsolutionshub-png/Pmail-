@@ -7,6 +7,10 @@ interface RichTextEditorProps {
   onChange: (html: string) => void;
   placeholder?: string;
   toolbarExtra?: ReactNode;
+  /** Focus the editor when compose content is first seeded. */
+  autoFocus?: boolean;
+  /** Place the blinking caret at the start of the body (above a footer signature). */
+  placeCaretAtStart?: boolean;
 }
 
 type Command =
@@ -30,16 +34,72 @@ const TOOLBAR: Array<{ command: Command; label: string; title: string }> = [
   { command: "removeFormat", label: "Tx", title: "Clear formatting" },
 ];
 
-export function RichTextEditor({ value, onChange, placeholder, toolbarExtra }: RichTextEditorProps) {
+function placeCaretAtEditorStart(editor: HTMLElement) {
+  editor.focus();
+  const selection = window.getSelection();
+  if (!selection) return;
+
+  const range = document.createRange();
+  const signature = editor.querySelector("[data-pmail-signature='branded']");
+  const firstBlock = editor.firstElementChild;
+
+  if (firstBlock && firstBlock !== signature) {
+    range.setStart(firstBlock, 0);
+    range.collapse(true);
+  } else if (signature) {
+    range.setStartBefore(signature);
+    range.collapse(true);
+  } else {
+    range.selectNodeContents(editor);
+    range.collapse(true);
+  }
+
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+export function RichTextEditor({
+  value,
+  onChange,
+  placeholder,
+  toolbarExtra,
+  autoFocus = false,
+  placeCaretAtStart = false,
+}: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const hasPlacedCaretRef = useRef(false);
 
   useEffect(() => {
     if (!editorRef.current) return;
+
+    if (!value) {
+      hasPlacedCaretRef.current = false;
+      if (editorRef.current.innerHTML !== "") {
+        editorRef.current.innerHTML = "";
+      }
+      return;
+    }
+
     const sanitized = sanitizeMailHtml(value);
     if (editorRef.current.innerHTML !== sanitized) {
       editorRef.current.innerHTML = sanitized;
     }
-  }, [value]);
+
+    // Place caret once when compose body is first seeded (not on every keystroke).
+    if (!hasPlacedCaretRef.current && (autoFocus || placeCaretAtStart)) {
+      hasPlacedCaretRef.current = true;
+      const editor = editorRef.current;
+      const frame = window.requestAnimationFrame(() => {
+        if (placeCaretAtStart) {
+          placeCaretAtEditorStart(editor);
+        } else {
+          editor.focus();
+        }
+      });
+      return () => window.cancelAnimationFrame(frame);
+    }
+    return undefined;
+  }, [value, autoFocus, placeCaretAtStart]);
 
   const sync = useCallback(() => {
     if (editorRef.current) onChange(sanitizeMailHtml(editorRef.current.innerHTML));

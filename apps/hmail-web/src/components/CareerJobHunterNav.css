@@ -58,7 +58,7 @@
 .career-jh-nav-link {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.2rem;
   min-width: 6.5rem;
   padding: 0.55rem 0.8rem;
   border: 1px solid var(--border, rgba(139, 163, 199, 0.18));
@@ -66,16 +66,40 @@
   background: var(--surface-card, rgba(16, 28, 48, 0.65));
   text-decoration: none;
   color: var(--text, #e8eef8);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.career-jh-nav-link-icon {
+  display: none;
+}
+
+.career-jh-nav-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: block;
+}
+
+.career-jh-nav-link-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.career-jh-nav-link-label-short {
+  display: none;
 }
 
 .career-jh-nav-link strong {
   font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .career-jh-nav-link small {
   color: var(--muted, #8ba3c7);
   font-size: 0.68rem;
+  line-height: 1.25;
 }
 
 .career-jh-nav-link:hover {
@@ -124,19 +148,215 @@
   border-color: #dbe3ee;
 }
 
-@media (max-width: 900px) {
+/* —— Tablet (and below desktop wrap zone) —— */
+@media (max-width: 1024px) {
+  .career-pmail-workspace {
+    padding: 0.75rem 0.85rem 0;
+  }
+
   .career-jh-nav {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.7rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.7rem;
+  }
+
+  .career-jh-nav-intro {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.45rem 0.65rem;
+  }
+
+  .career-jh-nav-eyebrow {
+    margin: 0;
+  }
+
+  .career-jh-nav-title {
+    font-size: 1.12rem;
   }
 
   .career-jh-nav-tabs {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 0.25rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+    overflow: visible;
+    flex-wrap: unset;
+    padding: 0;
   }
 
   .career-jh-nav-link {
-    flex: 0 0 auto;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 0.55rem;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--surface-card, rgba(16, 28, 48, 0.65)) 88%, transparent);
+  }
+
+  .career-jh-nav-link-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent-2, #14b8a6) 12%, transparent);
+    color: var(--accent-2, #14b8a6);
+  }
+
+  .career-jh-nav-link.active .career-jh-nav-link-icon {
+    background: color-mix(in srgb, var(--accent-2, #14b8a6) 22%, transparent);
+  }
+
+  .career-jh-nav-link-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .career-jh-nav-link strong {
+    font-size: 0.78rem;
+  }
+
+  .career-jh-nav-link small {
+    font-size: 0.62rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .career-jh-nav-link.active {
+    transform: none;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-2, #14b8a6) 35%, transparent);
+  }
+
+  .career-jh-panel {
+    border-radius: 14px;
+    padding: 1rem;
+    margin-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .pmail-demo-shell--light .career-jh-nav-link {
+    background: #f8fafc;
+  }
+
+  .pmail-demo-shell--light .career-jh-nav-link-icon {
+    background: #ecfdf5;
+    color: #0f766e;
+  }
+
+  .pmail-demo-shell--light .career-jh-nav-link.active {
+    background: #ecfdf5;
+  }
+
+  .pmail-demo-shell--light .career-jh-nav-link.active .career-jh-nav-link-icon {
+    background: #ccfbf1;
+  }
+}
+
+/* Tablet landscape / large tablet: one equal row of six */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .career-jh-nav-tabs {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .career-jh-nav-link {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.35rem;
+    padding: 0.65rem 0.35rem;
+    min-height: 5.1rem;
+  }
+
+  .career-jh-nav-link-copy {
+    align-items: center;
+  }
+
+  .career-jh-nav-link small {
+    max-width: 100%;
+  }
+}
+
+/* —— Phone —— */
+@media (max-width: 640px) {
+  .career-pmail-workspace {
+    padding: 0.55rem 0.55rem 0;
+  }
+
+  .career-jh-nav {
+    gap: 0.55rem;
+    margin-bottom: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+
+  .career-jh-nav-title {
+    font-size: 1rem;
+  }
+
+  .career-jh-nav-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .career-jh-nav-link {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.3rem;
+    min-height: 4.35rem;
+    padding: 0.55rem 0.25rem 0.5rem;
+    border-radius: 16px;
+  }
+
+  .career-jh-nav-link-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 12px;
+  }
+
+  .career-jh-nav-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .career-jh-nav-link-copy {
+    align-items: center;
+    gap: 0;
+  }
+
+  .career-jh-nav-link-label {
+    display: none;
+  }
+
+  .career-jh-nav-link-label-short {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: -0.01em;
+  }
+
+  .career-jh-nav-link small {
+    display: none;
+  }
+
+  .career-jh-panel {
+    border-radius: 12px;
+    padding: 0.85rem;
+    padding-bottom: calc(1.1rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 380px) {
+  .career-jh-nav-link {
+    min-height: 4.1rem;
+    padding: 0.45rem 0.15rem;
+  }
+
+  .career-jh-nav-link-label-short {
+    font-size: 0.68rem;
   }
 }
