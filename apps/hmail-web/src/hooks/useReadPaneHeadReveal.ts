@@ -1,29 +1,18 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
+import {
+  applyRevealFromScroll,
+  isScrollableSurface,
+  resolveActiveReadPaneScroller,
+} from "../utils/mailScrollSurfaces";
 
-const SCROLL_DELTA_THRESHOLD = 6;
-const TOP_REVEAL_THRESHOLD = 8;
-
-function applyRevealFromScroll(
-  scrollTop: number,
-  lastTop: number,
-  currentRevealed: boolean,
-): { revealed: boolean; lastTop: number } {
-  const delta = scrollTop - lastTop;
-
-  if (scrollTop <= TOP_REVEAL_THRESHOLD) {
-    return { revealed: true, lastTop: scrollTop };
-  }
-  if (delta > SCROLL_DELTA_THRESHOLD) {
-    return { revealed: false, lastTop: scrollTop };
-  }
-  if (delta < -SCROLL_DELTA_THRESHOLD) {
-    return { revealed: true, lastTop: scrollTop };
-  }
-  return { revealed: currentRevealed, lastTop: scrollTop };
-}
+type ScrollSurfaceState = {
+  lastTop: number;
+  revealed: boolean;
+};
 
 /**
  * Hide the read-pane header while scrolling down through a message; reveal when scrolling up.
+ * Mobile/tablet only — enable via the `enabled` flag from the caller.
  */
 export function useReadPaneHeadReveal(
   scrollRef: RefObject<HTMLElement | null>,
@@ -32,21 +21,20 @@ export function useReadPaneHeadReveal(
 ): boolean {
   const [revealed, setRevealed] = useState(true);
   const revealedRef = useRef(true);
-  const lastTopRef = useRef(0);
 
   useEffect(() => {
     revealedRef.current = true;
-    lastTopRef.current = 0;
     setRevealed(true);
   }, [resetKey, enabled]);
 
   useEffect(() => {
-    const scroller = scrollRef.current;
-    if (!enabled || !scroller) {
+    if (!enabled) {
       revealedRef.current = true;
       setRevealed(true);
       return;
     }
+
+    const surfaceState = new WeakMap<HTMLElement, ScrollSurfaceState>();
 
     const syncRevealed = (next: boolean) => {
       if (revealedRef.current === next) return;
@@ -54,25 +42,33 @@ export function useReadPaneHeadReveal(
       setRevealed(next);
     };
 
-    const onScroll = () => {
-      const scrollTop = scroller.scrollTop;
-      const scrollable = scroller.scrollHeight > scroller.clientHeight + 1;
+    const onScroll = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
 
-      if (!scrollable) {
+      const scroller = resolveActiveReadPaneScroller(scrollRef, target);
+      if (!scroller) return;
+
+      if (!isScrollableSurface(scroller)) {
         syncRevealed(true);
-        lastTopRef.current = scrollTop;
         return;
       }
 
-      const result = applyRevealFromScroll(scrollTop, lastTopRef.current, revealedRef.current);
-      lastTopRef.current = result.lastTop;
+      let state = surfaceState.get(scroller);
+      if (!state) {
+        state = { lastTop: scroller.scrollTop, revealed: true };
+        surfaceState.set(scroller, state);
+      }
+
+      const result = applyRevealFromScroll(scroller.scrollTop, state.lastTop, state.revealed);
+      state.lastTop = result.lastTop;
+      state.revealed = result.revealed;
       syncRevealed(result.revealed);
     };
 
-    onScroll();
-    scroller.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
     return () => {
-      scroller.removeEventListener("scroll", onScroll);
+      document.removeEventListener("scroll", onScroll, { capture: true });
       revealedRef.current = true;
       setRevealed(true);
     };

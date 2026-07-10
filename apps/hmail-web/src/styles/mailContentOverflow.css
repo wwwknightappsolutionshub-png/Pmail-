@@ -5,7 +5,6 @@
   box-sizing: border-box;
   max-width: 100%;
   min-width: 0;
-  overflow-x: hidden;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -13,19 +12,17 @@
 .read-body > *,
 .read-body-content > *,
 .rte-editor > * {
-  max-width: 100% !important;
+  max-width: 100%;
   min-width: 0;
 }
 
 .read-body table,
 .read-body-content table,
 .rte-editor table {
-  display: block;
-  max-width: 100% !important;
-  width: 100% !important;
-  table-layout: fixed !important;
+  max-width: 100%;
+  width: auto !important;
+  table-layout: fixed;
   word-break: break-word;
-  overflow-x: auto;
 }
 
 .read-body td,
@@ -34,7 +31,6 @@
 .read-body-content th,
 .rte-editor td,
 .rte-editor th {
-  max-width: 100% !important;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
@@ -42,9 +38,7 @@
 .read-body img,
 .read-body-content img,
 .rte-editor img {
-  display: block;
   max-width: 100% !important;
-  width: auto !important;
   height: auto !important;
 }
 
@@ -85,26 +79,42 @@
   overflow-wrap: anywhere;
 }
 
-.read-body [style*="width"],
-.read-body-content [style*="width"],
-.read-body [style*="min-width"],
-.read-body-content [style*="min-width"] {
-  max-width: 100% !important;
-}
+/* Phone + tablet: aggressively constrain newsletter HTML so content stays on-screen. */
+@media (max-width: 1024px) {
+  .read-body,
+  .read-body-content {
+    overflow-x: clip;
+    contain: inline-size;
+  }
 
-.read-body iframe,
-.read-body-content iframe,
-.read-body object,
-.read-body-content object,
-.read-body embed,
-.read-body-content embed {
-  max-width: 100% !important;
-  width: 100% !important;
-}
+  .read-body-content * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
 
-.read-body center,
-.read-body-content center {
-  display: block;
-  max-width: 100%;
-  overflow-x: hidden;
+  .read-body-content table {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
+    overflow-x: auto;
+  }
+
+  .read-body-content img {
+    display: block;
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .read-body-content [style*="width"],
+  .read-body-content [style*="min-width"] {
+    max-width: 100% !important;
+  }
+
+  .read-body-content center {
+    display: block;
+    max-width: 100%;
+    overflow-x: clip;
+  }
 }

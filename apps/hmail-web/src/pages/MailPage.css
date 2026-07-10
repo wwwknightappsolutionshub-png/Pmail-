@@ -973,6 +973,10 @@
 }
 
 .message-sender-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   border: 1px solid rgba(248, 113, 113, 0.35);
   border-radius: 999px;
   padding: 0.32rem 0.7rem;
@@ -984,6 +988,13 @@
   line-height: 1.2;
   white-space: nowrap;
   cursor: pointer;
+}
+
+.message-sender-delete-btn-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  display: none;
 }
 
 .message-sender-delete-btn:hover:not(:disabled) {
@@ -1397,8 +1408,7 @@
 
 .mail-read-pane {
   background: #fff;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1502,25 +1512,12 @@
 }
 
 .read-header {
-  position: sticky;
-  top: 0;
-  z-index: 4;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
   border-bottom: 1px solid #e2e8f0;
   min-width: 0;
-  transition:
-    transform 0.22s ease,
-    opacity 0.22s ease;
-  will-change: transform;
-}
-
-.read-header--hidden {
-  transform: translateY(-100%);
-  opacity: 0;
-  pointer-events: none;
 }
 
 .mail-app .read-header {
@@ -1604,8 +1601,6 @@
 .read-body {
   padding: 1rem 1rem 5rem;
   line-height: 1.65;
-  min-width: 0;
-  overflow-x: hidden;
 }
 
 .read-body-content {
@@ -1613,7 +1608,6 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  overflow-x: hidden;
 }
 
 .mail-app .read-body {
@@ -2771,5 +2765,87 @@
     right: max(0.75rem, env(safe-area-inset-right));
     bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + max(0.75rem, env(safe-area-inset-bottom)));
     width: min(20rem, calc(100vw - 1.5rem));
+  }
+}
+
+/* Phone + tablet: collapsible read header, contained mail body, icon delete sender */
+@media (max-width: 1024px) {
+  .mail-read-pane {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow-x: clip !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .mail-app[data-mobile-pane="read"] .mail-read-pane,
+  .mail-app[data-content-pane="read"] .mail-read-pane {
+    display: flex !important;
+  }
+
+  .read-header {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    flex-shrink: 0;
+    transition:
+      transform 0.22s ease,
+      opacity 0.22s ease,
+      max-height 0.22s ease,
+      padding 0.22s ease,
+      margin 0.22s ease,
+      border-bottom-width 0.22s ease;
+    will-change: transform, opacity;
+  }
+
+  .read-header--hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+    max-height: 0;
+    min-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border-bottom-width: 0;
+    overflow: hidden;
+  }
+
+  .read-body {
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .read-body-content {
+    overflow-x: clip;
+  }
+
+  .message-sender-delete-btn {
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: 0;
+    border-radius: 10px;
+    border-color: #ef4444;
+    background: rgba(220, 38, 38, 0.16);
+    color: #ef4444;
+  }
+
+  .message-sender-delete-btn-icon {
+    display: block;
+    width: 1.1rem;
+    height: 1.1rem;
+    color: #ef4444;
+    stroke: #ef4444;
+  }
+
+  .message-sender-delete-btn-label {
+    display: none;
+  }
+
+  .message-sender-delete-btn:disabled {
+    opacity: 0.65;
   }
 }

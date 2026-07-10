@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Trash2 } from "lucide-react";
 import type { MailMessageSummary } from "../types/mail";
 import type { SenderGroupBy } from "../constants/mailViews";
 import { SenderAvatar } from "./SenderAvatar";
@@ -133,7 +134,10 @@ export function SenderGroupedMessageList({
                     aria-label={`Delete messages from ${group.label}`}
                     onClick={() => onDeleteSenderGroup(group.email, groupUids, group.from)}
                   >
-                    {isDeleting ? "Deleting…" : "Delete sender"}
+                    <Trash2 className="message-sender-delete-btn-icon" strokeWidth={2.25} aria-hidden="true" />
+                    <span className="message-sender-delete-btn-label">
+                      {isDeleting ? "Deleting…" : "Delete sender"}
+                    </span>
                   </button>
                 ) : null}
               </div>

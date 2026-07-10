@@ -74,6 +74,7 @@ import { useMailListChromeViewport } from "../hooks/useMailListChromeViewport";
 import { useMessageListAtEnd } from "../hooks/useMessageListAtEnd";
 import { useMessageListHeadReveal } from "../hooks/useMessageListHeadReveal";
 import { useReadPaneHeadReveal } from "../hooks/useReadPaneHeadReveal";
+import { useMobileReadBodyFit } from "../hooks/useMobileReadBodyFit";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
 import { toolAddonSlug } from "../constants/addonTools";
@@ -381,6 +382,7 @@ export function MailPage({
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
   const readPaneRef = useRef<HTMLElement>(null);
+  const readBodyContentRef = useRef<HTMLDivElement>(null);
   const [mobileMailViewport, setMobileMailViewport] = useState(() => isMobileScreen());
   const mailListChromeViewport = useMailListChromeViewport();
   const hasOpenTrackingAddon = hasAddon("open-tracking");
@@ -465,7 +467,13 @@ export function MailPage({
   const listHeadResetKey = `${activeFolder}:${mailFilter}`;
   const listHeadRevealed = useMessageListHeadReveal(messageListRef, listHeadRevealEnabled, listHeadResetKey);
   const readHeadResetKey = `${activeFolder}:${selectedUid ?? "none"}`;
-  const readHeadRevealed = useReadPaneHeadReveal(readPaneRef, Boolean(selectedUid && selectedMessage), readHeadResetKey);
+  const readHeadRevealEnabled = mailListChromeViewport && Boolean(selectedUid && selectedMessage);
+  const readHeadRevealed = useReadPaneHeadReveal(readPaneRef, readHeadRevealEnabled, readHeadResetKey);
+  useMobileReadBodyFit(
+    readBodyContentRef,
+    mailListChromeViewport && Boolean(selectedMessage?.html),
+    readHeadResetKey,
+  );
   const activeFolderLabel = getFolderTitle(activeFolder, activeFolderMeta);
   const listPaneTitle = mailFilter === "starred" ? "Starred" : activeFolderLabel;
   const activeMailboxEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
@@ -1674,7 +1682,9 @@ export function MailPage({
             <>
               {messageError ? <div className="pane-error">{messageError}</div> : null}
               <header
-                className={`read-header${readHeadRevealed ? "" : " read-header--hidden"}`}
+                className={`read-header${
+                  readHeadRevealEnabled && !readHeadRevealed ? " read-header--hidden" : ""
+                }`}
                 data-read-head-revealed={readHeadRevealed ? "true" : "false"}
               >
                 <div>
@@ -1762,6 +1772,7 @@ export function MailPage({
               <article className="read-body">
                 {selectedMessage.html ? (
                   <div
+                    ref={readBodyContentRef}
                     className="read-body-content"
                     dangerouslySetInnerHTML={{ __html: sanitizeMailHtml(selectedMessage.html) }}
                   />
