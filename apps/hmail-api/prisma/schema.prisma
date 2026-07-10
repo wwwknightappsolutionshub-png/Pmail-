@@ -2214,6 +2214,7 @@ model UserJobHunterSettings {
   manualJobHuntingOverride  Boolean   @default(false)
   careerScore               Int       @default(0)
   careerUnlockedAt          DateTime?
+  jobHunterPromoToastDismissedAt DateTime?
   inferencesDeletedAt       DateTime?
   createdAt                 DateTime  @default(now())
   updatedAt                 DateTime  @updatedAt

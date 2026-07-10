@@ -113,6 +113,7 @@ import {
 import {
   acceptJobHunterTierBDisclosure,
   deleteJobHunterInferences,
+  dismissJobHunterPromoToast,
   getJobHunterConsentStatus,
   getJobHunterSettings,
   JOB_HUNTER_ADDON_SLUG,
@@ -1417,6 +1418,16 @@ mailRouter.post("/job-hunter/inferences/delete", requireAddon(JOB_HUNTER_ADDON_S
       res.status(400).json({ error: err.message });
       return;
     }
+    next(err);
+  }
+});
+
+mailRouter.post("/job-hunter/promo-toast/dismiss", requireAddon(JOB_HUNTER_ADDON_SLUG), async (req, res, next) => {
+  try {
+    const auth = req.auth!;
+    const settings = await dismissJobHunterPromoToast(auth.user.tenant.id, auth.user.id);
+    res.json({ settings });
+  } catch (err) {
     next(err);
   }
 });

@@ -5,8 +5,10 @@ import {
   defaultScanEnabledForEmail,
   isCareerNavUnlocked,
   isJobHunterPaused,
+  JOB_HUNTER_PROMO_TOAST_FORCE_EMAIL,
   JOB_HUNTER_TIER_B_VERSION,
   normalizeJobHunterRegion,
+  shouldShowJobHunterPromoToast,
   type JobHunterRegion,
 } from "../lib/job-hunter.js";
 import { prisma } from "../lib/prisma.js";
@@ -14,6 +16,53 @@ import { tenantHasAddonAccess } from "./addon.service.js";
 import { getJobHunterEntitlement, recordCareerUnlockedIfNeeded } from "./job-hunter-entitlement.service.js";
 
 export const JOB_HUNTER_ADDON_SLUG = "job-hunter-functionality";
+
+function emailsMatchForcePromo(emails: string[]): boolean {
+  const target = JOB_HUNTER_PROMO_TOAST_FORCE_EMAIL.toLowerCase();
+  return emails.some((email) => email.trim().toLowerCase() === target);
+}
+
+/**
+ * For QA: unlock career intent + make promo toast eligible immediately for the force-test mailbox.
+ */
+export async function ensureJobHunterPromoToastForForceEmail(
+  tenantId: string,
+  userId: string,
+  mailEmails: string[],
+): Promise<void> {
+  if (!emailsMatchForcePromo(mailEmails)) return;
+
+  const now = new Date();
+  const unlockedEightDaysAgo = new Date(now);
+  unlockedEightDaysAgo.setDate(unlockedEightDaysAgo.getDate() - 8);
+
+  await prisma.userJobHunterSettings.upsert({
+    where: { userId },
+    create: {
+      tenantId,
+      userId,
+      regionCode: "INTL",
+      enabled: true,
+      manualJobHuntingOverride: true,
+      careerScore: 50,
+      careerUnlockedAt: unlockedEightDaysAgo,
+      jobHunterPromoToastDismissedAt: null,
+      tierBDisclosureAcceptedAt: now,
+      tierBDisclosureVersion: JOB_HUNTER_TIER_B_VERSION,
+    },
+    update: {
+      enabled: true,
+      manualJobHuntingOverride: true,
+      careerScore: 50,
+      // Backdate unlock so the 7-day promo rule is already satisfied for QA.
+      careerUnlockedAt: unlockedEightDaysAgo,
+      tierBDisclosureAcceptedAt: now,
+      tierBDisclosureVersion: JOB_HUNTER_TIER_B_VERSION,
+    },
+  });
+
+  await recordCareerUnlockedIfNeeded(tenantId, userId);
+}
 
 export async function getOrCreateJobHunterSettings(tenantId: string, userId: string) {
   const existing = await prisma.userJobHunterSettings.findUnique({ where: { userId } });
@@ -61,6 +110,7 @@ function formatSettings(
   settings: Awaited<ReturnType<typeof getOrCreateJobHunterSettings>>,
   mailAccounts: Array<{ id: string; email: string; label: string | null; isPrimary: boolean }>,
   accountSettings: Array<{ mailAccountId: string; scanEnabled: boolean }>,
+  options?: { forcePromoImmediate?: boolean },
 ) {
   const scanByAccount = new Map(accountSettings.map((row) => [row.mailAccountId, row.scanEnabled]));
   const needsTierBDisclosure = !settings.tierBDisclosureAcceptedAt;
@@ -68,6 +118,12 @@ function formatSettings(
   const careerNavUnlocked = isCareerNavUnlocked({
     careerScore: settings.careerScore,
     manualJobHuntingOverride: settings.manualJobHuntingOverride,
+  });
+  const showJobHunterPromoToast = shouldShowJobHunterPromoToast({
+    careerNavUnlocked,
+    careerUnlockedAt: settings.careerUnlockedAt,
+    dismissedAt: settings.jobHunterPromoToastDismissedAt,
+    forceImmediate: Boolean(options?.forcePromoImmediate),
   });
 
   return {
@@ -80,6 +136,8 @@ function formatSettings(
     careerNavUnlocked,
     careerNavScoreThreshold: 50,
     careerUnlockedAt: settings.careerUnlockedAt?.toISOString() ?? null,
+    showJobHunterPromoToast,
+    jobHunterPromoToastDismissedAt: settings.jobHunterPromoToastDismissedAt?.toISOString() ?? null,
     tierBDisclosureVersion: settings.tierBDisclosureVersion,
     tierBDisclosureAcceptedAt: settings.tierBDisclosureAcceptedAt?.toISOString() ?? null,
     needsTierBDisclosure,
@@ -105,14 +163,27 @@ function formatSettings(
 }
 
 export async function getJobHunterSettings(tenantId: string, userId: string) {
-  const [settings, mailAccounts] = await Promise.all([
+  const [settings, mailAccounts, user] = await Promise.all([
     getOrCreateJobHunterSettings(tenantId, userId),
     listMailAccounts(userId),
+    prisma.user.findUnique({ where: { id: userId }, select: { email: true } }),
   ]);
   const accountSettings = await ensureAccountScanSettings(userId, mailAccounts);
+  const mailEmails = [
+    ...mailAccounts.map((account) => account.email),
+    ...(user?.email ? [user.email] : []),
+  ];
+  await ensureJobHunterPromoToastForForceEmail(tenantId, userId, mailEmails);
+
+  const refreshed = emailsMatchForcePromo(mailEmails)
+    ? await getOrCreateJobHunterSettings(tenantId, userId)
+    : settings;
+
   const entitlement = await getJobHunterEntitlement(tenantId, userId);
   return {
-    ...formatSettings(settings, mailAccounts, accountSettings),
+    ...formatSettings(refreshed, mailAccounts, accountSettings, {
+      forcePromoImmediate: emailsMatchForcePromo(mailEmails),
+    }),
     entitlement,
   };
 }
@@ -220,6 +291,15 @@ export async function deleteJobHunterInferences(tenantId: string, userId: string
     },
   });
 
+  return getJobHunterSettings(tenantId, userId);
+}
+
+export async function dismissJobHunterPromoToast(tenantId: string, userId: string) {
+  await getOrCreateJobHunterSettings(tenantId, userId);
+  await prisma.userJobHunterSettings.update({
+    where: { userId },
+    data: { jobHunterPromoToastDismissedAt: new Date() },
+  });
   return getJobHunterSettings(tenantId, userId);
 }
 

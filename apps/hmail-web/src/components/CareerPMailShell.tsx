@@ -32,12 +32,13 @@ type CareerPMailShellProps = {
 
 export function CareerPMailShell({ children }: CareerPMailShellProps) {
   const { user, logout } = useAuth();
-  const { hasAddon, hasJobHunterAccess } = useAddons();
+  const { hasAddon } = useAddons();
   const navigate = useNavigate();
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
     (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
   );
   const [platformNotice, setPlatformNotice] = useState("");
+  const [careerNavUnlocked, setCareerNavUnlocked] = useState(false);
   const [searchDraft, setSearchDraft] = useState<MailSearchState>({ field: "subject", query: "", scope: "all" });
   const [liveComposeSettings, setLiveComposeSettings] = useState<LiveComposeSettings | null>(null);
   const [organizationUsers, setOrganizationUsers] = useState<Array<{ id: string; email: string; displayName: string }>>(
@@ -61,6 +62,10 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
   useEffect(() => {
     void refreshComposeSettings().catch(() => setLiveComposeSettings(null));
     void api.organizationUsers().then((response) => setOrganizationUsers(response.users));
+    void api
+      .getJobHunterSettings()
+      .then((res) => setCareerNavUnlocked(res.settings.careerNavUnlocked))
+      .catch(() => setCareerNavUnlocked(false));
   }, [refreshComposeSettings]);
 
   const onWorkspaceTabNavigate = useCallback(
@@ -171,7 +176,7 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
           }}
         />
       }
-      showCareerTab={hasJobHunterAccess()}
+      showCareerTab={careerNavUnlocked}
       forcedWorkspace="career"
       careerTabHref="/career"
       onCareerTabClick={() => window.location.assign("/career")}

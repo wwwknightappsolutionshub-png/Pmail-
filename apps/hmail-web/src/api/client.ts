@@ -2196,6 +2196,8 @@ export const api = {
         careerNavUnlocked: boolean;
         careerNavScoreThreshold: number;
         careerUnlockedAt: string | null;
+        showJobHunterPromoToast: boolean;
+        jobHunterPromoToastDismissedAt: string | null;
         tierBDisclosureVersion: string | null;
         tierBDisclosureAcceptedAt: string | null;
         needsTierBDisclosure: boolean;
@@ -2212,6 +2214,8 @@ export const api = {
         }>;
       };
     }>("/api/mail/job-hunter/settings"),
+  dismissJobHunterPromoToast: () =>
+    request<{ settings: unknown }>("/api/mail/job-hunter/promo-toast/dismiss", { method: "POST" }),
   getJobHunterConsent: () =>
     request<{
       consent: {

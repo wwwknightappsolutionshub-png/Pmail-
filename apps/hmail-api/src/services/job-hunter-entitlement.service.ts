@@ -63,6 +63,17 @@ export async function recordCareerUnlockedIfNeeded(tenantId: string, userId: str
 }
 
 export async function getJobHunterEntitlement(tenantId: string, userId: string): Promise<JobHunterEntitlement> {
+  // QA force-account: unlock career before access checks so settings/toast routes are reachable.
+  const { ensureJobHunterPromoToastForForceEmail } = await import("./job-hunter-settings.service.js");
+  const [user, mailAccounts] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { email: true } }),
+    prisma.userMailAccount.findMany({ where: { userId }, select: { email: true } }),
+  ]);
+  await ensureJobHunterPromoToastForForceEmail(tenantId, userId, [
+    ...mailAccounts.map((account) => account.email),
+    ...(user?.email ? [user.email] : []),
+  ]);
+
   await recordCareerUnlockedIfNeeded(tenantId, userId);
   const settings =
     (await prisma.userJobHunterSettings.findUnique({ where: { userId } })) ??

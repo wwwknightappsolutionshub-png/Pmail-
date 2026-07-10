@@ -79,6 +79,29 @@ export function isCareerNavUnlocked(input: {
   return input.manualJobHuntingOverride || input.careerScore >= JOB_HUNTER_CAREER_NAV_SCORE_THRESHOLD;
 }
 
+/** Days after career intent confirmation before showing Job Hunter workspace promo toast. */
+export const JOB_HUNTER_PROMO_TOAST_DELAY_DAYS = 7;
+
+/** QA account that should see the promo toast immediately after deploy. */
+export const JOB_HUNTER_PROMO_TOAST_FORCE_EMAIL = "support@knightdesignhub.co.uk";
+
+export function shouldShowJobHunterPromoToast(input: {
+  careerNavUnlocked: boolean;
+  careerUnlockedAt: Date | null | undefined;
+  dismissedAt: Date | null | undefined;
+  forceImmediate?: boolean;
+  now?: Date;
+}): boolean {
+  if (!input.careerNavUnlocked) return false;
+  if (input.dismissedAt) return false;
+  if (input.forceImmediate) return true;
+  if (!input.careerUnlockedAt) return false;
+  const now = input.now ?? new Date();
+  const eligibleAt = new Date(input.careerUnlockedAt);
+  eligibleAt.setDate(eligibleAt.getDate() + JOB_HUNTER_PROMO_TOAST_DELAY_DAYS);
+  return now.getTime() >= eligibleAt.getTime();
+}
+
 export function canScanMailAccount(input: {
   tierBDisclosureAcceptedAt: Date | null | undefined;
   enabled: boolean;

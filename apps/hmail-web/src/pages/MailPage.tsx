@@ -74,6 +74,8 @@ import { useMessageListAtEnd } from "../hooks/useMessageListAtEnd";
 import { useMessageListHeadReveal } from "../hooks/useMessageListHeadReveal";
 import { useReadPaneHeadReveal } from "../hooks/useReadPaneHeadReveal";
 import { useMobileReadBodyFit } from "../hooks/useMobileReadBodyFit";
+import { useSwipeBack } from "../hooks/useSwipeBack";
+import { JobHunterPromoToast } from "../components/JobHunterPromoToast";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
 import { toolAddonSlug } from "../constants/addonTools";
@@ -372,6 +374,7 @@ export function MailPage({
     : {};
   const [platformNotice, setPlatformNotice] = useState("");
   const [careerNavUnlocked, setCareerNavUnlocked] = useState(false);
+  const [showJobHunterPromoToast, setShowJobHunterPromoToast] = useState(false);
   const [referBusy, setReferBusy] = useState(false);
   const [paidAddonGate, setPaidAddonGate] = useState<{ slug: string; name: string } | null>(null);
   const [multiInboxPromptOpen, setMultiInboxPromptOpen] = useState(false);
@@ -594,10 +597,12 @@ export function MailPage({
       .getJobHunterSettings()
       .then((res) => {
         setCareerNavUnlocked(res.settings.careerNavUnlocked);
+        setShowJobHunterPromoToast(Boolean(res.settings.showJobHunterPromoToast));
         onCareerNavUnlockedChange?.(res.settings.careerNavUnlocked);
       })
       .catch(() => {
         setCareerNavUnlocked(false);
+        setShowJobHunterPromoToast(false);
         onCareerNavUnlockedChange?.(false);
       });
   }, [onCareerNavUnlockedChange]);
@@ -607,10 +612,12 @@ export function MailPage({
       .getJobHunterSettings()
       .then((res) => {
         setCareerNavUnlocked(res.settings.careerNavUnlocked);
+        setShowJobHunterPromoToast(Boolean(res.settings.showJobHunterPromoToast));
         onCareerNavUnlockedChange?.(res.settings.careerNavUnlocked);
       })
       .catch(() => {
         setCareerNavUnlocked(false);
+        setShowJobHunterPromoToast(false);
         onCareerNavUnlockedChange?.(false);
       });
   }, [onCareerNavUnlockedChange]);
@@ -913,13 +920,16 @@ export function MailPage({
 
   const mobileGoBack = () => {
     if (mobilePane === "read") {
-      setMobilePane("list");
+      clearSelectedMessage();
       return;
     }
     if (mobilePane === "menu") {
       setMobilePane("list");
     }
   };
+
+  const swipeBackEnabled = mailListChromeViewport && (mobilePane === "read" || mobilePane === "menu");
+  const swipeBackHandlers = useSwipeBack(mobileGoBack, swipeBackEnabled);
 
   const activateEmbeddedShell = useCallback(() => {
     if (embedded) onEmbeddedShellActivate?.();
@@ -1438,6 +1448,9 @@ export function MailPage({
             } as React.CSSProperties)
           : undefined
       }
+      onTouchStart={swipeBackHandlers.onTouchStart}
+      onTouchEnd={swipeBackHandlers.onTouchEnd}
+      onTouchCancel={swipeBackHandlers.onTouchCancel}
     >
       <header className="mail-mobile-topbar">
         <div className="mail-mobile-topbar-start">
@@ -1836,6 +1849,20 @@ export function MailPage({
           onDontAskAgain={() => {
             setCvScannerDontAskAgain();
             setCvScannerToastFile(null);
+          }}
+        />
+      ) : null}
+
+      {showJobHunterPromoToast && !cvScannerToastFile ? (
+        <JobHunterPromoToast
+          onExplore={() => {
+            setShowJobHunterPromoToast(false);
+            void api.dismissJobHunterPromoToast().catch(() => undefined);
+            navigate("/career");
+          }}
+          onDismiss={() => {
+            setShowJobHunterPromoToast(false);
+            void api.dismissJobHunterPromoToast().catch(() => undefined);
           }}
         />
       ) : null}

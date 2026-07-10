@@ -42,6 +42,26 @@
   background: var(--list-chrome-bg, rgba(8, 14, 26, 0.96));
 }
 
+.pmail-loading-screen .hmail-wordmark,
+.pmail-loading-screen .hmail-logo-text strong,
+.pmail-loading-screen .hmail-logo--lg .hmail-wordmark,
+.pmail-loading-screen .hmail-logo--xl .hmail-wordmark,
+.pmail-loading-screen .hmail-logo--lg .hmail-logo-text strong,
+.pmail-loading-screen .hmail-logo--xl .hmail-logo-text strong {
+  font-size: 0.95rem;
+}
+
+.pmail-loading-screen .hmail-logo-text span,
+.pmail-loading-screen .hmail-logo--lg .hmail-logo-text span,
+.pmail-loading-screen .hmail-logo--xl .hmail-logo-text span {
+  font-size: 0.78rem;
+}
+
+.pmail-loading-screen .hmail-logo--xl .hmail-logo-icon {
+  width: 56px;
+  height: 56px;
+}
+
 .mail-app.mail-app--light .pmail-loading-screen--read-pane {
   background: var(--list-chrome-bg, #f8fafc);
   color: #0f172a;
