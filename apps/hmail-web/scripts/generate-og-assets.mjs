@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { mkdir } from "node:fs/promises";
+import { copyFile, mkdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -28,10 +29,16 @@ const pwa192 = resolve(publicDir, "pwa-192.png");
 await sharp(pwa192).png().toFile(resolve(publicDir, "pmail-app-icon.png"));
 console.log("Generated apps/hmail-web/public/pmail-app-icon.png from pwa-192.png");
 
-await sharp(pwa192).png().toFile(resolve(publicDir, "pmail-signature-logo.png"));
-console.log("Generated apps/hmail-web/public/pmail-signature-logo.png from pwa-192.png");
+// Prefer the committed branded signature logo; only fall back to pwa-192 if missing.
+const signatureLogo = resolve(publicDir, "pmail-signature-logo.png");
+if (!existsSync(signatureLogo)) {
+  await sharp(pwa192).png().toFile(signatureLogo);
+  console.log("Generated apps/hmail-web/public/pmail-signature-logo.png from pwa-192.png (fallback)");
+} else {
+  console.log("Keeping committed apps/hmail-web/public/pmail-signature-logo.png");
+}
 
 const apiAssetsDir = resolve(__dirname, "../../hmail-api/assets");
 await mkdir(apiAssetsDir, { recursive: true });
-await sharp(pwa192).png().toFile(resolve(apiAssetsDir, "pmail-signature-logo.png"));
-console.log("Generated apps/hmail-api/assets/pmail-signature-logo.png from pwa-192.png");
+await copyFile(signatureLogo, resolve(apiAssetsDir, "pmail-signature-logo.png"));
+console.log("Synced apps/hmail-api/assets/pmail-signature-logo.png");

@@ -18,7 +18,8 @@ const BRANDED_SIGNATURE_BLOCK_RE =
 
 const PRODUCTION_WEB_ORIGIN_FALLBACK = "https://mail.prohost.cloud";
 const PRODUCTION_EXPLORE_URL = `${PRODUCTION_WEB_ORIGIN_FALLBACK}/welcome/prohost/`;
-const DEFAULT_SIGNATURE_LOGO_PATH = "/pmail-signature-logo.png";
+/** Served by the API so compose preview does not depend on the web static host. */
+const DEFAULT_SIGNATURE_LOGO_PATH = "/api/public/pmail-signature-logo.png";
 
 function isLocalDevOrigin(origin: string): boolean {
   try {
@@ -160,6 +161,14 @@ function resolveSignatureLogoPaths(): string[] {
     resolve(process.cwd(), "apps/hmail-web/public/pmail-signature-logo.png"),
     resolve(process.cwd(), "apps/hmail-web/public/pwa-192.png"),
   ];
+}
+
+/** Absolute filesystem path for the bundled signature logo (public route + CID embed). */
+export function resolveSignatureLogoFilePath(): string | null {
+  for (const logoPath of resolveSignatureLogoPaths()) {
+    if (existsSync(logoPath)) return logoPath;
+  }
+  return null;
 }
 
 function isDefaultBundledLogoUrl(logoUrl?: string): boolean {

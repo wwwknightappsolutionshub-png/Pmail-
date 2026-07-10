@@ -986,6 +986,11 @@ body.pmail-search-overlay-open {
 }
 
 .bespoke-demo-workspace-tabs-more--mobile-left {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
   min-width: 2.5rem;
   padding: 0 0.35rem 0 0.55rem;
   justify-content: center;
@@ -993,11 +998,18 @@ body.pmail-search-overlay-open {
 }
 
 .bespoke-demo-workspace-tabs-shell--more-back .bespoke-demo-workspace-tabs {
-  padding-left: 0.25rem;
+  /* Back control is absolutely positioned — keep a small inset so first tab stays tappable. */
+  padding-left: 2.35rem;
 }
 
 .bespoke-demo-workspace-tabs-shell--more-forward .bespoke-demo-workspace-tabs {
   padding-right: 0.15rem;
+}
+
+/* Keep layout width reserved; hide only visually to avoid edge flicker loops. */
+.bespoke-demo-workspace-tabs-more--inactive {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .bespoke-demo-workspace-toolbar {

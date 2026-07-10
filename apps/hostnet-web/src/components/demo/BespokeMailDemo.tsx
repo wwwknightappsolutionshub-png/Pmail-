@@ -752,7 +752,8 @@ export function BespokeMailDemo({
     const el = workspaceTabsRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
-    const threshold = window.matchMedia("(max-width: 767px)").matches ? 2 : 4;
+    // Stable threshold — avoid edge flicker from sub-pixel / layout churn.
+    const threshold = 8;
     const overflow = scrollWidth - clientWidth > threshold;
     setWorkspaceTabsHasOverflow(overflow);
     setWorkspaceTabsCanScrollForward(overflow && scrollLeft + clientWidth < scrollWidth - threshold);
@@ -1105,12 +1106,12 @@ export function BespokeMailDemo({
   const messagingTabCount = renderInboxWorkspace
     ? workspaceTabCounts?.messaging ?? messagingDirectoryCount
     : messagingThreads.length;
-  const showWorkspaceTabsMoreForward = workspaceTabsHasOverflow && workspaceTabsCanScrollForward;
+  // Keep forward More mounted whenever tabs overflow so width stays stable.
+  // Back is absolutely positioned (CSS) so it can mount only when needed.
+  const showWorkspaceTabsMoreForward = workspaceTabsHasOverflow;
   const showWorkspaceTabsMoreBackward =
-    isMobileWorkspaceTabs &&
-    workspaceTabsHasOverflow &&
-    workspaceTabsCanScrollBackward &&
-    !workspaceTabsCanScrollForward;
+    isMobileWorkspaceTabs && workspaceTabsHasOverflow && workspaceTabsCanScrollBackward;
+  const workspaceTabsMoreForwardActive = workspaceTabsCanScrollForward;
 
   const handleCareerTabActivate = useCallback(() => {
     if (renderInboxWorkspace) {
@@ -2379,7 +2380,11 @@ export function BespokeMailDemo({
           workspaceTabsHasOverflow ? " bespoke-demo-workspace-tabs-shell--overflow" : ""
         }${workspaceTabsCanScrollBackward ? " bespoke-demo-workspace-tabs-shell--overflow-start" : ""}${
           workspaceTabsCanScrollForward ? " bespoke-demo-workspace-tabs-shell--overflow-end" : ""
-        }${showWorkspaceTabsMoreBackward ? " bespoke-demo-workspace-tabs-shell--more-back" : ""}${
+        }${
+          isMobileWorkspaceTabs && workspaceTabsHasOverflow
+            ? " bespoke-demo-workspace-tabs-shell--more-back"
+            : ""
+        }${
           showWorkspaceTabsMoreForward ? " bespoke-demo-workspace-tabs-shell--more-forward" : ""
         }`}
       >
@@ -2506,9 +2511,12 @@ export function BespokeMailDemo({
             type="button"
             className={`bespoke-demo-workspace-tabs-more${
               isMobileWorkspaceTabs ? " bespoke-demo-workspace-tabs-more--mobile" : ""
-            }`}
+            }${workspaceTabsMoreForwardActive ? "" : " bespoke-demo-workspace-tabs-more--inactive"}`}
             aria-label="More workspace tabs — swipe or tap to see more"
             title="More tabs"
+            aria-hidden={!workspaceTabsMoreForwardActive}
+            tabIndex={workspaceTabsMoreForwardActive ? 0 : -1}
+            disabled={!workspaceTabsMoreForwardActive}
             onClick={scrollWorkspaceTabsForward}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">

@@ -49,6 +49,7 @@ import {
 } from "../services/growth-public-chat.service.js";
 import { recordPublicGrowthAnalyticsEvent } from "../services/growth-public-analytics.service.js";
 import { resolveMarketingAssetFile } from "../services/marketing-asset.service.js";
+import { resolveSignatureLogoFilePath } from "../services/default-signature.service.js";
 import { getPmailClientRefreshAt } from "../services/pmail-platform-config.service.js";
 import {
   buildPublicSitemapXml,
@@ -132,6 +133,17 @@ publicRouter.get("/marketing/assets/:fileName", (req, res) => {
     res.status(404).json({ error: "Not found" });
     return;
   }
+  res.sendFile(filePath);
+});
+
+publicRouter.get("/pmail-signature-logo.png", (_req, res) => {
+  const filePath = resolveSignatureLogoFilePath();
+  if (!filePath) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  res.setHeader("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
+  res.type("image/png");
   res.sendFile(filePath);
 });
 
