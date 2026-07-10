@@ -181,7 +181,7 @@ function JobHunterSettingsBody({
           </label>
           <p className={hintClass}>
             Career score: {settings.careerScore} / {settings.careerNavScoreThreshold} — Career nav{" "}
-            {settings.careerNavUnlocked ? "unlocked" : "hidden until threshold or override"}.
+            {settings.careerNavUnlocked ? "unlocked" : "hidden until inbox/sent job signals or override"}.
           </p>
         </section>
 

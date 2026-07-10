@@ -55,8 +55,8 @@ describe("Job Hunter Phase 1 — Tier B & settings", () => {
     });
 
     it("unlocks career nav on score threshold or manual override", () => {
-      expect(isCareerNavUnlocked({ careerScore: 49, manualJobHuntingOverride: false })).toBe(false);
-      expect(isCareerNavUnlocked({ careerScore: 50, manualJobHuntingOverride: false })).toBe(true);
+      expect(isCareerNavUnlocked({ careerScore: 19, manualJobHuntingOverride: false })).toBe(false);
+      expect(isCareerNavUnlocked({ careerScore: 20, manualJobHuntingOverride: false })).toBe(true);
       expect(isCareerNavUnlocked({ careerScore: 0, manualJobHuntingOverride: true })).toBe(true);
     });
   });

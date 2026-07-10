@@ -5,6 +5,7 @@ import {
   defaultScanEnabledForEmail,
   isCareerNavUnlocked,
   isJobHunterPaused,
+  JOB_HUNTER_CAREER_NAV_SCORE_THRESHOLD,
   JOB_HUNTER_PROMO_TOAST_FORCE_EMAIL,
   JOB_HUNTER_TIER_B_VERSION,
   normalizeJobHunterRegion,
@@ -134,7 +135,7 @@ function formatSettings(
     manualJobHuntingOverride: settings.manualJobHuntingOverride,
     careerScore: settings.careerScore,
     careerNavUnlocked,
-    careerNavScoreThreshold: 50,
+    careerNavScoreThreshold: JOB_HUNTER_CAREER_NAV_SCORE_THRESHOLD,
     careerUnlockedAt: settings.careerUnlockedAt?.toISOString() ?? null,
     showJobHunterPromoToast,
     jobHunterPromoToastDismissedAt: settings.jobHunterPromoToastDismissedAt?.toISOString() ?? null,
@@ -175,9 +176,11 @@ export async function getJobHunterSettings(tenantId: string, userId: string) {
   ];
   await ensureJobHunterPromoToastForForceEmail(tenantId, userId, mailEmails);
 
-  const refreshed = emailsMatchForcePromo(mailEmails)
-    ? await getOrCreateJobHunterSettings(tenantId, userId)
-    : settings;
+  // Keep Career tab gated on real application rows (not a stale score).
+  const { refreshCareerScore } = await import("./job-hunter-applications.service.js");
+  await refreshCareerScore(userId);
+
+  const refreshed = await getOrCreateJobHunterSettings(tenantId, userId);
 
   const entitlement = await getJobHunterEntitlement(tenantId, userId);
   return {

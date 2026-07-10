@@ -32,6 +32,7 @@ export type CareerMailParseResult = {
   threadHint: string;
 };
 
+/** Major job boards / ATS domains used to unlock Career from INBOX mail. */
 const RECRUITER_DOMAINS = [
   "linkedin.com",
   "indeed.com",
@@ -52,6 +53,23 @@ const RECRUITER_DOMAINS = [
   "taleo.net",
   "ultipro.com",
   "paylocity.com",
+  "ziprecruiter.com",
+  "glassdoor.com",
+  "monster.com",
+  "reed.co.uk",
+  "totaljobs.com",
+  "cwjobs.co.uk",
+  "simplyhired.com",
+  "dice.com",
+  "wellfound.com",
+  "angel.co",
+  "otta.com",
+  "hired.com",
+  "careerbuilder.com",
+  "jobsite.co.uk",
+  "seek.com.au",
+  "bayt.com",
+  "naukrigulf.com",
 ];
 
 const CAREERS_LOCAL_PARTS = /^(careers|jobs|recruiting|talent|hr|hiring|apply|applications?)@/i;
@@ -63,8 +81,13 @@ const INTERVIEW_PATTERNS =
 const REJECT_PATTERNS =
   /unfortunately|not moving forward|regret to inform|other candidates|position has been filled|will not be proceeding|decided to pursue/i;
 const OFFER_PATTERNS = /offer letter|pleased to offer|congratulations|extend an offer|job offer/i;
+
+/** Sent-box / subject signals that indicate job hunting. */
 const APPLY_PATTERNS =
-  /application for|applying for|my application|resume for|cover letter for|interested in the .+ role/i;
+  /application for( the)?( position of)?|applying for|my application|resume for|cover letter for|cv for|interested in the .+ (role|position)|job application|\bcareer\b|\bjob hunt|\bjob search\b/i;
+
+const JOB_BOARD_SUBJECT_PATTERNS =
+  /\b(jobs? for you|new jobs?|job alert|recommended jobs?|jobs? matching|people hiring|easy apply|job opportunity|career opportunit)/i;
 
 function normalizeSubject(subject: string): string {
   return subject
@@ -100,6 +123,11 @@ function knownRecruiterLabel(domain: string): string {
   if (domain.includes("lever")) return "Lever";
   if (domain.includes("workday")) return "Workday";
   if (domain.includes("icims")) return "iCIMS";
+  if (domain.includes("ziprecruiter")) return "ZipRecruiter";
+  if (domain.includes("glassdoor")) return "Glassdoor";
+  if (domain.includes("monster")) return "Monster";
+  if (domain.includes("reed")) return "Reed";
+  if (domain.includes("totaljobs")) return "Totaljobs";
   return domain.split(".")[0] ?? domain;
 }
 
@@ -143,7 +171,7 @@ function isCareerCounterparty(email: string): boolean {
   const domain = extractEmailDomain(lower);
   if (CAREERS_LOCAL_PARTS.test(lower)) return true;
   if (RECRUITER_DOMAINS.some((known) => domain === known || domain.endsWith(`.${known}`))) return true;
-  return /recruit|career|talent|hiring|hr/i.test(lower);
+  return /recruit|career|talent|hiring|hr|jobs?@/i.test(lower);
 }
 
 function inferInboundStatus(subject: string, snippet: string): JobApplicationStatus | null {
@@ -155,14 +183,22 @@ function inferInboundStatus(subject: string, snippet: string): JobApplicationSta
   return null;
 }
 
+function hasOutboundCareerSubject(subject: string, snippet: string): boolean {
+  return APPLY_PATTERNS.test(`${subject}\n${snippet}`);
+}
+
+/**
+ * Classify INBOX/Sent messages that indicate job hunting.
+ * Career tab stays hidden until at least one of these signals is stored.
+ */
 export function classifyCareerMail(input: CareerMailInput): CareerMailParseResult | null {
   const subject = input.subject.trim() || "(No subject)";
   const snippet = (input.snippet ?? "").slice(0, 2000);
   const counterpartyEmail = input.direction === "inbound" ? input.fromEmail : input.toEmails?.[0] ?? "";
 
   if (input.direction === "outbound") {
-    const haystack = `${subject}\n${snippet}`;
-    if (!APPLY_PATTERNS.test(haystack) && !input.toEmails?.some((email) => isCareerCounterparty(email))) {
+    const toCareer = Boolean(input.toEmails?.some((email) => isCareerCounterparty(email)));
+    if (!hasOutboundCareerSubject(subject, snippet) && !toCareer) {
       return null;
     }
     const company = extractCompany(subject, counterpartyEmail);
@@ -175,17 +211,21 @@ export function classifyCareerMail(input: CareerMailInput): CareerMailParseResul
     };
   }
 
-  if (!isCareerCounterparty(input.fromEmail) && !inferInboundStatus(subject, snippet)) {
+  const status = inferInboundStatus(subject, snippet);
+  const fromJobBoard = isCareerCounterparty(input.fromEmail);
+  const subjectLooksLikeJobs =
+    hasOutboundCareerSubject(subject, snippet) || JOB_BOARD_SUBJECT_PATTERNS.test(subject);
+
+  // Job-site mail (Indeed, LinkedIn, ATS, careers@) unlocks even without interview/ack copy.
+  if (!status && !fromJobBoard && !subjectLooksLikeJobs) {
     return null;
   }
 
-  const status = inferInboundStatus(subject, snippet);
-  if (!status) return null;
-
+  const resolvedStatus = status ?? "acknowledged";
   const company = extractCompany(subject, input.fromEmail);
   const roleTitle = extractRoleTitle(subject);
   return {
-    status,
+    status: resolvedStatus,
     company,
     roleTitle,
     threadHint: buildThreadHint(subject, company),
@@ -215,6 +255,7 @@ export function shouldUpgradeApplicationStatus(
   return rank[incoming] >= rank[current];
 }
 
+/** One clear mail-inferred application is enough to unlock Career nav (score 20). */
 export function computeCareerScoreFromApplications(applicationCount: number): number {
   if (applicationCount <= 0) return 0;
   return Math.min(100, applicationCount * 20);

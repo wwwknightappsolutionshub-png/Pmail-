@@ -480,7 +480,8 @@ export async function updateJobApplication(
 }
 
 export async function syncAllJobHunterApplications(): Promise<number> {
-  const users = await prisma.userJobHunterSettings.findMany({
+  // Full Job Hunter sync for users who accepted Tier B.
+  const consented = await prisma.userJobHunterSettings.findMany({
     where: {
       tierBDisclosureAcceptedAt: { not: null },
       enabled: true,
@@ -489,7 +490,7 @@ export async function syncAllJobHunterApplications(): Promise<number> {
   });
 
   let processed = 0;
-  for (const row of users) {
+  for (const row of consented) {
     try {
       await syncJobApplicationsForUser(row.tenantId, row.userId);
       processed += 1;
@@ -497,5 +498,23 @@ export async function syncAllJobHunterApplications(): Promise<number> {
       // continue with next user
     }
   }
+
+  // Lightweight Career-tab unlock audit for everyone else with a mailbox
+  // (does not require Job Hunter consent — only INBOX/Sent subject/sender signals).
+  const mailUsers = await prisma.userMailAccount.findMany({
+    distinct: ["userId"],
+    select: { userId: true, user: { select: { tenantId: true } } },
+  });
+  const consentedIds = new Set(consented.map((row) => row.userId));
+  for (const row of mailUsers) {
+    if (consentedIds.has(row.userId)) continue;
+    try {
+      await syncCareerMailSignalsForUser(row.user.tenantId, row.userId);
+      processed += 1;
+    } catch {
+      // continue
+    }
+  }
+
   return processed;
 }

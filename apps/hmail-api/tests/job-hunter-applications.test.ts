@@ -54,6 +54,26 @@ describe("Job Hunter Phase 3 — application history", () => {
       expect(parsed?.company).toMatch(/Acme/i);
     });
 
+    it("detects Application For The Position Of and Career subjects in Sent", () => {
+      expect(
+        classifyCareerMail({
+          direction: "outbound",
+          subject: "Application For The Position Of Marketing Manager",
+          fromEmail: "user@gmail.com",
+          toEmails: ["hr@example.com"],
+        })?.status,
+      ).toBe("applied");
+
+      expect(
+        classifyCareerMail({
+          direction: "outbound",
+          subject: "Career opportunity follow-up",
+          fromEmail: "user@gmail.com",
+          toEmails: ["recruiter@agency.com"],
+        })?.status,
+      ).toBe("applied");
+    });
+
     it("detects inbound interview and rejection messages", () => {
       expect(
         classifyCareerMail({
@@ -72,6 +92,37 @@ describe("Job Hunter Phase 3 — application history", () => {
           snippet: "Unfortunately we will not be moving forward",
         })?.status,
       ).toBe("rejected");
+    });
+
+    it("unlocks from Indeed/LinkedIn inbox mail without explicit ack copy", () => {
+      expect(
+        classifyCareerMail({
+          direction: "inbound",
+          subject: "12 new jobs for Software Engineer",
+          fromEmail: "noreply@indeed.com",
+          snippet: "Jobs matching your search",
+        })?.status,
+      ).toBe("acknowledged");
+
+      expect(
+        classifyCareerMail({
+          direction: "inbound",
+          subject: "People are hiring for roles like yours",
+          fromEmail: "jobs-listings@linkedin.com",
+          snippet: "See jobs on LinkedIn",
+        })?.status,
+      ).toBe("acknowledged");
+    });
+
+    it("ignores unrelated inbox mail", () => {
+      expect(
+        classifyCareerMail({
+          direction: "inbound",
+          subject: "Your invoice for March",
+          fromEmail: "billing@stripe.com",
+          snippet: "Payment received",
+        }),
+      ).toBeNull();
     });
   });
 

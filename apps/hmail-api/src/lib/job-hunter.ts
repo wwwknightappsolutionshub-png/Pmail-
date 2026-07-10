@@ -1,7 +1,7 @@
 /** Tier B disclosure version — bump when copy materially changes. */
 export const JOB_HUNTER_TIER_B_VERSION = "2025-06-tier-b-v1";
 
-export const JOB_HUNTER_CAREER_NAV_SCORE_THRESHOLD = 50;
+export const JOB_HUNTER_CAREER_NAV_SCORE_THRESHOLD = 20;
 
 export const JOB_HUNTER_PAUSE_DAYS = 90;
 
