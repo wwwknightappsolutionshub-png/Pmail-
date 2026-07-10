@@ -38,8 +38,7 @@ import {
   TrashIcon,
   WhatsAppIcon,
 } from "../components/ReadActionButton";
-import { AttachmentCategoryBadges } from "../components/AttachmentCategoryBadges";
-import { SendForSignatureButton } from "../components/SendForSignatureButton";
+import { MessageAttachmentsSection } from "../components/MessageAttachmentsSection";
 import {
   isMultiInboxPromptDismissed,
   setMultiInboxPromptDismissed,
@@ -1729,44 +1728,26 @@ export function MailPage({
               </header>
 
               {selectedMessage.attachments.length > 0 ? (
-                <div className="attachments">
-                  {selectedMessage.attachments.map((att) => (
-                    <span key={att.partId} className="attachment-row">
-                      <a
-                        href={api.attachmentUrl(activeFolder, selectedMessage.uid, att.partId)}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {att.filename} ({Math.round(att.size / 1024)} KB)
-                      </a>
-                      <SendForSignatureButton
-                        folder={activeFolder}
-                        uid={selectedMessage.uid}
-                        messageSubject={selectedMessage.subject}
-                        attachment={{ partId: att.partId, filename: att.filename, contentType: att.contentType }}
-                        enabled={hasAddon("esign-from-email-functionality")}
-                        onCreated={(handoff) =>
-                          openCompose({
-                            mode: "new",
-                            to: handoff.to,
-                            subject: handoff.subject,
-                            html: handoff.html,
-                            text: handoff.text,
-                          })
-                        }
-                      />
-                    </span>
-                  ))}
-                  <AttachmentCategoryBadges
-                    folder={activeFolder}
-                    uid={selectedMessage.uid}
-                    enabled={hasAddon("attachment-categorize-functionality")}
-                    attachments={selectedMessage.attachments}
-                    onVaultExported={(vaultFileId) =>
-                      openCompose({ mode: "new", vaultFileIds: [vaultFileId] })
-                    }
-                  />
-                </div>
+                <MessageAttachmentsSection
+                  folder={activeFolder}
+                  uid={selectedMessage.uid}
+                  messageSubject={selectedMessage.subject}
+                  attachments={selectedMessage.attachments}
+                  categorizeEnabled={hasAddon("attachment-categorize-functionality")}
+                  esignEnabled={hasAddon("esign-from-email-functionality")}
+                  onComposeHandoff={(handoff) =>
+                    openCompose({
+                      mode: "new",
+                      to: handoff.to,
+                      subject: handoff.subject,
+                      html: handoff.html,
+                      text: handoff.text,
+                    })
+                  }
+                  onVaultExported={(vaultFileId) =>
+                    openCompose({ mode: "new", vaultFileIds: [vaultFileId] })
+                  }
+                />
               ) : null}
 
               <article className="read-body">

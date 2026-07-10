@@ -10,6 +10,9 @@ type ScrollSurfaceState = {
   revealed: boolean;
 };
 
+/** Ignore scroll events briefly after a reveal toggle to avoid sticky-header feedback flicker. */
+const TOGGLE_LOCK_MS = 220;
+
 /**
  * Hide the read-pane header while scrolling down through a message; reveal when scrolling up.
  * Mobile/tablet only — enable via the `enabled` flag from the caller.
@@ -21,9 +24,11 @@ export function useReadPaneHeadReveal(
 ): boolean {
   const [revealed, setRevealed] = useState(true);
   const revealedRef = useRef(true);
+  const lockUntilRef = useRef(0);
 
   useEffect(() => {
     revealedRef.current = true;
+    lockUntilRef.current = 0;
     setRevealed(true);
   }, [resetKey, enabled]);
 
@@ -39,6 +44,7 @@ export function useReadPaneHeadReveal(
     const syncRevealed = (next: boolean) => {
       if (revealedRef.current === next) return;
       revealedRef.current = next;
+      lockUntilRef.current = performance.now() + TOGGLE_LOCK_MS;
       setRevealed(next);
     };
 
@@ -58,6 +64,13 @@ export function useReadPaneHeadReveal(
       if (!state) {
         state = { lastTop: scroller.scrollTop, revealed: true };
         surfaceState.set(scroller, state);
+      }
+
+      const now = performance.now();
+      if (now < lockUntilRef.current) {
+        // Keep lastTop in sync so the unlock doesn't fire a huge delta.
+        state.lastTop = scroller.scrollTop;
+        return;
       }
 
       const result = applyRevealFromScroll(scroller.scrollTop, state.lastTop, state.revealed);

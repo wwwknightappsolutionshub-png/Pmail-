@@ -45,13 +45,14 @@ export function applyRevealFromScroll(
   if (scrollTop <= TOP_REVEAL_THRESHOLD) {
     return { revealed: true, lastTop: scrollTop };
   }
+  // Asymmetric thresholds reduce flicker when sticky chrome animates.
   if (delta > SCROLL_DELTA_THRESHOLD) {
     return { revealed: false, lastTop: scrollTop };
   }
   if (delta < -SCROLL_DELTA_THRESHOLD) {
     return { revealed: true, lastTop: scrollTop };
   }
-  return { revealed: currentRevealed, lastTop: scrollTop };
+  return { revealed: currentRevealed, lastTop };
 }
 
 /**
