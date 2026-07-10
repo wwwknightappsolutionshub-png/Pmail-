@@ -11,6 +11,17 @@ export function extractPrimaryEmailFromHeader(value: string): string {
   return extractEmailFromHeader(firstPart);
 }
 
+/** Matches backend encodeSenderKey for inbox cleanup actions. */
+export function encodeSenderKey(email: string): string {
+  const normalized = email.trim().toLowerCase();
+  const bytes = new TextEncoder().encode(normalized);
+  let binary = "";
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 export function senderLabel(from: string): string {
   const email = extractEmailFromHeader(from);
   const nameMatch = from.match(/^([^<]+)</);

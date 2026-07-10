@@ -58,6 +58,7 @@ import { isDeferredProductionVirtualView } from "../components/deferredProductio
 import { LazyProductionVirtualView } from "../components/LazyProductionVirtualView";
 import { renderProductionVirtualView } from "../components/ProductionVirtualViews";
 import { SenderGroupedMessageList, senderLabel } from "../components/SenderGroupedMessageList";
+import { encodeSenderKey } from "../utils/senderAvatar";
 import { MessageTableHead } from "../components/MessageTableHead";
 import { SenderAvatar } from "../components/SenderAvatar";
 import { extractEmailFromHeader } from "../utils/senderAvatar";
@@ -72,6 +73,7 @@ import { isMobileScreen } from "../utils/pwaPlatform";
 import { useMailListChromeViewport } from "../hooks/useMailListChromeViewport";
 import { useMessageListAtEnd } from "../hooks/useMessageListAtEnd";
 import { useMessageListHeadReveal } from "../hooks/useMessageListHeadReveal";
+import { useReadPaneHeadReveal } from "../hooks/useReadPaneHeadReveal";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
 import { toolAddonSlug } from "../constants/addonTools";
@@ -378,6 +380,7 @@ export function MailPage({
   const [mailAccountCount, setMailAccountCount] = useState<number | null>(null);
   const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
+  const readPaneRef = useRef<HTMLElement>(null);
   const [mobileMailViewport, setMobileMailViewport] = useState(() => isMobileScreen());
   const mailListChromeViewport = useMailListChromeViewport();
   const hasOpenTrackingAddon = hasAddon("open-tracking");
@@ -461,6 +464,8 @@ export function MailPage({
     mailListChromeViewport && folderUsesCollapsibleListHead(activeFolderKind, mailFilter);
   const listHeadResetKey = `${activeFolder}:${mailFilter}`;
   const listHeadRevealed = useMessageListHeadReveal(messageListRef, listHeadRevealEnabled, listHeadResetKey);
+  const readHeadResetKey = `${activeFolder}:${selectedUid ?? "none"}`;
+  const readHeadRevealed = useReadPaneHeadReveal(readPaneRef, Boolean(selectedUid && selectedMessage), readHeadResetKey);
   const activeFolderLabel = getFolderTitle(activeFolder, activeFolderMeta);
   const listPaneTitle = mailFilter === "starred" ? "Starred" : activeFolderLabel;
   const activeMailboxEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
@@ -845,6 +850,57 @@ export function MailPage({
       setSelectedUids([]);
     } else {
       setSelectedUids(messages.map((m) => m.uid));
+    }
+  };
+
+  const toggleSelectSenderGroup = (uids: number[]) => {
+    setSelectedUids((prev) => {
+      const allSelected = uids.length > 0 && uids.every((uid) => prev.includes(uid));
+      if (allSelected) {
+        return prev.filter((uid) => !uids.includes(uid));
+      }
+      return [...new Set([...prev, ...uids])];
+    });
+  };
+
+  const [deletingSenderEmail, setDeletingSenderEmail] = useState<string | null>(null);
+
+  const onDeleteSenderGroup = async (email: string, uids: number[], fromHeader: string) => {
+    const label = senderLabel(fromHeader);
+    const visibleCount = uids.length;
+    const usesFolderCleanup = hasAddon("inbox-cleanup-functionality");
+    const prompt = usesFolderCleanup
+      ? `Delete all messages from ${label} in this folder?`
+      : `Delete ${visibleCount} message${visibleCount === 1 ? "" : "s"} from ${label}?`;
+
+    if (!window.confirm(prompt)) return;
+
+    setListError("");
+    setDeletingSenderEmail(email);
+    try {
+      if (usesFolderCleanup) {
+        await api.runSenderCleanup({
+          folder: activeFolder,
+          senderKey: encodeSenderKey(email),
+          action: "delete",
+        });
+      } else {
+        await api.bulkAction(activeFolder, uids, "delete");
+      }
+
+      if (selectedUid && uids.includes(selectedUid)) {
+        setSelectedUid(null);
+        setSelectedMessage(null);
+        setMobilePane("list");
+      }
+
+      setSelectedUids((prev) => prev.filter((uid) => !uids.includes(uid)));
+      await loadMessages();
+      await loadFolders();
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Could not delete sender messages");
+    } finally {
+      setDeletingSenderEmail(null);
     }
   };
 
@@ -1298,6 +1354,9 @@ export function MailPage({
                   selectedUids={selectedUids}
                   onToggleSelectUid={toggleSelectUid}
                   onToggleSelectAll={toggleSelectAll}
+                  onToggleSelectSenderGroup={toggleSelectSenderGroup}
+                  onDeleteSenderGroup={onDeleteSenderGroup}
+                  deletingSenderEmail={deletingSenderEmail}
                   formatDate={formatDate}
                   primaryColumnLabel={listPrimaryColumnLabel}
                   groupBy={senderGroupBy}
@@ -1599,7 +1658,7 @@ export function MailPage({
         </section>
 
         {!isVirtual ? (
-        <section className="mail-read-pane">
+        <section className="mail-read-pane" ref={readPaneRef}>
           {!selectedUid ? (
             <div className="read-empty">
               <h3>Select a message</h3>
@@ -1614,7 +1673,10 @@ export function MailPage({
           ) : selectedMessage ? (
             <>
               {messageError ? <div className="pane-error">{messageError}</div> : null}
-              <header className="read-header">
+              <header
+                className={`read-header${readHeadRevealed ? "" : " read-header--hidden"}`}
+                data-read-head-revealed={readHeadRevealed ? "true" : "false"}
+              >
                 <div>
                   <button type="button" className="read-back-btn" onClick={clearSelectedMessage}>
                     ← Back to messages
@@ -1699,7 +1761,10 @@ export function MailPage({
 
               <article className="read-body">
                 {selectedMessage.html ? (
-                  <div dangerouslySetInnerHTML={{ __html: sanitizeMailHtml(selectedMessage.html) }} />
+                  <div
+                    className="read-body-content"
+                    dangerouslySetInnerHTML={{ __html: sanitizeMailHtml(selectedMessage.html) }}
+                  />
                 ) : (
                   <pre>{selectedMessage.text}</pre>
                 )}

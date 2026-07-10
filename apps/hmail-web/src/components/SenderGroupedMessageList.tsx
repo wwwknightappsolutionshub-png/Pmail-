@@ -17,6 +17,9 @@ type Props = {
   selectedUids: number[];
   onToggleSelectUid: (uid: number) => void;
   onToggleSelectAll: () => void;
+  onToggleSelectSenderGroup?: (uids: number[]) => void;
+  onDeleteSenderGroup?: (email: string, uids: number[], fromHeader: string) => void;
+  deletingSenderEmail?: string | null;
   formatDate: (iso: string) => string;
   primaryColumnLabel?: string;
   groupBy?: SenderGroupBy;
@@ -42,6 +45,9 @@ export function SenderGroupedMessageList({
   selectedUids,
   onToggleSelectUid,
   onToggleSelectAll,
+  onToggleSelectSenderGroup,
+  onDeleteSenderGroup,
+  deletingSenderEmail = null,
   formatDate,
   primaryColumnLabel = "Sender",
   groupBy = "from",
@@ -78,9 +84,28 @@ export function SenderGroupedMessageList({
       />
       {groups.map((group) => {
         const expanded = expandedSenderEmails.has(group.email);
+        const groupUids = group.messages.map((message) => message.uid);
+        const groupAllSelected =
+          groupUids.length > 0 && groupUids.every((uid) => selectedUids.includes(uid));
+        const groupSomeSelected = groupUids.some((uid) => selectedUids.includes(uid));
+        const isDeleting = deletingSenderEmail === group.email;
+
         return (
           <div key={group.email} className="message-sender-group">
             <div className="message-sender-group-head">
+              {showBulkBar ? (
+                <span className="message-sender-group-check">
+                  <input
+                    type="checkbox"
+                    checked={groupAllSelected}
+                    ref={(input) => {
+                      if (input) input.indeterminate = !groupAllSelected && groupSomeSelected;
+                    }}
+                    onChange={() => onToggleSelectSenderGroup?.(groupUids)}
+                    aria-label={`Select all messages from ${group.label}`}
+                  />
+                </span>
+              ) : null}
               <button
                 type="button"
                 className="message-sender-toggle"
@@ -96,9 +121,22 @@ export function SenderGroupedMessageList({
                   {expanded ? "▾" : "▸"}
                 </span>
               </button>
-              {group.unreadCount > 0 ? (
-                <span className="message-sender-unread">{group.unreadCount} unread</span>
-              ) : null}
+              <div className="message-sender-group-actions">
+                {group.unreadCount > 0 ? (
+                  <span className="message-sender-unread">{group.unreadCount} unread</span>
+                ) : null}
+                {showBulkBar && onDeleteSenderGroup ? (
+                  <button
+                    type="button"
+                    className="message-sender-delete-btn"
+                    disabled={isDeleting}
+                    aria-label={`Delete messages from ${group.label}`}
+                    onClick={() => onDeleteSenderGroup(group.email, groupUids, group.from)}
+                  >
+                    {isDeleting ? "Deleting…" : "Delete sender"}
+                  </button>
+                ) : null}
+              </div>
             </div>
             {expanded
               ? group.messages.map((msg) => (

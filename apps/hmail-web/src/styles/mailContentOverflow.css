@@ -1,44 +1,57 @@
 /* Keep HTML mail bodies and rich-text editors within the viewport on all screen sizes. */
 .read-body,
+.read-body-content,
 .rte-editor {
   box-sizing: border-box;
   max-width: 100%;
   min-width: 0;
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .read-body > *,
+.read-body-content > *,
 .rte-editor > * {
-  max-width: 100%;
+  max-width: 100% !important;
   min-width: 0;
 }
 
 .read-body table,
+.read-body-content table,
 .rte-editor table {
-  max-width: 100%;
-  width: auto !important;
-  table-layout: fixed;
+  display: block;
+  max-width: 100% !important;
+  width: 100% !important;
+  table-layout: fixed !important;
   word-break: break-word;
+  overflow-x: auto;
 }
 
 .read-body td,
 .read-body th,
+.read-body-content td,
+.read-body-content th,
 .rte-editor td,
 .rte-editor th {
+  max-width: 100% !important;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
 
 .read-body img,
+.read-body-content img,
 .rte-editor img {
+  display: block;
   max-width: 100% !important;
+  width: auto !important;
   height: auto !important;
 }
 
 .read-body pre,
 .read-body code,
+.read-body-content pre,
+.read-body-content code,
 .rte-editor pre,
 .rte-editor code {
   white-space: pre-wrap !important;
@@ -49,6 +62,7 @@
 }
 
 .read-body blockquote,
+.read-body-content blockquote,
 .rte-editor blockquote {
   max-width: 100%;
   overflow-wrap: anywhere;
@@ -59,10 +73,38 @@
 .read-body p,
 .read-body span,
 .read-body li,
+.read-body-content div,
+.read-body-content p,
+.read-body-content span,
+.read-body-content li,
 .rte-editor div,
 .rte-editor p,
 .rte-editor span,
 .rte-editor li {
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+.read-body [style*="width"],
+.read-body-content [style*="width"],
+.read-body [style*="min-width"],
+.read-body-content [style*="min-width"] {
+  max-width: 100% !important;
+}
+
+.read-body iframe,
+.read-body-content iframe,
+.read-body object,
+.read-body-content object,
+.read-body embed,
+.read-body-content embed {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.read-body center,
+.read-body-content center {
+  display: block;
+  max-width: 100%;
+  overflow-x: hidden;
 }

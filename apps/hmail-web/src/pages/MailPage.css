@@ -953,6 +953,49 @@
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
+.message-sender-group-head:has(.message-sender-group-check) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.message-sender-group-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+}
+
+.message-sender-group-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.message-sender-delete-btn {
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 999px;
+  padding: 0.32rem 0.7rem;
+  background: rgba(127, 29, 29, 0.22);
+  color: #fecaca;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.message-sender-delete-btn:hover:not(:disabled) {
+  background: rgba(153, 27, 27, 0.34);
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.message-sender-delete-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 .message-list--table > .message-sender-group:nth-child(odd) .message-sender-group-head {
   background: rgba(12, 20, 36, 0.82);
 }
@@ -1354,7 +1397,8 @@
 
 .mail-read-pane {
   background: #fff;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1458,12 +1502,25 @@
 }
 
 .read-header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
   border-bottom: 1px solid #e2e8f0;
   min-width: 0;
+  transition:
+    transform 0.22s ease,
+    opacity 0.22s ease;
+  will-change: transform;
+}
+
+.read-header--hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .mail-app .read-header {
@@ -1547,6 +1604,16 @@
 .read-body {
   padding: 1rem 1rem 5rem;
   line-height: 1.65;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.read-body-content {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .mail-app .read-body {
