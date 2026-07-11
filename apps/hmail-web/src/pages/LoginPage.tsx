@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { DEFAULT_TENANT_SLUG } from "../constants/tenant";
 import { buildProductOnboardingCtaSlide } from "../data/productOnboardingSlides";
@@ -13,18 +13,36 @@ import { useLoginForm } from "../hooks/useLoginForm";
 import { hasSeenWelcomeOnboarding } from "../utils/welcomeOnboardingPrefs";
 import "../pages/WelcomePage.css";
 
+function isProspectAccessParam(value: string | null) {
+  return value === "prospect" || value === "1" || value === "true";
+}
+
 export function LoginPage() {
   const { tenantSlug: tenantSlugParam } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const tenantSlug = tenantSlugParam?.trim().toLowerCase() || DEFAULT_TENANT_SLUG;
   const { user } = useAuth();
   const { branding, loadError } = useTenantBranding(tenantSlug);
   const loginForm = useLoginForm(tenantSlug);
-  const [accessMode, setAccessMode] = useState<"signin" | "prospect">("signin");
+  const [accessMode, setAccessMode] = useState<"signin" | "prospect">(() =>
+    isProspectAccessParam(searchParams.get("access")) ? "prospect" : "signin",
+  );
 
   const ctaSlide = useMemo(
     () => buildProductOnboardingCtaSlide(branding.productName),
     [branding.productName],
   );
+
+  function setAccessModeAndUrl(mode: "signin" | "prospect") {
+    setAccessMode(mode);
+    const next = new URLSearchParams(searchParams);
+    if (mode === "prospect") {
+      next.set("access", "prospect");
+    } else {
+      next.delete("access");
+    }
+    setSearchParams(next, { replace: true });
+  }
 
   if (user) return <Navigate to="/" replace />;
 
@@ -37,13 +55,13 @@ export function LoginPage() {
       <ProspectAccessForm
         tenantSlug={tenantSlug}
         productName={branding.productName}
-        onBackToSignIn={() => setAccessMode("signin")}
+        onBackToSignIn={() => setAccessModeAndUrl("signin")}
       />
     ) : (
       <LoginFormCard
         {...loginForm}
         loadError={loadError}
-        onRequestWorkspaceAccess={() => setAccessMode("prospect")}
+        onRequestWorkspaceAccess={() => setAccessModeAndUrl("prospect")}
       />
     );
 
@@ -59,7 +77,7 @@ export function LoginPage() {
         <ProductOnboardingCtaPanel
           slide={ctaSlide}
           productName={branding.productName}
-          onRequestWorkspaceAccess={() => setAccessMode("prospect")}
+          onRequestWorkspaceAccess={() => setAccessModeAndUrl("prospect")}
         />
       }
       rightPanel={<div id="login-sign-in-panel">{loginPanel}</div>}

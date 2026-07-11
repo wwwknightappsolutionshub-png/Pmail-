@@ -482,7 +482,7 @@
 
 .pmail-launch-layer-stack {
   position: relative;
-  min-height: 26rem;
+  min-height: 32rem;
   margin-bottom: 0.85rem;
 }
 
@@ -528,7 +528,7 @@
 }
 
 .pmail-launch-cutout--m365 {
-  top: 1.55rem;
+  top: 2.55rem;
   left: auto;
   right: 0;
   background: linear-gradient(160deg, #fff 0%, #eff6ff 100%);
@@ -538,7 +538,7 @@
 }
 
 .pmail-launch-cutout--aol {
-  top: 3.35rem;
+  top: 5.1rem;
   left: 0;
   background: linear-gradient(160deg, #fff 0%, #fef2f2 100%);
   border-color: rgba(220, 38, 38, 0.22);
@@ -547,7 +547,7 @@
 }
 
 .pmail-launch-cutout--yahoo {
-  top: 5.1rem;
+  top: 7.65rem;
   left: auto;
   right: 3%;
   background: linear-gradient(160deg, #fff 0%, #f5f3ff 100%);
@@ -557,7 +557,7 @@
 }
 
 .pmail-launch-cutout--proton {
-  top: 6.85rem;
+  top: 10.2rem;
   left: 6%;
   background: linear-gradient(160deg, #fff 0%, #ecfdf5 100%);
   border-color: rgba(6, 95, 70, 0.22);
@@ -566,7 +566,7 @@
 }
 
 .pmail-launch-cutout--thunderbird {
-  top: 8.55rem;
+  top: 12.75rem;
   left: auto;
   right: 1%;
   background: linear-gradient(160deg, #fff 0%, #fffbeb 100%);
@@ -576,7 +576,7 @@
 }
 
 .pmail-launch-cutout--hostinger {
-  top: 10.2rem;
+  top: 15.3rem;
   left: 2%;
   background: linear-gradient(160deg, #fff 0%, #fdf2f8 100%);
   border-color: rgba(219, 39, 119, 0.22);
@@ -585,7 +585,7 @@
 }
 
 .pmail-launch-cutout--plus {
-  top: 12.4rem;
+  top: 18.1rem;
   left: 2%;
   right: 4%;
   width: auto;
@@ -1320,7 +1320,7 @@
   }
 
   .pmail-launch-layer-stack {
-    min-height: 24.5rem;
+    min-height: 30rem;
   }
 
   .pmail-launch-orb--c,

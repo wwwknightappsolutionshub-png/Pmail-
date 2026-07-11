@@ -8,6 +8,7 @@ const HMAIL_LOGIN =
   (import.meta.env.VITE_HMAIL_URL as string | undefined)?.replace(/\/login\/?$/, "") ||
   "https://mail.prohost.cloud";
 const LOGIN_URL = `${HMAIL_LOGIN}/login`;
+const DEMO_LOGIN_URL = `${LOGIN_URL}?access=prospect`;
 const UI_DEMO_URL = "/use-case/demo/legal";
 
 const FEATURES: Array<{ title: string; body: string; tone: string }> = [
@@ -276,7 +277,7 @@ export function PmailLaunchPage() {
               <a className="btn btn-primary" href={LOGIN_URL}>
                 Start with PMail+
               </a>
-              <a className="btn btn-secondary" href={LOGIN_URL}>
+              <a className="btn btn-secondary" href={DEMO_LOGIN_URL}>
                 Try a sample demo (register on login)
               </a>
             </div>
