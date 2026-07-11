@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { PmailLaunchLeadCapture } from "../components/PmailLaunchLeadCapture";
 import "./LandingPage.css";
 import "./PmailLaunchPage.css";
 
@@ -168,30 +169,65 @@ function PmailPlaceholderNav() {
   );
 }
 
-/** Visual: PMail+ as an extra productivity layer on Gmail / Microsoft 365. */
+/** Visual: stylized provider cutouts with PMail+ as the rising extra layer. */
 function PmailLayerVisual() {
   return (
     <div className="pmail-launch-layer-visual" aria-hidden="true">
       <div className="pmail-launch-layer-stack">
-        <div className="pmail-launch-layer pmail-launch-layer--base pmail-launch-layer--gmail">
-          <span className="pmail-launch-layer-mark">Gmail</span>
-          <span className="pmail-launch-layer-sub">Your existing mailbox</span>
-        </div>
-        <div className="pmail-launch-layer pmail-launch-layer--base pmail-launch-layer--m365">
-          <span className="pmail-launch-layer-mark">Microsoft 365</span>
-          <span className="pmail-launch-layer-sub">Keep the address you already use</span>
-        </div>
-        <div className="pmail-launch-layer pmail-launch-layer--plus">
+        <article className="pmail-launch-cutout pmail-launch-cutout--gmail">
+          <header className="pmail-launch-cutout-head">
+            <span className="pmail-launch-cutout-logo pmail-launch-cutout-logo--gmail">M</span>
+            <div>
+              <strong>Gmail</strong>
+              <span>Inbox · your existing mailbox</span>
+            </div>
+          </header>
+          <div className="pmail-launch-cutout-rows">
+            <span />
+            <span />
+            <span />
+          </div>
+          <span className="pmail-launch-cutout-compose">Compose</span>
+        </article>
+
+        <article className="pmail-launch-cutout pmail-launch-cutout--m365">
+          <header className="pmail-launch-cutout-head">
+            <span className="pmail-launch-cutout-logo pmail-launch-cutout-logo--m365">O</span>
+            <div>
+              <strong>Microsoft 365</strong>
+              <span>Outlook · keep your address</span>
+            </div>
+          </header>
+          <div className="pmail-launch-cutout-pane">
+            <aside>
+              <i />
+              <i />
+              <i />
+            </aside>
+            <div className="pmail-launch-cutout-rows">
+              <span />
+              <span />
+            </div>
+          </div>
+        </article>
+
+        <article className="pmail-launch-cutout pmail-launch-cutout--plus">
           <span className="pmail-launch-layer-badge">Extra layer</span>
-          <strong className="pmail-launch-layer-mark">PMail+</strong>
-          <span className="pmail-launch-layer-sub">Productivity &amp; organization on top</span>
+          <header className="pmail-launch-cutout-head">
+            <span className="pmail-launch-cutout-logo pmail-launch-cutout-logo--plus">P+</span>
+            <div>
+              <strong>PMail+</strong>
+              <span>Productivity &amp; organization on top</span>
+            </div>
+          </header>
           <ul className="pmail-launch-layer-chips">
             <li>Tracking</li>
             <li>File vault</li>
             <li>CRM</li>
             <li>E-sign</li>
           </ul>
-        </div>
+          <span className="pmail-launch-cutout-shine" />
+        </article>
       </div>
       <p className="pmail-launch-layer-caption">Not a new inbox. An upgrade layer.</p>
     </div>
@@ -220,7 +256,7 @@ export function PmailLaunchPage() {
             <h1 className="landing-section-title pmail-launch-title">
               Keep your mailbox. Add the missing productivity layer.
             </h1>
-            <p className="pmail-launch-lead muted">
+            <p className="pmail-launch-intro muted">
               PMail+ sits on top of the email you already use — Gmail, Microsoft 365, or your branded domain. You don’t
               create a new inbox. You unlock tracking, files, CRM, calendar, and industry tools as an extra block of
               organization around the mail you already send.
@@ -302,6 +338,7 @@ export function PmailLaunchPage() {
       </section>
 
       <PmailBrandBar variant="footer" />
+      <PmailLaunchLeadCapture />
     </div>
   );
 }

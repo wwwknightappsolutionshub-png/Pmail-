@@ -455,10 +455,23 @@ export const api = {
     company: string;
     teamSize?: string;
     message?: string;
+    phone?: string;
+    source?: string;
     consentPrivacy?: boolean;
     consentContact?: boolean;
   }) =>
     request<{ lead: { id: string } }>("/api/public/leads", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  submitLaunchLead: (body: {
+    email?: string;
+    phone?: string;
+    fullName?: string;
+    consentPrivacy: boolean;
+    consentContact?: boolean;
+  }) =>
+    request<{ lead: { id: string } }>("/api/public/leads/launch", {
       method: "POST",
       body: JSON.stringify(body),
     }),
@@ -499,10 +512,11 @@ export const api = {
       method: "POST",
     }),
 
-  adminLeads: (params?: { status?: string; q?: string }) => {
+  adminLeads: (params?: { status?: string; q?: string; source?: string }) => {
     const search = new URLSearchParams();
     if (params?.status) search.set("status", params.status);
     if (params?.q) search.set("q", params.q);
+    if (params?.source) search.set("source", params.source);
     const qs = search.toString();
     return request<{ leads: import("../types/site").MarketingLead[] }>(`/api/admin/leads${qs ? `?${qs}` : ""}`);
   },

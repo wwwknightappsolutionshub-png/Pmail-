@@ -594,10 +594,12 @@ adminRouter.get("/leads", async (req, res, next) => {
   try {
     const status = typeof req.query.status === "string" ? req.query.status : undefined;
     const q = typeof req.query.q === "string" ? req.query.q : undefined;
+    const source = typeof req.query.source === "string" ? req.query.source : undefined;
     const limit = typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
     const leads = await listMarketingLeads({
       status: status as import("../services/marketing-leads.service.js").LeadStatus | undefined,
       q,
+      source,
       limit,
     });
     res.json({ leads });

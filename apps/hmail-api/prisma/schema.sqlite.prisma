@@ -2456,9 +2456,11 @@ model MarketingLead {
   id          String    @id @default(uuid())
   fullName    String
   email       String
+  phone       String?
   company     String
   teamSize    String?
   message         String?
+  source          String?
   status          String    @default("new")
   notes           String?
   consentPrivacy  Boolean   @default(false)
@@ -2472,6 +2474,8 @@ model MarketingLead {
   pmailReferralLeads PmailReferralLead[]
 
   @@index([email])
+  @@index([phone])
+  @@index([source])
   @@index([status])
   @@index([tenantId])
 }

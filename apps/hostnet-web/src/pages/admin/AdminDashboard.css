@@ -1450,11 +1450,36 @@
   font-size: 0.78rem;
 }
 
+.admin-funnel-source {
+  margin-top: 0.25rem;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--admin-border-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-funnel-source.active {
+  border-color: rgba(20, 184, 166, 0.45);
+  background: var(--admin-primary-soft);
+  color: #0f766e;
+  font-weight: 600;
+}
+
 .admin-leads-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-leads-source-filters {
+  display: flex;
+  gap: 0.35rem;
   flex-wrap: wrap;
 }
 

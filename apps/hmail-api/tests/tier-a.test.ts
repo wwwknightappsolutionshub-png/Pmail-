@@ -50,6 +50,45 @@ describe("Tier A production APIs", () => {
     expect(row?.company).toBe("Acme Inc");
   });
 
+  it("POST /api/public/leads/launch captures email or phone with pmail-launch source", async () => {
+    const emailRes = await request(app).post("/api/public/leads/launch").send({
+      email: "visitor@launch.test",
+      consentPrivacy: true,
+      consentContact: true,
+    });
+    expect(emailRes.status).toBe(201);
+
+    const phoneRes = await request(app).post("/api/public/leads/launch").send({
+      phone: "+44 7700 900123",
+      consentPrivacy: true,
+    });
+    expect(phoneRes.status).toBe(201);
+
+    const denied = await request(app).post("/api/public/leads/launch").send({
+      email: "nope@launch.test",
+    });
+    expect(denied.status).toBe(400);
+
+    const emailLead = await testPrisma.marketingLead.findFirst({ where: { email: "visitor@launch.test" } });
+    expect(emailLead?.source).toBe("pmail-launch");
+    expect(emailLead?.company).toBe("PMail+ launch");
+
+    const phoneLead = await testPrisma.marketingLead.findFirst({
+      where: { source: "pmail-launch", phone: { contains: "7700900123" } },
+    });
+    expect(phoneLead?.phone).toBeTruthy();
+    expect(phoneLead?.email).toMatch(/@pmail-launch\.local$/);
+
+    const { agent } = await createAdminAgent(app);
+    const filtered = await agent.get("/api/admin/leads").query({ source: "pmail-launch" });
+    expect(filtered.status).toBe(200);
+    expect(filtered.body.leads.length).toBeGreaterThanOrEqual(2);
+
+    const stats = await agent.get("/api/admin/leads/stats");
+    expect(stats.status).toBe(200);
+    expect(stats.body.stats.launchLeads).toBeGreaterThanOrEqual(2);
+  });
+
   it("login requires provider setup for users without mail config", async () => {
     const tenant = await testPrisma.tenant.create({
       data: {

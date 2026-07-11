@@ -35,6 +35,7 @@ export function AdminLeadsPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<MarketingLead["status"] | "all">("all");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "pmail-launch">("all");
   const [search, setSearch] = useState("");
   const [searchDraft, setSearchDraft] = useState("");
   const [notesDraft, setNotesDraft] = useState("");
@@ -51,6 +52,7 @@ export function AdminLeadsPanel({
         api.adminLeads({
           status: statusFilter === "all" ? undefined : statusFilter,
           q: search || undefined,
+          source: sourceFilter === "all" ? undefined : sourceFilter,
         }),
         api.adminLeadStats(),
       ]);
@@ -69,11 +71,11 @@ export function AdminLeadsPanel({
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, search, onError]);
+  }, [statusFilter, search, sourceFilter, onError]);
 
   useEffect(() => {
     void load();
-  }, [statusFilter, search]);
+  }, [statusFilter, search, sourceFilter]);
 
   useEffect(() => {
     if (pollKey) void load();
@@ -84,10 +86,13 @@ export function AdminLeadsPanel({
   }, [selected?.id]);
 
   const filteredLabel = useMemo(() => {
-    if (search) return `Search: “${search}”`;
-    if (statusFilter !== "all") return STATUS_LABELS[statusFilter];
-    return "All leads";
-  }, [search, statusFilter]);
+    const parts: string[] = [];
+    if (search) parts.push(`Search: “${search}”`);
+    else if (statusFilter !== "all") parts.push(STATUS_LABELS[statusFilter]);
+    else parts.push("All leads");
+    if (sourceFilter === "pmail-launch") parts.push("PMail+ launch");
+    return parts.join(" · ");
+  }, [search, statusFilter, sourceFilter]);
 
   async function saveLead(e: FormEvent) {
     e.preventDefault();
@@ -163,6 +168,15 @@ export function AdminLeadsPanel({
           <div className="admin-funnel-meta muted">
             <span>{stats.newThisWeek} this week</span>
             <span>{stats.conversionRate}% converted</span>
+            {typeof stats.launchLeads === "number" ? (
+              <button
+                type="button"
+                className={`admin-funnel-source${sourceFilter === "pmail-launch" ? " active" : ""}`}
+                onClick={() => setSourceFilter((prev) => (prev === "pmail-launch" ? "all" : "pmail-launch"))}
+              >
+                {stats.launchLeads} launch
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -171,7 +185,7 @@ export function AdminLeadsPanel({
         <div className="admin-leads-search">
           <input
             type="search"
-            placeholder="Search name, email, or company…"
+            placeholder="Search name, email, phone, or company…"
             value={searchDraft}
             onChange={(e) => setSearchDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -187,6 +201,22 @@ export function AdminLeadsPanel({
             </button>
           ) : null}
         </div>
+        <div className="admin-leads-source-filters">
+          <button
+            type="button"
+            className={`btn btn-sm ${sourceFilter === "all" ? "btn-secondary" : "btn-ghost-sidebar"}`}
+            onClick={() => setSourceFilter("all")}
+          >
+            All sources
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${sourceFilter === "pmail-launch" ? "btn-secondary" : "btn-ghost-sidebar"}`}
+            onClick={() => setSourceFilter("pmail-launch")}
+          >
+            PMail+ launch
+          </button>
+        </div>
         <span className="muted">{filteredLabel} · {leads.length} shown</span>
       </div>
 
@@ -200,6 +230,7 @@ export function AdminLeadsPanel({
               <tr>
                 <th>Lead</th>
                 <th>Company</th>
+                <th>Source</th>
                 <th>Status</th>
                 <th>Age</th>
                 <th>Consent</th>
@@ -214,9 +245,19 @@ export function AdminLeadsPanel({
                 >
                   <td>
                     <strong>{lead.fullName}</strong>
-                    <div className="muted">{lead.email}</div>
+                    <div className="muted">
+                      {lead.email.includes("@pmail-launch.local") ? "—" : lead.email}
+                      {lead.phone ? ` · ${lead.phone}` : ""}
+                    </div>
                   </td>
                   <td>{lead.company}</td>
+                  <td>
+                    {lead.source === "pmail-launch" ? (
+                      <span className="badge badge-status-qualified">Launch</span>
+                    ) : (
+                      <span className="muted">{lead.source ?? "—"}</span>
+                    )}
+                  </td>
                   <td>
                     <span className={`badge badge-status-${lead.status}`}>{STATUS_LABELS[lead.status]}</span>
                   </td>
@@ -241,7 +282,9 @@ export function AdminLeadsPanel({
             <header className="admin-leads-detail-head">
               <div>
                 <h3>{selected.fullName}</h3>
-                <p className="muted">{selected.email}</p>
+                <p className="muted">
+                  {selected.email.includes("@pmail-launch.local") ? "Phone-only capture" : selected.email}
+                </p>
               </div>
               <span className={`badge badge-status-${selected.status}`}>{STATUS_LABELS[selected.status]}</span>
             </header>
@@ -250,6 +293,18 @@ export function AdminLeadsPanel({
               <div>
                 <dt>Company</dt>
                 <dd>{selected.company}</dd>
+              </div>
+              {selected.phone ? (
+                <div>
+                  <dt>Phone / WhatsApp</dt>
+                  <dd>
+                    <a href={`tel:${selected.phone}`}>{selected.phone}</a>
+                  </dd>
+                </div>
+              ) : null}
+              <div>
+                <dt>Source</dt>
+                <dd>{selected.source === "pmail-launch" ? "PMail+ launch page" : selected.source ?? "—"}</dd>
               </div>
               {selected.teamSize ? (
                 <div>

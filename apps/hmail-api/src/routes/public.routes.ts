@@ -8,7 +8,7 @@ import {
   getBespokeDemoWorkspace,
   saveBespokeDemoWorkspace,
 } from "../services/bespoke-demo.service.js";
-import { createMarketingLead, listMarketingLeads } from "../services/marketing-leads.service.js";
+import { createMarketingLead, createLaunchMarketingLead, listMarketingLeads } from "../services/marketing-leads.service.js";
 import {
   completeTenantMailOnboarding,
   getTenantMailOnboardingStatus,
@@ -341,8 +341,29 @@ publicRouter.post("/leads", async (req, res, next) => {
       company: String(req.body?.company ?? ""),
       teamSize: req.body?.teamSize ? String(req.body.teamSize) : undefined,
       message: req.body?.message ? String(req.body.message) : undefined,
+      phone: req.body?.phone ? String(req.body.phone) : undefined,
+      source: req.body?.source ? String(req.body.source) : undefined,
       consentPrivacy: Boolean(req.body?.consentPrivacy),
       consentContact: Boolean(req.body?.consentContact),
+    });
+    res.status(201).json({ lead: { id: lead.id } });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
+});
+
+publicRouter.post("/leads/launch", async (req, res, next) => {
+  try {
+    const lead = await createLaunchMarketingLead({
+      email: req.body?.email ? String(req.body.email) : undefined,
+      phone: req.body?.phone ? String(req.body.phone) : undefined,
+      fullName: req.body?.fullName ? String(req.body.fullName) : undefined,
+      consentPrivacy: Boolean(req.body?.consentPrivacy),
+      consentContact: req.body?.consentContact === undefined ? true : Boolean(req.body.consentContact),
     });
     res.status(201).json({ lead: { id: lead.id } });
   } catch (err) {

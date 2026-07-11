@@ -3,13 +3,18 @@ import { prisma } from "../lib/prisma.js";
 const LEAD_STATUSES = ["new", "contacted", "qualified", "converted", "closed"] as const;
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^\+?[\d\s().-]{7,20}$/;
+
 function serializeLead(lead: {
   id: string;
   fullName: string;
   email: string;
+  phone: string | null;
   company: string;
   teamSize: string | null;
   message: string | null;
+  source: string | null;
   status: string;
   notes: string | null;
   consentPrivacy: boolean;
@@ -24,9 +29,11 @@ function serializeLead(lead: {
     id: lead.id,
     fullName: lead.fullName,
     email: lead.email,
+    phone: lead.phone,
     company: lead.company,
     teamSize: lead.teamSize,
     message: lead.message,
+    source: lead.source,
     status: lead.status,
     notes: lead.notes,
     consentPrivacy: lead.consentPrivacy,
@@ -40,12 +47,18 @@ function serializeLead(lead: {
   };
 }
 
+function normalizePhone(raw: string): string {
+  return raw.replace(/[^\d+]/g, "").trim();
+}
+
 export async function createMarketingLead(input: {
   fullName: string;
   email: string;
   company: string;
   teamSize?: string;
   message?: string;
+  phone?: string;
+  source?: string;
   consentPrivacy?: boolean;
   consentContact?: boolean;
 }) {
@@ -59,11 +72,58 @@ export async function createMarketingLead(input: {
     data: {
       fullName: input.fullName.trim(),
       email: input.email.trim().toLowerCase(),
+      phone: input.phone?.trim() ? normalizePhone(input.phone) : null,
       company: input.company.trim(),
       teamSize: input.teamSize?.trim() || null,
       message: input.message?.trim() || null,
+      source: input.source?.trim() || null,
       consentPrivacy: true,
       consentContact: Boolean(input.consentContact),
+    },
+  });
+  return serializeLead(lead);
+}
+
+/** Soft capture from /pmail-launch — email and/or phone with reward framing. */
+export async function createLaunchMarketingLead(input: {
+  email?: string;
+  phone?: string;
+  fullName?: string;
+  consentPrivacy?: boolean;
+  consentContact?: boolean;
+}) {
+  if (!input.consentPrivacy) {
+    throw new Error("Privacy policy consent is required");
+  }
+
+  const emailRaw = input.email?.trim().toLowerCase() ?? "";
+  const phoneRaw = input.phone?.trim() ?? "";
+  const phone = phoneRaw ? normalizePhone(phoneRaw) : "";
+
+  if (!emailRaw && !phone) {
+    throw new Error("Email or phone number is required");
+  }
+  if (emailRaw && !EMAIL_RE.test(emailRaw)) {
+    throw new Error("Enter a valid email address");
+  }
+  if (phoneRaw && !PHONE_RE.test(phoneRaw)) {
+    throw new Error("Enter a valid phone / WhatsApp number");
+  }
+
+  const email =
+    emailRaw ||
+    `launch+${phone.replace(/\D/g, "").slice(-12) || Date.now()}@pmail-launch.local`;
+
+  const lead = await prisma.marketingLead.create({
+    data: {
+      fullName: input.fullName?.trim() || "Launch visitor",
+      email,
+      phone: phone || null,
+      company: "PMail+ launch",
+      message: "Reward capture from /pmail-launch (WhatsApp / social share landing)",
+      source: "pmail-launch",
+      consentPrivacy: true,
+      consentContact: Boolean(input.consentContact ?? true),
     },
   });
   return serializeLead(lead);
@@ -72,22 +132,31 @@ export async function createMarketingLead(input: {
 export async function listMarketingLeads(options: {
   status?: LeadStatus;
   q?: string;
+  source?: string;
   limit?: number;
   offset?: number;
 } = {}) {
-  const { status, q, limit = 100, offset = 0 } = options;
+  const { status, q, source, limit = 100, offset = 0 } = options;
   const where: {
     status?: string;
-    OR?: Array<{ fullName?: { contains: string }; email?: { contains: string }; company?: { contains: string } }>;
+    source?: string;
+    OR?: Array<
+      | { fullName?: { contains: string } }
+      | { email?: { contains: string } }
+      | { company?: { contains: string } }
+      | { phone?: { contains: string } }
+    >;
   } = {};
 
   if (status) where.status = status;
+  if (source?.trim()) where.source = source.trim();
   if (q?.trim()) {
     const term = q.trim();
     where.OR = [
       { fullName: { contains: term } },
       { email: { contains: term } },
       { company: { contains: term } },
+      { phone: { contains: term } },
     ];
   }
 
@@ -102,7 +171,7 @@ export async function listMarketingLeads(options: {
 }
 
 export async function getMarketingLeadStats() {
-  const [total, byStatus, newThisWeek, qualifiedUnconverted] = await Promise.all([
+  const [total, byStatus, newThisWeek, qualifiedUnconverted, launchLeads] = await Promise.all([
     prisma.marketingLead.count(),
     prisma.marketingLead.groupBy({
       by: ["status"],
@@ -113,6 +182,9 @@ export async function getMarketingLeadStats() {
     }),
     prisma.marketingLead.count({
       where: { status: "qualified", tenantId: null },
+    }),
+    prisma.marketingLead.count({
+      where: { source: "pmail-launch" },
     }),
   ]);
 
@@ -125,6 +197,7 @@ export async function getMarketingLeadStats() {
     funnel,
     newThisWeek,
     qualifiedUnconverted,
+    launchLeads,
     conversionRate: total > 0 ? Math.round(((funnel.converted ?? 0) / total) * 100) : 0,
   };
 }

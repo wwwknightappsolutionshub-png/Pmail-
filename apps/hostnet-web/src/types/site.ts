@@ -412,9 +412,11 @@ export type MarketingLead = {
   id: string;
   fullName: string;
   email: string;
+  phone: string | null;
   company: string;
   teamSize: string | null;
   message: string | null;
+  source: string | null;
   status: "new" | "contacted" | "qualified" | "converted" | "closed";
   notes: string | null;
   consentPrivacy: boolean;
@@ -432,6 +434,7 @@ export type MarketingLeadStats = {
   funnel: Record<MarketingLead["status"], number>;
   newThisWeek: number;
   qualifiedUnconverted: number;
+  launchLeads?: number;
   conversionRate: number;
 };
 
