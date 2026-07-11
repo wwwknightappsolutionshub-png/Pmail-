@@ -1,5 +1,3 @@
-import { PmailTeaserArt } from "../components/landing/LandingArt";
-import { LandingArtFrame } from "../components/landing/LandingArtFrame";
 import type { CSSProperties } from "react";
 import "./LandingPage.css";
 import "./PmailLaunchPage.css";
@@ -170,6 +168,36 @@ function PmailPlaceholderNav() {
   );
 }
 
+/** Visual: PMail+ as an extra productivity layer on Gmail / Microsoft 365. */
+function PmailLayerVisual() {
+  return (
+    <div className="pmail-launch-layer-visual" aria-hidden="true">
+      <div className="pmail-launch-layer-stack">
+        <div className="pmail-launch-layer pmail-launch-layer--base pmail-launch-layer--gmail">
+          <span className="pmail-launch-layer-mark">Gmail</span>
+          <span className="pmail-launch-layer-sub">Your existing mailbox</span>
+        </div>
+        <div className="pmail-launch-layer pmail-launch-layer--base pmail-launch-layer--m365">
+          <span className="pmail-launch-layer-mark">Microsoft 365</span>
+          <span className="pmail-launch-layer-sub">Keep the address you already use</span>
+        </div>
+        <div className="pmail-launch-layer pmail-launch-layer--plus">
+          <span className="pmail-launch-layer-badge">Extra layer</span>
+          <strong className="pmail-launch-layer-mark">PMail+</strong>
+          <span className="pmail-launch-layer-sub">Productivity &amp; organization on top</span>
+          <ul className="pmail-launch-layer-chips">
+            <li>Tracking</li>
+            <li>File vault</li>
+            <li>CRM</li>
+            <li>E-sign</li>
+          </ul>
+        </div>
+      </div>
+      <p className="pmail-launch-layer-caption">Not a new inbox. An upgrade layer.</p>
+    </div>
+  );
+}
+
 export function PmailLaunchPage() {
   return (
     <div className="landing pmail-launch-page">
@@ -188,10 +216,17 @@ export function PmailLaunchPage() {
 
         <div className="container pmail-launch-hero-grid-layout">
           <div className="pmail-launch-hero-copy">
-            <h1 className="landing-section-title pmail-launch-title">Business email shouldn’t stop at the inbox</h1>
+            <p className="pmail-launch-kicker">Not another Gmail. Not another M365.</p>
+            <h1 className="landing-section-title pmail-launch-title">
+              Keep your mailbox. Add the missing productivity layer.
+            </h1>
             <p className="pmail-launch-lead muted">
-              PMail+ is a branded mail workspace that turns everyday email into client work, follow-ups, and operations —
-              without stacking five extra apps.
+              PMail+ sits on top of the email you already use — Gmail, Microsoft 365, or your branded domain. You don’t
+              create a new inbox. You unlock tracking, files, CRM, calendar, and industry tools as an extra block of
+              organization around the mail you already send.
+            </p>
+            <p className="pmail-launch-layer-callout">
+              Same address. Same providers. One extra layer for client work, follow-ups, and operations.
             </p>
             <div className="pmail-launch-cta-row">
               <a className="btn btn-primary" href={LOGIN_URL}>
@@ -209,16 +244,14 @@ export function PmailLaunchPage() {
           </div>
 
           <div className="pmail-launch-hero-visual">
-            <LandingArtFrame variant="pmail">
-              <PmailTeaserArt />
-            </LandingArtFrame>
+            <PmailLayerVisual />
           </div>
         </div>
       </section>
 
       <section className="section-pad section-pad--alt pmail-launch-problems-section">
         <div className="container">
-          <h2 className="landing-section-title">Problems PMail+ is here to solve</h2>
+          <h2 className="pmail-launch-problems-title">Problems PMail+ is here to solve</h2>
           <div className="pmail-launch-problems-grid">
             {PROBLEMS.map((item, index) => (
               <article

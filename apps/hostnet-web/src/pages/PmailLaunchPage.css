@@ -397,22 +397,46 @@
 }
 
 .pmail-launch-hero-copy {
-  max-width: 34rem;
+  max-width: 38rem;
+  min-width: 0;
+}
+
+.pmail-launch-kicker {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0d9488;
 }
 
 .pmail-launch-title {
-  font-size: clamp(1.85rem, 5vw, 3rem);
-  max-width: 16ch;
+  font-size: clamp(1.7rem, 4.8vw, 3.05rem);
+  max-width: 18ch;
   margin: 0 0 1rem;
-  line-height: 1.1;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   color: #0f172a;
 }
 
 .pmail-launch-lead {
-  max-width: 58ch;
-  margin: 0 0 1.5rem;
-  font-size: clamp(0.98rem, 2.4vw, 1.08rem);
+  max-width: 54ch;
+  margin: 0 0 1rem;
+  font-size: clamp(0.95rem, 2.2vw, 1.06rem);
   line-height: 1.6;
+}
+
+.pmail-launch-layer-callout {
+  margin: 0 0 1.35rem;
+  padding: 0.85rem 1rem;
+  max-width: 52ch;
+  border-radius: 12px;
+  border: 1px solid rgba(13, 148, 136, 0.28);
+  background: linear-gradient(135deg, rgba(240, 253, 250, 0.95), rgba(204, 251, 241, 0.45));
+  color: #0f766e;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .pmail-launch-cta-row {
@@ -443,17 +467,147 @@
   position: relative;
   min-width: 0;
   justify-self: end;
-  width: min(100%, 520px);
+  width: min(100%, 480px);
 }
 
-.pmail-launch-hero-visual .landing-art {
+.pmail-launch-layer-visual {
+  position: relative;
+  width: 100%;
+  padding: 0.5rem 0.25rem 0;
+}
+
+.pmail-launch-layer-stack {
+  position: relative;
+  min-height: 17.5rem;
+  margin-bottom: 0.85rem;
+  perspective: 900px;
+}
+
+.pmail-launch-layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1rem 1.15rem;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(6px);
+}
+
+.pmail-launch-layer--gmail {
+  top: 0;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  z-index: 1;
+  animation: pmail-launch-layer-bob-gmail 8s ease-in-out infinite;
+}
+
+.pmail-launch-layer--m365 {
+  top: 4.6rem;
+  left: 6%;
+  right: 2%;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  z-index: 2;
+  animation: pmail-launch-layer-bob-m365 9.5s ease-in-out infinite;
+}
+
+.pmail-launch-layer--plus {
+  top: 9.4rem;
+  left: 3%;
+  right: 0;
+  gap: 0.35rem;
+  padding: 1.15rem 1.2rem 1.2rem;
+  border-color: rgba(13, 148, 136, 0.45);
+  background: linear-gradient(145deg, #042f3f 0%, #0d9488 100%);
+  color: #fff;
+  z-index: 3;
   box-shadow:
-    0 24px 48px rgba(13, 148, 136, 0.18),
-    0 8px 24px rgba(15, 23, 42, 0.12);
+    0 22px 44px rgba(13, 148, 136, 0.28),
+    0 8px 18px rgba(15, 23, 42, 0.18);
+  animation: pmail-launch-layer-rise 6.5s ease-in-out infinite;
 }
 
-.pmail-launch-problems-section .landing-section-title {
-  margin-bottom: 1.35rem;
+.pmail-launch-layer-mark {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.pmail-launch-layer--plus .pmail-launch-layer-mark {
+  font-size: 1.35rem;
+  color: #fff;
+}
+
+.pmail-launch-layer-sub {
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.pmail-launch-layer--plus .pmail-launch-layer-sub {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.pmail-launch-layer-badge {
+  align-self: flex-start;
+  margin-bottom: 0.15rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ccfbf1;
+}
+
+.pmail-launch-layer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pmail-launch-layer-chips li {
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #ecfeff;
+}
+
+.pmail-launch-layer-caption {
+  margin: 0;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.pmail-launch-problems-section {
+  overflow: hidden;
+}
+
+.pmail-launch-problems-title {
+  margin: 0 auto 1.6rem;
+  text-align: center;
+  font-size: clamp(1.55rem, 4.2vw, 2.35rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  max-width: 18ch;
+  background: linear-gradient(120deg, #0f172a 10%, #0f766e 52%, #0d9488 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .pmail-launch-problems-grid {
@@ -822,25 +976,70 @@
   }
 }
 
+@keyframes pmail-launch-layer-bob-gmail {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(-1.5deg);
+  }
+}
+
+@keyframes pmail-launch-layer-bob-m365 {
+  0%,
+  100% {
+    transform: translateY(0) rotate(1.2deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(1.2deg);
+  }
+}
+
+@keyframes pmail-launch-layer-rise {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.015);
+  }
+}
+
 @media (max-width: 960px) {
   .pmail-launch-hero {
     min-height: 0;
     align-items: stretch;
+    padding-top: 1.75rem;
+    padding-bottom: 2.25rem;
   }
 
   .pmail-launch-hero-grid-layout {
     grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .pmail-launch-hero-copy {
+    max-width: none;
+  }
+
+  .pmail-launch-title {
+    max-width: 22ch;
   }
 
   .pmail-launch-hero-visual {
     justify-self: stretch;
     width: 100%;
-    max-width: 480px;
+    max-width: 420px;
     margin-inline: auto;
   }
 
   .pmail-launch-beam {
     opacity: 0.55;
+  }
+
+  .pmail-launch-problems-title {
+    max-width: 22ch;
   }
 
   .pmail-launch-problems-grid {
@@ -853,9 +1052,32 @@
 }
 
 @media (max-width: 640px) {
+  .pmail-launch-page .section-pad {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .pmail-launch-brand-bar-inner {
+    width: calc(100% - 1.5rem);
+    padding: 0.85rem 0;
+  }
+
+  .pmail-launch-brand-tag {
+    letter-spacing: 0.08em;
+  }
+
+  .pmail-launch-title {
+    max-width: none;
+    font-size: clamp(1.55rem, 7vw, 2rem);
+  }
+
   .pmail-launch-cta-row .btn {
     width: 100%;
     text-align: center;
+  }
+
+  .pmail-launch-layer-stack {
+    min-height: 18.5rem;
   }
 
   .pmail-launch-orb--c,
@@ -868,9 +1090,19 @@
     grid-template-columns: 1fr;
   }
 
+  .pmail-launch-problems-title,
+  .pmail-launch-features-title {
+    max-width: none;
+  }
+
   .pmail-launch-features-footer .btn {
     width: 100%;
     max-width: 22rem;
+  }
+
+  .pmail-launch-placeholder-btn {
+    font-size: 0.72rem;
+    padding: 0.4rem 0.6rem;
   }
 }
 
@@ -879,8 +1111,17 @@
   .pmail-launch-beam,
   .pmail-launch-problem-card,
   .pmail-launch-feature-card,
-  .pmail-launch-feature-glow {
+  .pmail-launch-feature-glow,
+  .pmail-launch-layer {
     animation: none !important;
+  }
+
+  .pmail-launch-layer--gmail {
+    transform: rotate(-1.5deg);
+  }
+
+  .pmail-launch-layer--m365 {
+    transform: rotate(1.2deg);
   }
 
   .pmail-launch-problems-grid:hover .pmail-launch-problem-card,
