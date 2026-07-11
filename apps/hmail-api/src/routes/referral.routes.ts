@@ -70,6 +70,9 @@ referralRouter.post("/send", async (req, res, next) => {
       return;
     }
 
+    const { markReferExtendCampaignStopped } = await import("../services/refer-extend-campaign.service.js");
+    await markReferExtendCampaignStopped(auth.user.id, "refer_friend_clicked");
+
     const result = await sendReferralInvitations({
       userId: auth.user.id,
       tenantId: auth.user.tenant.id,

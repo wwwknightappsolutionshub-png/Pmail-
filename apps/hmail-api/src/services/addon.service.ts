@@ -399,6 +399,10 @@ export async function expireEndedTrials(): Promise<number> {
       data: { status: "expired" },
     });
 
+    await import("./refer-extend-campaign.service.js").then((m) =>
+      m.enrollTenantUsersInReferExtendCampaign(trial.tenantId),
+    );
+
     const userEmail = trial.tenant.users[0]?.email;
     if (userEmail && !trial.expiredEmailSent) {
       const { sendAddonTrialEmail } = await import("./addon-email.service.js");

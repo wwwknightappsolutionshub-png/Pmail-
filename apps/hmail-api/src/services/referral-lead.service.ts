@@ -408,6 +408,10 @@ export async function runAutomaticReferralInvite(input: {
   credentials: MailCredentials;
   apiPublicBase: string;
 }) {
+  // Stop Refer & Extend drip as soon as the in-app Refer a friend control is used.
+  const { markReferExtendCampaignStopped } = await import("./refer-extend-campaign.service.js");
+  await markReferExtendCampaignStopped(input.userId, "refer_friend_clicked");
+
   const compose = await buildReferralCompose({
     userId: input.userId,
     email: input.email,

@@ -19,6 +19,10 @@ import {
   recordAddonEducationClick,
   recordAddonEducationOpen,
 } from "../services/addon-education-drip.service.js";
+import {
+  recordReferExtendClick,
+  recordReferExtendOpen,
+} from "../services/refer-extend-campaign.service.js";
 import { recordVaultDownload } from "../services/file-vault.service.js";
 import { recordEsignDownload } from "../services/esign.service.js";
 import { recordSlaReportDownload } from "../services/email-sla.service.js";
@@ -477,6 +481,34 @@ publicRouter.get("/education/click/:token", async (req, res, next) => {
     }
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
     res.setHeader("X-Tracking-Notice", "Education link-click redirect; see /api/public/privacy");
+    res.redirect(302, destination);
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/refer-extend/track/:token.gif", async (req, res, next) => {
+  try {
+    const token = String(req.params.token).replace(/\.gif$/, "");
+    await recordReferExtendOpen(token);
+    res.setHeader("Content-Type", "image/gif");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("X-Tracking-Notice", "Refer-extend open-tracking pixel; see /api/public/privacy");
+    res.send(TRACKING_GIF);
+  } catch (err) {
+    next(err);
+  }
+});
+
+publicRouter.get("/refer-extend/click/:token", async (req, res, next) => {
+  try {
+    const destination = await recordReferExtendClick(String(req.params.token));
+    if (!destination) {
+      res.status(404).json({ error: "Link not found" });
+      return;
+    }
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("X-Tracking-Notice", "Refer-extend link-click redirect; see /api/public/privacy");
     res.redirect(302, destination);
   } catch (err) {
     next(err);

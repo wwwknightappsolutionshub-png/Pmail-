@@ -3,6 +3,7 @@ import { processPanelWorkspaceTrialEmails } from "../services/panel-workspace-tr
 import { processOpenTrackingUpsellEmails } from "../services/open-tracking-entitlement.service.js";
 import { processPmailProspectDemoEmails } from "../services/pmail-prospect-demo.service.js";
 import { processAddonEducationDripEmails } from "../services/addon-education-drip.service.js";
+import { processReferExtendCampaignEmails } from "../services/refer-extend-campaign.service.js";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -14,6 +15,7 @@ export function startAddonTrialJob(): void {
       await processOpenTrackingUpsellEmails();
       await processPmailProspectDemoEmails();
       await processAddonEducationDripEmails();
+      await processReferExtendCampaignEmails();
     } catch (err) {
       console.error("[addon-trial-job]", err);
     }

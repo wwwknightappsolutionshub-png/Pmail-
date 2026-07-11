@@ -31,6 +31,11 @@ const TEMPLATE_GUIDANCE: Record<string, { summary: string; variables: string }> 
       "Sent when complimentary Platform workspace tools are about to expire after a referral reward trial.",
     variables: "fullName, ctaUrl, productName",
   },
+  "pmail-refer-and-extend": {
+    summary:
+      "Sent every 48 hours after a free addon trial expires until the user clicks Refer & Extend Trial or uses Refer a friend in PMail+.",
+    variables: "fullName, productName, ctaUrl, referFriendUrl",
+  },
 };
 
 const TEMPLATE_SAMPLE_VARIABLES: Record<string, Record<string, string>> = {
@@ -44,6 +49,12 @@ const TEMPLATE_SAMPLE_VARIABLES: Record<string, Record<string, string>> = {
     fullName: "Jordan",
     ctaUrl: "https://example.com/addons?highlight=platform-tools",
     productName: "PMail+",
+  },
+  "pmail-refer-and-extend": {
+    fullName: "Jordan",
+    productName: "PMail+",
+    ctaUrl: "https://mail.prohost.cloud/?referFriend=1",
+    referFriendUrl: "https://mail.prohost.cloud/?referFriend=1",
   },
   "pmail-refer-friend": {
     senderName: "Jordan Lee",

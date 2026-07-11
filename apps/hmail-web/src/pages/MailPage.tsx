@@ -310,6 +310,7 @@ export function MailPage({
   const { hasAddon, hasJobHunterAccess, panelWorkspaceTrial } = useAddons();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const referFriendDeepLinkHandled = useRef(false);
   const branding = user?.tenant.branding;
   const productName = branding?.productName ?? "PMail+";
   const tenantName = user?.tenant.name ?? "Prohost Cloud";
@@ -1155,6 +1156,15 @@ export function MailPage({
       setReferBusy(false);
     }
   };
+
+  useEffect(() => {
+    if (searchParams.get("referFriend") !== "1" || referFriendDeepLinkHandled.current) return;
+    referFriendDeepLinkHandled.current = true;
+    const next = new URLSearchParams(searchParams);
+    next.delete("referFriend");
+    setSearchParams(next, { replace: true });
+    void onReferFriend();
+  }, [searchParams, setSearchParams]);
 
   const onThemeToggle = async () => {
     const next = uiThemeVersion === "dark" ? "light" : "dark";

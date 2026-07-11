@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { BespokeWorkspace } from "@hostnet-demo/components/demo/BespokeMailDemo";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -67,6 +67,8 @@ function BespokeMailShellContent() {
   const { hasAddon, panelWorkspaceTrial } = useAddons();
   const { openCompose } = useBespokeComposeBridge();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const referFriendDeepLinkHandled = useRef(false);
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
     (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
   );
@@ -250,6 +252,15 @@ function BespokeMailShellContent() {
       return { rewardToast: null, message };
     }
   };
+
+  useEffect(() => {
+    if (searchParams.get("referFriend") !== "1" || referFriendDeepLinkHandled.current) return;
+    referFriendDeepLinkHandled.current = true;
+    const next = new URLSearchParams(searchParams);
+    next.delete("referFriend");
+    setSearchParams(next, { replace: true });
+    void onReferFriend();
+  }, [searchParams, setSearchParams]);
 
   const onThemeChange = async (theme: "dark" | "light") => {
     setUiThemeVersion(theme);

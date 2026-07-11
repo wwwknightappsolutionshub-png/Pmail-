@@ -335,6 +335,53 @@ ${emailMuted("If you do not subscribe, Platform tools will be gated when the tri
     ),
   },
   {
+    slug: "pmail-refer-and-extend",
+    name: "PMail+ Refer & Extend trial",
+    category: "pmail",
+    subject: "Your free addon trial ended — refer a friend to unlock 7 more days",
+    variables: ["fullName", "productName", "ctaUrl", "referFriendUrl"],
+    textBody: `Hi {{fullName}},
+
+Your complimentary {{productName}} addon trial period has just ended — and the tools that made your workspace feel complete are locked again.
+
+Refer a friend and you can reactivate 7 free days of Platform tools access.
+
+What you unlock again when you refer:
+- Unified email accounts — Connect and switch between multiple mailboxes in one workspace.
+- Mail auto categorization by sender — Sort high-volume senders and keep inbox noise under control.
+- Dedicated file directory — Keep shared files organized beside the conversations that need them.
+- Open Tracking — Know when recipients open important messages.
+- Auto Reply — Send professional acknowledgments while you focus on higher-value work.
+- Auto Contacts Directory — Build and maintain a living address book from real mailbox traffic.
+- File Vaults — Share large files securely with tracked download links.
+- Career Huntr — Track applications, roles, and career outreach from the same mail workspace.
+
+Click Refer & Extend Trial to open Refer a friend in {{productName}}: {{ctaUrl}}
+
+{{referFriendUrl}}`,
+    htmlBody: PMAIL_WRAPPER(
+      `
+<p>Hi <strong>{{fullName}}</strong>,</p>
+<p>Your complimentary <strong>{{productName}} addon trial</strong> has just ended. The productivity stack that sat next to your inbox is gated again — but you can bring it back without paying today.</p>
+<p><strong>Refer a friend</strong> and we reactivate <strong>7 free days</strong> of Platform tools for your workspace.</p>
+${emailFeature("Unified email accounts", "Connect and switch between multiple mailboxes in one focused workspace.")}
+${emailFeature("Mail auto categorization by sender", "Tame high-volume senders and keep important threads visible.")}
+${emailFeature("Dedicated file directory", "Keep project files organized beside the conversations that need them.")}
+${emailFeature("Open Tracking", "See when recipients open critical messages so you can follow up with confidence.")}
+${emailFeature("Auto Reply", "Acknowledge inbound mail professionally while you stay focused on higher-value work.")}
+${emailFeature("Auto Contacts Directory", "Grow a living address book from real mailbox traffic — not manual data entry.")}
+${emailFeature("File Vaults", "Share large files securely with tracked download links instead of fragile attachments.")}
+${emailFeature("Career Huntr", "Track applications, roles, and career outreach from the same mail workspace.")}
+<p>${emailBtn("{{ctaUrl}}", "Refer &amp; Extend Trial")}</p>
+${emailMuted("This reminder repeats every 48 hours until you use Refer a friend or click the button above.")}`,
+      {
+        brandName: "{{productName}}",
+        headline: "Your free trial ended — refer a friend to unlock 7 more days",
+        subhead: "Reactivate Platform tools by sharing PMail+ with someone who will value the upgrade",
+      },
+    ),
+  },
+  {
     slug: "panel-workspace-welcome",
     name: "Panel workspace welcome trial",
     category: "pmail",

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { BespokeWorkspace } from "@hostnet-demo/components/demo/BespokeMailDemo";
 import { api } from "../api/client";
 import { GmailMailSearch } from "./GmailMailSearch";
@@ -35,6 +35,8 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
   const { user, logout } = useAuth();
   const { hasAddon } = useAddons();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const referFriendDeepLinkHandled = useRef(false);
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
     (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
   );
@@ -76,6 +78,28 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
     },
     [navigate],
   );
+
+  const onReferFriend = useCallback(async () => {
+    try {
+      const result = await api.referralInvite();
+      const message = result.rewardToast ?? result.message ?? "Referral invite sent.";
+      setPlatformNotice(message);
+      return { rewardToast: result.rewardToast ?? null, message };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Referral failed";
+      setPlatformNotice(message);
+      return { rewardToast: null, message };
+    }
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get("referFriend") !== "1" || referFriendDeepLinkHandled.current) return;
+    referFriendDeepLinkHandled.current = true;
+    const next = new URLSearchParams(searchParams);
+    next.delete("referFriend");
+    setSearchParams(next, { replace: true });
+    void onReferFriend();
+  }, [onReferFriend, searchParams, setSearchParams]);
 
   const phoneOrTabletViewport = useMailListChromeViewport();
   const topbarSearchVariant = phoneOrTabletViewport ? "icon" : "bar";
@@ -125,18 +149,7 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
       hideIndustryTools
       onStartAddonSubscription={(slug) => navigate(`/addons?highlight=${slug}`)}
       onLogout={() => logout()}
-      onReferFriend={async () => {
-        try {
-          const result = await api.referralInvite();
-          const message = result.rewardToast ?? result.message ?? "Referral invite sent.";
-          setPlatformNotice(message);
-          return { rewardToast: result.rewardToast ?? null, message };
-        } catch (err) {
-          const message = err instanceof Error ? err.message : "Referral failed";
-          setPlatformNotice(message);
-          return { rewardToast: null, message };
-        }
-      }}
+      onReferFriend={onReferFriend}
       organizationUsers={organizationUsers}
       liveComposeSettings={liveComposeSettings}
       onAutoReplySettingsPersist={async (payload) => {
