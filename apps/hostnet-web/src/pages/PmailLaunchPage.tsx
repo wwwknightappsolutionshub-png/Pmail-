@@ -123,7 +123,17 @@ function PmailBrandBar({ variant }: { variant: "header" | "footer" }) {
   return (
     <Tag className={`pmail-launch-brand-bar pmail-launch-brand-bar--${variant}`}>
       <div className="pmail-launch-brand-bar-inner">
-        <strong className="pmail-launch-brand-logo">PMail+</strong>
+        <div className="pmail-launch-brand-lockup">
+          <img
+            className="pmail-launch-brand-mark"
+            src="/images/pmail-plus-mark.png"
+            alt=""
+            width={36}
+            height={36}
+            decoding="async"
+          />
+          <strong className="pmail-launch-brand-logo">PMail+</strong>
+        </div>
         <span className="pmail-launch-brand-tag">MAIL WORKSPACE</span>
       </div>
     </Tag>
@@ -223,7 +233,9 @@ function PmailLayerVisual() {
         <article className="pmail-launch-cutout pmail-launch-cutout--plus">
           <span className="pmail-launch-layer-badge">Extra layer</span>
           <header className="pmail-launch-cutout-head">
-            <span className="pmail-launch-cutout-logo pmail-launch-cutout-logo--plus">P+</span>
+            <span className="pmail-launch-cutout-logo pmail-launch-cutout-logo--plus">
+              <img src="/images/pmail-plus-mark.png" alt="" width={22} height={22} decoding="async" />
+            </span>
             <div>
               <strong>PMail+</strong>
               <span>Productivity &amp; organization on top</span>

@@ -35,6 +35,22 @@
   padding: 1rem 0;
 }
 
+.pmail-launch-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.pmail-launch-brand-mark {
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 0.55rem;
+  flex: 0 0 auto;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(2, 44, 54, 0.28);
+}
+
 .pmail-launch-brand-logo {
   font-size: clamp(1.2rem, 2.8vw, 1.35rem);
   font-weight: 800;
@@ -673,6 +689,15 @@
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.35);
   font-size: 0.72rem;
+  overflow: hidden;
+  padding: 0;
+}
+
+.pmail-launch-cutout-logo--plus img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .pmail-launch-cutout-rows {
@@ -1253,13 +1278,15 @@
   .pmail-launch-hero {
     min-height: 0;
     align-items: stretch;
-    padding-top: 1.75rem;
-    padding-bottom: 2.25rem;
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
   }
 
   .pmail-launch-hero-grid-layout {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.75rem;
+    width: min(100%, 1120px);
+    padding-inline: 0;
   }
 
   .pmail-launch-hero-copy {
@@ -1273,12 +1300,12 @@
   .pmail-launch-hero-visual {
     justify-self: stretch;
     width: 100%;
-    max-width: 400px;
+    max-width: 22rem;
     margin-inline: auto;
   }
 
   .pmail-launch-beam {
-    opacity: 0.55;
+    opacity: 0.45;
   }
 
   .pmail-launch-problems-title {
@@ -1292,6 +1319,43 @@
   .pmail-launch-feature-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .pmail-launch-placeholder-nav-inner {
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .pmail-launch-placeholder-search {
+    max-width: none;
+    order: 1;
+    flex: 1 1 100%;
+  }
+
+  .pmail-launch-placeholder-actions {
+    order: 2;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.15rem;
+  }
+
+  .pmail-launch-placeholder-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pmail-launch-placeholder-tabs-inner {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+
+  .pmail-launch-placeholder-tabs-inner::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1301,17 +1365,42 @@
   }
 
   .pmail-launch-brand-bar-inner {
-    width: calc(100% - 1.5rem);
-    padding: 0.85rem 0;
+    width: calc(100% - 1.25rem);
+    padding: 0.8rem 0;
+    gap: 0.65rem;
+  }
+
+  .pmail-launch-brand-mark {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 0.48rem;
+  }
+
+  .pmail-launch-brand-lockup {
+    gap: 0.5rem;
   }
 
   .pmail-launch-brand-tag {
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
+    font-size: 0.68rem;
   }
 
   .pmail-launch-title {
     max-width: none;
-    font-size: clamp(1.55rem, 7vw, 2rem);
+    font-size: clamp(1.5rem, 7.2vw, 2rem);
+  }
+
+  .pmail-launch-intro,
+  .pmail-launch-layer-callout,
+  .pmail-launch-note,
+  .pmail-launch-problems-lead,
+  .pmail-launch-section-lead {
+    font-size: 0.94rem;
+  }
+
+  .pmail-launch-cta-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .pmail-launch-cta-row .btn {
@@ -1320,7 +1409,61 @@
   }
 
   .pmail-launch-layer-stack {
-    min-height: 30rem;
+    min-height: 18.5rem;
+  }
+
+  .pmail-launch-cutout--provider {
+    width: min(92%, 17.5rem);
+    padding: 0.55rem 0.7rem;
+    gap: 0.3rem;
+  }
+
+  .pmail-launch-cutout-head strong {
+    font-size: 0.84rem;
+  }
+
+  .pmail-launch-cutout-head span {
+    font-size: 0.66rem;
+  }
+
+  .pmail-launch-cutout-logo {
+    width: 1.7rem;
+    height: 1.7rem;
+    font-size: 0.72rem;
+  }
+
+  /* Keep a readable stack on small screens — hide mid providers */
+  .pmail-launch-cutout--aol,
+  .pmail-launch-cutout--yahoo,
+  .pmail-launch-cutout--proton,
+  .pmail-launch-cutout--thunderbird {
+    display: none;
+  }
+
+  .pmail-launch-cutout--gmail {
+    top: 0;
+  }
+
+  .pmail-launch-cutout--m365 {
+    top: 2.35rem;
+  }
+
+  .pmail-launch-cutout--hostinger {
+    top: 4.7rem;
+  }
+
+  .pmail-launch-cutout--plus {
+    top: 7.3rem;
+    padding: 0.85rem 0.9rem 0.95rem;
+  }
+
+  .pmail-launch-layer-chips {
+    gap: 0.28rem;
+  }
+
+  .pmail-launch-layer-chips li {
+    font-size: 0.66rem;
+    padding: 0.22rem 0.45rem;
   }
 
   .pmail-launch-orb--c,
@@ -1331,6 +1474,7 @@
   .pmail-launch-problems-grid,
   .pmail-launch-feature-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 
   .pmail-launch-problems-title,
@@ -1338,14 +1482,38 @@
     max-width: none;
   }
 
+  .pmail-launch-features-title {
+    font-size: clamp(1.55rem, 7vw, 2.2rem);
+  }
+
+  .pmail-launch-features-footer {
+    align-items: stretch;
+  }
+
   .pmail-launch-features-footer .btn {
     width: 100%;
-    max-width: 22rem;
+    max-width: none;
   }
 
   .pmail-launch-placeholder-btn {
-    font-size: 0.72rem;
-    padding: 0.4rem 0.6rem;
+    font-size: 0;
+    gap: 0;
+    padding: 0.5rem;
+    min-width: 2.35rem;
+    justify-content: center;
+  }
+
+  .pmail-launch-placeholder-btn .pmail-launch-placeholder-ico {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .pmail-launch-placeholder-actions .pmail-launch-placeholder-btn:nth-child(n + 3) {
+    display: none;
+  }
+
+  .pmail-launch-placeholder-tab {
+    flex: 0 0 auto;
   }
 }
 
