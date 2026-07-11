@@ -7,6 +7,7 @@ import {
   PMAil_EDUCATION_SIGNATURE_HTML,
   getPanelBenefitsList,
   getPanelUseCase,
+  getVerticalEducationDescription,
 } from "../data/addon-education-campaign-seeds.js";
 import { ADDON_VERTICAL_LABELS, type AddonVertical } from "../data/addon-verticals.js";
 import { getCatalogEntry } from "../data/addon-catalog.js";
@@ -202,7 +203,7 @@ async function sendEducationEmail(input: {
     ctaUrl: marketplaceUrl,
     verticalCtaUrl: marketplaceUrl,
     verticalLabel,
-    verticalDescription: `Your mailbox runs on a custom domain — PMail+ can extend your inbox with purpose-built tools for ${verticalLabel.toLowerCase()}.`,
+    verticalDescription: getVerticalEducationDescription(input.stepKey, verticalLabel),
     productListHtml: "",
     signatureHtml: PMAil_EDUCATION_SIGNATURE_HTML,
     optOutUrl: marketplaceUrl,
