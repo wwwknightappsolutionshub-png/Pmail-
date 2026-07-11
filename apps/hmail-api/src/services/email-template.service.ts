@@ -52,11 +52,8 @@ export function interpolateTemplate(template: string, variables: Record<string, 
   return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => variables[key] ?? "");
 }
 
-const SYNC_BODY_FROM_SEED_SLUGS = new Set(["pmail-account-welcome", "pmail-refer-friend"]);
-
 export async function seedEmailTemplates(): Promise<void> {
   for (const seed of EMAIL_TEMPLATE_SEEDS) {
-    const syncBodyFromSeed = SYNC_BODY_FROM_SEED_SLUGS.has(seed.slug);
     await prisma.emailTemplate.upsert({
       where: { slug: seed.slug },
       create: {
@@ -69,15 +66,15 @@ export async function seedEmailTemplates(): Promise<void> {
         variablesJson: JSON.stringify(seed.variables),
         isActive: true,
       },
-      // Preserve superAdmin edits — only insert missing seeded templates.
-      update: syncBodyFromSeed
-        ? {
-            subject: seed.subject,
-            htmlBody: seed.htmlBody,
-            textBody: seed.textBody,
-            variablesJson: JSON.stringify(seed.variables),
-          }
-        : {},
+      // Keep seeded chrome/copy in sync so brand shell updates ship on deploy.
+      update: {
+        name: seed.name,
+        category: seed.category,
+        subject: seed.subject,
+        htmlBody: seed.htmlBody,
+        textBody: seed.textBody,
+        variablesJson: JSON.stringify(seed.variables),
+      },
     });
   }
 }

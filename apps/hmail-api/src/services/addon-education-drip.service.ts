@@ -51,7 +51,14 @@ export async function seedAddonEducationTemplates(): Promise<void> {
         variablesJson: JSON.stringify(seed.variables),
         isActive: true,
       },
-      update: {},
+      update: {
+        name: seed.name,
+        category: seed.category,
+        subject: seed.subject,
+        htmlBody: seed.htmlBody,
+        textBody: seed.textBody,
+        variablesJson: JSON.stringify(seed.variables),
+      },
     });
   }
 }

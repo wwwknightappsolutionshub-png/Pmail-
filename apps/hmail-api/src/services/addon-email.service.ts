@@ -5,6 +5,7 @@ import { prisma } from "../lib/prisma.js";
 import { getEnv } from "../config/env.js";
 import { getPrimaryWebOrigin } from "../lib/web-origin.js";
 import { resolveDefaultBrandedSignatureExploreUrl } from "./default-signature.service.js";
+import { emailBtn, wrapBrandedEmail } from "../data/email-brand-shell.js";
 import { renderEmailTemplate } from "./email-template.service.js";
 
 export type AddonEmailType = "welcome" | "day3" | "day6" | "expired";
@@ -16,6 +17,17 @@ interface SendAddonEmailInput {
   userEmail: string;
   emailType: AddonEmailType;
   trialEndsAt?: Date;
+}
+
+
+function brandedFallback(bodyHtml: string, headline: string, subhead?: string): string {
+  return wrapBrandedEmail({
+    brandName: "PMail+",
+    brandTag: "Mail workspace",
+    headline,
+    subhead,
+    bodyHtml,
+  });
 }
 
 function resolveMarketplaceUrl(): string {
@@ -64,68 +76,52 @@ async function buildDay6ReferralUpsell(input: SendAddonEmailInput): Promise<{
 
 }
 
-
-
 function buildEmailContent(input: SendAddonEmailInput): { subject: string; text: string; html: string } {
-
   const marketplaceUrl = resolveMarketplaceUrl();
 
-
-
   switch (input.emailType) {
-
     case "welcome":
-
       return {
-
         subject: `Your free trial of ${input.addonName} is active`,
-
-        text: `Your 7-day free trial of ${input.addonName} is now active on HMail.\n\nOpen Add-ons: ${marketplaceUrl}`,
-
-        html: `<p>Your <strong>free 7-day trial</strong> of <strong>${input.addonName}</strong> is now active on HMail.</p><p><a href="${marketplaceUrl}">Open Add-ons</a></p>`,
-
+        text: `Your 7-day free trial of ${input.addonName} is now active on PMail+.\n\nOpen Add-ons: ${marketplaceUrl}`,
+        html: brandedFallback(
+          `<p>Your <strong>free 7-day trial</strong> of <strong>${input.addonName}</strong> is now active on PMail+.</p><p>${emailBtn(marketplaceUrl, "Open Add-ons")}</p>`,
+          "Your free trial is active",
+          "Explore workspace tools while your trial is open",
+        ),
       };
-
     case "day3":
-
       return {
-
         subject: `4 days left on your ${input.addonName} trial`,
-
         text: `You have 4 days left on your free ${input.addonName} trial.\n\n${marketplaceUrl}`,
-
-        html: `<p>You have <strong>4 days left</strong> on your free <strong>${input.addonName}</strong> trial.</p><p><a href="${marketplaceUrl}">View Add-ons</a></p>`,
-
+        html: brandedFallback(
+          `<p>You have <strong>4 days left</strong> on your free <strong>${input.addonName}</strong> trial.</p><p>${emailBtn(marketplaceUrl, "View Add-ons")}</p>`,
+          "4 days left on your trial",
+          "Keep exploring before complimentary access ends",
+        ),
       };
-
     case "day6":
-
       return {
-
         subject: "Your free Platform tools end tomorrow — keep them unlocked",
-
         text: `Your complimentary PMail+ Platform tools trial ends tomorrow. Subscribe to keep calendar, scheduled send, open tracking, WhatsApp, and Mail2PDF unlocked.\n\n${marketplaceUrl}`,
-
-        html: `<p>Your complimentary <strong>PMail+ Platform tools</strong> trial ends <strong>tomorrow</strong>.</p><p><a href="${marketplaceUrl}">Unlock Platform tools</a></p>`,
-
+        html: brandedFallback(
+          `<p>Your complimentary <strong>PMail+ Platform tools</strong> trial ends <strong>tomorrow</strong>.</p><p>${emailBtn(marketplaceUrl, "Unlock Platform tools")}</p>`,
+          "Platform tools end tomorrow",
+          "Subscribe to keep calendar, tracking, and exports unlocked",
+        ),
       };
-
     case "expired":
-
       return {
-
         subject: `Your ${input.addonName} trial has ended`,
-
         text: `Your trial of ${input.addonName} has ended. Add-ons are free — restart from the marketplace when available.\n\n${marketplaceUrl}`,
-
-        html: `<p>Your trial of <strong>${input.addonName}</strong> has ended.</p><p><a href="${marketplaceUrl}">View Add-ons</a></p>`,
-
+        html: brandedFallback(
+          `<p>Your trial of <strong>${input.addonName}</strong> has ended.</p><p>${emailBtn(marketplaceUrl, "View Add-ons")}</p>`,
+          "Your trial has ended",
+          "Restart anytime from the Addon Marketplace",
+        ),
       };
-
   }
-
 }
-
 
 
 export async function sendAddonTrialEmail(input: SendAddonEmailInput): Promise<void> {
@@ -141,8 +137,6 @@ export async function sendAddonTrialEmail(input: SendAddonEmailInput): Promise<v
     if (templated) content = templated;
 
   }
-
-
 
   const alreadySent = await prisma.addonEmailLog.findFirst({
 
@@ -160,13 +154,9 @@ export async function sendAddonTrialEmail(input: SendAddonEmailInput): Promise<v
 
   if (alreadySent) return;
 
-
-
   const from = process.env.NURTURE_SMTP_FROM ?? "noreply@hmail.local";
 
   const host = process.env.NURTURE_SMTP_HOST;
-
-
 
   if (host) {
 
@@ -192,8 +182,6 @@ export async function sendAddonTrialEmail(input: SendAddonEmailInput): Promise<v
 
     });
 
-
-
     await transporter.sendMail({
 
       from,
@@ -214,8 +202,6 @@ export async function sendAddonTrialEmail(input: SendAddonEmailInput): Promise<v
 
   }
 
-
-
   await prisma.addonEmailLog.create({
 
     data: {
@@ -233,8 +219,6 @@ export async function sendAddonTrialEmail(input: SendAddonEmailInput): Promise<v
   });
 
 }
-
-
 
 export async function sendOpenTrackingUpsellEmail(input: {
   tenantId: string;
@@ -263,7 +247,7 @@ export async function sendOpenTrackingUpsellEmail(input: {
     content = {
       subject: `Keep ${input.addonName} unlocked in PMail+`,
       text: `${input.addonSummary}\n\n${marketplaceUrl}`,
-      html: `<p>${input.addonSummary}</p><p><a href="${marketplaceUrl}">Explore ${input.addonName}</a></p>`,
+      html: brandedFallback(`<p>${input.addonSummary}</p><p>${emailBtn(marketplaceUrl, `Explore ${input.addonName}`)}</p>`, `Keep ${input.addonName} unlocked`, "Platform tools that grow with your mailbox"),
     };
   }
 
@@ -321,7 +305,7 @@ export async function sendAutoReplyUpsellEmail(input: {
     content = {
       subject: `Your Auto Reply access ends in ${input.daysLeft} days`,
       text: `Your complimentary PMail+ Auto Reply access ends in ${input.daysLeft} days. Subscribe: ${marketplaceUrl}`,
-      html: `<p>Your complimentary <strong>PMail+ Auto Reply</strong> access ends in <strong>${input.daysLeft} days</strong>.</p><p><a href="${marketplaceUrl}">Unlock Auto Reply</a></p>`,
+      html: brandedFallback(`<p>Your complimentary <strong>PMail+ Auto Reply</strong> access ends in <strong>${input.daysLeft} days</strong>.</p><p>${emailBtn(marketplaceUrl, "Unlock Auto Reply")}</p>`, "Keep Auto Reply running", "Your complimentary access is ending soon"),
     };
   }
 
@@ -404,7 +388,7 @@ export async function sendPanelWorkspaceTrialEmail(input: {
     content = {
       subject: subjects[input.emailType],
       text: `${subjects[input.emailType]} ${marketplaceUrl}`,
-      html: `<p>${subjects[input.emailType]}</p><p><a href="${marketplaceUrl}">View add-ons</a></p>`,
+      html: brandedFallback(`<p>${subjects[input.emailType]}</p><p>${emailBtn(marketplaceUrl, "View add-ons")}</p>`, "Workspace tools update", "Continue from your Addon Marketplace"),
     };
   }
 
@@ -492,7 +476,7 @@ export async function sendPmailAccountWelcomeEmail(input: {
     content = {
       subject: "Welcome to PMail+",
       text: `Hi ${input.fullName},\n\nWelcome to PMail+. Explore workspace and industry add-ons: ${marketplaceUrl}`,
-      html: `<p>Hi ${input.fullName},</p><p>Welcome to PMail+.</p><p><a href="${marketplaceUrl}">Explore add-ons</a></p>`,
+      html: brandedFallback(`<p>Hi ${input.fullName},</p><p>Welcome to PMail+.</p><p>${emailBtn(marketplaceUrl, "Explore add-ons")}</p>`, "Welcome to PMail+", "Your branded mail workspace is ready"),
     };
   }
 
@@ -577,7 +561,7 @@ export async function sendJobHunterInboxUpsellEmail(input: {
     content = {
       subject: "Unlock Job Hunter — we noticed career activity in your mailbox",
       text: `Hi ${fullName},\n\nWe detected job-search signals in your inbox and sent mail. Activate Job Hunter in PMail+ to track applications, build your CV, and prep for interviews.\n\n${marketplaceUrl}`,
-      html: `<p>Hi ${fullName},</p><p>We detected job-search signals in your mailbox. Activate <strong>Job Hunter</strong> in PMail+ to unlock career tools.</p><p><a href="${marketplaceUrl}">Activate Job Hunter</a></p>`,
+      html: brandedFallback(`<p>Hi ${fullName},</p><p>We detected job-search signals in your mailbox. Activate <strong>Job Hunter</strong> in PMail+ to unlock career tools.</p><p>${emailBtn(marketplaceUrl, "Activate Job Hunter")}</p>`, "Career tools for your mailbox", "We noticed job-search activity worth activating"),
     };
   }
 

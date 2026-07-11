@@ -405,7 +405,7 @@ describe("addons and features e2e", () => {
     expect(rendered.text).toContain("Jordan Lee");
   });
 
-  it("renders Auto Reply upsell template and respects superAdmin edits", async () => {
+  it("renders Auto Reply upsell template and allows subject overrides", async () => {
     const { seedEmailTemplates, renderEmailTemplate, updateEmailTemplate, getEmailTemplateBySlug } = await import(
       "../src/services/email-template.service.js"
     );

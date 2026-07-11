@@ -1,4 +1,5 @@
 import type { EmailTemplateSeed } from "./email-template-seeds.js";
+import { emailBtn, emailMuted, PMAIL_WRAPPER } from "./email-brand-shell.js";
 import { ADDON_CATALOG, getCatalogEntry } from "./addon-catalog.js";
 import { ADDON_VERTICAL_LABELS, ADDON_VERTICAL_ORDER, type AddonVertical } from "./addon-verticals.js";
 
@@ -20,26 +21,14 @@ const VERTICAL_KEYS = ADDON_VERTICAL_ORDER.filter((v) => v !== "platform") as Ex
 
 const PMAil_SIGNATURE = `PMail+ by Prohost Cloud · Your branded mail workspace`;
 
-const EDU_WRAPPER = (body: string) => `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<style>
-body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:#f0fdfa;color:#0f172a}
-.wrap{max-width:560px;margin:0 auto;padding:32px 16px}
-.card{background:#fff;border-radius:12px;border:1px solid #99f6e4;overflow:hidden;box-shadow:0 4px 24px rgba(13,148,136,.12)}
-.head{background:linear-gradient(135deg,#0d9488,#14b8a6);padding:28px 24px;color:#fff}
-.head h1{margin:0;font-size:1.35rem;font-weight:700}
-.body{padding:24px;line-height:1.6;font-size:15px}
-.btn{display:inline-block;margin-top:16px;padding:12px 24px;background:#0d9488;color:#fff!important;text-decoration:none;border-radius:8px;font-weight:600}
-.muted{color:#64748b;font-size:13px}
-.foot{padding:16px 24px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:12px;color:#64748b}
-ul{padding-left:1.2rem}
-</style></head>
-<body><div class="wrap"><div class="card">
-<div class="head"><h1>PMail+</h1></div>
-<div class="body">${body}</div>
-<div class="foot">{{signatureHtml}}<br/><a href="{{optOutUrl}}">Unsubscribe from PMail+ education emails</a></div>
-</div></div></body></html>`;
+const EDU_WRAPPER = (body: string, headline: string, subhead?: string) =>
+  PMAIL_WRAPPER(body, {
+    brandName: "PMail+",
+    headline,
+    subhead,
+    footExtraHtml:
+      '{{signatureHtml}}<br/><a href="{{optOutUrl}}" style="color:#0d9488;font-weight:600">Unsubscribe from PMail+ education emails</a>',
+  });
 
 const PANEL_USE_CASES: Record<string, string> = {
   "open-tracking":
@@ -109,17 +98,21 @@ Industry workspaces: {{verticalCtaUrl}}
 
 {{signatureHtml}}
 Unsubscribe: {{optOutUrl}}`,
-    htmlBody: EDU_WRAPPER(`
+    htmlBody: EDU_WRAPPER(
+      `
 <p>Hi <strong>{{fullName}}</strong>,</p>
 <p><strong>{{addonName}}</strong> is part of your {{productName}} workspace — same login, same mailbox, more capability.</p>
 <p>{{addonDescription}}</p>
 <p><strong>Why teams use it</strong></p>
-<p>{{benefitsList}}</p>
+<p style="white-space:pre-line">{{benefitsList}}</p>
 <p><strong>Real-world scenario</strong></p>
 <p><em>{{useCase}}</em></p>
 ${upsellLine}
-<p><a class="btn" href="{{ctaUrl}}">Explore {{addonName}}</a></p>
-<p class="muted"><a href="{{verticalCtaUrl}}">Browse industry workspace add-ons</a></p>`),
+<p>${emailBtn("{{ctaUrl}}", "Explore {{addonName}}")}</p>
+${emailMuted('<a href="{{verticalCtaUrl}}" style="color:#0d9488;font-weight:600">Browse industry workspace add-ons</a>')}`,
+      "Discover {{addonName}}",
+      "Same inbox. More capability from your {{productName}} workspace.",
+    ),
   };
 }
 
@@ -162,12 +155,16 @@ Explore: {{ctaUrl}}
 
 {{signatureHtml}}
 Unsubscribe: {{optOutUrl}}`,
-    htmlBody: EDU_WRAPPER(`
+    htmlBody: EDU_WRAPPER(
+      `
 <p>Hi <strong>{{fullName}}</strong>,</p>
 <p>${isGeneric ? "{{verticalDescription}}" : verticalDescription}</p>
 <p><strong>What you can activate</strong></p>
 <ul>${productList}</ul>
-<p><a class="btn" href="{{ctaUrl}}">View {{verticalLabel}} workspace add-ons</a></p>`),
+<p>${emailBtn("{{ctaUrl}}", "View {{verticalLabel}} workspace add-ons")}</p>`,
+      "{{verticalLabel}} tools inside {{productName}}",
+      "Industry workspaces connected to the same branded mailbox",
+    ),
   };
 }
 
