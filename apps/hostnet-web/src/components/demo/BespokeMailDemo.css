@@ -203,6 +203,16 @@
   align-items: center;
 }
 
+.bespoke-demo-topbar-trailing {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  min-width: 0;
+  margin-left: auto;
+  flex: 0 1 auto;
+}
+
 .bespoke-demo-topbar-compact-actions {
   display: flex;
   align-items: center;
@@ -216,20 +226,41 @@
 .bespoke-demo-topbar-search-slot {
   display: flex;
   align-items: center;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
 }
 
-/* Phone + tablet: keep icon search compact; desktop (≥1025) uses Gmail bar layout in VerticalBespokeMailDemoPage.css */
+/* Phone + tablet: keep icon search beside right-side actions; desktop (≥1025) expands search. */
 @media (max-width: 1024px) {
+  .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-trailing {
+    flex: 0 0 auto;
+  }
+
   .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot {
     flex: 0 0 auto;
-    justify-content: flex-end;
   }
 
   .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-actions {
-    flex: 1 1 auto;
-    justify-content: flex-end;
+    flex: 0 0 auto;
+  }
+}
+
+@media (min-width: 1025px) {
+  .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem 1rem;
+  }
+
+  .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-trailing {
+    display: contents;
+    margin-left: 0;
+  }
+
+  .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -4247,7 +4278,7 @@ body.pmail-search-overlay-open {
   }
 
   .bespoke-demo-messaging-shell[data-mobile-messaging-pane="list"] .bespoke-demo-messaging-directory {
-    padding-bottom: calc(0.75rem + var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
   }
 
   .bespoke-demo-messaging-directory__scroll {
@@ -4260,6 +4291,7 @@ body.pmail-search-overlay-open {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    /* Single clearance for the fixed mobile footer — avoid stacking with shell padding. */
     padding-bottom: calc(0.75rem + var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
   }
 

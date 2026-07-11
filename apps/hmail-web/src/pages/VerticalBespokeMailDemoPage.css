@@ -3182,6 +3182,16 @@ html:has(.pmail-demo-shell--light) body {
   gap: 0.35rem;
 }
 
+.pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-trailing {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  min-width: 0;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
 .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-logo .hmail-logo-wordmark {
   display: none;
 }
@@ -3675,9 +3685,11 @@ html:has(.pmail-demo-shell--light) body {
     padding-bottom: calc(1.5rem + var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
   }
 
-  .pmail-demo-shell .bespoke-demo-production-workspace--messaging,
+  /* Messaging clears the fixed footer via inner scroll padding only.
+     Outer padding here creates a permanent empty gray strip above the bottom nav. */
+  .pmail-demo-shell .bespoke-demo-production-workspace.bespoke-demo-production-workspace--messaging,
   .pmail-demo-shell .bespoke-demo-messaging-shell {
-    padding-bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom));
+    padding-bottom: 0;
     box-sizing: border-box;
   }
 
@@ -3850,7 +3862,16 @@ html:has(.pmail-demo-shell--light) body {
     align-items: center;
     justify-content: flex-end;
     min-width: 0;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-trailing {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    margin-left: auto;
+    flex: 0 0 auto;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-actions {
@@ -3870,15 +3891,11 @@ html:has(.pmail-demo-shell--light) body {
     flex-shrink: 0;
   }
 
-  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot {
-    flex: 1 1 auto;
-  }
-
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .gmail-mail-search,
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .bespoke-mail-search {
     flex: 0 0 auto;
     min-width: 0;
-    margin-left: auto;
+    margin-left: 0;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn--refer {
@@ -4380,6 +4397,11 @@ html:has(.pmail-demo-shell--light) body {
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-brand {
     grid-column: 1;
     flex: 0 0 auto;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-trailing {
+    display: contents;
+    margin-left: 0;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot {

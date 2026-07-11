@@ -560,7 +560,7 @@ export function BespokeMailDemo({
       <TopbarIcon>
         <path
           fill="currentColor"
-          d="M7 4h10l1 4h4v2h-1.05l-1.2 9.5A2 2 0 0 1 17.77 22H8.23a2 2 0 0 1-1.98-1.5L5.05 10H4V8h4l1-4zm2.2 2 .6 2h4.4l.6-2H9.2zm-.62 4 1.1 8h6.64l1.1-8H8.58zM9 12.5a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1zm6 0a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1z"
+          d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zM7.17 14.75l.03.12c.1.4.46.68.88.68h9.42c.38 0 .72-.21.89-.55L21.4 8H6.21l-.94-2H1V4h3.31l.94 2H21c.55 0 1 .45 1 1 0 .17-.04.33-.12.48l-3.58 6.49c-.34.62-1 1.03-1.75 1.03H8.53l-.4 1.25zM8.1 12h8.45l1.87-3.4H6.53L8.1 12z"
         />
       </TopbarIcon>
       <span>Addon marketplace</span>
@@ -2341,10 +2341,12 @@ export function BespokeMailDemo({
         {compactChrome ? (
           <div className="bespoke-demo-topbar-compact-row">
             <div className="bespoke-demo-topbar-brand">{renderTopbarBrand}</div>
-            <div className="bespoke-demo-topbar-search-slot">{topbarSearchControl}</div>
-            <div className="bespoke-demo-topbar-compact-actions" aria-label="Workspace actions">
-              {topbarReferButton}
-              {topbarAccountActions}
+            <div className="bespoke-demo-topbar-trailing">
+              <div className="bespoke-demo-topbar-search-slot">{topbarSearchControl}</div>
+              <div className="bespoke-demo-topbar-compact-actions" aria-label="Workspace actions">
+                {topbarReferButton}
+                {topbarAccountActions}
+              </div>
             </div>
           </div>
         ) : (
