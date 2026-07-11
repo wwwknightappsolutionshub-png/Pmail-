@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { PmailLaunchLeadCapture } from "../components/PmailLaunchLeadCapture";
 import { PmailLaunchUseCases } from "../components/PmailLaunchUseCases";
+import { markPrimaryCtaEngaged, PMAIL_WHATSAPP_HELP_URL } from "../lib/pmailLaunchCta";
 import "./LandingPage.css";
 import "./PmailLaunchPage.css";
 
@@ -286,10 +287,10 @@ export function PmailLaunchPage() {
               Same address. Same providers. One extra layer for client work, follow-ups, and operations.
             </p>
             <div className="pmail-launch-cta-row">
-              <a className="btn btn-primary" href={LOGIN_URL}>
+              <a className="btn btn-primary" href={LOGIN_URL} onClick={markPrimaryCtaEngaged}>
                 Start with PMail+
               </a>
-              <a className="btn btn-secondary" href={DEMO_LOGIN_URL}>
+              <a className="btn btn-secondary" href={DEMO_LOGIN_URL} onClick={markPrimaryCtaEngaged}>
                 Try a sample demo (register on login)
               </a>
             </div>
@@ -356,7 +357,7 @@ export function PmailLaunchPage() {
             ))}
           </div>
           <div className="pmail-launch-features-footer">
-            <a className="btn btn-primary" href={LOGIN_URL}>
+            <a className="btn btn-primary" href={LOGIN_URL} onClick={markPrimaryCtaEngaged}>
               Start with PMail+
             </a>
             <p className="pmail-launch-foot muted">Same branded domain. More capability when your work needs it.</p>
@@ -365,6 +366,27 @@ export function PmailLaunchPage() {
       </section>
 
       <PmailLaunchUseCases />
+
+      <section className="section-pad pmail-launch-after-uc-cta" aria-label="Get started">
+        <div className="container">
+          <div className="pmail-launch-cta-row pmail-launch-cta-row--band">
+            <a className="btn btn-primary" href={LOGIN_URL} onClick={markPrimaryCtaEngaged}>
+              Start with PMail+
+            </a>
+            <a className="btn btn-secondary" href={DEMO_LOGIN_URL} onClick={markPrimaryCtaEngaged}>
+              Try a sample demo (register on login)
+            </a>
+            <a
+              className="btn pmail-launch-wa-btn"
+              href={PMAIL_WHATSAPP_HELP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Need Help?
+            </a>
+          </div>
+        </div>
+      </section>
 
       <PmailBrandBar variant="footer" />
       <PmailLaunchLeadCapture />

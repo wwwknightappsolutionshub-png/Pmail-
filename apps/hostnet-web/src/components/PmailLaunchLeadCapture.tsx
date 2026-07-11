@@ -1,9 +1,11 @@
 import { FormEvent, useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
+import { hasPrimaryCtaEngaged, triggerExitWhatsApp } from "../lib/pmailLaunchCta";
 import "./PmailLaunchLeadCapture.css";
 
 const DISMISS_KEY = "pmail-launch-lead-dismissed-until";
 const SUBMITTED_KEY = "pmail-launch-lead-submitted";
+const FORM_DWELL_MS = 10_000;
 
 function wasDismissedRecently() {
   try {
@@ -33,7 +35,8 @@ function markSubmitted() {
 
 /**
  * Soft reward capture for WhatsApp / social visitors.
- * Triggers: scroll depth, dwell time, desktop exit-intent.
+ * Form: after 10s dwell.
+ * Exit intent: WhatsApp chat (if Start / Demo not clicked) — see triggerExitWhatsApp.
  */
 export function PmailLaunchLeadCapture() {
   const [open, setOpen] = useState(false);
@@ -54,24 +57,24 @@ export function PmailLaunchLeadCapture() {
       setOpen(true);
     };
 
-    const onScroll = () => {
-      const doc = document.documentElement;
-      const max = doc.scrollHeight - window.innerHeight;
-      if (max <= 0) return;
-      if (window.scrollY / max >= 0.45) show();
-    };
-
-    const onExit = (e: MouseEvent) => {
-      if (e.clientY <= 8) show();
-    };
-
-    const timer = window.setTimeout(show, 22000);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    document.addEventListener("mouseout", onExit);
-
+    const timer = window.setTimeout(show, FORM_DWELL_MS);
     return () => {
       window.clearTimeout(timer);
-      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    let fired = false;
+    const onExit = (e: MouseEvent) => {
+      if (fired) return;
+      if (e.clientY > 8) return;
+      if (e.relatedTarget) return;
+      if (hasPrimaryCtaEngaged()) return;
+      if (triggerExitWhatsApp()) fired = true;
+    };
+
+    document.addEventListener("mouseout", onExit);
+    return () => {
       document.removeEventListener("mouseout", onExit);
     };
   }, []);
