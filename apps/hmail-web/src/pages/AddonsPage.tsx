@@ -132,12 +132,22 @@ export function AddonsPage() {
 
   useEffect(() => {
     if (!highlight) return;
+
+    // Deep links must not skip (or fight) license selection. The previous
+    // effect forced step 3 whenever step < 3, which blanked browse (no
+    // license yet) and flashed license cards back off step 2.
+    if (!selectedWorkspace) return;
+    if (!licenseScope) {
+      if (marketplaceStep === 1) {
+        setMarketplaceStep(2);
+      }
+      return;
+    }
+
+    if (marketplaceStep !== 3) return;
     const el = document.getElementById(`addon-${highlight}`);
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    if (marketplaceStep < 3) {
-      setMarketplaceStep(3);
-    }
-  }, [highlight, addons.length, marketplaceStep]);
+  }, [highlight, addons.length, marketplaceStep, selectedWorkspace, licenseScope]);
 
   useEffect(() => {
     if (subscribed) {
