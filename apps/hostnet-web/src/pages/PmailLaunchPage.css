@@ -709,18 +709,31 @@
   overflow: hidden;
 }
 
-.pmail-launch-problems-title {
+.pmail-launch-problems-header {
+  text-align: center;
   margin: 0 auto 1.6rem;
+  max-width: 46rem;
+}
+
+.pmail-launch-problems-title {
+  margin: 0 auto 0.85rem;
   text-align: center;
   font-size: clamp(1.55rem, 4.2vw, 2.35rem);
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.03em;
-  max-width: 18ch;
+  max-width: 22ch;
   background: linear-gradient(120deg, #0f172a 10%, #0f766e 52%, #0d9488 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.pmail-launch-problems-lead {
+  margin: 0 auto;
+  max-width: 58ch;
+  font-size: clamp(0.95rem, 2.1vw, 1.05rem);
+  line-height: 1.6;
 }
 
 .pmail-launch-problems-grid {

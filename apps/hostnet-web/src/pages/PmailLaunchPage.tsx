@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { PmailLaunchLeadCapture } from "../components/PmailLaunchLeadCapture";
+import { PmailLaunchUseCases } from "../components/PmailLaunchUseCases";
 import "./LandingPage.css";
 import "./PmailLaunchPage.css";
 
@@ -287,7 +288,13 @@ export function PmailLaunchPage() {
 
       <section className="section-pad section-pad--alt pmail-launch-problems-section">
         <div className="container">
-          <h2 className="pmail-launch-problems-title">Problems PMail+ is here to solve</h2>
+          <header className="pmail-launch-problems-header">
+            <h2 className="pmail-launch-problems-title">Why You Should Switch To Pmail+</h2>
+            <p className="pmail-launch-problems-lead muted">
+              You don’t create a new email id. Pmail+ Workspace is built to solve the Organizational, Centralizational,
+              Flexibility and Productivity pitfall that exists in the current mail system.
+            </p>
+          </header>
           <div className="pmail-launch-problems-grid">
             {PROBLEMS.map((item, index) => (
               <article
@@ -310,7 +317,7 @@ export function PmailLaunchPage() {
         <div className="pmail-launch-features-bg" aria-hidden="true" />
         <div className="container pmail-launch-features-inner">
           <header className="pmail-launch-features-header">
-            <h2 className="landing-section-title pmail-launch-features-title">What you get</h2>
+            <h2 className="landing-section-title pmail-launch-features-title">What PMail+ Promises at its core</h2>
             <p className="muted pmail-launch-section-lead">
               Twelve workspace capabilities that live next to the same branded mailbox you use every day.
             </p>
@@ -336,6 +343,8 @@ export function PmailLaunchPage() {
           </div>
         </div>
       </section>
+
+      <PmailLaunchUseCases />
 
       <PmailBrandBar variant="footer" />
       <PmailLaunchLeadCapture />
