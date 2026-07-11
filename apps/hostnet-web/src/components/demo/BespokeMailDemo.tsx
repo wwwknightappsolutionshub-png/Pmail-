@@ -2341,11 +2341,9 @@ export function BespokeMailDemo({
         {compactChrome ? (
           <div className="bespoke-demo-topbar-compact-row">
             <div className="bespoke-demo-topbar-brand">{renderTopbarBrand}</div>
+            <div className="bespoke-demo-topbar-search-slot">{topbarSearchControl}</div>
             <div className="bespoke-demo-topbar-compact-actions" aria-label="Workspace actions">
-              <div className="bespoke-demo-topbar-search-slot">
-                {topbarSearchControl}
-                {topbarReferButton}
-              </div>
+              {topbarReferButton}
               {topbarAccountActions}
             </div>
           </div>

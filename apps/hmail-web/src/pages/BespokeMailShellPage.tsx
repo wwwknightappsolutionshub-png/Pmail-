@@ -16,6 +16,7 @@ import { renderBespokeProductionWorkspace } from "../components/BespokeProductio
 import { useInboxContactSync } from "../hooks/useInboxContactSync";
 import { useAutoMailPush } from "../hooks/useAutoMailPush";
 import { useMobileTopbarChromeCollapse } from "../hooks/useMobileTopbarChromeCollapse";
+import { useMailListChromeViewport } from "../hooks/useMailListChromeViewport";
 import { useWorkspaceTabCounts } from "../hooks/useWorkspaceTabCounts";
 import { usePanelWorkspaceTrialReminder } from "../hooks/usePanelWorkspaceTrialReminder";
 import { useSecondaryMailboxNotifications } from "../hooks/useSecondaryMailboxNotifications";
@@ -85,6 +86,8 @@ function BespokeMailShellContent() {
   const [mobileTopbarSearchCollapsed, setMobileTopbarSearchCollapsed] = useState(false);
 
   useMobileTopbarChromeCollapse(setMobileTopbarSearchCollapsed);
+  const phoneOrTabletViewport = useMailListChromeViewport();
+  const topbarSearchVariant = phoneOrTabletViewport ? "icon" : "bar";
 
   const openAddonsMarketplace = useCallback((highlightSlug?: string) => {
     setMobileTopbarSearchCollapsed(false);
@@ -355,7 +358,7 @@ function BespokeMailShellContent() {
   const topbarSearch = useMemo(
     () => (
       <GmailMailSearch
-        variant="icon"
+        variant={topbarSearchVariant}
         value={searchDraft}
         onChange={setSearchDraft}
         onSearch={() => {
@@ -365,7 +368,7 @@ function BespokeMailShellContent() {
         onDismiss={dismissMailSearchOverlay}
       />
     ),
-    [searchDraft, clearMailSearch, dismissMailSearchOverlay],
+    [searchDraft, clearMailSearch, dismissMailSearchOverlay, topbarSearchVariant],
   );
 
   const inboxWorkspace = useMemo(

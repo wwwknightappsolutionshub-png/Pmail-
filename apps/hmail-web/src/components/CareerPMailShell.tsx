@@ -10,6 +10,7 @@ import { VerticalBespokeMailDemoPage } from "../pages/VerticalBespokeMailDemoPag
 import { BespokeComposeBridgeProvider } from "../context/BespokeComposeBridge";
 import { MailFooterNavBridgeProvider } from "../context/MailFooterNavBridge";
 import { ShellMailFooterNav } from "./ShellMailFooterNav";
+import { useMailListChromeViewport } from "../hooks/useMailListChromeViewport";
 
 type LiveComposeSettings = {
   autoReplyEnabled: boolean;
@@ -76,17 +77,20 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
     [navigate],
   );
 
+  const phoneOrTabletViewport = useMailListChromeViewport();
+  const topbarSearchVariant = phoneOrTabletViewport ? "icon" : "bar";
+
   const topbarSearch = useMemo(
     () => (
       <GmailMailSearch
-        variant="icon"
+        variant={topbarSearchVariant}
         value={searchDraft}
         onChange={setSearchDraft}
         onSearch={() => navigate("/")}
         onClear={() => setSearchDraft({ field: "subject", query: "", scope: "all" })}
       />
     ),
-    [navigate, searchDraft],
+    [navigate, searchDraft, topbarSearchVariant],
   );
 
   const renderWorkspace = useCallback(

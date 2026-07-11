@@ -3845,6 +3845,14 @@ html:has(.pmail-demo-shell--light) body {
     min-width: 0;
   }
 
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-actions {
     display: flex;
     align-items: center;
@@ -3852,28 +3860,25 @@ html:has(.pmail-demo-shell--light) body {
     gap: 0.35rem;
     width: auto;
     min-width: 0;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     flex-wrap: nowrap;
-  }
-
-  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot {
-    display: flex;
-    align-items: center;
-    gap: 0.2rem;
-    min-width: 0;
-    flex: 1 1 auto;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot,
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-avatar,
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn {
-    flex: 0 0 auto;
+    flex-shrink: 0;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot {
+    flex: 1 1 auto;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .gmail-mail-search,
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .bespoke-mail-search {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     min-width: 0;
+    margin-left: auto;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn--refer {
@@ -4349,3 +4354,126 @@ html:has(.pmail-demo-shell--light) body {
     overscroll-behavior: none;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Desktop / laptop only (≥1025px): Gmail-like search + uncompressed Refer    */
+/* Phone/tablet (≤1024px) keep icon search + existing compact chrome.         */
+/* -------------------------------------------------------------------------- */
+@media (min-width: 1025px) {
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome {
+    display: block;
+    padding-top: max(0.7rem, env(safe-area-inset-top));
+    padding-bottom: 0.7rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-brand {
+    grid-column: 1;
+    flex: 0 0 auto;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot {
+    grid-column: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    flex: unset;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .gmail-mail-search,
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .bespoke-mail-search {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  /* Gmail-style wide pill search field */
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .bespoke-mail-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.85rem;
+    width: 100%;
+    padding: 0.25rem 0.45rem 0.25rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: color-mix(in srgb, var(--surface-card) 72%, var(--muted) 28%);
+    box-shadow: none;
+  }
+
+  .pmail-demo-shell--light .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .bespoke-mail-search-bar {
+    background: #eaf1fb;
+    border-color: transparent;
+  }
+
+  .pmail-demo-shell:not(.pmail-demo-shell--light)
+    .bespoke-demo-topbar--compact-chrome
+    .bespoke-demo-topbar-search-slot
+    .bespoke-mail-search-bar {
+    background: color-mix(in srgb, var(--surface-card) 55%, #0b1220 45%);
+    border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .bespoke-mail-search--focused .bespoke-mail-search-bar,
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .bespoke-mail-search--active .bespoke-mail-search-bar,
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .bespoke-mail-search--advanced .bespoke-mail-search-bar {
+    background: var(--surface-card);
+    border-color: color-mix(in srgb, var(--accent-2) 35%, var(--border));
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.08),
+      0 0 0 3px color-mix(in srgb, var(--accent-2) 12%, transparent);
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot .bespoke-mail-search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.95rem;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-actions {
+    grid-column: 3;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  /* Keep “Refer a friend” on one line — no vertical compression */
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    max-width: none;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn span:not(.bespoke-demo-topbar-btn-icon) {
+    display: inline;
+    white-space: nowrap;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn--refer {
+    display: inline-flex !important;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn--refer span {
+    white-space: nowrap;
+  }
+}
+
