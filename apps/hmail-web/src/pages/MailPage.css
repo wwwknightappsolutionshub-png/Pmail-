@@ -2104,14 +2104,41 @@
   }
 
   .read-header {
-    flex-direction: row;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .read-header-top {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-start;
+    gap: 0.75rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .read-header-meta {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .read-header-meta h2 {
+    max-width: 100%;
+  }
+
+  .read-actions {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    margin-left: auto;
   }
 
   .read-back-btn {
     display: inline-flex;
-    margin-bottom: 0.65rem;
+    margin-bottom: 0;
+    flex-shrink: 0;
   }
 
   .read-body {
@@ -2793,6 +2820,29 @@
     /* Transform-only hide — collapsing height causes scrollTop feedback flicker. */
     transition: transform 0.2s ease, opacity 0.2s ease;
     will-change: transform, opacity;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  /* Keep phone/tablet order: back → subject/meta → actions (unchanged UX) */
+  .read-header-top {
+    display: contents;
+  }
+
+  .read-back-btn {
+    order: 1;
+    margin-bottom: 0;
+  }
+
+  .read-header-meta {
+    order: 2;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .read-actions {
+    order: 3;
   }
 
   .read-header--hidden {
@@ -2834,5 +2884,302 @@
 
   .message-sender-delete-btn:disabled {
     opacity: 0.65;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Desktop / laptop only (≥1025px)                                            */
+/* Phone/tablet (≤1024px) keep existing breadcrumb, delete label/icon, etc.   */
+/* -------------------------------------------------------------------------- */
+@media (min-width: 1025px) {
+  /* 1. Welcome left · You are right */
+  .mail-app--embedded-in-bespoke .mail-list-breadcrumb {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+    font-family: inherit;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    background: rgba(8, 14, 26, 0.88);
+    color: #e2e8f0;
+  }
+
+  .mail-app.mail-app--light.mail-app--embedded-in-bespoke .mail-list-breadcrumb {
+    background: #f8fafc;
+    border-bottom-color: #dbe3ec;
+    color: #0f172a;
+  }
+
+  .mail-app--embedded-in-bespoke .mail-list-breadcrumb-welcome {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    color: #94a3b8;
+    text-align: left;
+  }
+
+  .mail-app.mail-app--light.mail-app--embedded-in-bespoke .mail-list-breadcrumb-welcome {
+    color: #64748b;
+  }
+
+  .mail-app--embedded-in-bespoke .mail-list-breadcrumb-sep {
+    display: none;
+  }
+
+  .mail-app--embedded-in-bespoke .mail-list-breadcrumb-current {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: none;
+    margin-left: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+    color: #e2e8f0;
+    text-align: right;
+  }
+
+  .mail-app.mail-app--light.mail-app--embedded-in-bespoke .mail-list-breadcrumb-current {
+    color: #0f172a;
+  }
+
+  /* 2. Delete sender → visible trash icon (not washed-out text pill) */
+  .message-sender-delete-btn {
+    width: 2.35rem;
+    height: 2.35rem;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid #ef4444;
+    background: #fee2e2;
+    color: #dc2626;
+    gap: 0;
+  }
+
+  .message-sender-delete-btn-icon {
+    display: block;
+    width: 1.15rem;
+    height: 1.15rem;
+    color: #dc2626;
+    stroke: #dc2626;
+  }
+
+  .message-sender-delete-btn-label {
+    display: none;
+  }
+
+  .message-sender-delete-btn:hover:not(:disabled) {
+    background: #fecaca;
+    border-color: #dc2626;
+    color: #b91c1c;
+  }
+
+  /* 3. Toolbar row: back + actions (incl. X/delete); subject fills full width below */
+  .read-header {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .read-header-top {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .read-back-btn {
+    display: inline-flex;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .read-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    margin-left: auto;
+    min-width: 0;
+  }
+
+  .read-header-meta {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .read-header-meta h2 {
+    margin: 0 0 0.35rem;
+    max-width: 100%;
+  }
+
+  /* 4. Restore branded template chrome after sanitize strips <style> */
+  .read-body-content .wrap {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 0.5rem 0 1rem;
+  }
+
+  .read-body-content .card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #99f6e4;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(13, 148, 136, 0.14);
+  }
+
+  .read-body-content .brand-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #042f3f, #0d9488);
+    color: #fff;
+  }
+
+  .read-body-content .brand-logo {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .read-body-content .brand-tag {
+    font-size: 0.78rem;
+    opacity: 0.88;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .read-body-content .head {
+    padding: 24px 24px 8px;
+    color: #0f172a;
+  }
+
+  .read-body-content .card > .head:first-child,
+  .read-body-content .card > .head:first-of-type {
+    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    padding: 28px 24px;
+    color: #fff;
+  }
+
+  .read-body-content .brand-top + .head {
+    background: transparent;
+    padding: 24px 24px 8px;
+    color: #0f172a;
+  }
+
+  .read-body-content .head h1 {
+    margin: 0 0 8px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: inherit;
+  }
+
+  .read-body-content .brand-top + .head h1 {
+    color: #0f172a;
+  }
+
+  .read-body-content .head p {
+    margin: 0;
+    color: #475569;
+    font-size: 0.96rem;
+    line-height: 1.55;
+  }
+
+  .read-body-content .body {
+    padding: 8px 24px 24px;
+    line-height: 1.65;
+    font-size: 15px;
+    color: #334155;
+  }
+
+  .read-body-content .feature {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 12px 0;
+  }
+
+  .read-body-content .feature strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #0f172a;
+  }
+
+  .read-body-content a.btn,
+  .read-body-content .btn {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 12px 24px;
+    background: #0d9488;
+    color: #fff !important;
+    text-decoration: none;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  .read-body-content .muted {
+    color: #64748b;
+    font-size: 13px;
+  }
+
+  .read-body-content .foot-signature {
+    padding: 18px 24px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    font-size: 14px;
+    color: #334155;
+    white-space: pre-line;
+  }
+
+  .read-body-content .brand-foot {
+    padding: 16px 24px 20px;
+    background: linear-gradient(135deg, #042f3f, #0d4f6c);
+    color: #fff;
+    text-align: center;
+  }
+
+  .read-body-content .brand-foot strong {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .read-body-content .brand-foot p {
+    margin: 0;
+    font-size: 0.82rem;
+    opacity: 0.88;
+  }
+
+  .read-body-content .foot {
+    padding: 16px 24px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    font-size: 12px;
+    color: #64748b;
+    text-align: center;
+  }
+
+  .mail-app.mail-app--light .read-body-content .card {
+    background: #fff;
   }
 }

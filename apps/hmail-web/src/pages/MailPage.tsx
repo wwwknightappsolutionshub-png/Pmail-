@@ -1699,10 +1699,38 @@ export function MailPage({
                 }`}
                 data-read-head-revealed={readHeadRevealed ? "true" : "false"}
               >
-                <div>
+                <div className="read-header-top">
                   <button type="button" className="read-back-btn" onClick={clearSelectedMessage}>
                     ← Back to messages
                   </button>
+                  <div className="read-actions">
+                    <ReadActionButton label="Reply" icon={ReplyIcon} onClick={onReply} />
+                    <ReadActionButton label="Reply all" icon={ReplyAllIcon} onClick={onReplyAll} />
+                    <ReadActionButton label="Forward" icon={ForwardIcon} onClick={onForward} />
+                    <ReadActionButton label="Mark unread" icon={MarkUnreadIcon} onClick={() => void onMarkUnread()} />
+                    <MessageUnsubscribeButton
+                      folder={activeFolder}
+                      uid={selectedMessage.uid}
+                      enabled={hasAddon("inbox-cleanup-functionality")}
+                      iconOnly
+                    />
+                    <ReadActionButton label="Print" icon={PrintIcon} onClick={onPrintMessage} />
+                    <ReadActionButton label="PDF" icon={PdfIcon} onClick={() => void onMailToPdf()} />
+                    <ReadActionButton label="WhatsApp" onClick={() => void onWhatsappSend()}>
+                      <WhatsAppIcon width={18} height={18} />
+                    </ReadActionButton>
+                    {!isTrashFolder ? (
+                      <ReadActionButton label="Trash" icon={TrashIcon} onClick={onMoveToTrash} />
+                    ) : null}
+                    <ReadActionButton
+                      label={isTrashFolder ? "Delete permanently" : "Delete"}
+                      icon={DeleteIcon}
+                      onClick={onDelete}
+                      variant="danger"
+                    />
+                  </div>
+                </div>
+                <div className="read-header-meta">
                   <h2>{selectedMessage.subject}</h2>
                   <p>
                     <strong>From:</strong> {selectedMessage.from}
@@ -1711,32 +1739,6 @@ export function MailPage({
                     <strong>To:</strong> {selectedMessage.to}
                   </p>
                   <p className="read-date">{formatDate(selectedMessage.date)}</p>
-                </div>
-                <div className="read-actions">
-                  <ReadActionButton label="Reply" icon={ReplyIcon} onClick={onReply} />
-                  <ReadActionButton label="Reply all" icon={ReplyAllIcon} onClick={onReplyAll} />
-                  <ReadActionButton label="Forward" icon={ForwardIcon} onClick={onForward} />
-                  <ReadActionButton label="Mark unread" icon={MarkUnreadIcon} onClick={() => void onMarkUnread()} />
-                  <MessageUnsubscribeButton
-                    folder={activeFolder}
-                    uid={selectedMessage.uid}
-                    enabled={hasAddon("inbox-cleanup-functionality")}
-                    iconOnly
-                  />
-                  <ReadActionButton label="Print" icon={PrintIcon} onClick={onPrintMessage} />
-                  <ReadActionButton label="PDF" icon={PdfIcon} onClick={() => void onMailToPdf()} />
-                  <ReadActionButton label="WhatsApp" onClick={() => void onWhatsappSend()}>
-                    <WhatsAppIcon width={18} height={18} />
-                  </ReadActionButton>
-                  {!isTrashFolder ? (
-                    <ReadActionButton label="Trash" icon={TrashIcon} onClick={onMoveToTrash} />
-                  ) : null}
-                  <ReadActionButton
-                    label={isTrashFolder ? "Delete permanently" : "Delete"}
-                    icon={DeleteIcon}
-                    onClick={onDelete}
-                    variant="danger"
-                  />
                 </div>
               </header>
 

@@ -23,10 +23,10 @@ body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:#f0fdfa;col
 .foot{padding:16px 24px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:12px;color:#64748b;text-align:center}
 code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:13px}
 </style></head>
-<body><div class="wrap"><div class="card">
-<div class="head"><h1>Prohost Cloud</h1></div>
-<div class="body">${body}</div>
-<div class="foot">© Prohost Cloud · Enterprise hosting, mail &amp; infrastructure</div>
+<body><div class="wrap" style="max-width:560px;margin:0 auto;padding:32px 16px"><div class="card" style="background:#fff;border-radius:12px;border:1px solid #99f6e4;overflow:hidden;box-shadow:0 4px 24px rgba(13,148,136,.12)">
+<div class="head" style="background:linear-gradient(135deg,#0d9488,#14b8a6);padding:28px 24px;color:#fff"><h1 style="margin:0;font-size:1.35rem;font-weight:700;color:#fff">Prohost Cloud</h1></div>
+<div class="body" style="padding:24px;line-height:1.6;font-size:15px;color:#0f172a">${body}</div>
+<div class="foot" style="padding:16px 24px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:12px;color:#64748b;text-align:center">© Prohost Cloud · Enterprise hosting, mail &amp; infrastructure</div>
 </div></div></body></html>`;
 
 export const EMAIL_TEMPLATE_SEEDS: EmailTemplateSeed[] = [
@@ -319,21 +319,21 @@ body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:#ecfeff;col
 .brand-foot strong{display:block;font-size:1rem;font-weight:700;margin-bottom:4px}
 .brand-foot p{margin:0;font-size:.82rem;opacity:.88}
 </style></head>
-<body><div class="wrap"><div class="card">
-<div class="brand-top"><span class="brand-logo">{{productName}}</span><span class="brand-tag">Mail workspace</span></div>
-<div class="head"><h1>Explore More Possibilities With Mails On {{productName}} | Join Me</h1><p>A smarter mail workspace with tools that grow with your business</p></div>
-<div class="body">
+<body><div class="wrap" style="max-width:620px;margin:0 auto;padding:24px 16px"><div class="card" style="background:#fff;border-radius:18px;border:1px solid #99f6e4;overflow:hidden;box-shadow:0 12px 40px rgba(13,148,136,.14)">
+<div class="brand-top" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 24px;background:linear-gradient(135deg,#042f3f,#0d9488);color:#fff"><span class="brand-logo" style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em">{{productName}}</span><span class="brand-tag" style="font-size:.78rem;opacity:.88;text-transform:uppercase;letter-spacing:.12em">Mail workspace</span></div>
+<div class="head" style="padding:24px 24px 8px;color:#0f172a"><h1 style="margin:0 0 8px;font-size:1.5rem;font-weight:700;line-height:1.25;color:#0f172a">Explore More Possibilities With Mails On {{productName}} | Join Me</h1><p style="margin:0;color:#475569;font-size:.96rem;line-height:1.55">A smarter mail workspace with tools that grow with your business</p></div>
+<div class="body" style="padding:8px 24px 24px;line-height:1.65;font-size:15px;color:#334155">
 <p>Hi there,</p>
 <p>I've switched my day-to-day mail to <strong>{{productName}}</strong> and thought you'd benefit from it too. It's more than inbox — it's a workspace where mail, scheduling, and business tools stay in one place.</p>
-<div class="feature"><strong>Mail that feels modern</strong>Fast compose, organized folders, signatures, and a workspace built for real operators.</div>
-<div class="feature"><strong>Platform tools ready when you need them</strong>Calendar, scheduled send, open tracking, WhatsApp handoff, and Mail2PDF exports.</div>
-<div class="feature"><strong>Industry workspaces</strong>Legal, accounting, healthcare, recruitment, and more — unlock vertical tools only when your team is ready.</div>
-<div class="feature"><strong>Upgrade on your terms</strong>Start with regular mail, explore the environment, and subscribe only to the bundles you want.</div>
-<p><a class="btn" href="{{referralUrl}}">Explore {{productName}}</a></p>
-<p class="muted">Use the link above to sign in and explore the same mail experience I'm using.</p>
+<div class="feature" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin:12px 0"><strong style="display:block;margin-bottom:4px;color:#0f172a">Mail that feels modern</strong>Fast compose, organized folders, signatures, and a workspace built for real operators.</div>
+<div class="feature" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin:12px 0"><strong style="display:block;margin-bottom:4px;color:#0f172a">Platform tools ready when you need them</strong>Calendar, scheduled send, open tracking, WhatsApp handoff, and Mail2PDF exports.</div>
+<div class="feature" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin:12px 0"><strong style="display:block;margin-bottom:4px;color:#0f172a">Industry workspaces</strong>Legal, accounting, healthcare, recruitment, and more — unlock vertical tools only when your team is ready.</div>
+<div class="feature" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin:12px 0"><strong style="display:block;margin-bottom:4px;color:#0f172a">Upgrade on your terms</strong>Start with regular mail, explore the environment, and subscribe only to the bundles you want.</div>
+<p><a class="btn" href="{{referralUrl}}" style="display:inline-block;margin-top:18px;padding:12px 24px;background:#0d9488;color:#fff!important;text-decoration:none;border-radius:999px;font-weight:600">Explore {{productName}}</a></p>
+<p class="muted" style="color:#64748b;font-size:13px">Use the link above to sign in and explore the same mail experience I'm using.</p>
 </div>
-<div class="foot-signature">{{signatureFooter}}</div>
-<div class="brand-foot"><strong>{{productName}}</strong><p>Modern mail workspace with calendar, industry tools, and upgrades on your terms.</p></div>
+<div class="foot-signature" style="padding:18px 24px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:14px;color:#334155;white-space:pre-line">{{signatureFooter}}</div>
+<div class="brand-foot" style="padding:16px 24px 20px;background:linear-gradient(135deg,#042f3f,#0d4f6c);color:#fff;text-align:center"><strong style="display:block;font-size:1rem;font-weight:700;margin-bottom:4px">{{productName}}</strong><p style="margin:0;font-size:.82rem;opacity:.88">Modern mail workspace with calendar, industry tools, and upgrades on your terms.</p></div>
 </div></div></body></html>`,
   },
   {

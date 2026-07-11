@@ -52,7 +52,7 @@ export function interpolateTemplate(template: string, variables: Record<string, 
   return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => variables[key] ?? "");
 }
 
-const SYNC_BODY_FROM_SEED_SLUGS = new Set(["pmail-account-welcome"]);
+const SYNC_BODY_FROM_SEED_SLUGS = new Set(["pmail-account-welcome", "pmail-refer-friend"]);
 
 export async function seedEmailTemplates(): Promise<void> {
   for (const seed of EMAIL_TEMPLATE_SEEDS) {
