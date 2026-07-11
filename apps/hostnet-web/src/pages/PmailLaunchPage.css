@@ -1,10 +1,27 @@
 .pmail-launch-page {
+  /* Light page surfaces — override dark marketing --muted / body tokens */
+  --text: #0f172a;
+  --muted: #475569;
   padding-bottom: 0;
   overflow-x: hidden;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: #ecfeff;
+  color: var(--text);
+}
+
+.pmail-launch-page .section-pad--alt {
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.08), #eef2f8);
+  border-block-color: rgba(15, 23, 42, 0.08);
+}
+
+.pmail-launch-intro,
+.pmail-launch-note,
+.pmail-launch-problems-lead,
+.pmail-launch-section-lead,
+.pmail-launch-foot {
+  color: #475569;
 }
 
 .pmail-launch-brand-bar {
