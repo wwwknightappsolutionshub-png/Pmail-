@@ -30,17 +30,19 @@
   display: grid;
   grid-template-columns: minmax(12rem, 0.85fr) minmax(0, 1.4fr);
   gap: clamp(1.25rem, 3vw, 2rem);
-  align-items: start;
+  align-items: stretch;
 }
 
 .pmail-uc-list {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
+  height: 100%;
 }
 
 .pmail-uc-btn {
   width: 100%;
+  flex: 1 1 0;
   text-align: left;
   padding: 0.85rem 1rem;
   border-radius: 12px;
@@ -72,9 +74,16 @@
 
 .pmail-uc-carousel {
   min-width: 0;
+  min-height: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .pmail-uc-carousel-stage {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
   border-radius: 18px;
   border: 1px solid rgba(13, 148, 136, 0.22);
   background:
@@ -82,13 +91,15 @@
     linear-gradient(180deg, #ecfeff 0%, #f8fafc 100%);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
   overflow: hidden;
-  min-height: 22rem;
+  min-height: 0;
 }
 
 .pmail-uc-shot {
   display: flex;
   flex-direction: column;
-  min-height: 22rem;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 100%;
   animation: pmail-uc-fade 0.35s ease both;
 }
 
@@ -100,6 +111,7 @@
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(6px);
+  flex-shrink: 0;
 }
 
 .pmail-uc-shot-dots {
@@ -143,8 +155,12 @@
 }
 
 .pmail-uc-shot-body {
-  flex: 1;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding: 1rem 1.1rem 1.15rem;
+  min-height: 0;
 }
 
 .pmail-uc-shot-kicker {
@@ -160,6 +176,8 @@
   display: grid;
   grid-template-columns: 8.5rem 1fr;
   gap: 0.85rem;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .pmail-uc-shot-workspace aside {
@@ -185,12 +203,24 @@
   color: #0f766e;
 }
 
+.pmail-uc-shot-workspace .pmail-uc-shot-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .pmail-uc-shot-tiles {
   display: grid;
   gap: 0.55rem;
+  flex: 1 1 auto;
+  align-content: stretch;
 }
 
 .pmail-uc-shot-tiles article {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1 1 auto;
   padding: 0.8rem 0.9rem;
   border-radius: 12px;
   border: 1px solid rgba(13, 148, 136, 0.16);
@@ -238,11 +268,14 @@
   padding: 0;
   display: grid;
   gap: 0.5rem;
+  flex: 1 1 auto;
+  align-content: stretch;
 }
 
 .pmail-uc-shot-inbox li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 0.85rem;
   border-radius: 12px;
@@ -263,6 +296,8 @@
 .pmail-uc-shot-crm-rows {
   display: grid;
   gap: 0.5rem;
+  flex: 1 1 auto;
+  align-content: stretch;
 }
 
 .pmail-uc-shot-crm-rows > div {
@@ -296,6 +331,8 @@
   padding: 0;
   display: grid;
   gap: 0.55rem;
+  flex: 1 1 auto;
+  align-content: stretch;
 }
 
 .pmail-uc-shot-reminders li {
@@ -330,6 +367,8 @@
 .pmail-uc-shot-contacts {
   display: grid;
   gap: 0.55rem;
+  flex: 1 1 auto;
+  align-content: stretch;
 }
 
 .pmail-uc-shot-contact {
@@ -369,6 +408,8 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
+  flex: 1 1 auto;
+  align-content: stretch;
 }
 
 .pmail-uc-shot-attach-grid article {
@@ -408,6 +449,7 @@
   justify-content: center;
   gap: 0.75rem;
   margin-top: 0.9rem;
+  flex-shrink: 0;
 }
 
 .pmail-uc-nav {
@@ -446,6 +488,7 @@
   margin: 0.65rem 0 0;
   text-align: center;
   font-size: 0.86rem;
+  flex-shrink: 0;
 }
 
 @keyframes pmail-uc-fade {
@@ -462,11 +505,30 @@
 @media (max-width: 900px) {
   .pmail-uc-grid {
     grid-template-columns: 1fr;
+    align-items: start;
   }
 
   .pmail-uc-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: auto;
+  }
+
+  .pmail-uc-btn {
+    flex: none;
+  }
+
+  .pmail-uc-carousel {
+    height: auto;
+    min-height: 0;
+  }
+
+  .pmail-uc-carousel-stage {
+    min-height: 22rem;
+  }
+
+  .pmail-uc-shot {
+    min-height: 22rem;
   }
 }
 

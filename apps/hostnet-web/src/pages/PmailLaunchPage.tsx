@@ -75,21 +75,42 @@ const FEATURES: Array<{ title: string; body: string; tone: string }> = [
 
 const PROBLEMS: Array<{ title: string; body: string }> = [
   {
-    title: "Tool sprawl",
-    body: "Scattered tools for mail, files, calendars, and follow-ups",
+    title: "Too many apps",
+    body:
+      "Mail, files, calendars, CRM, and follow-ups live in separate tools, so teams waste time switching tabs instead of finishing client work in one place.",
   },
   {
-    title: "Blind follow-ups",
-    body: "No visibility when clients open critical messages",
+    title: "No open insight",
+    body:
+      "You send important emails without knowing who opened them or when, so follow-ups are guesswork and hot leads go cold.",
   },
   {
-    title: "Broken handoffs",
-    body: "Attachment limits and messy document handoffs",
+    title: "Files keep failing",
+    body:
+      "Large attachments bounce, get lost in threads, or force awkward workarounds — document handoffs become messy and hard to track.",
   },
   {
-    title: "Siloed workflows",
-    body: "Industry workflows trapped outside the inbox",
+    title: "Work outside inbox",
+    body:
+      "Industry workflows for legal, immigration, accounting, and sales sit outside email, so context splits across systems and deadlines slip.",
   },
+];
+
+type ProviderCutout = {
+  id: string;
+  name: string;
+  tag: string;
+  mark: string;
+};
+
+const PROVIDER_CUTOUTS: ProviderCutout[] = [
+  { id: "gmail", name: "Gmail", tag: "Inbox · your existing mailbox", mark: "M" },
+  { id: "m365", name: "Microsoft 365", tag: "Outlook · keep your address", mark: "O" },
+  { id: "aol", name: "AOL Mail", tag: "Classic inbox · still yours", mark: "A" },
+  { id: "yahoo", name: "Yahoo Mail", tag: "Personal & business mail", mark: "Y" },
+  { id: "proton", name: "Proton Mail", tag: "Encrypted inbox · same address", mark: "P" },
+  { id: "thunderbird", name: "Thunderbird", tag: "Desktop mail · IMAP ready", mark: "T" },
+  { id: "hostinger", name: "Hostinger", tag: "Branded domain mailbox", mark: "H" },
 ];
 
 /**
@@ -175,42 +196,28 @@ function PmailLayerVisual() {
   return (
     <div className="pmail-launch-layer-visual" aria-hidden="true">
       <div className="pmail-launch-layer-stack">
-        <article className="pmail-launch-cutout pmail-launch-cutout--gmail">
-          <header className="pmail-launch-cutout-head">
-            <span className="pmail-launch-cutout-logo pmail-launch-cutout-logo--gmail">M</span>
-            <div>
-              <strong>Gmail</strong>
-              <span>Inbox · your existing mailbox</span>
-            </div>
-          </header>
-          <div className="pmail-launch-cutout-rows">
-            <span />
-            <span />
-            <span />
-          </div>
-          <span className="pmail-launch-cutout-compose">Compose</span>
-        </article>
-
-        <article className="pmail-launch-cutout pmail-launch-cutout--m365">
-          <header className="pmail-launch-cutout-head">
-            <span className="pmail-launch-cutout-logo pmail-launch-cutout-logo--m365">O</span>
-            <div>
-              <strong>Microsoft 365</strong>
-              <span>Outlook · keep your address</span>
-            </div>
-          </header>
-          <div className="pmail-launch-cutout-pane">
-            <aside>
-              <i />
-              <i />
-              <i />
-            </aside>
+        {PROVIDER_CUTOUTS.map((provider) => (
+          <article
+            key={provider.id}
+            className={`pmail-launch-cutout pmail-launch-cutout--provider pmail-launch-cutout--${provider.id}`}
+          >
+            <header className="pmail-launch-cutout-head">
+              <span className={`pmail-launch-cutout-logo pmail-launch-cutout-logo--${provider.id}`}>
+                {provider.mark}
+              </span>
+              <div>
+                <strong>{provider.name}</strong>
+                <span>{provider.tag}</span>
+              </div>
+            </header>
             <div className="pmail-launch-cutout-rows">
               <span />
               <span />
+              {provider.id === "gmail" || provider.id === "m365" ? <span /> : null}
             </div>
-          </div>
-        </article>
+            {provider.id === "gmail" ? <span className="pmail-launch-cutout-compose">Compose</span> : null}
+          </article>
+        ))}
 
         <article className="pmail-launch-cutout pmail-launch-cutout--plus">
           <span className="pmail-launch-layer-badge">Extra layer</span>
@@ -289,10 +296,10 @@ export function PmailLaunchPage() {
       <section className="section-pad section-pad--alt pmail-launch-problems-section">
         <div className="container">
           <header className="pmail-launch-problems-header">
-            <h2 className="pmail-launch-problems-title">Why You Should Switch To Pmail+</h2>
+            <h2 className="pmail-launch-problems-title">Why You Should Switch To PMail+ Workspace</h2>
             <p className="pmail-launch-problems-lead muted">
-              You don’t create a new email id. Pmail+ Workspace is built to solve the Organizational, Centralizational,
-              Flexibility and Productivity pitfall that exists in the current mail system.
+              You don’t create a new email id. Pmail+ Workspace is built rather to solve the Organizational,
+              Centralizational, Flexibility and Productivity pitfalls that exist in the current mail system.
             </p>
           </header>
           <div className="pmail-launch-problems-grid">

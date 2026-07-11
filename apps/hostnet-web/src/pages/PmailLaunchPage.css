@@ -470,7 +470,7 @@
   min-width: 0;
   justify-self: center;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   margin-inline: auto;
 }
 
@@ -482,7 +482,7 @@
 
 .pmail-launch-layer-stack {
   position: relative;
-  min-height: 19.5rem;
+  min-height: 26rem;
   margin-bottom: 0.85rem;
 }
 
@@ -492,43 +492,109 @@
   right: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  padding: 0.85rem 0.95rem;
-  border-radius: 16px;
+  gap: 0.45rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 14px;
   border: 1px solid rgba(148, 163, 184, 0.35);
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
   overflow: hidden;
+}
+
+.pmail-launch-cutout--gmail,
+.pmail-launch-cutout--aol,
+.pmail-launch-cutout--proton,
+.pmail-launch-cutout--hostinger {
+  --cutout-rot: -1.4deg;
+}
+
+.pmail-launch-cutout--m365,
+.pmail-launch-cutout--yahoo,
+.pmail-launch-cutout--thunderbird {
+  --cutout-rot: 1.2deg;
+}
+
+.pmail-launch-cutout--provider {
+  width: min(88%, 19.5rem);
+  animation: pmail-launch-cutout-provider 8s ease-in-out infinite;
 }
 
 .pmail-launch-cutout--gmail {
   top: 0;
-  right: 8%;
+  left: 4%;
   background: linear-gradient(160deg, #fff 0%, #fff7ed 100%);
   border-color: rgba(234, 88, 12, 0.22);
   z-index: 1;
-  animation: pmail-launch-cutout-gmail 7.5s ease-in-out infinite;
+  animation-delay: 0s;
 }
 
 .pmail-launch-cutout--m365 {
-  top: 4.4rem;
-  left: 7%;
+  top: 1.55rem;
+  left: auto;
   right: 0;
   background: linear-gradient(160deg, #fff 0%, #eff6ff 100%);
   border-color: rgba(37, 99, 235, 0.22);
   z-index: 2;
-  animation: pmail-launch-cutout-m365 8.5s ease-in-out infinite;
+  animation-delay: 0.15s;
+}
+
+.pmail-launch-cutout--aol {
+  top: 3.35rem;
+  left: 0;
+  background: linear-gradient(160deg, #fff 0%, #fef2f2 100%);
+  border-color: rgba(220, 38, 38, 0.22);
+  z-index: 3;
+  animation-delay: 0.3s;
+}
+
+.pmail-launch-cutout--yahoo {
+  top: 5.1rem;
+  left: auto;
+  right: 3%;
+  background: linear-gradient(160deg, #fff 0%, #f5f3ff 100%);
+  border-color: rgba(124, 58, 237, 0.22);
+  z-index: 4;
+  animation-delay: 0.45s;
+}
+
+.pmail-launch-cutout--proton {
+  top: 6.85rem;
+  left: 6%;
+  background: linear-gradient(160deg, #fff 0%, #ecfdf5 100%);
+  border-color: rgba(6, 95, 70, 0.22);
+  z-index: 5;
+  animation-delay: 0.6s;
+}
+
+.pmail-launch-cutout--thunderbird {
+  top: 8.55rem;
+  left: auto;
+  right: 1%;
+  background: linear-gradient(160deg, #fff 0%, #fffbeb 100%);
+  border-color: rgba(217, 119, 6, 0.25);
+  z-index: 6;
+  animation-delay: 0.75s;
+}
+
+.pmail-launch-cutout--hostinger {
+  top: 10.2rem;
+  left: 2%;
+  background: linear-gradient(160deg, #fff 0%, #fdf2f8 100%);
+  border-color: rgba(219, 39, 119, 0.22);
+  z-index: 7;
+  animation-delay: 0.9s;
 }
 
 .pmail-launch-cutout--plus {
-  top: 9rem;
+  top: 12.4rem;
   left: 2%;
   right: 4%;
+  width: auto;
   gap: 0.65rem;
   padding: 1rem 1.05rem 1.1rem;
   border-color: rgba(45, 212, 191, 0.5);
   background: linear-gradient(145deg, #042f3f 0%, #0d9488 72%, #14b8a6 100%);
   color: #fff;
-  z-index: 3;
+  z-index: 8;
   box-shadow:
     0 24px 48px rgba(13, 148, 136, 0.32),
     0 8px 18px rgba(15, 23, 42, 0.16);
@@ -583,6 +649,26 @@
   background: linear-gradient(135deg, #0078d4, #28a8ea);
 }
 
+.pmail-launch-cutout-logo--aol {
+  background: linear-gradient(135deg, #ff0b00, #b91c1c);
+}
+
+.pmail-launch-cutout-logo--yahoo {
+  background: linear-gradient(135deg, #6001d2, #7c3aed);
+}
+
+.pmail-launch-cutout-logo--proton {
+  background: linear-gradient(135deg, #6d4aff, #0f766e);
+}
+
+.pmail-launch-cutout-logo--thunderbird {
+  background: linear-gradient(135deg, #0a84ff, #f59e0b);
+}
+
+.pmail-launch-cutout-logo--hostinger {
+  background: linear-gradient(135deg, #673de6, #db2777);
+}
+
 .pmail-launch-cutout-logo--plus {
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.35);
@@ -609,6 +695,14 @@
 }
 .pmail-launch-cutout-rows span:nth-child(3) {
   width: 64%;
+}
+
+.pmail-launch-cutout--aol .pmail-launch-cutout-rows span,
+.pmail-launch-cutout--yahoo .pmail-launch-cutout-rows span,
+.pmail-launch-cutout--proton .pmail-launch-cutout-rows span,
+.pmail-launch-cutout--thunderbird .pmail-launch-cutout-rows span,
+.pmail-launch-cutout--hostinger .pmail-launch-cutout-rows span {
+  background: rgba(15, 23, 42, 0.08);
 }
 
 .pmail-launch-cutout--m365 .pmail-launch-cutout-rows span {
@@ -722,7 +816,7 @@
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.03em;
-  max-width: 22ch;
+  max-width: 26ch;
   background: linear-gradient(120deg, #0f172a 10%, #0f766e 52%, #0d9488 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -1102,23 +1196,13 @@
   }
 }
 
-@keyframes pmail-launch-cutout-gmail {
+@keyframes pmail-launch-cutout-provider {
   0%,
   100% {
-    transform: translateY(0) rotate(-1.8deg);
+    transform: translateY(0) rotate(var(--cutout-rot, 0deg));
   }
   50% {
-    transform: translateY(-8px) rotate(-1.2deg);
-  }
-}
-
-@keyframes pmail-launch-cutout-m365 {
-  0%,
-  100% {
-    transform: translateY(0) rotate(1.5deg);
-  }
-  50% {
-    transform: translateY(-6px) rotate(0.8deg);
+    transform: translateY(-5px) rotate(var(--cutout-rot, 0deg));
   }
 }
 
@@ -1236,7 +1320,7 @@
   }
 
   .pmail-launch-layer-stack {
-    min-height: 20rem;
+    min-height: 24.5rem;
   }
 
   .pmail-launch-orb--c,
@@ -1277,12 +1361,17 @@
     animation: none !important;
   }
 
-  .pmail-launch-cutout--gmail {
-    transform: rotate(-1.8deg);
+  .pmail-launch-cutout--gmail,
+  .pmail-launch-cutout--aol,
+  .pmail-launch-cutout--proton,
+  .pmail-launch-cutout--hostinger {
+    transform: rotate(-1.2deg);
   }
 
-  .pmail-launch-cutout--m365 {
-    transform: rotate(1.5deg);
+  .pmail-launch-cutout--m365,
+  .pmail-launch-cutout--yahoo,
+  .pmail-launch-cutout--thunderbird {
+    transform: rotate(1.1deg);
   }
 
   .pmail-launch-problems-grid:hover .pmail-launch-problem-card,
