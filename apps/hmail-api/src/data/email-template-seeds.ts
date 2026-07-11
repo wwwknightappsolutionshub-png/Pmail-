@@ -1,4 +1,10 @@
-import { EMAIL_HREF_PLACEHOLDER, PMAIL_ADDONS_URL, PMAIL_LOGIN_URL } from "./email-cta-urls.js";
+import {
+  EMAIL_HREF_PLACEHOLDER,
+  PMAIL_ADDONS_URL,
+  PMAIL_LAUNCH_SHARE_URL,
+  PMAIL_LOGIN_URL,
+  PMAIL_UI_DEMO_URL,
+} from "./email-cta-urls.js";
 import { emailBtn, emailFeature, emailMuted, PMAIL_WRAPPER, WRAPPER } from "./email-brand-shell.js";
 
 export type EmailTemplateSeed = {
@@ -378,6 +384,81 @@ ${emailMuted("This reminder repeats every 48 hours until you use Refer a friend 
         brandName: "{{productName}}",
         headline: "Your free trial ended — refer a friend to unlock 7 more days",
         subhead: "Reactivate Platform tools by sharing PMail+ with someone who will value the upgrade",
+      },
+    ),
+  },
+  {
+    slug: "pmail-launch-campaign-1",
+    name: "PMail+ launch campaign — waitlist & prospects",
+    category: "pmail",
+    subject: "Business email shouldn’t stop at the inbox | Meet PMail+",
+    variables: ["fullName", "productName", "ctaUrl", "demoCtaUrl", "shareUrl", "uiDemoUrl"],
+    textBody: `Hi there,
+
+Most teams still run their business from a plain inbox: proposals in drafts, files bouncing on size limits, “did they open it?” guesswork, and industry work living in separate tools.
+
+{{productName}} fixes that. Professional email on your domain, with workspace tools that unlock only when you need them.
+
+Problems {{productName}} solves:
+- Scattered tools for mail, files, calendars, and follow-ups
+- No visibility when clients open critical messages
+- Attachment limits and messy document handoffs
+- Industry workflows trapped outside the inbox
+
+What you get:
+- Modern business inbox — Fast compose, folders, signatures, multi-mailbox switching in one branded workspace.
+- Open Tracking — See opens and link clicks so you follow up when interest is hot.
+- File Vault — Send large files via secure download links (up to 100 MB) instead of failed attachments.
+- Auto Reply — Acknowledge unread inquiries automatically when you are offline.
+- Calendar & scheduled send — Plan meetings and time sends from the same workspace as your mail.
+- WhatsApp handoff — Move a conversation from email to WhatsApp without losing context.
+- Mail 2 PDF — Export email trails to audit-ready PDFs for records and handoffs.
+- Inbox cleanup & categorization — Clean noisy senders, unsubscribe cleanly, and auto-group invoices, receipts, and contracts.
+- E-Sign from Email — Send contracts for signature from the thread that already has the PDF.
+- Email SLA Tracker — Spot at-risk client threads before response deadlines slip.
+- Industry workspaces — Unlock legal/immigration, real estate, accounting, recruitment, B2B, or healthcare tools on the same mailbox.
+- Upgrade on your terms — Start with mail; subscribe only to Platform or vertical bundles you need.
+
+Start with {{productName}} (login & signup): {{ctaUrl}}
+Try a sample demo workspace — register on the login form: {{demoCtaUrl}}
+Preview the UI (no mailbox until you register): {{uiDemoUrl}}
+Share this launch page (WhatsApp / social): {{shareUrl}}
+
+Same branded domain. More capability when your work needs it.`,
+    htmlBody: PMAIL_WRAPPER(
+      `
+<p>Hi there,</p>
+<p>Most teams still run their business from a plain inbox: proposals in drafts, files bouncing on size limits, “did they open it?” guesswork, and industry work living in separate tools.</p>
+<p><strong>{{productName}}</strong> fixes that. Professional email on your domain, with workspace tools that unlock only when you need them.</p>
+<p><strong>Problems {{productName}} is here to solve</strong></p>
+<ul>
+<li>Scattered tools for mail, files, calendars, and follow-ups</li>
+<li>No visibility when clients open critical messages</li>
+<li>Attachment limits and messy document handoffs</li>
+<li>Industry workflows trapped outside the inbox</li>
+</ul>
+${emailFeature("Modern business inbox", "Fast compose, folders, signatures, and multi-mailbox switching — run client mail from one branded workspace.")}
+${emailFeature("Open Tracking", "See opens and link clicks so you follow up when interest is hot — not days later.")}
+${emailFeature("File Vault", "Send large files via secure download links (up to 100 MB) instead of failed attachments.")}
+${emailFeature("Auto Reply", "Acknowledge unread inquiries automatically when you are offline, with templates you control.")}
+${emailFeature("Calendar &amp; scheduled send", "Plan meetings and time sends from the same workspace as your mail.")}
+${emailFeature("WhatsApp handoff", "Move a conversation from email to WhatsApp without losing context.")}
+${emailFeature("Mail 2 PDF", "Export email trails to audit-ready PDFs for records and handoffs.")}
+${emailFeature("Inbox cleanup &amp; categorization", "Clean noisy senders, unsubscribe cleanly, and auto-group invoices, receipts, and contracts.")}
+${emailFeature("E-Sign from Email", "Send contracts for signature from the thread that already has the PDF.")}
+${emailFeature("Email SLA Tracker", "Spot at-risk client threads before response deadlines slip.")}
+${emailFeature("Industry workspaces", "Unlock legal/immigration, real estate, accounting, recruitment, B2B, or healthcare tools on the same mailbox.")}
+${emailFeature("Upgrade on your terms", "Start with mail; subscribe only to Platform or vertical bundles you need.")}
+<p>${emailBtn(PMAIL_LOGIN_URL, "Start with {{productName}}")}</p>
+${emailMuted(`Want to try a <strong>sample demo workspace</strong>? Register on the <a href="${PMAIL_LOGIN_URL}" style="color:#0d9488;font-weight:600">login form</a> — demo mailboxes are provisioned after signup, not with a shared password.`)}
+${emailMuted(`Preview the product UI first: <a href="${PMAIL_UI_DEMO_URL}" style="color:#0d9488;font-weight:600">Open interactive demo</a> · Share this launch page: <a href="${PMAIL_LAUNCH_SHARE_URL}" style="color:#0d9488;font-weight:600">${PMAIL_LAUNCH_SHARE_URL}</a>`)}
+${emailMuted("Same branded domain. More capability when your work needs it.")}`,
+      {
+        brandName: "{{productName}}",
+        brandTag: "Mail workspace",
+        headline: "Business email shouldn’t stop at the inbox",
+        subhead:
+          "PMail+ is a branded mail workspace that turns everyday email into client work, follow-ups, and operations — without stacking five extra apps.",
       },
     ),
   },

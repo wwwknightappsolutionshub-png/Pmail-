@@ -226,6 +226,29 @@ export function resolveMarketingSeo(
     };
   }
 
+  if (pathname === "/pmail-launch") {
+    return {
+      title: `Business email shouldn’t stop at the inbox | Meet ${PMAIL} | ${BRAND}`,
+      description:
+        "PMail+ is a branded mail workspace with open tracking, file vault, auto reply, calendar, WhatsApp handoff, e-sign, SLA tools, and industry workspaces — start at mail.prohost.cloud/login.",
+      keywords:
+        "PMail+, branded business email, mail workspace, email open tracking, file vault email, industry email software, Prohost Cloud mail",
+      canonicalPath: "/pmail-launch",
+      ogImagePath: DEFAULT_OG,
+      ogType: "website",
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: "Meet PMail+",
+        description:
+          "Branded mail workspace for client work, follow-ups, and operations — login and signup at mail.prohost.cloud/login.",
+        url: buildCanonicalUrl(origin, "/pmail-launch"),
+        about: { "@type": "SoftwareApplication", name: PMAIL },
+        isPartOf: { "@type": "WebSite", name: BRAND, url: origin },
+      },
+    };
+  }
+
   const demoMatch = pathname.match(/^\/use-case\/demo\/([^/]+)$/);
   if (demoMatch) {
     const id = useCaseId ?? demoMatch[1];
@@ -316,6 +339,7 @@ export function resolveMarketingSeo(
 export const MARKETING_SITEMAP_PATHS = [
   "/",
   "/use-case",
+  "/pmail-launch",
   "/hosting",
   "/addons",
   "/blog",

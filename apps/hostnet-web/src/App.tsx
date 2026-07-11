@@ -24,6 +24,9 @@ const MarketingBlogPage = lazy(() =>
 const MarketingBlogArticlePage = lazy(() =>
   import("./pages/MarketingBlogArticlePage").then((m) => ({ default: m.MarketingBlogArticlePage })),
 );
+const PmailLaunchPage = lazy(() =>
+  import("./pages/PmailLaunchPage").then((m) => ({ default: m.PmailLaunchPage })),
+);
 const MarketingAnalytics = lazy(() =>
   import("./components/MarketingAnalytics").then((m) => ({ default: m.MarketingAnalytics })),
 );
@@ -120,6 +123,14 @@ export function App() {
           element={
             <LazyRoute>
               <UseCasePage />
+            </LazyRoute>
+          }
+        />
+        <Route
+          path="/pmail-launch"
+          element={
+            <LazyRoute>
+              <PmailLaunchPage />
             </LazyRoute>
           }
         />

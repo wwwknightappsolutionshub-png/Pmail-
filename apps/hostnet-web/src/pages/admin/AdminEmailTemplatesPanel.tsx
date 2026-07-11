@@ -36,6 +36,11 @@ const TEMPLATE_GUIDANCE: Record<string, { summary: string; variables: string }> 
       "Sent every 48 hours after a free addon trial expires until the user clicks Refer & Extend Trial or uses Refer a friend in PMail+.",
     variables: "fullName, productName, ctaUrl, referFriendUrl",
   },
+  "pmail-launch-campaign-1": {
+    summary:
+      "First outbound marketing campaign for waitlist and cold prospects only. Showcase what PMail+ is, problems it solves, 12 curated capabilities, login/signup CTA, and demo registration via the login form. Share https://prohost.cloud/pmail-launch on WhatsApp.",
+    variables: "fullName, productName, ctaUrl, demoCtaUrl, shareUrl, uiDemoUrl",
+  },
 };
 
 const TEMPLATE_SAMPLE_VARIABLES: Record<string, Record<string, string>> = {
@@ -55,6 +60,14 @@ const TEMPLATE_SAMPLE_VARIABLES: Record<string, Record<string, string>> = {
     productName: "PMail+",
     ctaUrl: "https://mail.prohost.cloud/?referFriend=1",
     referFriendUrl: "https://mail.prohost.cloud/?referFriend=1",
+  },
+  "pmail-launch-campaign-1": {
+    fullName: "Jordan",
+    productName: "PMail+",
+    ctaUrl: "https://mail.prohost.cloud/login",
+    demoCtaUrl: "https://mail.prohost.cloud/login",
+    shareUrl: "https://prohost.cloud/pmail-launch",
+    uiDemoUrl: "https://prohost.cloud/use-case/demo/legal",
   },
   "pmail-refer-friend": {
     senderName: "Jordan Lee",

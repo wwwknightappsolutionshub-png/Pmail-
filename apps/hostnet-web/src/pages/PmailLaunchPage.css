@@ -1,0 +1,110 @@
+.pmail-launch-page {
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow-x: hidden;
+}
+
+.pmail-launch-hero {
+  padding-top: calc(5.5rem + env(safe-area-inset-top));
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(13, 148, 136, 0.18), transparent 60%),
+    linear-gradient(180deg, #ecfeff 0%, transparent 70%);
+}
+
+.pmail-launch-hero-inner {
+  max-width: 720px;
+}
+
+.pmail-launch-title {
+  font-size: clamp(1.85rem, 5vw, 3rem);
+  max-width: 16ch;
+  margin: 0 0 1rem;
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+.pmail-launch-lead {
+  max-width: 58ch;
+  margin: 0 0 1.5rem;
+  font-size: clamp(0.98rem, 2.4vw, 1.08rem);
+  line-height: 1.6;
+}
+
+.pmail-launch-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.pmail-launch-cta-row--footer {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.pmail-launch-note {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.pmail-launch-note a {
+  color: #0d9488;
+  font-weight: 600;
+}
+
+.pmail-launch-problems {
+  margin: 1rem 0 0;
+  padding-left: 1.2rem;
+  max-width: 58ch;
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.pmail-launch-problems li {
+  margin: 0 0 0.55rem;
+}
+
+.pmail-launch-section-lead {
+  max-width: 58ch;
+  margin: 0 0 1.5rem;
+}
+
+.pmail-launch-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.85rem;
+}
+
+.pmail-launch-feature-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+
+.pmail-launch-feature-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.pmail-launch-feature-card p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.pmail-launch-foot {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .pmail-launch-cta-row .btn {
+    width: 100%;
+    text-align: center;
+  }
+}

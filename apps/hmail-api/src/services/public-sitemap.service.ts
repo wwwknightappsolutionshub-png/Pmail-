@@ -15,6 +15,7 @@ const USE_CASE_DEMO_IDS = [
 const STATIC_MARKETING_PATHS = [
   "/",
   "/use-case",
+  "/pmail-launch",
   "/hosting",
   "/addons",
   "/blog",
