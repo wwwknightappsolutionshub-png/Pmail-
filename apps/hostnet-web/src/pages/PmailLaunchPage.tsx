@@ -1,5 +1,6 @@
-import { MarketingFooter } from "../components/MarketingFooter";
-import { MarketingHeader } from "../components/MarketingHeader";
+import { PmailTeaserArt } from "../components/landing/LandingArt";
+import { LandingArtFrame } from "../components/landing/LandingArtFrame";
+import type { CSSProperties } from "react";
 import "./LandingPage.css";
 import "./PmailLaunchPage.css";
 
@@ -9,132 +10,265 @@ const HMAIL_LOGIN =
 const LOGIN_URL = `${HMAIL_LOGIN}/login`;
 const UI_DEMO_URL = "/use-case/demo/legal";
 
-const FEATURES: Array<{ title: string; body: string }> = [
+const FEATURES: Array<{ title: string; body: string; tone: string }> = [
   {
     title: "Modern business inbox",
     body: "Fast compose, folders, signatures, and multi-mailbox switching — run client mail from one branded workspace.",
+    tone: "teal",
   },
   {
     title: "Open Tracking",
     body: "See opens and link clicks so you follow up when interest is hot — not days later.",
+    tone: "cyan",
   },
   {
     title: "File Vault",
     body: "Send large files via secure download links (up to 100 MB) instead of failed attachments.",
+    tone: "sky",
   },
   {
     title: "Auto Reply",
     body: "Acknowledge unread inquiries automatically when you are offline, with templates you control.",
+    tone: "emerald",
   },
   {
     title: "Calendar & scheduled send",
     body: "Plan meetings and time sends from the same workspace as your mail.",
+    tone: "amber",
   },
   {
     title: "WhatsApp handoff",
     body: "Move a conversation from email to WhatsApp without losing context.",
+    tone: "lime",
   },
   {
     title: "Mail 2 PDF",
     body: "Export email trails to audit-ready PDFs for records and handoffs.",
+    tone: "slate",
   },
   {
     title: "Inbox cleanup & categorization",
     body: "Clean noisy senders, unsubscribe cleanly, and auto-group invoices, receipts, and contracts.",
+    tone: "teal",
   },
   {
     title: "E-Sign from Email",
     body: "Send contracts for signature from the thread that already has the PDF.",
+    tone: "cyan",
   },
   {
     title: "Email SLA Tracker",
     body: "Spot at-risk client threads before response deadlines slip.",
+    tone: "sky",
   },
   {
     title: "Industry workspaces",
     body: "Unlock legal/immigration, real estate, accounting, recruitment, B2B, or healthcare tools on the same mailbox.",
+    tone: "emerald",
   },
   {
     title: "Upgrade on your terms",
     body: "Start with mail; subscribe only to Platform or vertical bundles you need.",
+    tone: "amber",
   },
 ];
 
-const PROBLEMS = [
-  "Scattered tools for mail, files, calendars, and follow-ups",
-  "No visibility when clients open critical messages",
-  "Attachment limits and messy document handoffs",
-  "Industry workflows trapped outside the inbox",
+const PROBLEMS: Array<{ title: string; body: string }> = [
+  {
+    title: "Tool sprawl",
+    body: "Scattered tools for mail, files, calendars, and follow-ups",
+  },
+  {
+    title: "Blind follow-ups",
+    body: "No visibility when clients open critical messages",
+  },
+  {
+    title: "Broken handoffs",
+    body: "Attachment limits and messy document handoffs",
+  },
+  {
+    title: "Siloed workflows",
+    body: "Industry workflows trapped outside the inbox",
+  },
 ];
 
 /**
  * WhatsApp / social share landing for launch campaign #1.
  * Branded page → login / signup / prospect demo registration.
  */
+function PmailBrandBar({ variant }: { variant: "header" | "footer" }) {
+  const Tag = variant === "header" ? "header" : "footer";
+  return (
+    <Tag className={`pmail-launch-brand-bar pmail-launch-brand-bar--${variant}`}>
+      <div className="pmail-launch-brand-bar-inner">
+        <strong className="pmail-launch-brand-logo">PMail+</strong>
+        <span className="pmail-launch-brand-tag">MAIL WORKSPACE</span>
+      </div>
+    </Tag>
+  );
+}
+
+/** Visual-only PMail+ app chrome — matches product topbar; not interactive. */
+function PmailPlaceholderNav() {
+  const tabs: Array<{ label: string; badge?: string; active?: boolean }> = [
+    { label: "Workspace", active: true },
+    { label: "Contacts", badge: "0" },
+    { label: "CRM" },
+    { label: "Reminders", badge: "0" },
+    { label: "Calendar", badge: "0" },
+    { label: "Messaging", badge: "16" },
+    { label: "Brand Settings" },
+    { label: "Career" },
+  ];
+
+  return (
+    <div className="pmail-launch-placeholder-chrome" aria-hidden="true">
+      <div className="pmail-launch-placeholder-nav">
+        <div className="pmail-launch-placeholder-nav-inner">
+          <div className="pmail-launch-placeholder-search">
+            <span className="pmail-launch-placeholder-search-icon" />
+            <span className="pmail-launch-placeholder-search-field">Search mail</span>
+            <span className="pmail-launch-placeholder-search-filter" />
+          </div>
+          <div className="pmail-launch-placeholder-actions">
+            <span className="pmail-launch-placeholder-btn">
+              <span className="pmail-launch-placeholder-ico pmail-launch-placeholder-ico--refer" />
+              Refer a friend
+            </span>
+            <span className="pmail-launch-placeholder-btn">
+              <span className="pmail-launch-placeholder-ico pmail-launch-placeholder-ico--cart" />
+              Addon marketplace
+            </span>
+            <span className="pmail-launch-placeholder-btn">
+              <span className="pmail-launch-placeholder-ico pmail-launch-placeholder-ico--moon" />
+              Dark UI
+            </span>
+            <span className="pmail-launch-placeholder-btn">
+              <span className="pmail-launch-placeholder-ico pmail-launch-placeholder-ico--logout" />
+              Sign out
+            </span>
+            <span className="pmail-launch-placeholder-avatar">PH</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="pmail-launch-placeholder-tabs">
+        <div className="pmail-launch-placeholder-tabs-inner">
+          {tabs.map((tab) => (
+            <span
+              key={tab.label}
+              className={`pmail-launch-placeholder-tab${tab.active ? " pmail-launch-placeholder-tab--active" : ""}`}
+            >
+              {tab.active ? <span className="pmail-launch-placeholder-tab-ico" /> : null}
+              {tab.label}
+              {tab.badge != null ? <span className="pmail-launch-placeholder-tab-badge">{tab.badge}</span> : null}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PmailLaunchPage() {
   return (
     <div className="landing pmail-launch-page">
-      <MarketingHeader active="bespoke" />
+      <PmailBrandBar variant="header" />
+      <PmailPlaceholderNav />
 
-      <section className="pmail-launch-hero section-pad">
-        <div className="container pmail-launch-hero-inner">
-          <p className="section-eyebrow">PMail+ · Mail workspace</p>
-          <h1 className="landing-section-title pmail-launch-title">Business email shouldn’t stop at the inbox</h1>
-          <p className="pmail-launch-lead muted">
-            PMail+ is a branded mail workspace that turns everyday email into client work, follow-ups, and operations —
-            without stacking five extra apps.
-          </p>
-          <div className="pmail-launch-cta-row">
-            <a className="btn btn-primary" href={LOGIN_URL}>
-              Start with PMail+
-            </a>
-            <a className="btn btn-secondary" href={LOGIN_URL}>
-              Try a sample demo (register on login)
-            </a>
+      <section className="pmail-launch-hero section-pad" aria-label="PMail+ launch">
+        <div className="pmail-launch-hero-bg" aria-hidden="true">
+          <span className="pmail-launch-hero-grid" />
+          <span className="pmail-launch-hero-wash" />
+          <span className="pmail-launch-orb pmail-launch-orb--a" />
+          <span className="pmail-launch-orb pmail-launch-orb--b" />
+          <span className="pmail-launch-orb pmail-launch-orb--c" />
+          <span className="pmail-launch-beam" />
+        </div>
+
+        <div className="container pmail-launch-hero-grid-layout">
+          <div className="pmail-launch-hero-copy">
+            <h1 className="landing-section-title pmail-launch-title">Business email shouldn’t stop at the inbox</h1>
+            <p className="pmail-launch-lead muted">
+              PMail+ is a branded mail workspace that turns everyday email into client work, follow-ups, and operations —
+              without stacking five extra apps.
+            </p>
+            <div className="pmail-launch-cta-row">
+              <a className="btn btn-primary" href={LOGIN_URL}>
+                Start with PMail+
+              </a>
+              <a className="btn btn-secondary" href={LOGIN_URL}>
+                Try a sample demo (register on login)
+              </a>
+            </div>
+            <p className="pmail-launch-note muted">
+              Demo mailboxes are provisioned after you register on the login form — not with a shared password. Prefer a
+              UI preview first?{" "}
+              <a href={UI_DEMO_URL}>Open the interactive demo</a>.
+            </p>
           </div>
-          <p className="pmail-launch-note muted">
-            Demo mailboxes are provisioned after you register on the login form — not with a shared password. Prefer a
-            UI preview first?{" "}
-            <a href={UI_DEMO_URL}>Open the interactive demo</a>.
-          </p>
+
+          <div className="pmail-launch-hero-visual">
+            <LandingArtFrame variant="pmail">
+              <PmailTeaserArt />
+            </LandingArtFrame>
+          </div>
         </div>
       </section>
 
-      <section className="section-pad section-pad--alt">
+      <section className="section-pad section-pad--alt pmail-launch-problems-section">
         <div className="container">
           <h2 className="landing-section-title">Problems PMail+ is here to solve</h2>
-          <ul className="pmail-launch-problems">
-            {PROBLEMS.map((item) => (
-              <li key={item}>{item}</li>
+          <div className="pmail-launch-problems-grid">
+            {PROBLEMS.map((item, index) => (
+              <article
+                key={item.title}
+                className="pmail-launch-problem-card"
+                style={{ "--problem-i": index } as CSSProperties}
+              >
+                <span className="pmail-launch-problem-index" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </article>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
 
-      <section className="section-pad">
-        <div className="container">
-          <h2 className="landing-section-title">What you get</h2>
-          <p className="muted pmail-launch-section-lead">
-            Twelve workspace capabilities that live next to the same branded mailbox you use every day.
-          </p>
+      <section className="section-pad pmail-launch-features-section">
+        <div className="pmail-launch-features-bg" aria-hidden="true" />
+        <div className="container pmail-launch-features-inner">
+          <header className="pmail-launch-features-header">
+            <h2 className="landing-section-title pmail-launch-features-title">What you get</h2>
+            <p className="muted pmail-launch-section-lead">
+              Twelve workspace capabilities that live next to the same branded mailbox you use every day.
+            </p>
+          </header>
           <div className="pmail-launch-feature-grid">
-            {FEATURES.map((feature) => (
-              <article key={feature.title} className="pmail-launch-feature-card">
+            {FEATURES.map((feature, index) => (
+              <article
+                key={feature.title}
+                className={`pmail-launch-feature-card pmail-launch-feature-card--${feature.tone}`}
+                style={{ "--feature-i": index } as CSSProperties}
+              >
+                <span className="pmail-launch-feature-glow" aria-hidden="true" />
                 <h3>{feature.title}</h3>
                 <p>{feature.body}</p>
               </article>
             ))}
           </div>
-          <div className="pmail-launch-cta-row pmail-launch-cta-row--footer">
+          <div className="pmail-launch-features-footer">
             <a className="btn btn-primary" href={LOGIN_URL}>
               Start with PMail+
             </a>
+            <p className="pmail-launch-foot muted">Same branded domain. More capability when your work needs it.</p>
           </div>
-          <p className="pmail-launch-foot muted">Same branded domain. More capability when your work needs it.</p>
         </div>
       </section>
 
-      <MarketingFooter />
+      <PmailBrandBar variant="footer" />
     </div>
   );
 }
