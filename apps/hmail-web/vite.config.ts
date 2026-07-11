@@ -28,10 +28,14 @@ export default defineConfig(({ mode }) => {
           theme_color: "#0f2744",
           background_color: "#0f2744",
           display: "standalone",
-          display_override: ["standalone", "minimal-ui", "browser"],
+          // Prefer true app chrome only. Do not list minimal-ui/browser here —
+          // those modes keep the system title bar (X + domain + ⋮) visible.
+          display_override: ["standalone", "fullscreen"],
           orientation: "portrait-primary",
           scope: "/",
-          start_url: "/",
+          start_url: "/?source=pwa",
+          lang: "en",
+          dir: "ltr",
           categories: ["business", "productivity"],
           shortcuts: [
             {
