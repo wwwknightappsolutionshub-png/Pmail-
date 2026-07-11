@@ -29,20 +29,46 @@ const subscribeSchema = z.object({
   cancelUrl: z.string().url().optional(),
 });
 
-const marketplaceQuoteSchema = z.object({
-  vertical: z.enum(["legal", "accounting", "real-estate", "recruitment", "b2b-services", "healthcare"]),
+const marketplaceSelectionFields = {
+  vertical: z.enum([
+    "legal",
+    "accounting",
+    "real-estate",
+    "recruitment",
+    "b2b-services",
+    "healthcare",
+    "standard",
+  ]),
   scope: z.enum(["user", "tenant"]),
   includePlatformBundle: z.boolean(),
   includeVerticalBundle: z.boolean(),
   includeJobHunterStandalone: z.boolean().optional().default(false),
   seats: z.coerce.number().int().min(1).optional(),
-});
+} as const;
 
-const marketplaceCheckoutSchema = marketplaceQuoteSchema.extend({
-  provider: z.enum(["stripe", "paystack", "mock"]).optional(),
-  successUrl: z.string().url().optional(),
-  cancelUrl: z.string().url().optional(),
-});
+const marketplaceSelectionRefine = (
+  value: { vertical: string; includeVerticalBundle: boolean },
+  ctx: z.RefinementCtx,
+) => {
+  if (value.includeVerticalBundle && value.vertical === "standard") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Choose an industry workspace to subscribe to vertical tools",
+      path: ["vertical"],
+    });
+  }
+};
+
+const marketplaceQuoteSchema = z.object(marketplaceSelectionFields).superRefine(marketplaceSelectionRefine);
+
+const marketplaceCheckoutSchema = z
+  .object({
+    ...marketplaceSelectionFields,
+    provider: z.enum(["stripe", "paystack", "mock"]).optional(),
+    successUrl: z.string().url().optional(),
+    cancelUrl: z.string().url().optional(),
+  })
+  .superRefine(marketplaceSelectionRefine);
 
 addonRouter.post("/marketplace/quote", async (req, res, next) => {
   try {

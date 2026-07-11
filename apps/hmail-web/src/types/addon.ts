@@ -93,6 +93,15 @@ export type MarketplaceLicenseScope = "user" | "tenant";
 
 export type MarketplaceBrowseVertical = Exclude<AddonVertical, "platform">;
 
+/** Workspace choice in the marketplace wizard — Standard is platform-tools-only. */
+export type MarketplaceWorkspaceChoice = MarketplaceBrowseVertical | "standard";
+
+export function isIndustryMarketplaceWorkspace(
+  workspace: MarketplaceWorkspaceChoice | null | undefined,
+): workspace is MarketplaceBrowseVertical {
+  return Boolean(workspace && workspace !== "standard");
+}
+
 export const MARKETPLACE_PLATFORM_BUNDLE_USER_PRICE_CENTS = 1500;
 export const JOB_HUNTER_STANDALONE_USER_PRICE_CENTS = 1000;
 export const JOB_HUNTER_ADDON_SLUG = "job-hunter-functionality";

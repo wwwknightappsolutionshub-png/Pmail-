@@ -1,5 +1,5 @@
 import { api } from "../api/client";
-import type { MarketplaceBrowseVertical, MarketplaceLicenseScope } from "../types/addon";
+import type { MarketplaceLicenseScope, MarketplaceWorkspaceChoice } from "../types/addon";
 
 export type AddonCheckoutScope = "user" | "tenant";
 
@@ -39,7 +39,7 @@ export async function startAddonCheckout(input: {
 }
 
 export async function startMarketplaceCheckout(input: {
-  vertical: MarketplaceBrowseVertical;
+  vertical: MarketplaceWorkspaceChoice;
   scope: MarketplaceLicenseScope;
   includePlatformBundle: boolean;
   includeVerticalBundle: boolean;

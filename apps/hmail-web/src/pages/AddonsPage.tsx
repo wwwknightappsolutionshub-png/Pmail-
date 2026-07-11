@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { AddonCard } from "../components/AddonCard";
 import { HMailLogo } from "../components/HMailLogo";
@@ -7,6 +7,7 @@ import { useAddons } from "../context/AddonContext";
 import { useAuth } from "../context/AuthContext";
 import {
   formatMarketplaceBundlePrice,
+  isIndustryMarketplaceWorkspace,
   isPlatformWorkspaceAddon,
   isVerticalWorkspaceAddon,
   JOB_HUNTER_STANDALONE_USER_PRICE_CENTS,
@@ -15,6 +16,7 @@ import {
   MARKETPLACE_VERTICAL_ORDER,
   type MarketplaceBrowseVertical,
   type MarketplaceLicenseScope,
+  type MarketplaceWorkspaceChoice,
   type WorkspaceVertical,
 } from "../types/addon";
 import { MARKETPLACE_VERTICAL_ICONS, WORKSPACE_VERTICAL_ICONS } from "../data/workspaceVerticalIcons";
@@ -46,8 +48,9 @@ const VERTICAL_COPY: Record<MarketplaceBrowseVertical, string> = {
   healthcare: "Patient registry, appointment, referral, and access-audit tools.",
 };
 
-function resolveInitialWorkspace(businessVertical: WorkspaceVertical): MarketplaceBrowseVertical | null {
-  if (businessVertical === "free-basic" || businessVertical === "platform" || businessVertical === "standard") {
+function resolveInitialWorkspace(businessVertical: WorkspaceVertical): MarketplaceWorkspaceChoice | null {
+  if (businessVertical === "standard") return "standard";
+  if (businessVertical === "free-basic" || businessVertical === "platform") {
     return null;
   }
   return businessVertical;
@@ -84,7 +87,6 @@ function hasMarketplaceCartSelection(input: {
 }
 
 export function AddonsPage() {
-  const navigate = useNavigate();
   const { user, logout, setUser } = useAuth();
   const { addons, loading, error, quoteMarketplace, startMarketplaceCheckout, startTrial, refresh } =
     useAddons();
@@ -117,11 +119,13 @@ export function AddonsPage() {
   const businessVertical = (user?.businessVertical ?? "free-basic") as WorkspaceVertical;
   const initialWorkspace = resolveInitialWorkspace(businessVertical);
 
-  const [selectedWorkspace, setSelectedWorkspace] = useState<MarketplaceBrowseVertical | null>(initialWorkspace);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<MarketplaceWorkspaceChoice | null>(initialWorkspace);
   const [licenseScope, setLicenseScope] = useState<MarketplaceLicenseScope | null>(null);
-  const [marketplaceStep, setMarketplaceStep] = useState<MarketplaceStep>(initialWorkspace ? 2 : 1);
+  const [marketplaceStep, setMarketplaceStep] = useState<MarketplaceStep>(1);
   const [includePlatformBundle, setIncludePlatformBundle] = useState(true);
-  const [includeVerticalBundle, setIncludeVerticalBundle] = useState(true);
+  const [includeVerticalBundle, setIncludeVerticalBundle] = useState(
+    () => isIndustryMarketplaceWorkspace(initialWorkspace),
+  );
   const [includeJobHunterStandalone, setIncludeJobHunterStandalone] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [checkoutQuote, setCheckoutQuote] = useState<Awaited<ReturnType<typeof quoteMarketplace>> | null>(null);
@@ -146,7 +150,8 @@ export function AddonsPage() {
       setCheckoutQuote(null);
       return;
     }
-    if (!hasMarketplaceCartSelection({ includePlatformBundle, includeVerticalBundle, includeJobHunterStandalone })) {
+    const verticalBundle = selectedWorkspace === "standard" ? false : includeVerticalBundle;
+    if (!hasMarketplaceCartSelection({ includePlatformBundle, includeVerticalBundle: verticalBundle, includeJobHunterStandalone })) {
       setCheckoutQuote(null);
       return;
     }
@@ -159,7 +164,7 @@ export function AddonsPage() {
           vertical: selectedWorkspace,
           scope: licenseScope,
           includePlatformBundle,
-          includeVerticalBundle,
+          includeVerticalBundle: verticalBundle,
           includeJobHunterStandalone,
         });
         if (!cancelled) setCheckoutQuote(quote);
@@ -197,9 +202,12 @@ export function AddonsPage() {
   );
 
   const verticalAddons = useMemo(() => {
-    if (!selectedWorkspace) return [];
+    if (!isIndustryMarketplaceWorkspace(selectedWorkspace)) return [];
     return sortVerticalAddons(addons.filter((addon) => isVerticalWorkspaceAddon(addon, selectedWorkspace)));
   }, [addons, selectedWorkspace]);
+
+  const isStandardPath = selectedWorkspace === "standard";
+  const industryWorkspace = isIndustryMarketplaceWorkspace(selectedWorkspace) ? selectedWorkspace : null;
 
   const jobHunterAddon = useMemo(
     () => addons.find((addon) => addon.slug === "job-hunter-functionality") ?? null,
@@ -235,6 +243,8 @@ export function AddonsPage() {
   const chooseWorkspace = (vertical: MarketplaceBrowseVertical) => {
     setSelectedWorkspace(vertical);
     setLicenseScope(null);
+    setIncludeVerticalBundle(true);
+    setIncludePlatformBundle(true);
     setMarketplaceStep(2);
   };
 
@@ -242,9 +252,16 @@ export function AddonsPage() {
     setCheckoutError("");
     setActivatingStandard(true);
     try {
-      const result = await api.selectBusinessVertical("standard");
-      setUser(result.user);
-      navigate("/");
+      if (user?.businessVertical !== "standard") {
+        const result = await api.selectBusinessVertical("standard");
+        setUser(result.user);
+      }
+      setSelectedWorkspace("standard");
+      setLicenseScope(null);
+      setIncludeVerticalBundle(false);
+      setIncludePlatformBundle(true);
+      setIncludeJobHunterStandalone(false);
+      setMarketplaceStep(2);
     } catch (err) {
       setCheckoutError(err instanceof ApiError ? err.message : "Could not activate Standard workspace");
     } finally {
@@ -259,7 +276,8 @@ export function AddonsPage() {
 
   const onPay = async () => {
     if (!selectedWorkspace || !licenseScope) return;
-    if (!hasMarketplaceCartSelection({ includePlatformBundle, includeVerticalBundle, includeJobHunterStandalone })) {
+    const verticalBundle = isStandardPath ? false : includeVerticalBundle;
+    if (!hasMarketplaceCartSelection({ includePlatformBundle, includeVerticalBundle: verticalBundle, includeJobHunterStandalone })) {
       setCheckoutError("Select at least one add-on or bundle to continue.");
       return;
     }
@@ -271,7 +289,7 @@ export function AddonsPage() {
         vertical: selectedWorkspace,
         scope: licenseScope,
         includePlatformBundle,
-        includeVerticalBundle,
+        includeVerticalBundle: verticalBundle,
         includeJobHunterStandalone,
         seats: checkoutQuote?.seats,
       });
@@ -284,13 +302,17 @@ export function AddonsPage() {
 
   const branding = user?.tenant.branding;
   const workspaceLabel =
-    user?.businessVertical === "standard"
+    selectedWorkspace === "standard"
       ? "Standard"
-      : selectedWorkspace
-        ? MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]
-        : "Choose a workspace";
+      : industryWorkspace
+        ? MARKETPLACE_VERTICAL_LABELS[industryWorkspace]
+        : user?.businessVertical === "standard"
+          ? "Standard"
+          : "Choose a workspace";
   const licenseLabel =
     licenseScope === "user" ? "Individual license" : licenseScope === "tenant" ? "Tenant license" : "Choose license";
+  const canOpenLicenseStep = Boolean(selectedWorkspace);
+  const canOpenBrowseStep = Boolean(selectedWorkspace && licenseScope);
 
   return (
     <div
@@ -325,8 +347,8 @@ export function AddonsPage() {
             <p className="addons-kicker">Addon Marketplace</p>
             <h1>Build your workspace with bundled add-ons</h1>
             <p>
-              Choose your business vertical and license type, browse the platform and vertical tool bundles, then
-              confirm your final selection and complete payment.
+              Stay on Standard to subscribe to platform tools only, or choose an industry workspace to unlock vertical
+              bundles. Then pick a license type, browse tools, and complete payment.
             </p>
           </div>
           <aside className="addons-workspace-card" aria-label="Marketplace selection summary">
@@ -360,8 +382,8 @@ export function AddonsPage() {
           <button
             type="button"
             className={`addons-step ${marketplaceStep === 2 ? "addons-step--active" : ""} ${licenseScope ? "addons-step--done" : ""}`}
-            disabled={!selectedWorkspace}
-            onClick={() => selectedWorkspace && setMarketplaceStep(2)}
+            disabled={!canOpenLicenseStep}
+            onClick={() => canOpenLicenseStep && setMarketplaceStep(2)}
           >
             <span className="addons-step-index">2</span>
             <span className="addons-step-copy">
@@ -372,20 +394,20 @@ export function AddonsPage() {
           <button
             type="button"
             className={`addons-step ${marketplaceStep === 3 ? "addons-step--active" : ""}`}
-            disabled={!selectedWorkspace || !licenseScope}
-            onClick={() => selectedWorkspace && licenseScope && setMarketplaceStep(3)}
+            disabled={!canOpenBrowseStep}
+            onClick={() => canOpenBrowseStep && setMarketplaceStep(3)}
           >
             <span className="addons-step-index">3</span>
             <span className="addons-step-copy">
               <strong>Browse</strong>
-              <small>Platform and vertical tools</small>
+              <small>{isStandardPath ? "Platform tools" : "Platform and vertical tools"}</small>
             </span>
           </button>
           <button
             type="button"
             className={`addons-step ${marketplaceStep === 4 ? "addons-step--active" : ""}`}
-            disabled={!selectedWorkspace || !licenseScope}
-            onClick={() => selectedWorkspace && licenseScope && setMarketplaceStep(4)}
+            disabled={!canOpenBrowseStep}
+            onClick={() => canOpenBrowseStep && setMarketplaceStep(4)}
           >
             <span className="addons-step-index">4</span>
             <span className="addons-step-copy">
@@ -433,14 +455,14 @@ export function AddonsPage() {
             <header className="addons-panel-head">
               <h2>Choose your preferred workspace</h2>
               <p>
-                Pick Standard to explore regular mail in a unique workspace, or select an industry workspace to
-                continue through license, browse, and payment.
+                Pick Standard to keep regular mail and subscribe to platform tools when you need them, or select an
+                industry workspace to continue through license, browse, and payment with vertical bundles.
               </p>
             </header>
 
             <button
               type="button"
-              className={`addons-standard-card ${user?.businessVertical === "standard" ? "addons-standard-card--selected" : ""}`}
+              className={`addons-standard-card ${selectedWorkspace === "standard" || user?.businessVertical === "standard" ? "addons-standard-card--selected" : ""}`}
               onClick={() => void chooseStandardWorkspace()}
               disabled={activatingStandard}
             >
@@ -449,11 +471,13 @@ export function AddonsPage() {
               </span>
               <strong>Standard</strong>
               <p>
-                Explore regular mailing in a unique workspace. All platform tools are available in your environment,
-                upgrade at anytime to use them.
+                Explore regular mailing in a unique workspace. Subscribe to platform tools (and Job Hunter) without
+                choosing a business vertical.
               </p>
               <span className="addons-standard-note">
-                {activatingStandard ? "Opening mailbox…" : "Instant access — no license, browse, or payment steps"}
+                {activatingStandard
+                  ? "Opening Standard path…"
+                  : "Continue to license — platform tools only, no vertical required"}
               </span>
             </button>
 
@@ -603,33 +627,40 @@ export function AddonsPage() {
               </div>
             </section>
 
-            <section className="addons-category">
-              <header className="addons-category-head">
-                <div>
-                  <p className="addons-category-kicker">
-                    {MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]} vertical workspace tools
-                  </p>
-                  <h2>All 4 industry tools in one bundle</h2>
-                  <p>{VERTICAL_COPY[selectedWorkspace]}</p>
-                </div>
-                <aside className="addons-pricing-band" aria-label="Vertical bundle pricing">
-                  <span>Bundle pricing ({licenseScope === "user" ? "individual" : "tenant"})</span>
-                  <strong>{formatMarketplaceBundlePrice(licenseScope, "vertical", checkoutQuote?.seats ?? 5)}</strong>
-                  <small>One price unlocks all four {MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]} tools.</small>
-                </aside>
-              </header>
-              <div className="addons-grid">
-                {verticalAddons.map((addon) => (
-                  <div
-                    key={addon.slug}
-                    id={`addon-${addon.slug}`}
-                    className={highlight === addon.slug ? "addons-highlight" : undefined}
-                  >
-                    <AddonCard addon={addon} starting={false} onStartTrial={() => {}} browseMode />
+            {industryWorkspace ? (
+              <section className="addons-category">
+                <header className="addons-category-head">
+                  <div>
+                    <p className="addons-category-kicker">
+                      {MARKETPLACE_VERTICAL_LABELS[industryWorkspace]} vertical workspace tools
+                    </p>
+                    <h2>All 4 industry tools in one bundle</h2>
+                    <p>{VERTICAL_COPY[industryWorkspace]}</p>
                   </div>
-                ))}
-              </div>
-            </section>
+                  <aside className="addons-pricing-band" aria-label="Vertical bundle pricing">
+                    <span>Bundle pricing ({licenseScope === "user" ? "individual" : "tenant"})</span>
+                    <strong>{formatMarketplaceBundlePrice(licenseScope, "vertical", checkoutQuote?.seats ?? 5)}</strong>
+                    <small>One price unlocks all four {MARKETPLACE_VERTICAL_LABELS[industryWorkspace]} tools.</small>
+                  </aside>
+                </header>
+                <div className="addons-grid">
+                  {verticalAddons.map((addon) => (
+                    <div
+                      key={addon.slug}
+                      id={`addon-${addon.slug}`}
+                      className={highlight === addon.slug ? "addons-highlight" : undefined}
+                    >
+                      <AddonCard addon={addon} starting={false} onStartTrial={() => {}} browseMode />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <p className="addons-empty">
+                Standard path includes platform tools only. Switch to an industry workspace on step 1 if you also need
+                vertical bundles.
+              </p>
+            )}
 
             <div className="addons-panel-actions addons-panel-actions--browse">
               <button type="button" className="addons-panel-back" onClick={() => setMarketplaceStep(2)}>
@@ -645,9 +676,19 @@ export function AddonsPage() {
             <header className="addons-panel-head">
               <h2>Final selection and payment</h2>
               <p>
-                Confirm which add-ons you want for {MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]} under your{" "}
-                {licenseScope === "user" ? "individual" : "tenant"} license. You can subscribe to Job Hunter alone or
-                combine it with workspace bundles.
+                {isStandardPath ? (
+                  <>
+                    Confirm platform tools for your Standard workspace under your{" "}
+                    {licenseScope === "user" ? "individual" : "tenant"} license. Vertical industry bundles are not
+                    required.
+                  </>
+                ) : (
+                  <>
+                    Confirm which add-ons you want for {MARKETPLACE_VERTICAL_LABELS[industryWorkspace!]} under your{" "}
+                    {licenseScope === "user" ? "individual" : "tenant"} license. You can subscribe to Job Hunter alone or
+                    combine it with workspace bundles.
+                  </>
+                )}
               </p>
             </header>
 
@@ -691,18 +732,20 @@ export function AddonsPage() {
                 </div>
               </label>
 
-              <label className={`addons-checkout-option ${includeVerticalBundle ? "addons-checkout-option--selected" : ""}`}>
-                <input
-                  type="checkbox"
-                  checked={includeVerticalBundle}
-                  onChange={(event) => setIncludeVerticalBundle(event.target.checked)}
-                />
-                <div>
-                  <strong>{MARKETPLACE_VERTICAL_LABELS[selectedWorkspace]} vertical bundle</strong>
-                  <p>All four industry workspace tools for this vertical</p>
-                  <span>{formatMarketplaceBundlePrice(licenseScope, "vertical", checkoutQuote?.seats ?? 5)}</span>
-                </div>
-              </label>
+              {industryWorkspace ? (
+                <label className={`addons-checkout-option ${includeVerticalBundle ? "addons-checkout-option--selected" : ""}`}>
+                  <input
+                    type="checkbox"
+                    checked={includeVerticalBundle}
+                    onChange={(event) => setIncludeVerticalBundle(event.target.checked)}
+                  />
+                  <div>
+                    <strong>{MARKETPLACE_VERTICAL_LABELS[industryWorkspace]} vertical bundle</strong>
+                    <p>All four industry workspace tools for this vertical</p>
+                    <span>{formatMarketplaceBundlePrice(licenseScope, "vertical", checkoutQuote?.seats ?? 5)}</span>
+                  </div>
+                </label>
+              ) : null}
             </div>
 
             <aside className="addons-checkout-summary" aria-label="Payment summary">
@@ -745,7 +788,7 @@ export function AddonsPage() {
                   !checkoutQuote ||
                   !hasMarketplaceCartSelection({
                     includePlatformBundle,
-                    includeVerticalBundle,
+                    includeVerticalBundle: isStandardPath ? false : includeVerticalBundle,
                     includeJobHunterStandalone,
                   })
                 }

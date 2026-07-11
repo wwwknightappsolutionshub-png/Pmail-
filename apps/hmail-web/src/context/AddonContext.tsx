@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { api } from "../api/client";
 import { startAddonCheckout, startMarketplaceCheckout } from "../utils/addonCheckout";
 import { useAuth } from "./AuthContext";
-import type { AddonItem, JobHunterEntitlement, MarketplaceBrowseVertical, MarketplaceLicenseScope, PanelWorkspaceTrialStatus } from "../types/addon";
+import type { AddonItem, JobHunterEntitlement, MarketplaceLicenseScope, MarketplaceWorkspaceChoice, PanelWorkspaceTrialStatus } from "../types/addon";
 
 interface AddonContextValue {
   addons: AddonItem[];
@@ -28,14 +28,14 @@ interface AddonContextValue {
     label: string;
   }>;
   quoteMarketplace: (input: {
-    vertical: MarketplaceBrowseVertical;
+    vertical: MarketplaceWorkspaceChoice;
     scope: MarketplaceLicenseScope;
     includePlatformBundle: boolean;
     includeVerticalBundle: boolean;
     includeJobHunterStandalone?: boolean;
     seats?: number;
   }) => Promise<{
-    vertical: MarketplaceBrowseVertical;
+    vertical: MarketplaceWorkspaceChoice;
     scope: MarketplaceLicenseScope;
     seats: number;
     tenantMemberCount: number;
@@ -53,7 +53,7 @@ interface AddonContextValue {
     }>;
   }>;
   startMarketplaceCheckout: (input: {
-    vertical: MarketplaceBrowseVertical;
+    vertical: MarketplaceWorkspaceChoice;
     scope: MarketplaceLicenseScope;
     includePlatformBundle: boolean;
     includeVerticalBundle: boolean;
@@ -149,7 +149,7 @@ export function AddonProvider({ children }: { children: React.ReactNode }) {
 
   const quoteMarketplace = useCallback(
     async (input: {
-      vertical: MarketplaceBrowseVertical;
+      vertical: MarketplaceWorkspaceChoice;
       scope: MarketplaceLicenseScope;
       includePlatformBundle: boolean;
       includeVerticalBundle: boolean;
@@ -164,7 +164,7 @@ export function AddonProvider({ children }: { children: React.ReactNode }) {
 
   const startMarketplaceCheckoutFn = useCallback(
     async (input: {
-      vertical: MarketplaceBrowseVertical;
+      vertical: MarketplaceWorkspaceChoice;
       scope: MarketplaceLicenseScope;
       includePlatformBundle: boolean;
       includeVerticalBundle: boolean;

@@ -340,6 +340,33 @@ describe("addons and features e2e", () => {
     expect(platformLine.addonSlugs).not.toContain("email-sla-tracker-functionality");
   });
 
+  it("quotes Standard platform-only marketplace selection without a vertical", async () => {
+    const { agent } = await createAuthenticatedAgent(app);
+    const res = await agent.post("/api/addons/marketplace/quote").send({
+      vertical: "standard",
+      scope: "user",
+      includePlatformBundle: true,
+      includeVerticalBundle: false,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.quote.vertical).toBe("standard");
+    expect(res.body.quote.lines).toEqual([
+      expect.objectContaining({ bundle: "platform", amountCents: 1500 }),
+    ]);
+    expect(res.body.quote.lines.some((line: { bundle: string }) => line.bundle === "vertical")).toBe(false);
+  });
+
+  it("rejects Standard marketplace quotes that request a vertical bundle", async () => {
+    const { agent } = await createAuthenticatedAgent(app);
+    const res = await agent.post("/api/addons/marketplace/quote").send({
+      vertical: "standard",
+      scope: "user",
+      includePlatformBundle: true,
+      includeVerticalBundle: true,
+    });
+    expect(res.status).toBe(400);
+  });
+
   it("quotes Job Hunter standalone without platform or vertical bundles", async () => {
     const { agent } = await createAuthenticatedAgent(app);
     const res = await agent.post("/api/addons/marketplace/quote").send({

@@ -17,7 +17,8 @@ import type { AddonSubscriptionScope } from "./addon.service.js";
 import { countTenantBillableUsers, resolveTenantSeats } from "./addon-pricing.service.js";
 
 export type MarketplaceBundleSelection = {
-  vertical: Exclude<AddonVertical, "platform">;
+  /** Industry vertical, or "standard" for platform-only (no vertical bundle). */
+  vertical: Exclude<AddonVertical, "platform"> | "standard";
   scope: AddonSubscriptionScope;
   includePlatformBundle: boolean;
   includeVerticalBundle: boolean;
@@ -36,7 +37,7 @@ export type MarketplaceBundleLine = {
 };
 
 export type MarketplaceSelectionQuote = {
-  vertical: Exclude<AddonVertical, "platform">;
+  vertical: Exclude<AddonVertical, "platform"> | "standard";
   scope: AddonSubscriptionScope;
   seats: number;
   tenantMemberCount: number;
@@ -68,6 +69,11 @@ export async function quoteMarketplaceSelection(
   if (!selection.includePlatformBundle && !selection.includeVerticalBundle && !includeJobHunter) {
     throw new Error("Select at least one add-on or bundle to continue");
   }
+  if (selection.includeVerticalBundle) {
+    if (!selection.vertical || selection.vertical === "standard") {
+      throw new Error("Choose an industry workspace to subscribe to vertical tools");
+    }
+  }
 
   const tenantMemberCount = await countTenantBillableUsers(tenantId);
   const minSeats = selection.includeVerticalBundle
@@ -98,7 +104,8 @@ export async function quoteMarketplaceSelection(
   }
 
   if (selection.includeVerticalBundle) {
-    const verticalSlugs = getVerticalBundleSlugs(selection.vertical);
+    const industryVertical = selection.vertical as Exclude<AddonVertical, "platform">;
+    const verticalSlugs = getVerticalBundleSlugs(industryVertical);
     const unitPriceCents =
       selection.scope === "tenant"
         ? MARKETPLACE_VERTICAL_BUNDLE_TENANT_SEAT_PRICE_CENTS
@@ -111,7 +118,7 @@ export async function quoteMarketplaceSelection(
           ? `Vertical workspace bundle — ${formatMoney(unitPriceCents)}/month × ${seats} seats`
           : `Vertical workspace bundle — ${formatMoney(MARKETPLACE_VERTICAL_BUNDLE_USER_PRICE_CENTS)}/month`,
       addonSlugs: verticalSlugs,
-      anchorSlug: getVerticalBundleAnchorSlug(selection.vertical),
+      anchorSlug: getVerticalBundleAnchorSlug(industryVertical),
       unitPriceCents,
       amountCents,
       isFree: false,
@@ -214,7 +221,7 @@ async function activateBundleAnchor(input: {
     });
   }
 
-  if (addon.addonKind === "vertical" && input.vertical) {
+  if (addon.addonKind === "vertical" && input.vertical && input.vertical !== "standard") {
     await prisma.user.update({
       where: { id: input.userId },
       data: { businessVertical: input.vertical },
@@ -238,7 +245,7 @@ export async function activateMarketplaceSelection(
       anchorSlug: line.anchorSlug,
       unitPriceCents: line.unitPriceCents,
       seats: quote.seats,
-      vertical: line.bundle === "vertical" ? selection.vertical : undefined,
+      vertical: line.bundle === "vertical" && selection.vertical !== "standard" ? selection.vertical : undefined,
       paymentProvider,
     });
   }

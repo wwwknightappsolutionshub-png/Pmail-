@@ -524,7 +524,7 @@ export const api = {
       };
     }>(`/api/addons/${slug}/pricing-quote?scope=${scope}${seats != null ? `&seats=${seats}` : ""}`),
   marketplaceQuote: (body: {
-    vertical: import("../types/addon").MarketplaceBrowseVertical;
+    vertical: import("../types/addon").MarketplaceWorkspaceChoice;
     scope: "user" | "tenant";
     includePlatformBundle: boolean;
     includeVerticalBundle: boolean;
@@ -533,7 +533,7 @@ export const api = {
   }) =>
     request<{
       quote: {
-        vertical: import("../types/addon").MarketplaceBrowseVertical;
+        vertical: import("../types/addon").MarketplaceWorkspaceChoice;
         scope: "user" | "tenant";
         seats: number;
         tenantMemberCount: number;
@@ -556,7 +556,7 @@ export const api = {
     }),
   marketplaceCheckout: (
     body: {
-      vertical: import("../types/addon").MarketplaceBrowseVertical;
+      vertical: import("../types/addon").MarketplaceWorkspaceChoice;
       scope: "user" | "tenant";
       includePlatformBundle: boolean;
       includeVerticalBundle: boolean;
