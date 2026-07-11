@@ -393,13 +393,13 @@ describe("addons and features e2e", () => {
     const rendered = await renderEmailTemplate("pmail-refer-friend", {
       senderName: "Jordan Lee",
       senderEmail: "jordan@example.com",
-      referralUrl: "https://mail.prohost.cloud/welcome/prohost/",
+      referralUrl: "https://mail.prohost.cloud/addons",
       productName: "PMail+",
       signatureFooter: "Jordan Lee\njordan@example.com",
     });
     expect(rendered.subject).toBe("Explore More Possibilities With Mails On PMail+ | Join Me");
     expect(rendered.html).toContain("PMail+");
-    expect(rendered.html).toContain("https://mail.prohost.cloud/welcome/prohost/");
+    expect(rendered.html).toContain("https://mail.prohost.cloud/addons");
     expect(rendered.html).toContain("brand-top");
     expect(rendered.html).toContain("brand-foot");
     expect(rendered.text).toContain("Jordan Lee");

@@ -1,4 +1,5 @@
 import type { EmailTemplateSeed } from "./email-template-seeds.js";
+import { PMAIL_ADDONS_URL } from "./email-cta-urls.js";
 import { emailBtn, emailMuted, PMAIL_WRAPPER } from "./email-brand-shell.js";
 import { ADDON_CATALOG, getCatalogEntry } from "./addon-catalog.js";
 import { ADDON_VERTICAL_LABELS, ADDON_VERTICAL_ORDER, type AddonVertical } from "./addon-verticals.js";
@@ -26,8 +27,7 @@ const EDU_WRAPPER = (body: string, headline: string, subhead?: string) =>
     brandName: "PMail+",
     headline,
     subhead,
-    footExtraHtml:
-      '{{signatureHtml}}<br/><a href="{{optOutUrl}}" style="color:#0d9488;font-weight:600">Unsubscribe from PMail+ education emails</a>',
+    footExtraHtml: `{{signatureHtml}}<br/><a href="${PMAIL_ADDONS_URL}" style="color:#0d9488;font-weight:600">Unsubscribe from PMail+ education emails</a>`,
   });
 
 const PANEL_USE_CASES: Record<string, string> = {
@@ -108,8 +108,8 @@ Unsubscribe: {{optOutUrl}}`,
 <p><strong>Real-world scenario</strong></p>
 <p><em>{{useCase}}</em></p>
 ${upsellLine}
-<p>${emailBtn("{{ctaUrl}}", "Explore {{addonName}}")}</p>
-${emailMuted('<a href="{{verticalCtaUrl}}" style="color:#0d9488;font-weight:600">Browse industry workspace add-ons</a>')}`,
+<p>${emailBtn(PMAIL_ADDONS_URL, "Explore {{addonName}}")}</p>
+${emailMuted(`<a href="${PMAIL_ADDONS_URL}" style="color:#0d9488;font-weight:600">Browse industry workspace add-ons</a>`)}`,
       "Discover {{addonName}}",
       "Same inbox. More capability from your {{productName}} workspace.",
     ),
@@ -161,7 +161,7 @@ Unsubscribe: {{optOutUrl}}`,
 <p>${isGeneric ? "{{verticalDescription}}" : verticalDescription}</p>
 <p><strong>What you can activate</strong></p>
 <ul>${productList}</ul>
-<p>${emailBtn("{{ctaUrl}}", "View {{verticalLabel}} workspace add-ons")}</p>`,
+<p>${emailBtn(PMAIL_ADDONS_URL, "View {{verticalLabel}} workspace add-ons")}</p>`,
       "{{verticalLabel}} tools inside {{productName}}",
       "Industry workspaces connected to the same branded mailbox",
     ),

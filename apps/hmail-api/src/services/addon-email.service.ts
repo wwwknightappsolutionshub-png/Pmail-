@@ -3,9 +3,8 @@ import nodemailer from "nodemailer";
 import { prisma } from "../lib/prisma.js";
 
 import { getEnv } from "../config/env.js";
-import { getPrimaryWebOrigin } from "../lib/web-origin.js";
-import { resolveDefaultBrandedSignatureExploreUrl } from "./default-signature.service.js";
 import { emailBtn, wrapBrandedEmail } from "../data/email-brand-shell.js";
+import { PMAIL_ADDONS_URL, PMAIL_LOGIN_URL } from "../data/email-cta-urls.js";
 import { renderEmailTemplate } from "./email-template.service.js";
 
 export type AddonEmailType = "welcome" | "day3" | "day6" | "expired";
@@ -31,7 +30,7 @@ function brandedFallback(bodyHtml: string, headline: string, subhead?: string): 
 }
 
 function resolveMarketplaceUrl(): string {
-  return `${getPrimaryWebOrigin()}/addons`;
+  return PMAIL_ADDONS_URL;
 }
 
 async function buildDay6ReferralUpsell(input: SendAddonEmailInput): Promise<{
@@ -227,7 +226,7 @@ export async function sendOpenTrackingUpsellEmail(input: {
   addonSummary: string;
 }): Promise<void> {
   const env = getEnv();
-  const marketplaceUrl = `${resolveMarketplaceUrl()}?highlight=open-tracking`;
+  const marketplaceUrl = resolveMarketplaceUrl();
   const fullName = input.userEmail.split("@")[0] || "there";
 
   let content: { subject: string; text: string; html: string };
@@ -285,7 +284,7 @@ export async function sendAutoReplyUpsellEmail(input: {
   daysLeft: number;
 }): Promise<void> {
   const env = getEnv();
-  const marketplaceUrl = `${resolveMarketplaceUrl()}?highlight=auto-reply-functionality`;
+  const marketplaceUrl = resolveMarketplaceUrl();
   const fullName = input.userEmail.split("@")[0] || "there";
 
   let content: { subject: string; text: string; html: string };
@@ -346,7 +345,7 @@ export async function sendPanelWorkspaceTrialEmail(input: {
   trialEndsAt: Date;
 }): Promise<void> {
   const env = getEnv();
-  const marketplaceUrl = `${resolveMarketplaceUrl()}?highlight=open-tracking`;
+  const marketplaceUrl = resolveMarketplaceUrl();
   const fullName = input.userEmail.split("@")[0] || "there";
   const daysLeft = Math.max(
     0,
@@ -451,8 +450,8 @@ export async function sendPmailAccountWelcomeEmail(input: {
 }): Promise<boolean> {
   const env = getEnv();
   const marketplaceUrl = resolveMarketplaceUrl();
-  const loginUrl = `${getPrimaryWebOrigin()}/login`;
-  const exploreUrl = resolveDefaultBrandedSignatureExploreUrl();
+  const loginUrl = PMAIL_LOGIN_URL;
+  const exploreUrl = PMAIL_ADDONS_URL;
 
   let content: { subject: string; text: string; html: string };
   try {
@@ -535,7 +534,7 @@ export async function sendJobHunterInboxUpsellEmail(input: {
   addonSlug: string;
 }): Promise<void> {
   const env = getEnv();
-  const marketplaceUrl = `${resolveMarketplaceUrl()}?highlight=${encodeURIComponent(input.addonSlug)}`;
+  const marketplaceUrl = resolveMarketplaceUrl();
   const fullName = input.userEmail.split("@")[0] || "there";
   const emailType = "job_hunter_inbox_upsell";
 

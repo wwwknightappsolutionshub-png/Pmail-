@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { PMAIL_ADDONS_URL, PMAIL_LOGIN_URL } from "../data/email-cta-urls.js";
 import { getPrimaryWebOrigin } from "../lib/web-origin.js";
 import { hashPassword, verifyPassword } from "../lib/crypto.js";
 import { prisma } from "../lib/prisma.js";
@@ -172,12 +173,12 @@ async function sendProspectDemoWelcomeEmail(input: {
     variables: {
       fullName: input.fullName,
       productName: input.productName,
-      loginUrl: input.loginUrl,
+      loginUrl: PMAIL_LOGIN_URL,
       workEmail: input.email,
       demoPassword: input.demoPassword,
       expiresAtLabel: formatExpiryLabel(input.expiresAt),
       trialHours: String(PMAIL_PROSPECT_DEMO_TRIAL_HOURS),
-      addonsUrl: `${getPmailWebBaseUrl()}/addons`,
+      addonsUrl: PMAIL_ADDONS_URL,
     },
   });
 }
@@ -195,10 +196,10 @@ async function sendProspectDemoUpsellEmail(input: {
     variables: {
       fullName: input.fullName,
       productName: input.productName,
-      loginUrl: input.loginUrl,
+      loginUrl: PMAIL_LOGIN_URL,
       hoursLeft: String(Math.ceil(input.hoursLeft)),
-      addonsUrl: `${getPmailWebBaseUrl()}/addons`,
-      registerUrl: `${getPmailWebBaseUrl()}/welcome/prohost`,
+      addonsUrl: PMAIL_ADDONS_URL,
+      registerUrl: PMAIL_ADDONS_URL,
     },
   });
 }

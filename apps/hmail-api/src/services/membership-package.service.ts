@@ -1,7 +1,7 @@
+import { EMAIL_HREF_PLACEHOLDER } from "../data/email-cta-urls.js";
 import { randomUUID } from "node:crypto";
 import { prisma } from "../lib/prisma.js";
 import { getEnv } from "../config/env.js";
-import { getPublicApiBaseUrl } from "../lib/public-url.js";
 import type { Request } from "express";
 import { renderEmailTemplate } from "./email-template.service.js";
 import { sendTemplatedPlatformEmail, notifyInternalAddress } from "./platform-email.service.js";
@@ -25,21 +25,16 @@ function packageSelectUrl(baseUrl: string, token: string, plan: HostingPackagePl
 
 export function buildHostingPackageEmailVariables(
   fullName: string,
-  token: string,
-  req?: Request,
+  _token: string,
+  _req?: Request,
 ): Record<string, string> {
-  const baseUrl = getPublicApiBaseUrl(req);
-  const env = getEnv();
-  const whatsappText = encodeURIComponent(
-    `Hi Prohost Cloud — I just signed up as ${fullName} and have a question about hosting packages.`,
-  );
   return {
     fullName,
-    launchUrl: packageSelectUrl(baseUrl, token, "launch"),
-    businessUrl: packageSelectUrl(baseUrl, token, "business"),
-    proUrl: packageSelectUrl(baseUrl, token, "pro"),
-    panelLoginUrl: `${env.HOSTNET_WEB_URL}/panel/login`,
-    whatsappUrl: `https://wa.me/447756183484?text=${whatsappText}`,
+    launchUrl: EMAIL_HREF_PLACEHOLDER,
+    businessUrl: EMAIL_HREF_PLACEHOLDER,
+    proUrl: EMAIL_HREF_PLACEHOLDER,
+    panelLoginUrl: EMAIL_HREF_PLACEHOLDER,
+    whatsappUrl: EMAIL_HREF_PLACEHOLDER,
   };
 }
 
@@ -119,7 +114,7 @@ export async function selectHostingPackage(token: string, plan: string) {
     variables: {
       fullName: app.fullName,
       planName: planLabel,
-      panelLoginUrl: `${getEnv().HOSTNET_WEB_URL}/panel/login`,
+      panelLoginUrl: EMAIL_HREF_PLACEHOLDER,
     },
   }).catch(async () => {
     const rendered = await renderEmailTemplate("membership-welcome", {
@@ -128,7 +123,7 @@ export async function selectHostingPackage(token: string, plan: string) {
       demoUsername: app.demoUsername ?? "",
       demoDomain: app.demoDomain ?? "",
       demoPassword: "",
-      panelLoginUrl: `${getEnv().HOSTNET_WEB_URL}/panel/login`,
+      panelLoginUrl: EMAIL_HREF_PLACEHOLDER,
     });
     await notifyInternalAddress(app.workEmail, `Thank you — ${planLabel} selected`, rendered.html);
   });

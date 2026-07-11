@@ -1,5 +1,5 @@
+import { PMAIL_ADDONS_URL } from "../data/email-cta-urls.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
-import { resolveDefaultBrandedSignatureExploreUrl } from "./default-signature.service.js";
 import { renderEmailTemplate } from "./email-template.service.js";
 import { listFolders, listMessages, type MailCredentials } from "./imap.service.js";
 import {
@@ -231,7 +231,7 @@ export async function buildReferralCompose(input: {
   displayName: string | null;
   credentials?: MailCredentials | null;
 }): Promise<ReferralComposeResult> {
-  const referralUrl = resolveDefaultBrandedSignatureExploreUrl();
+  const referralUrl = PMAIL_ADDONS_URL;
   const senderName = input.displayName?.trim() || input.email.split("@")[0] || "A PMail+ user";
 
   const signatureFooter = await resolveSignatureFooter(input.userId, input.displayName, input.email);

@@ -1,3 +1,4 @@
+import { EMAIL_HREF_PLACEHOLDER, PMAIL_ADDONS_URL, PMAIL_LOGIN_URL } from "./email-cta-urls.js";
 import { emailBtn, emailFeature, emailMuted, PMAIL_WRAPPER, WRAPPER } from "./email-brand-shell.js";
 
 export type EmailTemplateSeed = {
@@ -31,7 +32,7 @@ export const EMAIL_TEMPLATE_SEEDS: EmailTemplateSeed[] = [
 <li>Domain: <code>{{demoDomain}}</code></li>
 <li>Password: <code>{{demoPassword}}</code></li>
 </ul>
-<p>${emailBtn("{{panelLoginUrl}}", "Open sample panel")}</p>
+<p>${emailBtn(EMAIL_HREF_PLACEHOLDER, "Open sample panel")}</p>
 ${emailMuted("This environment is a preview. Production provisioning will follow a separate onboarding email.")}`,
       { brandTag: "Onboarding", headline: "Your sample panel is ready" },
     ),
@@ -47,7 +48,7 @@ ${emailMuted("This environment is a preview. Production provisioning will follow
       `
 <p>Hi {{fullName}},</p>
 <p>We received a request to reset your password. Click below to choose a new one. This link expires in {{expiresMinutes}} minutes.</p>
-<p>${emailBtn("{{resetUrl}}", "Reset password")}</p>
+<p>${emailBtn(EMAIL_HREF_PLACEHOLDER, "Reset password")}</p>
 ${emailMuted("If you did not request this, you can ignore this email.")}`,
       { brandTag: "Account", headline: "Reset your password" },
     ),
@@ -63,7 +64,7 @@ ${emailMuted("If you did not request this, you can ignore this email.")}`,
       `
 <p>Hi {{fullName}},</p>
 <p>Based on your usage, <strong>{{recommendedPlan}}</strong> may be a better fit than your current <strong>{{currentPlan}}</strong> tier.</p>
-<p>${emailBtn("{{ctaUrl}}", "View upgrade options")}</p>`,
+<p>${emailBtn(EMAIL_HREF_PLACEHOLDER, "View upgrade options")}</p>`,
       { brandTag: "Hosting", headline: "A better plan for your growth" },
     ),
   },
@@ -79,7 +80,7 @@ ${emailMuted("If you did not request this, you can ignore this email.")}`,
 <p>Hi {{fullName}},</p>
 <p>{{addonSummary}}</p>
 <p><strong>{{addonName}}</strong> integrates with your Prohost Cloud workspace.</p>
-<p>${emailBtn("{{ctaUrl}}", "Explore add-on")}</p>`,
+<p>${emailBtn(PMAIL_ADDONS_URL, "Explore add-on")}</p>`,
       {
         brandName: "PMail+",
         headline: "Unlock more from your mailbox",
@@ -113,7 +114,7 @@ ${emailMuted("For urgent matters, reply to this email and reference your ticket 
       `
 <p>Hi {{fullName}},</p>
 <p>Great news — <strong>{{tenantName}}</strong> is fully provisioned and ready for production use.</p>
-<p>${emailBtn("{{panelLoginUrl}}", "Go to your panel")}</p>`,
+<p>${emailBtn(EMAIL_HREF_PLACEHOLDER, "Go to your panel")}</p>`,
       { brandTag: "Onboarding", headline: "Your environment is live" },
     ),
   },
@@ -128,7 +129,7 @@ ${emailMuted("For urgent matters, reply to this email and reference your ticket 
       `
 <p>Hi {{fullName}},</p>
 <p>Your trial ends in <strong>{{daysLeft}} days</strong>. Upgrade now to keep uninterrupted access.</p>
-<p>${emailBtn("{{upgradeUrl}}", "Choose a plan")}</p>`,
+<p>${emailBtn(EMAIL_HREF_PLACEHOLDER, "Choose a plan")}</p>`,
       { brandTag: "Billing", headline: "Your trial is ending soon" },
     ),
   },
@@ -159,7 +160,7 @@ ${emailMuted("Keep this email for your records.")}`,
       `
 <p>Hi {{fullName}},</p>
 <p>{{salesRepName}} from our solutions team would like to discuss your requirements.</p>
-<p>${emailBtn("{{bookingUrl}}", "Schedule a call")}</p>`,
+<p>${emailBtn(EMAIL_HREF_PLACEHOLDER, "Schedule a call")}</p>`,
       { brandTag: "Sales", headline: "Let’s continue the conversation" },
     ),
   },
@@ -173,7 +174,7 @@ ${emailMuted("Keep this email for your records.")}`,
     htmlBody: WRAPPER(
       `
 <p>New membership application from <strong>{{fullName}}</strong> ({{workEmail}}).</p>
-<p>${emailBtn("{{adminUrl}}", "Review in admin")}</p>`,
+<p>${emailBtn(EMAIL_HREF_PLACEHOLDER, "Review in admin")}</p>`,
       { brandTag: "Internal", headline: "New membership application" },
     ),
   },
@@ -210,7 +211,7 @@ ${emailMuted("Keep this email for your records.")}`,
 <li style="padding:4px 0;border-bottom:1px solid #e2e8f0"><strong>1</strong> mailbox</li>
 <li style="padding:4px 0">Free migration</li>
 </ul>
-<a href="{{launchUrl}}" style="display:block;padding:12px 14px;background:#ffffff;color:#0d9488!important;text-decoration:none;border-radius:999px;font-weight:700;font-size:13px;text-align:center;border:2px solid #0d9488">Choose Launch</a>
+<a href="#" style="display:block;padding:12px 14px;background:#ffffff;color:#0d9488!important;text-decoration:none;border-radius:999px;font-weight:700;font-size:13px;text-align:center;border:2px solid #0d9488">Choose Launch</a>
 </div>
 </td>
 <td class="plan-cell" width="33%" valign="top" style="padding:0 6px 12px">
@@ -225,7 +226,7 @@ ${emailMuted("Keep this email for your records.")}`,
 <li style="padding:4px 0;border-bottom:1px solid #e2e8f0"><strong>3</strong> mailboxes</li>
 <li style="padding:4px 0">Vulnerability scanning</li>
 </ul>
-<a href="{{businessUrl}}" style="display:block;padding:12px 14px;background:#0d9488;color:#ffffff!important;text-decoration:none;border-radius:999px;font-weight:700;font-size:13px;text-align:center">Choose Business</a>
+<a href="#" style="display:block;padding:12px 14px;background:#0d9488;color:#ffffff!important;text-decoration:none;border-radius:999px;font-weight:700;font-size:13px;text-align:center">Choose Business</a>
 </div>
 </td>
 <td class="plan-cell" width="33%" valign="top" style="padding:0 6px 12px">
@@ -239,14 +240,14 @@ ${emailMuted("Keep this email for your records.")}`,
 <li style="padding:4px 0;border-bottom:1px solid #e2e8f0"><strong>5</strong> mailboxes</li>
 <li style="padding:4px 0">Priority resources</li>
 </ul>
-<a href="{{proUrl}}" style="display:block;padding:12px 14px;background:#ffffff;color:#0d9488!important;text-decoration:none;border-radius:999px;font-weight:700;font-size:13px;text-align:center;border:2px solid #0d9488">Choose Pro</a>
+<a href="#" style="display:block;padding:12px 14px;background:#ffffff;color:#0d9488!important;text-decoration:none;border-radius:999px;font-weight:700;font-size:13px;text-align:center;border:2px solid #0d9488">Choose Pro</a>
 </div>
 </td>
 </tr>
 </table>
 <p style="margin:20px 0 12px;font-size:13px;color:#64748b;text-align:center">Need help choosing? Chat with us on WhatsApp</p>
-<p style="text-align:center;margin:0 0 16px"><a href="{{whatsappUrl}}" style="display:inline-block;padding:12px 22px;background:#25D366;color:#fff!important;text-decoration:none;border-radius:999px;font-weight:700;font-size:14px">Chat on WhatsApp</a></p>
-${emailMuted('Already signed in? <a href="{{panelLoginUrl}}" style="color:#0d9488;font-weight:600">Open your Prohost Cloud panel</a>')}`,
+<p style="text-align:center;margin:0 0 16px"><a href="#" style="display:inline-block;padding:12px 22px;background:#25D366;color:#fff!important;text-decoration:none;border-radius:999px;font-weight:700;font-size:14px">Chat on WhatsApp</a></p>
+${emailMuted('Already signed in? <a href="#" style="color:#0d9488;font-weight:600">Open your Prohost Cloud panel</a>')}`,
       {
         brandTag: "Hosting",
         headline: "Choose your hosting package",
@@ -265,7 +266,7 @@ ${emailMuted('Already signed in? <a href="{{panelLoginUrl}}" style="color:#0d948
       `
 <p>Hi <strong>{{fullName}}</strong>,</p>
 <p>Thank you for selecting the <strong>{{planName}}</strong> hosting package. Our team has been notified and will follow up shortly to complete your setup.</p>
-<p>${emailBtn("{{panelLoginUrl}}", "Open your panel")}</p>
+<p>${emailBtn(EMAIL_HREF_PLACEHOLDER, "Open your panel")}</p>
 ${emailMuted("Questions? WhatsApp us at +44 7756 183484 or reply to this email.")}`,
       { brandTag: "Hosting", headline: "Thanks — we received your package choice" },
     ),
@@ -286,7 +287,7 @@ Why I'm recommending {{productName}}:
 - Industry workspaces with CRM-style tools for legal, accounting, healthcare, and more
 - Clean upgrade path — start with regular mail, then unlock only what you need
 
-Try it here: {{referralUrl}}
+Try it here: https://mail.prohost.cloud/addons
 
 I'd love for you to explore the same workflow I'm using.
 
@@ -299,7 +300,7 @@ ${emailFeature("Mail that feels modern", "Fast compose, organized folders, signa
 ${emailFeature("Platform tools ready when you need them", "Calendar, scheduled send, open tracking, WhatsApp handoff, and Mail2PDF exports.")}
 ${emailFeature("Industry workspaces", "Legal, accounting, healthcare, recruitment, and more — unlock vertical tools only when your team is ready.")}
 ${emailFeature("Upgrade on your terms", "Start with regular mail, explore the environment, and subscribe only to the bundles you want.")}
-<p>${emailBtn("{{referralUrl}}", "Explore {{productName}}")}</p>
+<p>${emailBtn(PMAIL_ADDONS_URL, "Explore {{productName}}")}</p>
 ${emailMuted("Use the link above to sign in and explore the same mail experience I'm using.")}`,
       {
         brandName: "{{productName}}",
@@ -325,7 +326,7 @@ Upgrade here: {{ctaUrl}}`,
 <p>Hi <strong>{{fullName}}</strong>,</p>
 <p>Your complimentary <strong>{{productName}} Platform tools</strong> trial ends <strong>tomorrow</strong>.</p>
 <p>Subscribe now to keep calendar, scheduled send, open tracking, WhatsApp handoff, and Mail2PDF unlocked in your workspace.</p>
-<p>${emailBtn("{{ctaUrl}}", "Unlock Platform tools")}</p>
+<p>${emailBtn(PMAIL_ADDONS_URL, "Unlock Platform tools")}</p>
 ${emailMuted("If you do not subscribe, Platform tools will be gated when the trial ends.")}`,
       {
         headline: "Keep Platform tools unlocked",
@@ -349,7 +350,7 @@ Explore add-ons: {{ctaUrl}}`,
 <p>Hi <strong>{{fullName}}</strong>,</p>
 <p>Welcome to <strong>{{productName}}</strong>. Your complimentary <strong>{{trialDays}}-day</strong> Panel workspace tools trial is now active.</p>
 <p>Unlocked during your trial: CRM pipeline, reminders, open tracking, file vault, inbox cleanup, attachment categories, e-sign, email SLA, Mail2PDF, auto-reply, and other Panel workspace tools.</p>
-<p>${emailBtn("{{ctaUrl}}", "Open workspace add-ons")}</p>`,
+<p>${emailBtn(PMAIL_ADDONS_URL, "Open workspace add-ons")}</p>`,
       {
         headline: "Your workspace tools trial is active",
         subhead: "Explore Panel tools while your complimentary access is open",
@@ -372,7 +373,7 @@ Upgrade: {{ctaUrl}}`,
 <p>Hi <strong>{{fullName}}</strong>,</p>
 <p>Your complimentary <strong>{{productName}}</strong> Panel workspace tools trial ends in about <strong>{{hoursLeft}} hours</strong> ({{daysLeft}} days).</p>
 <p>Subscribe now to keep CRM, reminders, open tracking, file vault, e-sign, email SLA, and the rest of your workspace tools after your trial ends.</p>
-<p>${emailBtn("{{ctaUrl}}", "Upgrade workspace tools")}</p>`,
+<p>${emailBtn(PMAIL_ADDONS_URL, "Upgrade workspace tools")}</p>`,
       {
         headline: "{{hoursLeft}} hours left on your trial",
         subhead: "Subscribe to keep workspace tools unlocked",
@@ -395,7 +396,7 @@ Upgrade now: {{ctaUrl}}`,
 <p>Hi <strong>{{fullName}}</strong>,</p>
 <p><strong>Final reminder:</strong> your complimentary <strong>{{productName}}</strong> Panel workspace tools trial ends in <strong>{{hoursLeft}} hours</strong>.</p>
 <p>CRM, reminders, open tracking, file vault, e-sign, email SLA, and other Panel workspace tools will be locked unless you upgrade.</p>
-<p>${emailBtn("{{ctaUrl}}", "Upgrade before tools lock")}</p>`,
+<p>${emailBtn(PMAIL_ADDONS_URL, "Upgrade before tools lock")}</p>`,
       {
         headline: "Final reminder — tools lock soon",
         subhead: "Upgrade now to keep your workspace stack",
@@ -418,7 +419,7 @@ Upgrade here: {{ctaUrl}}`,
 <p>Hi <strong>{{fullName}}</strong>,</p>
 <p>Your complimentary <strong>{{productName}} Auto Reply</strong> access ends in <strong>{{daysLeft}} days</strong>.</p>
 <p>Subscribe to keep automatic inbox acknowledgments, industry templates, and custom reply rules active in your mail workspace.</p>
-<p>${emailBtn("{{ctaUrl}}", "Unlock Auto Reply")}</p>
+<p>${emailBtn(PMAIL_ADDONS_URL, "Unlock Auto Reply")}</p>
 ${emailMuted("After the complimentary period, Auto Reply is gated until you subscribe from the Addon Marketplace.")}`,
       {
         headline: "Keep Auto Reply running",
@@ -449,12 +450,12 @@ ${emailMuted("After the complimentary period, Auto Reply is gated until you subs
 <p>Welcome to <strong>{{productName}}</strong>. Your personal demo workspace is ready — explore mail, workspace tools, and industry panels without connecting a live mailbox yet.</p>
 <p><strong>Your demo login</strong></p>
 <ul>
-<li>Sign-in page: <a href="{{loginUrl}}">{{loginUrl}}</a></li>
+<li>Sign-in page: <a href="${PMAIL_LOGIN_URL}">${PMAIL_LOGIN_URL}</a></li>
 <li>Email: <code>{{workEmail}}</code></li>
 <li>Password: <code>{{demoPassword}}</code></li>
 <li>Access valid until: <strong>{{expiresAtLabel}}</strong> ({{trialHours}} hours)</li>
 </ul>
-<p>${emailBtn("{{loginUrl}}", "Open your PMail+ demo")}</p>
+<p>${emailBtn(PMAIL_LOGIN_URL, "Open your PMail+ demo")}</p>
 ${emailMuted("This demo uses a sample inbox and accounting workspace data, similar to our internal PMail+ tester experience.")}
 ${emailMuted("When you're ready to keep going, explore upgrades from your workspace or reply to this email.")}`,
       {
@@ -476,8 +477,8 @@ ${emailMuted("When you're ready to keep going, explore upgrades from your worksp
 <p>Hi <strong>{{fullName}}</strong>,</p>
 <p>Your <strong>{{productName}}</strong> demo workspace expires in about <strong>{{hoursLeft}} hours</strong>.</p>
 <p>Upgrade now to keep CRM, reminders, open tracking, file vault, industry workspaces, and the rest of your PMail+ toolkit unlocked beyond the demo window.</p>
-<p>${emailBtn("{{addonsUrl}}", "View upgrade options")}</p>
-<p><a href="{{loginUrl}}" style="color:#0d9488;font-weight:600">Return to your demo workspace</a> while access is still active.</p>
+<p>${emailBtn(PMAIL_ADDONS_URL, "View upgrade options")}</p>
+<p><a href="${PMAIL_ADDONS_URL}" style="color:#0d9488;font-weight:600">Return to your demo workspace</a> while access is still active.</p>
 ${emailMuted("Need help choosing a plan? Reply to this email or request full workspace access at {{registerUrl}}.")}`,
       {
         headline: "Your demo ends soon",
@@ -525,8 +526,8 @@ Explore add-ons: {{ctaUrl}}`,
 {{workspaceAddonsHtml}}
 <p><strong>Business vertical add-ons</strong></p>
 {{verticalAddonsHtml}}
-<p>${emailBtn("{{exploreUrl}}", "Open PMail+")}</p>
-<p><a href="{{ctaUrl}}" style="color:#0d9488;font-weight:600">Browse the add-on marketplace</a></p>
+<p>${emailBtn(PMAIL_ADDONS_URL, "Open PMail+")}</p>
+<p><a href="${PMAIL_ADDONS_URL}" style="color:#0d9488;font-weight:600">Browse the add-on marketplace</a></p>
 ${emailMuted("You received this email because you signed in or connected a mailbox to PMail+.")}`,
       {
         headline: "Welcome to your branded mail workspace",
@@ -552,7 +553,7 @@ Activate now: {{ctaUrl}}`,
 <p>Hi <strong>{{fullName}}</strong>,</p>
 <p>We noticed <strong>career and job-search activity</strong> in your {{productName}} inbox and sent mail — things like applications, recruiter outreach, interview scheduling, or careers newsletters.</p>
 <p>Activate <strong>{{addonName}}</strong> to unlock CV Hub, application tracking, interview prep, and privacy-first career tools built into your mailbox workspace.</p>
-<p>${emailBtn("{{ctaUrl}}", "Activate {{addonName}}")}</p>
+<p>${emailBtn(PMAIL_ADDONS_URL, "Activate {{addonName}}")}</p>
 ${emailMuted("You can turn off automatic inbox upsell emails from the Prohost super admin panel.")}`,
       {
         headline: "Career tools for your mailbox",

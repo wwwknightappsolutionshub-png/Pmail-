@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma.js";
-import { getEnv } from "../config/env.js";
+import { EMAIL_HREF_PLACEHOLDER } from "../data/email-cta-urls.js";
 import { getFormDefinition, validateFormPayload } from "./form-definition.service.js";
 import { provisionIsolatedMembershipDemo } from "./membership-demo.service.js";
 import { sendTemplatedPlatformEmail, notifyInternalAddress } from "./platform-email.service.js";
@@ -126,8 +126,6 @@ export async function submitMembershipApplication(input: {
     });
   }
 
-  const env = getEnv();
-
   await sendTemplatedPlatformEmail({
     to: values.workEmail,
     templateSlug: "membership-welcome",
@@ -137,7 +135,7 @@ export async function submitMembershipApplication(input: {
       demoUsername: demo.demoUsername,
       demoDomain: demo.demoDomain,
       demoPassword: demo.demoPassword,
-      panelLoginUrl: demo.panelLoginUrl,
+      panelLoginUrl: EMAIL_HREF_PLACEHOLDER,
     },
   });
 
@@ -145,7 +143,7 @@ export async function submitMembershipApplication(input: {
     fullName: values.fullName,
     workEmail: values.workEmail,
     hostingScale: values.hostingScale,
-    adminUrl: `${env.HOSTNET_WEB_URL}/admin`,
+    adminUrl: EMAIL_HREF_PLACEHOLDER,
   });
 
   await notifyInternalAddress(

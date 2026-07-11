@@ -20,9 +20,10 @@ export type AddonEducationCampaignType = "panel" | "vertical";
 const HREF_ATTR_RE = /(<a\b[^>]*\shref\s*=\s*)(["'])(.*?)\2/gi;
 
 import { getPrimaryWebOrigin } from "../lib/web-origin.js";
+import { PMAIL_ADDONS_URL } from "../data/email-cta-urls.js";
 
 function resolveMarketplaceUrl(): string {
-  return `${getPrimaryWebOrigin()}/addons`;
+  return PMAIL_ADDONS_URL;
 }
 
 function resolveApiPublicBase(): string {
@@ -30,7 +31,7 @@ function resolveApiPublicBase(): string {
 }
 
 function resolveOptOutUrl(): string {
-  return `${getPrimaryWebOrigin()}/addons?education-opt-out=1`;
+  return PMAIL_ADDONS_URL;
 }
 
 function hoursFromNow(hours: number): Date {
@@ -198,13 +199,13 @@ async function sendEducationEmail(input: {
     addonDescription: entry?.description ?? "",
     benefitsList: getPanelBenefitsList(input.stepKey).replace(/\n/g, "<br/>"),
     useCase: getPanelUseCase(input.stepKey),
-    ctaUrl: `${marketplaceUrl}?highlight=${encodeURIComponent(input.stepKey)}`,
-    verticalCtaUrl: `${marketplaceUrl}?highlight=${encodeURIComponent(verticalKey === "generic" ? "bespoke-workspace" : verticalKey)}`,
+    ctaUrl: marketplaceUrl,
+    verticalCtaUrl: marketplaceUrl,
     verticalLabel,
     verticalDescription: `Your mailbox runs on a custom domain — PMail+ can extend your inbox with purpose-built tools for ${verticalLabel.toLowerCase()}.`,
     productListHtml: "",
     signatureHtml: PMAil_EDUCATION_SIGNATURE_HTML,
-    optOutUrl: resolveOptOutUrl(),
+    optOutUrl: marketplaceUrl,
   };
 
   const rendered = await renderEmailTemplate(input.templateSlug, variables);
