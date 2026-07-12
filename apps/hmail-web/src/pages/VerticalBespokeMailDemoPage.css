@@ -3899,6 +3899,7 @@ html:has(.pmail-demo-shell--light) body {
   }
 
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-btn--refer {
+    display: inline-flex !important;
     flex-shrink: 0;
   }
 
@@ -4078,8 +4079,14 @@ html:has(.pmail-demo-shell--light) body {
     height: 1rem;
   }
 
+  /* Icon-only on mobile — keep visible next to cart / theme / sign-out */
   .pmail-demo-shell .bespoke-demo-topbar-btn--refer {
-    display: none !important;
+    display: inline-flex !important;
+    flex-shrink: 0;
+  }
+
+  .pmail-demo-shell .bespoke-demo-topbar-btn--refer span:not(.bespoke-demo-topbar-btn-icon) {
+    display: none;
   }
 
   .pmail-demo-shell .bespoke-demo-topbar-signout.bespoke-demo-topbar-btn {
