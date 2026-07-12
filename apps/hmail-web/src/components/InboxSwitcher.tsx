@@ -5,16 +5,24 @@ import { useAuth } from "../context/AuthContext";
 import { useAddons } from "../context/AddonContext";
 import {
   defaultMailConfig,
-  inferProviderPresetFromEmail,
+  emptyMailConfig,
+  isHostingerForcedEmailDomain,
+  providerPresetDisplayLabel,
+  resolveHostingerForcedDomainMailConfig,
   resolveMailConfigFromPreset,
+  resolveProviderPresetFromEmail,
   type MailConfigValues,
+  type MailProviderPresetKey,
 } from "../constants/mailProviders";
 import { formatMailConnectError } from "../utils/mailConnectErrors";
 import { ProviderPresetPicker } from "./ProviderPresetPicker";
 import { Mails } from "lucide-react";
 import { PmailLoadingScreen } from "./PmailLoadingScreen";
+import { GmailConnectWizard } from "./GmailConnectWizard";
 import "./InboxSwitcher.css";
 import "./MailBottomNavButton.css";
+import "./ProviderPresetPicker.css";
+import "./LoginProviderCorrector.css";
 
 export type MailAccountSummary = {
   id: string;
@@ -71,6 +79,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
     label: "",
     ...defaultMailConfig(),
   });
+  const [showProviderCorrector, setShowProviderCorrector] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
@@ -79,6 +88,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
   const entitled = hasAddon("multi-inbox-functionality");
   const isHeader = variant === "header";
   const isBottomNav = variant === "bottom-nav";
+  const isGoogleProvider = form.providerPreset === "google";
 
   const loadAccounts = useCallback(async () => {
     if (!entitled) return;
@@ -415,24 +425,53 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
                   type="email"
                   value={form.email}
                   onChange={(e) => {
-                    const email = e.target.value;
-                    const inferred = inferProviderPresetFromEmail(email);
+                    const nextEmail = e.target.value;
+                    const normalized = nextEmail.trim().toLowerCase();
+                    setShowProviderCorrector(false);
+                    if (!normalized.includes("@")) {
+                      setForm((prev) => ({
+                        ...prev,
+                        email: nextEmail,
+                        ...emptyMailConfig(),
+                        providerPreset: defaultMailConfig().providerPreset,
+                      }));
+                      return;
+                    }
+                    if (isHostingerForcedEmailDomain(normalized)) {
+                      setForm((prev) => ({
+                        ...prev,
+                        email: nextEmail,
+                        ...resolveHostingerForcedDomainMailConfig(),
+                      }));
+                      return;
+                    }
+                    const resolved = resolveProviderPresetFromEmail(normalized);
                     setForm((prev) => ({
                       ...prev,
-                      email,
-                      ...(inferred ? resolveMailConfigFromPreset(inferred) : {}),
+                      email: nextEmail,
+                      ...(resolved ? resolveMailConfigFromPreset(resolved) : {}),
                     }));
                   }}
                 />
               </label>
               <label>
-                <span>Password</span>
+                <span>{isGoogleProvider ? "Google App Password (16 characters)" : "Password"}</span>
                 <input
                   type="password"
                   value={form.password}
                   onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+                  placeholder={
+                    isGoogleProvider
+                      ? "Paste your 16-character Google App Password"
+                      : undefined
+                  }
                 />
               </label>
+              {isGoogleProvider ? (
+                <p className="inbox-switcher-provider-hint">
+                  Use the special password for PMail+ from Google — not your normal Gmail password.
+                </p>
+              ) : null}
               <label>
                 <span>Label (optional)</span>
                 <input
@@ -441,16 +480,60 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
                   onChange={(e) => setForm((prev) => ({ ...prev, label: e.target.value }))}
                 />
               </label>
-              <ProviderPresetPicker
-                value={form.providerPreset}
-                onChange={(preset) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    ...resolveMailConfigFromPreset(preset, preset === "custom" ? prev : undefined),
-                  }))
-                }
-                idPrefix="inbox-switcher"
-              />
+              <div className="inbox-switcher-detected-provider" aria-label="Detected mail provider">
+                <span className="inbox-switcher-detected-label">Detected provider</span>
+                <p className="inbox-switcher-detected-value">
+                  Detected: <strong>{providerPresetDisplayLabel(form.providerPreset)}</strong>
+                </p>
+                {!isHostingerForcedEmailDomain(form.email) ? (
+                  <button
+                    type="button"
+                    className="inbox-switcher-correct-provider"
+                    onClick={() => setShowProviderCorrector(true)}
+                  >
+                    Wrong provider? Tell us who hosts your email
+                  </button>
+                ) : null}
+              </div>
+              {showProviderCorrector ? (
+                <div
+                  className="login-provider-corrector-overlay inbox-switcher-corrector-overlay"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="inbox-switcher-provider-corrector-title"
+                >
+                  <div className="login-provider-corrector">
+                    <div className="login-provider-corrector-copy">
+                      <strong id="inbox-switcher-provider-corrector-title">
+                        WHO IS YOUR CURRENT EMAIL PROVIDER?
+                      </strong>
+                      <p className="login-provider-corrector-subtitle">
+                        Confirm or correct the service that hosts this mailbox.
+                      </p>
+                    </div>
+                    <ProviderPresetPicker
+                      value={form.providerPreset}
+                      onChange={(preset: MailProviderPresetKey) => {
+                        setShowProviderCorrector(false);
+                        setForm((prev) => ({
+                          ...prev,
+                          ...resolveMailConfigFromPreset(preset, preset === "custom" ? prev : undefined),
+                        }));
+                      }}
+                      idPrefix="inbox-switcher-corrector"
+                    />
+                    <div className="login-provider-corrector-actions">
+                      <button
+                        type="button"
+                        className="login-provider-corrector-dismiss"
+                        onClick={() => setShowProviderCorrector(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
               {form.providerPreset === "custom" ? (
                 <div className="inbox-switcher-custom-fields" aria-label="Custom mail server settings">
                   <p className="inbox-switcher-custom-intro">
@@ -516,6 +599,11 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
                       <span>Outgoing SSL/TLS (port 465)</span>
                     </label>
                   </div>
+                </div>
+              ) : null}
+              {isGoogleProvider ? (
+                <div className="inbox-switcher-gmail-help" aria-label="Gmail setup help">
+                  <GmailConnectWizard key={form.providerPreset} />
                 </div>
               ) : null}
               <div className="inbox-switcher-form-actions">

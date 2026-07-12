@@ -21,6 +21,11 @@ const TEMPLATE_GUIDANCE: Record<string, { summary: string; variables: string }> 
       "Workspace users see this invitation when they click Refer a friend in PMail+. Edits apply immediately to new referral sends.",
     variables: "senderName, senderEmail, referralUrl, productName, signatureFooter",
   },
+  "pmail-gmail-app-password-guide": {
+    summary:
+      "Sent once (rate-limited) when a first-time visitor enters a Gmail address on the PMail+ login page. Guides IMAP, 2FA, App Password, and return-to-login.",
+    variables: "productName, imapSettingsUrl, twoStepUrl, appPasswordUrl, loginUrl",
+  },
   "auto-reply-upsell": {
     summary:
       "Sent automatically 3 days before complimentary Auto Reply access ends (day 11 of 14). The entitlement job uses slug auto-reply-upsell.",
@@ -75,6 +80,13 @@ const TEMPLATE_SAMPLE_VARIABLES: Record<string, Record<string, string>> = {
     referralUrl: "https://example.com/login?ref=jordan%40example.com",
     productName: "PMail+",
     signatureFooter: "Jordan Lee\njordan@example.com",
+  },
+  "pmail-gmail-app-password-guide": {
+    productName: "PMail+",
+    imapSettingsUrl: "https://mail.google.com/mail/u/0/#settings/fwdandpop",
+    twoStepUrl: "https://myaccount.google.com/signinoptions/two-step-verification",
+    appPasswordUrl: "https://myaccount.google.com/apppasswords",
+    loginUrl: "https://mail.prohost.cloud/login",
   },
 };
 

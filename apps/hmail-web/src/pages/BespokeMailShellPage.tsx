@@ -64,7 +64,7 @@ type LiveComposeSettings = {
 
 function BespokeMailShellContent() {
   const { user, logout, refresh } = useAuth();
-  const { hasAddon, panelWorkspaceTrial } = useAddons();
+  const { hasAddon, panelWorkspaceTrial, refresh: refreshAddons } = useAddons();
   const { openCompose } = useBespokeComposeBridge();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -245,6 +245,8 @@ function BespokeMailShellContent() {
       const result = await api.referralInvite();
       const message = result.rewardToast ?? result.message ?? "Referral invite sent.";
       setPlatformNotice(message);
+      // Entitlements change on the server after a referral reward — refresh so gates unlock immediately.
+      await refreshAddons();
       return { rewardToast: result.rewardToast ?? null, message };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Referral failed";

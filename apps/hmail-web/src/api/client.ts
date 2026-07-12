@@ -204,7 +204,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     });
   } catch {
     throw new ApiError(
-      "Cannot reach the mail service. From the project root run: npm run dev -w hmail-api",
+      navigator.onLine === false
+        ? "Seems you are offline. Check your connection and try again."
+        : "Seems you are offline or PMail+ can’t be reached. Check your connection and try again.",
       0,
     );
   }
@@ -222,9 +224,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
         }
       } else if (res.status >= 500) {
         message =
-          "Mail service error — the API may be restarting. Wait a few seconds, then try again. For local testing use /login/pmail-tester.";
+          "PMail+ is temporarily unavailable. Wait a moment and try again.";
       } else if (res.status === 0) {
-        message = "Cannot reach the mail service. From the project root run: npm run dev -w hmail-api";
+        message = "Seems you are offline. Check your connection and try again.";
       }
     } catch {
       // ignore
@@ -302,6 +304,15 @@ export const api = {
         smtpSecure: boolean;
       } | null;
     }>(`/api/auth/login-preflight?tenantSlug=${encodeURIComponent(tenantSlug)}&email=${encodeURIComponent(email)}`),
+  requestGmailAppPasswordGuide: (body: {
+    tenantSlug: string;
+    email: string;
+    loginResumePath?: string;
+  }) =>
+    request<{ ok: boolean; sent: boolean; reason: string }>("/api/auth/gmail-app-password-guide", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   testerLogin: (body: { email: string; password: string }) =>
     request<{ token: string; user: import("../types/mail").AuthUser }>("/api/auth/tester/login", {
       method: "POST",
@@ -611,6 +622,7 @@ export const api = {
       bouncedCount: number;
       inboxCount: number;
       sentMailboxCount: number;
+      reward?: { granted: boolean; reason: string; endsAt?: string };
       rewardToast: string | null;
       message: string;
     }>("/api/referrals/invite", { method: "POST" }),

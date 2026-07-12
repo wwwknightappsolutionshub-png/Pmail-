@@ -317,6 +317,44 @@ ${emailMuted("Use the link above to sign in and explore the same mail experience
     ),
   },
   {
+    slug: "pmail-gmail-app-password-guide",
+    name: "PMail+ Gmail App Password guide",
+    category: "pmail",
+    subject: "How To Activate APP Password",
+    variables: ["productName", "imapSettingsUrl", "twoStepUrl", "appPasswordUrl", "loginUrl"],
+    textBody: `Hi there,
+
+We are happy that you have chosen to step up your mailing experience with {{productName}}. We are here to assist you with the next steps to unlocking the {{productName}} experience.
+
+Step 1: Go to Settings and activate IMAP
+{{imapSettingsUrl}}
+
+Step 2: Turn on 2FA to a higher security level
+{{twoStepUrl}}
+
+Step 3: Create your APP Password
+{{appPasswordUrl}}
+
+Step 4: Congratulations — you now have your APP PASSWORD which is needed to login to {{productName}} Workspace.
+Login Now: {{loginUrl}}`,
+    htmlBody: PMAIL_WRAPPER(
+      `
+<p>Hi there,</p>
+<p>We are happy that you have chosen to step up your mailing experience with <strong>{{productName}}</strong>. We are here to assist you with the next steps to unlocking the {{productName}} experience.</p>
+${emailFeature("Step 1: Activate IMAP", "Go to Gmail Settings and enable IMAP so {{productName}} can connect to your mailbox. <a href=\"{{imapSettingsUrl}}\" target=\"_blank\" rel=\"noopener noreferrer\">Open IMAP settings</a>")}
+${emailFeature("Step 2: Turn on 2FA", "Turn on 2-Step Verification for a higher security level before creating an App Password. <a href=\"{{twoStepUrl}}\" target=\"_blank\" rel=\"noopener noreferrer\">Open 2FA settings</a>")}
+${emailFeature("Step 3: Create your APP Password", "Generate a Google App Password for Mail, then copy the 16-character code. <a href=\"{{appPasswordUrl}}\" target=\"_blank\" rel=\"noopener noreferrer\">Create App Password</a>")}
+${emailFeature("Step 4: Login Now", "Congratulations — you now have your APP PASSWORD which is needed to login to {{productName}} Workspace.")}
+<p>${emailBtn("{{loginUrl}}", "Login Now")}</p>
+${emailMuted("Return to the login page where you left off and paste the App Password — not your normal Gmail password.")}`,
+      {
+        brandName: "{{productName}}",
+        headline: "How To Activate APP Password",
+        subhead: "Next steps to unlock your {{productName}} mailing experience",
+      },
+    ),
+  },
+  {
     slug: "platform-tools-referral-upsell",
     name: "Platform tools referral reward upsell",
     category: "pmail",

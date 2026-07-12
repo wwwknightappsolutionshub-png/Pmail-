@@ -270,6 +270,21 @@ export function inferProviderPresetFromEmail(email: string): MailProviderPresetK
   return EMAIL_DOMAIN_PROVIDER_MAP[domain] ?? null;
 }
 
+/** Login / add-mailbox: map known domains, otherwise Custom (manual IMAP/SMTP). */
+export function resolveProviderPresetFromEmail(email: string): MailProviderPresetKey | null {
+  if (!email.trim().includes("@")) return null;
+  return inferProviderPresetFromEmail(email) ?? "custom";
+}
+
+export function providerPresetDisplayLabel(key: MailProviderPresetKey | null): string {
+  if (!key) return "Unknown";
+  if (key === "google") return "Gmail";
+  if (key === "microsoft") return "Outlook";
+  if (key === "custom") return "Custom";
+  const preset = MAIL_PROVIDER_LIST.find((entry) => entry.key === key);
+  return preset?.label ?? "Custom";
+}
+
 export function formatMailConfigSummary(config: Pick<LoginMailConfigValues, "providerPreset" | "imapHost" | "imapPort" | "smtpHost" | "smtpPort">): string {
   if (!config.providerPreset) {
     return "Select your mail provider above";

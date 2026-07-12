@@ -33,7 +33,7 @@ type CareerPMailShellProps = {
 
 export function CareerPMailShell({ children }: CareerPMailShellProps) {
   const { user, logout } = useAuth();
-  const { hasAddon } = useAddons();
+  const { hasAddon, refresh: refreshAddons } = useAddons();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const referFriendDeepLinkHandled = useRef(false);
@@ -84,13 +84,14 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
       const result = await api.referralInvite();
       const message = result.rewardToast ?? result.message ?? "Referral invite sent.";
       setPlatformNotice(message);
+      await refreshAddons();
       return { rewardToast: result.rewardToast ?? null, message };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Referral failed";
       setPlatformNotice(message);
       return { rewardToast: null, message };
     }
-  }, []);
+  }, [refreshAddons]);
 
   useEffect(() => {
     if (searchParams.get("referFriend") !== "1" || referFriendDeepLinkHandled.current) return;

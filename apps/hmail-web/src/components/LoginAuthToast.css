@@ -1,0 +1,65 @@
+.login-auth-toast-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 17000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.login-auth-toast {
+  width: min(22rem, 100%);
+  border-radius: 16px;
+  padding: 1.2rem 1.3rem;
+  background: #0f172a;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #f8fafc;
+  box-shadow: 0 24px 48px rgba(2, 8, 23, 0.45);
+  text-align: center;
+}
+
+.login-page .login-auth-toast {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+.login-auth-toast-copy strong {
+  display: block;
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+
+.login-auth-toast-subtitle {
+  margin: 0 0 1rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.login-page .login-auth-toast-subtitle {
+  color: #475569;
+}
+
+.login-auth-toast-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.login-auth-toast-primary {
+  border: none;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #f8fafc;
+  font: inherit;
+  font-weight: 700;
+  min-height: 2.5rem;
+  padding: 0.45rem 1.35rem;
+  cursor: pointer;
+}
+
+.login-page .login-auth-toast-primary {
+  background: #0f172a;
+  color: #ffffff;
+}

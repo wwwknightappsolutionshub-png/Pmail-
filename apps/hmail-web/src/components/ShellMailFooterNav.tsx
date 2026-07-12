@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Folder, Inbox, SquarePen } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -38,6 +38,12 @@ export function ShellMailFooterNav({
   const [paidAddonGate, setPaidAddonGate] = useState<{ slug: string; name: string } | null>(null);
   const [inboxConnectToast, setInboxConnectToast] = useState<"success" | "error" | null>(null);
   const [inboxSwitchToast, setInboxSwitchToast] = useState<MailAccountSummary | null>(null);
+
+  useEffect(() => {
+    if (paidAddonGate && panelWorkspaceTrial?.active) {
+      setPaidAddonGate(null);
+    }
+  }, [paidAddonGate, panelWorkspaceTrial?.active]);
 
   const bindInboxSwitcherRef = useCallback(
     (handle: InboxSwitcherHandle | null) => {

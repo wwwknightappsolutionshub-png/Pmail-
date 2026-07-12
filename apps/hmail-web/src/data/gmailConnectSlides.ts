@@ -28,8 +28,23 @@ export const GMAIL_WIZARD_HEADING = "Get a special password for PMail+";
 
 export const GMAIL_CONNECT_SLIDES: GmailConnectSlide[] = [
   {
-    id: "activate-two-step",
+    id: "enable-imap",
     step: 1,
+    title: "Turn on IMAP in Gmail",
+    body: "Open Gmail Settings → Forwarding and POP/IMAP, enable IMAP access, then save changes. PMail+ needs IMAP to read your mailbox.",
+    tips: [
+      "Open Settings (gear) → See all settings",
+      "Open the Forwarding and POP/IMAP tab",
+      "Select Enable IMAP → Save Changes",
+    ],
+    actionLabel: "Open IMAP settings",
+    actionHref: GMAIL_IMAP_SETTINGS_URL,
+    requiredBeforeNext: true,
+    screen: "imap-tab",
+  },
+  {
+    id: "activate-two-step",
+    step: 2,
     title: "Turn on extra sign-in security",
     body: "Google requires extra sign-in security (2-Step Verification) before you can create a special password for PMail+. If it is off, turn it on and complete phone or authenticator verification until the status shows On.",
     tips: [
@@ -44,7 +59,7 @@ export const GMAIL_CONNECT_SLIDES: GmailConnectSlide[] = [
   },
   {
     id: "app-password",
-    step: 2,
+    step: 3,
     title: "Create a special password for PMail+",
     body: "Google calls this an App Password. Generate one for Mail, then copy the 16-character code — paste it in the password field above, not your normal Gmail password.",
     actionLabel: "Create App Password",
@@ -53,7 +68,7 @@ export const GMAIL_CONNECT_SLIDES: GmailConnectSlide[] = [
   },
   {
     id: "sign-in",
-    step: 3,
+    step: 4,
     title: "Paste it above and sign in",
     body: "Enter your Gmail address and the 16-character code in the fields above, then tap Sign in to mailbox.",
     screen: "pmail-signin",

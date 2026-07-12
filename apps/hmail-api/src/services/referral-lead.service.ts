@@ -171,6 +171,11 @@ export async function sendReferralInvitations(input: {
   );
 
   if (pendingRecipients.length === 0) {
+    // Prior referrals already count — still unlock Platform tools when trial has ended.
+    if (priorLeads.length > 0) {
+      const reward = await grantReferralPlatformReward(input.tenantId, input.userId);
+      return { sentCount: 0, bouncedCount: 0, leads: [], reward };
+    }
     throw new Error("All selected contacts were already invited or filtered out.");
   }
 
@@ -451,36 +456,64 @@ export async function runAutomaticReferralInvite(input: {
     credentials: input.credentials,
   });
 
-  if (!compose.bcc.trim()) {
-    throw new Error(
-      "No contacts were found in your inbox or sent mail. Refer a friend needs at least one email to invite.",
-    );
+  let sentCount = 0;
+  let bouncedCount = 0;
+  let leads: Array<{ id: string; recipientEmail: string; emailStatus: ReferralEmailStatus }> = [];
+
+  if (compose.bcc.trim()) {
+    try {
+      const result = await sendReferralInvitations({
+        userId: input.userId,
+        tenantId: input.tenantId,
+        email: input.email,
+        displayName: input.displayName,
+        credentials: input.credentials,
+        subject: compose.subject,
+        text: compose.body,
+        html: compose.bodyHtml,
+        bcc: compose.bcc,
+        apiPublicBase: input.apiPublicBase,
+      });
+      sentCount = result.sentCount;
+      bouncedCount = result.bouncedCount;
+      leads = result.leads;
+      // Prefer the send-path reward when it already unlocked tools.
+      if (result.reward.granted) {
+        return {
+          sentCount,
+          bouncedCount,
+          leads,
+          reward: result.reward,
+          inboxCount: compose.inboxCount,
+          sentMailboxCount: compose.sentCount,
+          rewardToast: REFERRAL_REWARD_TOAST,
+          message: REFERRAL_REWARD_TOAST,
+        };
+      }
+    } catch {
+      // Invite delivery can fail (already invited / SMTP). Still unlock below when trial ended.
+    }
   }
 
-  const result = await sendReferralInvitations({
-    userId: input.userId,
-    tenantId: input.tenantId,
-    email: input.email,
-    displayName: input.displayName,
-    credentials: input.credentials,
-    subject: compose.subject,
-    text: compose.body,
-    html: compose.bodyHtml,
-    bcc: compose.bcc,
-    apiPublicBase: input.apiPublicBase,
-  });
-
-  if (result.sentCount === 0) {
-    throw new Error("Could not deliver referral invitations. Check your mail configuration and try again.");
-  }
+  // Refer & Extend: clicking Refer a friend reactivates expired Panel workspace tools.
+  const reward = await grantReferralPlatformReward(input.tenantId, input.userId);
 
   return {
-    ...result,
+    sentCount,
+    bouncedCount,
+    leads,
+    reward,
     inboxCount: compose.inboxCount,
     sentMailboxCount: compose.sentCount,
-    rewardToast: result.reward.granted ? REFERRAL_REWARD_TOAST : null,
-    message: result.reward.granted
+    rewardToast: reward.granted ? REFERRAL_REWARD_TOAST : null,
+    message: reward.granted
       ? REFERRAL_REWARD_TOAST
-      : `Referral invitations sent to ${result.sentCount} contact${result.sentCount === 1 ? "" : "s"}.`,
+      : sentCount > 0
+        ? `Referral invitations sent to ${sentCount} contact${sentCount === 1 ? "" : "s"}.`
+        : reward.reason === "trial_active"
+          ? "Platform tools are already unlocked for your current trial period."
+          : reward.reason === "already_subscribed"
+            ? "Platform tools are already included in your subscription."
+            : "Could not unlock Platform tools right now. Open Add-ons marketplace or try again.",
   };
 }

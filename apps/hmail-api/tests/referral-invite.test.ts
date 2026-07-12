@@ -107,6 +107,63 @@ describe("Referral invite pipeline", () => {
     }
   });
 
+  it("extends expired Panel trial when Refer a friend is clicked even without new contacts", async () => {
+    const { listMessages } = await import("../src/services/imap.service.js");
+    vi.mocked(listMessages).mockImplementation(async () => ({
+      messages: [],
+      total: 0,
+      page: 1,
+      pageSize: 120,
+    }));
+
+    const { agent, user } = await createAuthenticatedAgent(app);
+    await testPrisma.user.update({
+      where: { id: user.id },
+      data: {
+        panelWorkspaceTrialStartedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    const res = await agent.post("/api/referrals/invite");
+    expect(res.status).toBe(200);
+    expect(res.body.reward.granted).toBe(true);
+    expect(res.body.rewardToast).toContain("Platform tools");
+
+    const refreshed = await testPrisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    expect(refreshed.panelWorkspaceTrialStartedAt!.getTime()).toBeGreaterThan(Date.now() - 60_000);
+  });
+
+  it("grants Panel workspace trial again when contacts were already invited", async () => {
+    const { agent, user } = await createAuthenticatedAgent(app);
+
+    await testPrisma.user.update({
+      where: { id: user.id },
+      data: {
+        panelWorkspaceTrialStartedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    await testPrisma.pmailReferralLead.create({
+      data: {
+        tenantId: user.tenantId,
+        recipientEmail: "friend@example.com",
+        referredByUserId: user.id,
+        referredByEmail: user.email,
+        referredByName: user.displayName,
+        emailStatus: "delivered",
+        sentAt: new Date(),
+      },
+    });
+
+    const res = await agent.post("/api/referrals/invite");
+    expect(res.status).toBe(200);
+    expect(res.body.reward.granted).toBe(true);
+    expect(res.body.rewardToast).toContain("Platform tools");
+
+    const refreshed = await testPrisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    expect(refreshed.panelWorkspaceTrialStartedAt!.getTime()).toBeGreaterThan(Date.now() - 60_000);
+  });
+
   it("attributes referral signup when invitee logs in with referrerEmail", async () => {
     const { tenant, user } = await createAuthenticatedAgent(app);
 

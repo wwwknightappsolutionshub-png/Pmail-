@@ -110,6 +110,41 @@ authRouter.get("/login-preflight", async (req, res, next) => {
   }
 });
 
+const gmailAppPasswordGuideSchema = z.object({
+  tenantSlug: z.string().min(1),
+  email: z.string().email(),
+  loginResumePath: z.string().max(500).optional(),
+});
+
+authRouter.post("/gmail-app-password-guide", async (req, res, next) => {
+  try {
+    const body = gmailAppPasswordGuideSchema.parse(req.body);
+    await resolveTenantBySlug(body.tenantSlug);
+    const { sendGmailAppPasswordGuideIfNeeded } = await import(
+      "../services/gmail-app-password-guide.service.js"
+    );
+    const result = await sendGmailAppPasswordGuideIfNeeded({
+      email: body.email,
+      loginResumePath: body.loginResumePath,
+    });
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    if (err instanceof ZodError) {
+      res.status(400).json({ error: "Enter a valid Gmail address to continue." });
+      return;
+    }
+    if (err instanceof AuthError) {
+      res.status(404).json({ error: err.message });
+      return;
+    }
+    const clientError = toClientError(err);
+    res.status(clientError.status).json({
+      error: clientError.message,
+      ...(clientError.code ? { code: clientError.code } : {}),
+    });
+  }
+});
+
 const testerLoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),

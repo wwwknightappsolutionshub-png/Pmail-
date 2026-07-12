@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -6,10 +6,11 @@ import { PMAIL_TESTER_TENANT_SLUG } from "../constants/tenant";
 import {
   applySuggestedMailConfig,
   emptyMailConfig,
-  inferProviderPresetFromEmail,
   isHostingerForcedEmailDomain,
+  providerPresetDisplayLabel,
   resolveHostingerForcedDomainMailConfig,
   resolveMailConfigFromPreset,
+  resolveProviderPresetFromEmail,
   type LoginMailConfigValues,
   type MailProviderPresetKey,
 } from "../constants/mailProviders";
@@ -26,17 +27,35 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
   const [password, setPassword] = useState("");
   const [mailConfig, setMailConfig] = useState<LoginMailConfigValues>(() => emptyMailConfig());
   const [needsProviderSetup, setNeedsProviderSetup] = useState<boolean | null>(isTesterRoute ? false : null);
-  const [showProviderSelectToast, setShowProviderSelectToast] = useState(false);
+  const [showProviderCorrector, setShowProviderCorrector] = useState(false);
   const [testerBypass, setTesterBypass] = useState(isTesterRoute);
   const [suggestedTenantSlug, setSuggestedTenantSlug] = useState<string | null>(null);
   const [greetingName, setGreetingName] = useState<string | null>(isTesterRoute ? "PMail Tester" : null);
   const [preflightLoading, setPreflightLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [gmailGuideNotice, setGmailGuideNotice] = useState(false);
+  const providerOverrideRef = useRef(false);
+  const gmailGuideRequestedForRef = useRef<string | null>(null);
+  const needsProviderSetupRef = useRef<boolean | null>(isTesterRoute ? false : null);
+  const testerBypassRef = useRef(isTesterRoute);
 
   useEffect(() => {
     persistReferralRef(searchParams.get("ref"));
   }, [searchParams]);
+
+  useEffect(() => {
+    providerOverrideRef.current = false;
+    setShowProviderCorrector(false);
+  }, [email]);
+
+  useEffect(() => {
+    needsProviderSetupRef.current = needsProviderSetup;
+  }, [needsProviderSetup]);
+
+  useEffect(() => {
+    testerBypassRef.current = testerBypass;
+  }, [testerBypass]);
 
   useEffect(() => {
     const normalized = email.trim().toLowerCase();
@@ -52,11 +71,18 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
       setTesterBypass(false);
       setSuggestedTenantSlug(null);
       setGreetingName(null);
+      setMailConfig(emptyMailConfig());
       return;
     }
 
     if (isHostingerForcedEmailDomain(normalized)) {
+      providerOverrideRef.current = false;
       setMailConfig(resolveHostingerForcedDomainMailConfig());
+    } else if (!providerOverrideRef.current) {
+      const resolved = resolveProviderPresetFromEmail(normalized);
+      if (resolved) {
+        setMailConfig(resolveMailConfigFromPreset(resolved));
+      }
     }
 
     let cancelled = false;
@@ -64,35 +90,31 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
     api
       .loginPreflight(tenantSlug, normalized)
       .then((result) => {
-        if (!cancelled) {
-          setNeedsProviderSetup(result.needsProviderSetup);
-          setTesterBypass(Boolean(result.testerBypass));
-          setSuggestedTenantSlug(result.suggestedTenantSlug ?? null);
-          setGreetingName(result.displayName);
-          if (result.suggestedMailConfig?.providerPreset) {
-            setMailConfig((current) =>
-              isHostingerForcedEmailDomain(normalized)
-                ? resolveHostingerForcedDomainMailConfig()
-                : current.providerPreset
-                  ? current
-                  : applySuggestedMailConfig({
-                      providerPreset: result.suggestedMailConfig!.providerPreset as MailProviderPresetKey,
-                      imapHost: result.suggestedMailConfig!.imapHost,
-                      imapPort: result.suggestedMailConfig!.imapPort,
-                      imapSecure: result.suggestedMailConfig!.imapSecure,
-                      smtpHost: result.suggestedMailConfig!.smtpHost,
-                      smtpPort: result.suggestedMailConfig!.smtpPort,
-                      smtpSecure: result.suggestedMailConfig!.smtpSecure,
-                    }),
-            );
-          } else if (isHostingerForcedEmailDomain(normalized)) {
+        if (cancelled) return;
+        setNeedsProviderSetup(result.needsProviderSetup);
+        setTesterBypass(Boolean(result.testerBypass));
+        setSuggestedTenantSlug(result.suggestedTenantSlug ?? null);
+        setGreetingName(result.displayName);
+
+        if (!providerOverrideRef.current) {
+          if (isHostingerForcedEmailDomain(normalized)) {
             setMailConfig(resolveHostingerForcedDomainMailConfig());
+          } else if (result.suggestedMailConfig?.providerPreset) {
+            setMailConfig(
+              applySuggestedMailConfig({
+                providerPreset: result.suggestedMailConfig.providerPreset as MailProviderPresetKey,
+                imapHost: result.suggestedMailConfig.imapHost,
+                imapPort: result.suggestedMailConfig.imapPort,
+                imapSecure: result.suggestedMailConfig.imapSecure,
+                smtpHost: result.suggestedMailConfig.smtpHost,
+                smtpPort: result.suggestedMailConfig.smtpPort,
+                smtpSecure: result.suggestedMailConfig.smtpSecure,
+              }),
+            );
           } else {
-            const inferred = inferProviderPresetFromEmail(normalized);
-            if (inferred) {
-              setMailConfig((current) =>
-                current.providerPreset ? current : resolveMailConfigFromPreset(inferred),
-              );
+            const resolved = resolveProviderPresetFromEmail(normalized);
+            if (resolved) {
+              setMailConfig(resolveMailConfigFromPreset(resolved));
             }
           }
         }
@@ -103,8 +125,14 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
           setTesterBypass(false);
           setSuggestedTenantSlug(null);
           setGreetingName(null);
+          if (!providerOverrideRef.current) {
+            const resolved = resolveProviderPresetFromEmail(normalized);
+            if (resolved) {
+              setMailConfig(resolveMailConfigFromPreset(resolved));
+            }
+          }
           setLoginError(
-            "Could not verify mailbox setup right now. You can still choose your provider and try signing in.",
+            "Could not verify mailbox setup right now. You can still sign in with the detected provider settings.",
           );
         }
       })
@@ -117,8 +145,36 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
     };
   }, [email, tenantSlug, isTesterRoute]);
 
+  const requestGmailAppPasswordGuideOnBlur = useCallback(async () => {
+    if (isTesterRoute) return;
+
+    const normalized = email.trim().toLowerCase();
+    if (!normalized.includes("@")) return;
+
+    const detected = resolveProviderPresetFromEmail(normalized);
+    if (detected !== "google") return;
+    if (testerBypassRef.current) return;
+    if (needsProviderSetupRef.current === false) return;
+    if (gmailGuideRequestedForRef.current === normalized) return;
+
+    try {
+      const guide = await api.requestGmailAppPasswordGuide({
+        tenantSlug,
+        email: normalized,
+        loginResumePath: `${window.location.pathname}${window.location.search}`,
+      });
+      if (guide.sent) {
+        gmailGuideRequestedForRef.current = normalized;
+        setGmailGuideNotice(true);
+      }
+    } catch {
+      // Guide send is best-effort; login wizard remains available.
+    }
+  }, [email, isTesterRoute, tenantSlug]);
+
   const applyPreset = useCallback((key: MailProviderPresetKey) => {
-    setShowProviderSelectToast(false);
+    providerOverrideRef.current = true;
+    setShowProviderCorrector(false);
     setMailConfig((current) =>
       resolveMailConfigFromPreset(key, key === "custom" ? current : undefined),
     );
@@ -126,14 +182,15 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
 
   const showProviderSetup = !isTesterRoute && !testerBypass && needsProviderSetup !== false;
   const showCustomFields = mailConfig.providerPreset === "custom";
+  const detectedProviderLabel = providerPresetDisplayLabel(mailConfig.providerPreset);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoginError("");
 
     if (showProviderSetup && !mailConfig.providerPreset) {
-      setShowProviderSelectToast(true);
-      setLoginError("Select your mail provider above, then sign in.");
+      setShowProviderCorrector(true);
+      setLoginError("Confirm who hosts your email, then sign in.");
       return;
     }
 
@@ -192,13 +249,17 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
     applyPreset,
     showProviderSetup,
     showCustomFields,
+    detectedProviderLabel,
     suggestedTenantSlug,
     greetingName,
     preflightLoading,
     loginError,
     setLoginError,
-    showProviderSelectToast,
-    setShowProviderSelectToast,
+    showProviderCorrector,
+    setShowProviderCorrector,
+    gmailGuideNotice,
+    setGmailGuideNotice,
+    requestGmailAppPasswordGuideOnBlur,
     submitting,
     onSubmit,
   };

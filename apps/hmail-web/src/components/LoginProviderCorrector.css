@@ -1,0 +1,52 @@
+.login-provider-corrector-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 17000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.login-provider-corrector {
+  width: min(26rem, 100%);
+  border-radius: 16px;
+  padding: 1.2rem 1.3rem;
+  background: #ffffff;
+  border: 1px solid #dbe3ec;
+  color: #0f172a;
+  box-shadow: 0 24px 48px rgba(2, 8, 23, 0.35);
+  display: grid;
+  gap: 0.9rem;
+}
+
+.login-provider-corrector-copy strong {
+  display: block;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.35rem;
+}
+
+.login-provider-corrector-subtitle {
+  margin: 0;
+  color: #475569;
+  line-height: 1.45;
+  font-size: 0.9rem;
+}
+
+.login-provider-corrector-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.login-provider-corrector-dismiss {
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  min-height: 2.4rem;
+  padding: 0.4rem 1.1rem;
+  cursor: pointer;
+}

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { formatMailConfigSummary } from "../constants/mailProviders";
-import { LoginProviderSelectToast } from "./LoginProviderSelectToast";
+import { formatMailConfigSummary, isHostingerForcedEmailDomain } from "../constants/mailProviders";
+import { LoginProviderCorrector } from "./LoginProviderCorrector";
+import { LoginAuthToast } from "./LoginAuthToast";
+import { GmailAppPasswordGuideToast } from "./GmailAppPasswordGuideToast";
 import { GmailConnectWizard } from "./GmailConnectWizard";
-import { ProviderPresetPicker } from "./ProviderPresetPicker";
 import type { useLoginForm } from "../hooks/useLoginForm";
-import "./ProviderPresetPicker.css";
 
 type LoginFormState = ReturnType<typeof useLoginForm>;
 
@@ -28,12 +28,17 @@ export function LoginFormCard({
   applyPreset,
   showProviderSetup,
   showCustomFields,
+  detectedProviderLabel,
   suggestedTenantSlug,
   greetingName,
   preflightLoading,
   loginError,
-  showProviderSelectToast,
-  setShowProviderSelectToast,
+  setLoginError,
+  showProviderCorrector,
+  setShowProviderCorrector,
+  gmailGuideNotice,
+  setGmailGuideNotice,
+  requestGmailAppPasswordGuideOnBlur,
   submitting,
   onSubmit,
   loadError = "",
@@ -44,11 +49,38 @@ export function LoginFormCard({
   const [showPassword, setShowPassword] = useState(false);
   const isGoogleProvider = mailConfig.providerPreset === "google";
   const showProviderSummary = mailConfig.providerPreset === "custom" || showCustomFields;
+  const hostingerForced = isHostingerForcedEmailDomain(email);
+  const authToastMessage = loginError;
+  const showAuthToast = Boolean(authToastMessage);
+  const authToastTitle = /offline|reach|connection|network/i.test(authToastMessage)
+    ? "Seems you are offline"
+    : /password|app password|sign-in failed|invalid email|gmail/i.test(authToastMessage)
+      ? "Sign-in didn’t work"
+      : "Something went wrong";
 
   return (
     <div className={`login-form-card${className ? ` ${className}` : ""}`}>
-      {showProviderSelectToast ? (
-        <LoginProviderSelectToast onDismiss={() => setShowProviderSelectToast(false)} />
+      {showProviderCorrector ? (
+        <LoginProviderCorrector
+          value={mailConfig.providerPreset}
+          onSelect={applyPreset}
+          onDismiss={() => setShowProviderCorrector(false)}
+        />
+      ) : null}
+      {showAuthToast ? (
+        <LoginAuthToast
+          title={authToastTitle}
+          message={authToastMessage}
+          onDismiss={() => setLoginError("")}
+        />
+      ) : null}
+      {gmailGuideNotice ? (
+        <GmailAppPasswordGuideToast
+          onOpenGmail={() => {
+            window.open("https://mail.google.com/", "_blank", "noopener,noreferrer");
+          }}
+          onDismiss={() => setGmailGuideNotice(false)}
+        />
       ) : null}
       <div className="login-form-header">
         <p className="login-welcome">Welcome {greetingName ?? "Guest"}</p>
@@ -79,6 +111,7 @@ export function LoginFormCard({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => void requestGmailAppPasswordGuideOnBlur()}
               placeholder="Type in your email id"
               required
               autoComplete="username"
@@ -89,16 +122,23 @@ export function LoginFormCard({
         {showProviderSetup ? (
           <section className="login-form-section login-form-section--provider" aria-label="Mail provider">
             <div className="login-provider-section">
-              <span className="login-provider-label">Mail provider</span>
-              <ProviderPresetPicker
-                value={mailConfig.providerPreset}
-                onChange={applyPreset}
-                idPrefix="login-provider"
-              />
+              <span className="login-provider-label">Detected provider</span>
+              <p className="login-provider-detected" role="status">
+                Detected: <strong>{detectedProviderLabel}</strong>
+              </p>
               {showProviderSummary ? (
                 <p className="login-provider-summary">{formatMailConfigSummary(mailConfig)}</p>
               ) : null}
               {preflightLoading ? <p className="login-provider-hint">Checking mailbox setup…</p> : null}
+              {!hostingerForced ? (
+                <button
+                  type="button"
+                  className="login-provider-correct-link"
+                  onClick={() => setShowProviderCorrector(true)}
+                >
+                  Wrong provider? Tell us who hosts your email
+                </button>
+              ) : null}
             </div>
           </section>
         ) : null}
@@ -214,7 +254,7 @@ export function LoginFormCard({
         <hr className="login-form-divider" aria-hidden="true" />
 
         <section className="login-form-section login-form-section--actions" aria-label="Sign in">
-          {loadError || loginError ? <div className="login-error">{loginError || loadError}</div> : null}
+          {loadError ? <div className="login-error">{loadError}</div> : null}
 
           <button type="submit" disabled={submitting || preflightLoading} className="login-submit">
             {submitting ? "Authenticating…" : isTesterRoute ? "Sign in to tester workspace" : "Sign in to mailbox"}

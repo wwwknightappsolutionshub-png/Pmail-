@@ -307,7 +307,7 @@ export function MailPage({
   onOpenAddons: onOpenAddonsExternal,
 }: MailPageProps = {}) {
   const { user, logout } = useAuth();
-  const { hasAddon, hasJobHunterAccess, panelWorkspaceTrial } = useAddons();
+  const { hasAddon, hasJobHunterAccess, panelWorkspaceTrial, refresh: refreshAddons } = useAddons();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const referFriendDeepLinkHandled = useRef(false);
@@ -402,6 +402,12 @@ export function MailPage({
   }, []);
 
   useAutoMailPush(user?.id);
+
+  useEffect(() => {
+    if (paidAddonGate && panelWorkspaceTrial?.active) {
+      setPaidAddonGate(null);
+    }
+  }, [paidAddonGate, panelWorkspaceTrial?.active]);
 
   useEffect(() => {
     if (mobilePane !== "menu") {
@@ -1150,6 +1156,10 @@ export function MailPage({
     try {
       const result = await api.referralInvite();
       setPlatformNotice(result.rewardToast ?? result.message ?? "Referral invite sent.");
+      await refreshAddons();
+      if (result.rewardToast) {
+        setPaidAddonGate(null);
+      }
     } catch (err) {
       setPlatformNotice(err instanceof Error ? err.message : "Referral failed");
     } finally {

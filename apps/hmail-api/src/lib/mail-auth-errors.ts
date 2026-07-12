@@ -47,8 +47,8 @@ export function mailboxAuthErrorMessage(
 
   if (isGoogleMailbox(normalizedEmail)) {
     return phase === "smtp"
-      ? "Gmail accepted IMAP but SMTP failed. Use a Google App Password and keep Google selected with smtp.gmail.com:587."
-      : "Gmail could not sign in. In Gmail go to Settings → Forwarding and POP/IMAP → enable IMAP. If 2-Step Verification is on, create an App Password at myaccount.google.com/apppasswords and use that here (not your regular Gmail password).";
+      ? "Gmail sign-in failed on outgoing mail. Use a Google App Password (not your normal Gmail password)."
+      : "Wrong Gmail password or App Password. Use a Google App Password and make sure IMAP is enabled.";
   }
 
   const kind = err ? classifyMailAuthError(err) : "unknown";

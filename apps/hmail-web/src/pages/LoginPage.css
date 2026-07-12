@@ -764,6 +764,36 @@ html:has(.login-page) #root {
   word-break: break-word;
 }
 
+.login-provider-detected {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--login-border, #dbe3ec);
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.login-provider-detected strong {
+  font-weight: 700;
+}
+
+.login-provider-correct-link {
+  margin-top: 0.15rem;
+  border: none;
+  background: transparent;
+  color: #0f766e;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .login-custom-provider-toggle {
   display: flex;
   align-items: center;
