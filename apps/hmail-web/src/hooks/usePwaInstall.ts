@@ -9,9 +9,13 @@ import {
   isPwaInstallCandidateDevice,
   isPwaInstallGateEnabled,
   isStandaloneDisplayMode,
+  loadIosPwaWizardState,
   markPwaExitReminderShownForSession,
   markPwaInstallAcceptedForSession,
+  saveIosPwaWizardState,
   shouldOfferPwaInstall,
+  shouldShowIosPwaWizard,
+  type IosPwaWizardStep,
 } from "../utils/pwaPlatform";
 
 type BeforeInstallPromptEvent = Event & {
@@ -21,12 +25,31 @@ type BeforeInstallPromptEvent = Event & {
 
 export type PwaInstallPromptMode = "initial" | "exit-intent";
 
+function resolveIosWizardInitialStep(): IosPwaWizardStep {
+  const saved = loadIosPwaWizardState();
+  if (saved?.status === "in_progress") {
+    if (isStandaloneDisplayMode()) {
+      return "notifications";
+    }
+    return saved.step;
+  }
+  if (isStandaloneDisplayMode()) {
+    return "notifications";
+  }
+  return "welcome";
+}
+
 export function usePwaInstall() {
   const location = useLocation();
   const [sessionBypass, setSessionBypass] = useState(() => hasPwaInstallSessionBypass());
   const [initialDismissed, setInitialDismissed] = useState(false);
+  const [iosWizardInitialStep] = useState<IosPwaWizardStep>(() => resolveIosWizardInitialStep());
   const [promptVisible, setPromptVisible] = useState(() => {
-    if (hasPwaInstallSessionBypass() || isStandaloneDisplayMode()) return false;
+    if (hasPwaInstallSessionBypass()) return false;
+    if (isIosDevice()) {
+      return shouldShowIosPwaWizard();
+    }
+    if (isStandaloneDisplayMode()) return false;
     if (!isPwaInstallGateEnabled() || !isPwaInstallCandidateDevice()) return false;
     return true;
   });
@@ -44,6 +67,9 @@ export function usePwaInstall() {
 
   const isEligible = useCallback(() => {
     if (sessionBypass || hasPwaInstallSessionBypass()) return false;
+    if (isIosDevice()) {
+      return shouldShowIosPwaWizard();
+    }
     return shouldOfferPwaInstall(location.pathname);
   }, [location.pathname, sessionBypass]);
 
@@ -57,6 +83,7 @@ export function usePwaInstall() {
   const openPrompt = useCallback(
     (mode: PwaInstallPromptMode) => {
       if (!isEligible()) return;
+      if (isIosDevice()) return;
       if (mode === "exit-intent" && hasPwaExitReminderShownForSession()) return;
       if (mode === "exit-intent" && !initialDismissedRef.current && promptModeRef.current === "initial") {
         return;
@@ -81,6 +108,10 @@ export function usePwaInstall() {
   const refreshEligibility = useCallback(() => {
     if (sessionBypass || hasPwaInstallSessionBypass()) {
       setPromptVisible(false);
+      return;
+    }
+    if (isIosDevice()) {
+      setPromptVisible(shouldShowIosPwaWizard());
     }
   }, [sessionBypass]);
 
@@ -90,11 +121,24 @@ export function usePwaInstall() {
       return;
     }
 
+    if (isIosDevice()) {
+      setPromptVisible(true);
+      return;
+    }
+
     if (!initialDismissed) {
       setPromptMode("initial");
       setPromptVisible(true);
     }
   }, [initialDismissed, isEligible]);
+
+  useEffect(() => {
+    if (!isIosDevice()) return;
+    const saved = loadIosPwaWizardState();
+    if (!saved && promptVisible) {
+      saveIosPwaWizardState({ status: "in_progress", step: iosWizardInitialStep });
+    }
+  }, [iosWizardInitialStep, promptVisible]);
 
   useEffect(() => {
     const viewportQuery = window.matchMedia("(max-width: 1024px)");
@@ -115,10 +159,13 @@ export function usePwaInstall() {
 
     const onAppInstalled = () => {
       setInstallPrompt(null);
-      releaseInstallGate();
+      if (!isIosDevice()) {
+        releaseInstallGate();
+      }
     };
 
     const onExitIntentMouse = (event: MouseEvent) => {
+      if (isIosDevice()) return;
       if (event.clientY > 24) return;
       if (!event.relatedTarget && event.target === document.documentElement) {
         openPrompt("exit-intent");
@@ -134,10 +181,11 @@ export function usePwaInstall() {
       if (document.visibilityState !== "visible" || !leftPage) return;
       leftPage = false;
 
-      // iOS Share sheet / app switcher toggles visibility — do not interrupt install flow.
-      if (isIosDevice() && promptVisibleRef.current && promptModeRef.current === "initial") {
+      if (isIosDevice()) {
+        refreshEligibility();
         return;
       }
+
       if (!initialDismissedRef.current && promptModeRef.current === "initial") {
         return;
       }
@@ -207,6 +255,7 @@ export function usePwaInstall() {
     isMobile: isMobileScreen(),
     isInstallCandidate: isPwaInstallCandidateDevice(),
     isStandalone: isStandaloneDisplayMode(),
+    iosWizardInitialStep,
     triggerInstall,
     dismissPrompt,
     continueAfterInstall: releaseInstallGate,

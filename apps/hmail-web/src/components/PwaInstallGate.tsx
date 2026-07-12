@@ -1,4 +1,5 @@
 import { HMailLogo } from "./HMailLogo";
+import { IosPwaInstallWizard } from "./IosPwaInstallWizard";
 import { usePwaInstall } from "../hooks/usePwaInstall";
 import "./PwaInstallGate.css";
 
@@ -16,6 +17,7 @@ export function PwaInstallGate({ children }: PwaInstallGateProps) {
     installError,
     isIos,
     isAndroid,
+    iosWizardInitialStep,
     triggerInstall,
     dismissPrompt,
     continueAfterInstall,
@@ -25,7 +27,14 @@ export function PwaInstallGate({ children }: PwaInstallGateProps) {
   return (
     <>
       {children}
-      {promptVisible ? (
+      {promptVisible && isIos ? (
+        <IosPwaInstallWizard
+          initialStep={iosWizardInitialStep}
+          onDismiss={dismissPrompt}
+          onComplete={continueAfterInstall}
+        />
+      ) : null}
+      {promptVisible && !isIos ? (
         <div className="pwa-install-root">
           <div
             className="pwa-install-screen"
@@ -68,21 +77,9 @@ export function PwaInstallGate({ children }: PwaInstallGateProps) {
               {needsManualInstall ? (
                 <div className="pwa-install-manual">
                   <p className="pwa-install-manual-lead">
-                    {isIos
-                      ? "On iPhone and iPad, add PMail+ from Safari’s Share menu:"
-                      : "Add PMail+ to your home screen from your browser menu:"}
+                    Add PMail+ to your home screen from your browser menu:
                   </p>
-                  {isIos ? (
-                    <ol className="pwa-install-steps">
-                      <li>
-                        Tap the <strong>Share</strong> button in Safari.
-                      </li>
-                      <li>
-                        Choose <strong>Add to Home Screen</strong>.
-                      </li>
-                      <li>Open PMail+ from your new home screen icon.</li>
-                    </ol>
-                  ) : isAndroid ? (
+                  {isAndroid ? (
                     <ol className="pwa-install-steps">
                       <li>Open the browser menu (⋮).</li>
                       <li>
@@ -108,7 +105,7 @@ export function PwaInstallGate({ children }: PwaInstallGateProps) {
                     className="pwa-install-btn pwa-install-btn--continue"
                     onClick={continueAfterInstall}
                   >
-                    {isIos ? "I've added PMail+ — continue" : "Continue in browser"}
+                    Continue in browser
                   </button>
                 ) : null}
                 <button

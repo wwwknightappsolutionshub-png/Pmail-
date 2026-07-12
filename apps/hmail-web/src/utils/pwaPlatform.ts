@@ -2,6 +2,19 @@ const MOBILE_MAX_WIDTH_PX = 767;
 export const TABLET_MAX_WIDTH_PX = 1024;
 const PWA_INSTALL_SESSION_BYPASS_KEY = "pmail:pwa-install-session-bypass";
 const PWA_EXIT_REMINDER_SHOWN_KEY = "pmail:pwa-exit-reminder-shown";
+const IOS_PWA_WIZARD_STATE_KEY = "pmail:ios-pwa-wizard";
+
+export type IosPwaWizardStep =
+  | "welcome"
+  | "open-safari"
+  | "add-home"
+  | "open-icon"
+  | "notifications";
+
+export type IosPwaWizardState = {
+  status: "in_progress" | "done";
+  step: IosPwaWizardStep;
+};
 
 export function isMobileScreen(): boolean {
   if (typeof window === "undefined") return false;
@@ -44,6 +57,90 @@ export function isIosDevice(): boolean {
 export function isAndroidDevice(): boolean {
   if (typeof navigator === "undefined") return false;
   return /android/i.test(navigator.userAgent);
+}
+
+/** True when the page is running in Safari on iOS (not Chrome/Firefox/in-app browsers). */
+export function isIosSafari(): boolean {
+  if (!isIosDevice() || typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  if (
+    /CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo|YaBrowser|FBAN|FBAV|Instagram|Line\/|Twitter|LinkedInApp|WhatsApp|MicroMessenger|GSA\//i.test(
+      ua,
+    )
+  ) {
+    return false;
+  }
+  return /Safari/i.test(ua);
+}
+
+/** True when iOS but not Safari — typically an in-app or third-party browser. */
+export function isIosNonSafariBrowser(): boolean {
+  return isIosDevice() && !isIosSafari();
+}
+
+/**
+ * Best-effort attempt to open the current URL in Safari.
+ * Not guaranteed from every in-app browser; callers must show fallback instructions.
+ */
+export function openCurrentUrlInSafariBestEffort(): void {
+  if (typeof window === "undefined") return;
+  const href = window.location.href;
+  const withoutProtocol = href.replace(/^https?:\/\//i, "");
+  window.location.href = `x-safari-https://${withoutProtocol}`;
+}
+
+export function loadIosPwaWizardState(): IosPwaWizardState | null {
+  try {
+    const raw = localStorage.getItem(IOS_PWA_WIZARD_STATE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as IosPwaWizardState;
+    if (parsed.status !== "in_progress" && parsed.status !== "done") return null;
+    if (
+      parsed.step !== "welcome" &&
+      parsed.step !== "open-safari" &&
+      parsed.step !== "add-home" &&
+      parsed.step !== "open-icon" &&
+      parsed.step !== "notifications"
+    ) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function saveIosPwaWizardState(state: IosPwaWizardState): void {
+  try {
+    localStorage.setItem(IOS_PWA_WIZARD_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // Storage may be blocked; wizard still works in memory for the current page.
+  }
+}
+
+export function markIosPwaWizardDone(): void {
+  saveIosPwaWizardState({ status: "done", step: "notifications" });
+}
+
+export function clearIosPwaWizardState(): void {
+  try {
+    localStorage.removeItem(IOS_PWA_WIZARD_STATE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+/** Whether the iOS install wizard should appear (including notifications after home-screen open). */
+export function shouldShowIosPwaWizard(): boolean {
+  if (!isIosDevice()) return false;
+  if (!isPwaInstallGateEnabled()) return false;
+  if (hasPwaInstallSessionBypass()) return false;
+  const state = loadIosPwaWizardState();
+  if (state?.status === "done") return false;
+  if (isStandaloneDisplayMode()) {
+    return state?.status === "in_progress";
+  }
+  return true;
 }
 
 export function isPwaInstallGateEnabled(): boolean {
