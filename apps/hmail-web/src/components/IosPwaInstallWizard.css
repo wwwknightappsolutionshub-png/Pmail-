@@ -64,6 +64,13 @@
   color: #dbe7f5;
   font-size: 0.88rem;
   line-height: 1.5;
+  max-height: min(52vh, 28rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ios-pwa-wizard-visual--guide {
+  padding-bottom: 1rem;
 }
 
 .ios-pwa-wizard-visual strong {
@@ -121,4 +128,187 @@
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 0.15em;
+}
+
+.ios-pwa-guide {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.ios-pwa-guide-block {
+  margin: 0;
+}
+
+.ios-pwa-guide-caption {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #99f6e4;
+  text-align: left;
+}
+
+.ios-pwa-mock-browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.75rem;
+  background: #1c2438;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+.ios-pwa-mock-browser-icon {
+  flex: 0 0 auto;
+  width: 1.55rem;
+  height: 1.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.4rem;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
+.ios-pwa-mock-browser-url {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.55rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ios-pwa-mock-browser-more {
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.45rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #0f172a;
+  background: #2dd4bf;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.35);
+}
+
+.ios-pwa-mock-highlight {
+  animation: ios-pwa-pulse 1.6s ease-in-out infinite;
+}
+
+.ios-pwa-mock-menu {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: #243044;
+}
+
+.ios-pwa-mock-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.ios-pwa-mock-menu-row:last-child {
+  border-bottom: none;
+}
+
+.ios-pwa-mock-highlight-row {
+  background: rgba(45, 212, 191, 0.18);
+  color: #ccfbf1;
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 #2dd4bf;
+}
+
+.ios-pwa-mock-menu-chevron {
+  margin-left: auto;
+  color: #94a3b8;
+}
+
+.ios-pwa-mock-home-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.35rem;
+  border: 1.5px solid #94a3b8;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: #e2e8f0;
+}
+
+.ios-pwa-mock-share-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.65rem 0.45rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: #243044;
+}
+
+.ios-pwa-mock-share-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  color: #cbd5e1;
+}
+
+.ios-pwa-mock-share-circle {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #3b465c;
+  color: #e2e8f0;
+  font-size: 0.55rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 0.15rem;
+}
+
+.ios-pwa-mock-share-circle--accent {
+  background: #2dd4bf;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.ios-pwa-mock-highlight-action {
+  color: #ccfbf1;
+  font-weight: 600;
+}
+
+.ios-pwa-mock-highlight-action .ios-pwa-mock-share-circle {
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.45);
+}
+
+@keyframes ios-pwa-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
 }

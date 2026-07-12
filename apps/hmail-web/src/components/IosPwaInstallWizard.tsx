@@ -42,6 +42,80 @@ function visibleStepsForProgress(step: IosPwaWizardStep): IosPwaWizardStep[] {
   return STEP_ORDER;
 }
 
+function AddHomeScreenGuideVisuals() {
+  return (
+    <div className="ios-pwa-guide" aria-hidden="true">
+      <div className="ios-pwa-guide-block">
+        <p className="ios-pwa-guide-caption">1. Tap ⋯ at the bottom of the browser</p>
+        <div className="ios-pwa-mock-browser-bar">
+          <span className="ios-pwa-mock-browser-icon" aria-hidden="true">
+            ‹
+          </span>
+          <span className="ios-pwa-mock-browser-icon" aria-hidden="true">
+            ≡
+          </span>
+          <span className="ios-pwa-mock-browser-url">mail.prohost.cloud</span>
+          <span className="ios-pwa-mock-browser-icon" aria-hidden="true">
+            ↻
+          </span>
+          <span className="ios-pwa-mock-browser-more ios-pwa-mock-highlight" aria-hidden="true">
+            ⋯
+          </span>
+        </div>
+      </div>
+
+      <div className="ios-pwa-guide-block">
+        <p className="ios-pwa-guide-caption">2. Choose Share</p>
+        <div className="ios-pwa-mock-menu">
+          <div className="ios-pwa-mock-menu-row">Find on Page</div>
+          <div className="ios-pwa-mock-menu-row ios-pwa-mock-highlight-row">
+            <span>Share</span>
+            <span className="ios-pwa-mock-menu-chevron">›</span>
+          </div>
+          <div className="ios-pwa-mock-menu-row">Add to Reading List</div>
+        </div>
+      </div>
+
+      <div className="ios-pwa-guide-block">
+        <p className="ios-pwa-guide-caption">3. Tap View More</p>
+        <div className="ios-pwa-mock-share-actions">
+          <div className="ios-pwa-mock-share-action">
+            <span className="ios-pwa-mock-share-circle">⎘</span>
+            <span>Copy</span>
+          </div>
+          <div className="ios-pwa-mock-share-action">
+            <span className="ios-pwa-mock-share-circle">✎</span>
+            <span>Markup</span>
+          </div>
+          <div className="ios-pwa-mock-share-action">
+            <span className="ios-pwa-mock-share-circle">Bookmark</span>
+            <span>Add to Bookmarks</span>
+          </div>
+          <div className="ios-pwa-mock-share-action ios-pwa-mock-highlight-action">
+            <span className="ios-pwa-mock-share-circle ios-pwa-mock-share-circle--accent">∨</span>
+            <span>View More</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="ios-pwa-guide-block">
+        <p className="ios-pwa-guide-caption">4. Tap Add to Home Screen</p>
+        <div className="ios-pwa-mock-menu">
+          <div className="ios-pwa-mock-menu-row">Add to Favourites</div>
+          <div className="ios-pwa-mock-menu-row">Find on Page</div>
+          <div className="ios-pwa-mock-menu-row ios-pwa-mock-highlight-row">
+            <span className="ios-pwa-mock-home-icon" aria-hidden="true">
+              +
+            </span>
+            <span>Add to Home Screen</span>
+          </div>
+          <div className="ios-pwa-mock-menu-row">Print</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function IosPwaInstallWizard({
   initialStep,
   onDismiss,
@@ -161,7 +235,7 @@ export function IosPwaInstallWizard({
               </div>
               <div className="ios-pwa-wizard-actions">
                 <button type="button" className="pwa-install-btn" onClick={goNext}>
-                  Start — Add PMail+ to Home Screen
+                  Continue to Step 1
                 </button>
               </div>
             </>
@@ -218,20 +292,27 @@ export function IosPwaInstallWizard({
                 Add PMail+ to Home Screen
               </h1>
               <div className="ios-pwa-wizard-body">
-                <p>Follow these steps in Safari to install PMail+ on your iPhone or iPad.</p>
+                <p>
+                  Tap the <strong>⋯</strong> below in your browser, then choose <strong>Share</strong>,
+                  then <strong>View More</strong>, then <strong>Add to Home Screen</strong>.
+                </p>
               </div>
-              <div className="ios-pwa-wizard-visual">
+              <div className="ios-pwa-wizard-visual ios-pwa-wizard-visual--guide">
                 <ol className="ios-pwa-wizard-steps">
                   <li>
-                    Tap the <strong>Share</strong> button in Safari (square with an upward arrow).
+                    Tap the <strong>⋯</strong> at the bottom of the browser.
                   </li>
                   <li>
-                    Scroll the share sheet and choose <strong>Add to Home Screen</strong>.
+                    Select <strong>Share</strong>.
                   </li>
                   <li>
-                    Tap <strong>Add</strong> to confirm.
+                    Tap <strong>View More</strong>.
+                  </li>
+                  <li>
+                    Tap <strong>Add to Home Screen</strong>, then confirm <strong>Add</strong>.
                   </li>
                 </ol>
+                <AddHomeScreenGuideVisuals />
               </div>
               <div className="ios-pwa-wizard-actions">
                 <button type="button" className="pwa-install-btn" onClick={goNext}>
