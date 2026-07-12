@@ -84,6 +84,41 @@ export async function ensurePmailTesterPanelWorkspaceTrial(userId: string): Prom
   });
 }
 
+/**
+ * Reactivate the Panel workspace complimentary trial after a successful Refer a friend send.
+ * Welcome trial access is driven by `panelWorkspaceTrialStartedAt`, not TenantAddonTrial rows.
+ */
+export async function extendPanelWorkspaceTrialFromReferral(userId: string): Promise<{
+  granted: boolean;
+  reason: string;
+  endsAt?: string;
+}> {
+  const startedAt = await getPanelWorkspaceTrialStartedAt(userId);
+  if (startedAt && isPanelWorkspaceWelcomeTrialActive(startedAt)) {
+    return {
+      granted: false,
+      reason: "trial_active",
+      endsAt: panelWorkspaceTrialEndsAt(startedAt).toISOString(),
+    };
+  }
+
+  const now = new Date();
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      panelWorkspaceTrialStartedAt: now,
+      panelWorkspaceDay5EmailSent: false,
+      panelWorkspaceDay7ReminderSent: false,
+    },
+  });
+
+  return {
+    granted: true,
+    reason: startedAt ? "referral_reward_reactivated" : "referral_reward_granted",
+    endsAt: panelWorkspaceTrialEndsAt(now).toISOString(),
+  };
+}
+
 /** Start the one-time 7-day welcome trial when a user first registers. */
 export async function ensurePanelWorkspaceWelcomeTrial(userId: string): Promise<void> {
   const user = await prisma.user.findUnique({

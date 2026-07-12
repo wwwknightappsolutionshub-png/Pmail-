@@ -50,6 +50,17 @@ describe("Referral invite pipeline", () => {
 
   it("POST /api/referrals/invite sends invitations, logs leads, and grants platform reward", async () => {
     const { agent, tenant, user } = await createAuthenticatedAgent(app);
+
+    // Simulate an expired welcome trial — the common Refer & Extend case.
+    await testPrisma.user.update({
+      where: { id: user.id },
+      data: {
+        panelWorkspaceTrialStartedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+        panelWorkspaceDay5EmailSent: true,
+        panelWorkspaceDay7ReminderSent: true,
+      },
+    });
+
     const res = await agent.post("/api/referrals/invite");
     expect(res.status).toBe(200);
     expect(res.body.sentCount).toBeGreaterThan(0);
@@ -64,6 +75,36 @@ describe("Referral invite pipeline", () => {
       where: { tenantId: tenant.id, trialSource: "referral_reward", status: "active" },
     });
     expect(trial).toBeTruthy();
+
+    const refreshed = await testPrisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    expect(refreshed.panelWorkspaceTrialStartedAt).toBeTruthy();
+    const startedMs = refreshed.panelWorkspaceTrialStartedAt!.getTime();
+    expect(startedMs).toBeGreaterThan(Date.now() - 60_000);
+    expect(refreshed.panelWorkspaceDay5EmailSent).toBe(false);
+    expect(refreshed.panelWorkspaceDay7ReminderSent).toBe(false);
+  });
+
+  it("reactivates Panel workspace tools after an expired welcome trial on refer", async () => {
+    const { grantReferralPlatformReward } = await import("../src/services/referral-lead.service.js");
+    const { hasActivePanelWorkspaceWelcomeTrial } = await import("../src/services/panel-workspace-trial.service.js");
+    const { getActiveAddonSlugs } = await import("../src/services/addon.service.js");
+    const { PANEL_WORKSPACE_WELCOME_TRIAL_SLUGS } = await import("../src/data/addon-catalog.js");
+
+    const { tenant, user } = await createAuthenticatedAgent(app);
+    await testPrisma.user.update({
+      where: { id: user.id },
+      data: { panelWorkspaceTrialStartedAt: new Date("2020-01-01T12:00:00Z") },
+    });
+    expect(await hasActivePanelWorkspaceWelcomeTrial(user.id)).toBe(false);
+
+    const reward = await grantReferralPlatformReward(tenant.id, user.id);
+    expect(reward.granted).toBe(true);
+    expect(await hasActivePanelWorkspaceWelcomeTrial(user.id)).toBe(true);
+
+    const slugs = await getActiveAddonSlugs(tenant.id, user.id);
+    for (const slug of PANEL_WORKSPACE_WELCOME_TRIAL_SLUGS) {
+      expect(slugs).toContain(slug);
+    }
   });
 
   it("attributes referral signup when invitee logs in with referrerEmail", async () => {

@@ -54,7 +54,10 @@ export async function tenantHasPlatformSubscription(tenantId: string, userId?: s
   return tenantSubs.some(isActiveSubscription) || userSubs.some(isActiveSubscription);
 }
 
-export async function grantReferralPlatformReward(tenantId: string): Promise<{
+export async function grantReferralPlatformReward(
+  tenantId: string,
+  userId?: string,
+): Promise<{
   granted: boolean;
   reason: string;
   endsAt?: string;
@@ -63,13 +66,40 @@ export async function grantReferralPlatformReward(tenantId: string): Promise<{
     return { granted: false, reason: "already_subscribed" };
   }
 
+  // Panel tools (CRM, vault, tracking, etc.) are gated by the user welcome-trial clock.
+  // Extending only TenantAddonTrial left expired users locked after Refer a friend.
+  if (userId) {
+    const { extendPanelWorkspaceTrialFromReferral } = await import("./panel-workspace-trial.service.js");
+    const panelReward = await extendPanelWorkspaceTrialFromReferral(userId);
+    if (!panelReward.granted) {
+      return panelReward;
+    }
+
+    // Keep calendar TenantAddonTrial in sync for referral nurture / analytics.
+    await upsertReferralAnchorTrial(tenantId, panelReward.endsAt ? new Date(panelReward.endsAt) : undefined);
+    return panelReward;
+  }
+
+  return upsertReferralAnchorTrial(tenantId);
+}
+
+async function upsertReferralAnchorTrial(
+  tenantId: string,
+  preferredEndsAt?: Date,
+): Promise<{
+  granted: boolean;
+  reason: string;
+  endsAt?: string;
+}> {
   const anchor = await prisma.addon.findFirst({
     where: { slug: PLATFORM_TRIAL_ANCHOR_SLUG, isActive: true },
   });
   if (!anchor) return { granted: false, reason: "addon_missing" };
 
-  const endsAt = new Date();
-  endsAt.setDate(endsAt.getDate() + REFERRAL_REWARD_DAYS);
+  const endsAt = preferredEndsAt ?? new Date();
+  if (!preferredEndsAt) {
+    endsAt.setDate(endsAt.getDate() + REFERRAL_REWARD_DAYS);
+  }
 
   const existing = await prisma.tenantAddonTrial.findUnique({
     where: { tenantId_addonId: { tenantId, addonId: anchor.id } },
@@ -213,7 +243,9 @@ export async function sendReferralInvitations(input: {
   }
 
   const reward =
-    sentCount > 0 ? await grantReferralPlatformReward(input.tenantId) : { granted: false, reason: "no_sent" };
+    sentCount > 0
+      ? await grantReferralPlatformReward(input.tenantId, input.userId)
+      : { granted: false, reason: "no_sent" };
 
   return { sentCount, bouncedCount, leads, reward };
 }
