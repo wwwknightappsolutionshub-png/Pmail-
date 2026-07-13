@@ -32,8 +32,7 @@ import {
   ensurePrimaryMailAccount,
   getActiveMailAccountSummary,
 } from "./mail-account.service.js";
-
-const SESSION_TTL_HOURS = 12;
+import { mailSessionExpiresAt } from "../lib/mail-session-ttl.js";
 
 function rethrowLoginSetupError(err: unknown): never {
   if (err instanceof Prisma.PrismaClientKnownRequestError && (err.code === "P2021" || err.code === "P2022")) {
@@ -332,7 +331,7 @@ export async function loginUser(input: {
   }
 
   const token = randomUUID();
-  const expiresAt = new Date(Date.now() + SESSION_TTL_HOURS * 60 * 60 * 1000);
+  const expiresAt = mailSessionExpiresAt();
 
   try {
     await prisma.session.create({

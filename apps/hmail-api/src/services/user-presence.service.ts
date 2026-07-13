@@ -1,5 +1,6 @@
 import type { Prisma, User } from "@prisma/client";
 import { hashToken } from "../lib/crypto.js";
+import { mailSessionExpiresAt } from "../lib/mail-session-ttl.js";
 import { prisma } from "../lib/prisma.js";
 
 export const PRESENCE_ONLINE_WINDOW_MS = 5 * 60 * 1000;
@@ -110,7 +111,10 @@ export async function touchSessionPresence(token: string): Promise<string | null
       tokenHash,
       expiresAt: { gt: activeAt },
     },
-    data: { lastActiveAt: activeAt },
+    data: {
+      lastActiveAt: activeAt,
+      expiresAt: mailSessionExpiresAt(activeAt),
+    },
   });
 
   if (updated.count === 0) return null;

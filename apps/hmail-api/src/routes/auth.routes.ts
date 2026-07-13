@@ -23,6 +23,7 @@ import {
 import { isMailProviderPresetKey, resolveMailConfigFromPreset } from "../data/mail-providers.js";
 import { getEnv } from "../config/env.js";
 import { toClientError } from "../lib/client-error.js";
+import { MAIL_SESSION_TTL_MS } from "../lib/mail-session-ttl.js";
 import { requireAuth } from "../middleware/auth.js";
 import { touchSessionPresence } from "../services/user-presence.service.js";
 import { isBusinessVertical, selectBusinessVertical } from "../services/business-vertical.service.js";
@@ -170,7 +171,7 @@ authRouter.post("/tester/login", async (req, res, next) => {
       httpOnly: true,
       secure: env.COOKIE_SECURE,
       sameSite: "lax",
-      maxAge: 12 * 60 * 60 * 1000,
+      maxAge: MAIL_SESSION_TTL_MS,
     });
 
     res.json({
@@ -209,7 +210,7 @@ authRouter.post("/login", async (req, res, next) => {
       httpOnly: true,
       secure: env.COOKIE_SECURE,
       sameSite: "lax",
-      maxAge: 12 * 60 * 60 * 1000,
+      maxAge: MAIL_SESSION_TTL_MS,
     });
 
     if (body.referrerEmail) {

@@ -231,6 +231,27 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       // ignore
     }
+
+    if (res.status === 401) {
+      const isCredentialAuthAttempt =
+        path === "/api/auth/login" ||
+        path === "/api/auth/tester/login" ||
+        path.startsWith("/api/auth/login-preflight");
+      if (
+        !isCredentialAuthAttempt &&
+        typeof window !== "undefined" &&
+        !window.location.pathname.startsWith("/login")
+      ) {
+        try {
+          sessionStorage.removeItem("pmail_tenant_slug");
+          sessionStorage.setItem("pmail_session_expired", "1");
+        } catch {
+          // ignore storage failures
+        }
+        window.location.assign("/login?session=expired");
+      }
+    }
+
     throw new ApiError(formatUserFacingError(new Error(message), message), res.status);
   }
 

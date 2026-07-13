@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { DEFAULT_TENANT_SLUG } from "../constants/tenant";
@@ -27,6 +27,21 @@ export function LoginPage() {
   const [accessMode, setAccessMode] = useState<"signin" | "prospect">(() =>
     isProspectAccessParam(searchParams.get("access")) ? "prospect" : "signin",
   );
+
+  const { setLoginError } = loginForm;
+
+  useEffect(() => {
+    if (searchParams.get("session") !== "expired") return;
+    setLoginError("Your session expired after a period of inactivity. Sign in again to continue.");
+    try {
+      sessionStorage.removeItem("pmail_session_expired");
+    } catch {
+      // ignore
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete("session");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setLoginError, setSearchParams]);
 
   const ctaSlide = useMemo(
     () => buildProductOnboardingCtaSlide(branding.productName),

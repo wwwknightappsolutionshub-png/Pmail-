@@ -1,4 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
+import { getEnv } from "../config/env.js";
+import { MAIL_SESSION_TTL_MS } from "../lib/mail-session-ttl.js";
 import { getAuthContext, getSessionTokenFromRequest } from "../services/auth.service.js";
 import { touchSessionPresence } from "../services/user-presence.service.js";
 
@@ -15,6 +17,15 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   if (token) {
     void touchSessionPresence(token).catch(() => {
       // Presence updates must not block authenticated requests.
+    });
+
+    // Keep browser cookie lifetime aligned with the sliding DB session window.
+    const env = getEnv();
+    res.cookie("hmail_session", token, {
+      httpOnly: true,
+      secure: env.COOKIE_SECURE,
+      sameSite: "lax",
+      maxAge: MAIL_SESSION_TTL_MS,
     });
   }
 
