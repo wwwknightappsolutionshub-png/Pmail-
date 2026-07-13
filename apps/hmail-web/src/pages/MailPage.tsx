@@ -68,7 +68,7 @@ import {
   type MobileDrawerTooltipState,
 } from "../components/MobileDrawerTooltip";
 import { Folder, Inbox, SquarePen, X } from "lucide-react";
-import { isMobileScreen } from "../utils/pwaPlatform";
+import { isIosTabletMailLayout, isMobileScreen } from "../utils/pwaPlatform";
 import { useMailListChromeViewport } from "../hooks/useMailListChromeViewport";
 import { useMessageListAtEnd } from "../hooks/useMessageListAtEnd";
 import { useMessageListHeadReveal } from "../hooks/useMessageListHeadReveal";
@@ -387,6 +387,7 @@ export function MailPage({
   const readPaneRef = useRef<HTMLElement>(null);
   const readBodyContentRef = useRef<HTMLDivElement>(null);
   const [mobileMailViewport, setMobileMailViewport] = useState(() => isMobileScreen());
+  const [iosTabletMailLayout, setIosTabletMailLayout] = useState(() => isIosTabletMailLayout());
   const mailListChromeViewport = useMailListChromeViewport();
   const hasOpenTrackingAddon = hasAddon("open-tracking");
   const { notification: openTrackingNotification, dismissNotification: dismissOpenTrackingNotification } =
@@ -396,6 +397,14 @@ export function MailPage({
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
     const sync = () => setMobileMailViewport(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px) and (max-width: 1099px)");
+    const sync = () => setIosTabletMailLayout(isIosTabletMailLayout());
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
@@ -1456,7 +1465,7 @@ export function MailPage({
     <div
       className={`mail-app ${activeThemeVersion === "light" ? "mail-app--light" : ""}${
         embedded ? " mail-app--embedded-in-bespoke" : ""
-      }`}
+      }${iosTabletMailLayout ? " mail-app--ios-tablet" : ""}`}
       data-mobile-pane={mobilePane}
       data-virtual-view={isVirtual ? "true" : "false"}
       data-content-pane={contentPane}

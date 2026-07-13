@@ -28,6 +28,21 @@ export function isTabletScreen(): boolean {
   ).matches;
 }
 
+/**
+ * iOS iPad / tablet widths that use the mid-size mail layout (list + rail)
+ * but sit below the desktop split (≥1100px) where the read pane is shown.
+ * Used only to restore message detail navigation on those devices.
+ */
+export const IOS_TABLET_MAIL_LAYOUT_MAX_PX = 1099;
+
+export function isIosTabletMailLayout(): boolean {
+  if (typeof window === "undefined") return false;
+  if (!isIosDevice()) return false;
+  return window.matchMedia(
+    `(min-width: ${MOBILE_MAX_WIDTH_PX + 1}px) and (max-width: ${IOS_TABLET_MAIL_LAYOUT_MAX_PX}px)`,
+  ).matches;
+}
+
 /** Phones, tablets, and touch-first devices eligible for install prompts. */
 export function isPwaInstallCandidateDevice(): boolean {
   if (typeof window === "undefined") return false;
