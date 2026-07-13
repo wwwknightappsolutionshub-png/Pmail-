@@ -4,7 +4,7 @@
  *
  * Targets:
  *   - nargiza@softwire-accountant.ae (secondary after this run)
- *   - support@softwire-accountant.ae (login + primary mailbox + nurture)
+ *   - enquiries@softwire-accountant.ae (login + primary mailbox + nurture)
  *
  * VPS (after deploy + API healthy):
  *   sleep 5
@@ -26,7 +26,7 @@ const monorepoRoot = resolve(fileURLToPath(new URL(".", import.meta.url)), "../.
 config({ path: resolve(monorepoRoot, ".env") });
 
 const SECONDARY_EMAIL = "nargiza@softwire-accountant.ae";
-const PRIMARY_EMAIL = "support@softwire-accountant.ae";
+const PRIMARY_EMAIL = "enquiries@softwire-accountant.ae";
 const TARGET_EMAILS = [SECONDARY_EMAIL, PRIMARY_EMAIL] as const;
 
 function normalizeEmail(email: string): string {
@@ -87,14 +87,8 @@ async function main(): Promise<void> {
   }
 
   const accounts = user.mailAccounts;
-  const supportAccount = accounts.find((a) => normalizeEmail(a.email) === PRIMARY_EMAIL);
+  const primaryAccount = accounts.find((a) => normalizeEmail(a.email) === PRIMARY_EMAIL);
   const nargizaAccount = accounts.find((a) => normalizeEmail(a.email) === SECONDARY_EMAIL);
-
-  if (!supportAccount) {
-    throw new Error(
-      `[softwire-ops] User ${user.id} has no UserMailAccount for ${PRIMARY_EMAIL}. Aborting.`,
-    );
-  }
 
   const conflict = await prisma.user.findFirst({
     where: {
@@ -110,25 +104,35 @@ async function main(): Promise<void> {
     );
   }
 
-  console.info(`[softwire-ops] userId=${user.id} currentEmail=${user.email}`);
+  console.info(
+    `[softwire-ops] userId=${user.id} currentEmail=${user.email} mailAccounts=${accounts
+      .map((a) => `${a.email}${a.isPrimary ? "*" : ""}`)
+      .join(", ") || "(none)"}`,
+  );
 
-  // 1) Promote support@ as primary mailbox; demote others for this user only
-  await prisma.$transaction([
-    prisma.userMailAccount.updateMany({
-      where: { userId: user.id },
-      data: { isPrimary: false },
-    }),
-    prisma.userMailAccount.update({
-      where: { id: supportAccount.id },
-      data: { isPrimary: true },
-    }),
-  ]);
-  console.info(`[softwire-ops] mailbox primary → ${PRIMARY_EMAIL}`);
+  // 1) Promote enquiries@ as primary mailbox when present; otherwise keep existing mailboxes
+  if (primaryAccount) {
+    await prisma.$transaction([
+      prisma.userMailAccount.updateMany({
+        where: { userId: user.id },
+        data: { isPrimary: false },
+      }),
+      prisma.userMailAccount.update({
+        where: { id: primaryAccount.id },
+        data: { isPrimary: true },
+      }),
+    ]);
+    console.info(`[softwire-ops] mailbox primary → ${PRIMARY_EMAIL}`);
+  } else {
+    console.warn(
+      `[softwire-ops] no UserMailAccount for ${PRIMARY_EMAIL}; continuing with User.email + nurture only`,
+    );
+  }
   if (nargizaAccount) {
     console.info(`[softwire-ops] mailbox secondary → ${SECONDARY_EMAIL}`);
   }
 
-  // 2) Login / nurture identity → support@
+  // 2) Login / nurture identity → enquiries@
   await prisma.user.update({
     where: { id: user.id },
     data: {
@@ -143,7 +147,7 @@ async function main(): Promise<void> {
     where: {
       tenantId: user.tenantId,
       emailType: "pmail_account_welcome",
-      userEmail: { in: [...TARGET_EMAILS, user.email] },
+      userEmail: { in: [...TARGET_EMAILS, user.email, "support@softwire-accountant.ae"] },
     },
   });
   console.info(`[softwire-ops] cleared ${deleted.count} pmail_account_welcome log(s)`);
@@ -151,7 +155,7 @@ async function main(): Promise<void> {
   const lists = getPmailWelcomeAddonLists();
   const fullName = user.displayName?.trim() || PRIMARY_EMAIL.split("@")[0] || "there";
 
-  // 4) Force-resend branded welcome — support@ first, then nargiza@
+  // 4) Force-resend branded welcome — enquiries@ first, then nargiza@
   for (const to of [PRIMARY_EMAIL, SECONDARY_EMAIL]) {
     const sent = await sendPmailAccountWelcomeEmail({
       tenantId: user.tenantId,
