@@ -488,7 +488,8 @@ export function MailPage({
   const activeMailboxEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
   const listUserDisplayName = user?.displayName?.trim() || activeMailboxEmail.split("@")[0] || "User";
   const showBulkBar = activeFolderKind ? folderSupportsBulkActions(activeFolderKind) : false;
-  const showInboxSwitcher = !isVirtual && hasMultiInboxAddon;
+  /** Match mobile footer: always expose mailboxes control (entitlement gated inside InboxSwitcher). */
+  const showInboxSwitcher = !isVirtual;
 
   const clearMailSearch = useCallback(() => {
     setSearchDraft(EMPTY_MAIL_SEARCH);

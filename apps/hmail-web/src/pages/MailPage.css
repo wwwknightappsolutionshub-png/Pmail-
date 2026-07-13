@@ -1943,6 +1943,16 @@
     display: none;
   }
 
+  /* Tablet / laptop / wide: keep secondary mailbox entry (header) visible when bottom nav is hidden. */
+  .list-header-switcher {
+    display: flex !important;
+    align-items: center;
+  }
+
+  .mail-app--embedded-in-bespoke .mail-list-pane > .list-header {
+    display: flex !important;
+  }
+
   .bespoke-prod-topbar,
   .bespoke-prod-tabs,
   .bespoke-prod-toolbar {

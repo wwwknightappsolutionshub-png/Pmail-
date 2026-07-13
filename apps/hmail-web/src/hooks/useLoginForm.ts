@@ -15,7 +15,13 @@ import {
   type MailProviderPresetKey,
 } from "../constants/mailProviders";
 import { formatUserFacingError } from "../utils/userFacingErrors";
+import { isIosDevice } from "../utils/pwaPlatform";
 import { clearReferralRef, persistReferralRef, readReferralRef } from "../utils/referralStorage";
+
+function isEmailCompleteForLoginPreflight(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+}
 
 export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: () => void }) {
   const isTesterRoute = tenantSlug === PMAIL_TESTER_TENANT_SLUG;
@@ -75,6 +81,33 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
       return;
     }
 
+    // iOS: do not preflight (or show verify errors) until the domain extension is present.
+    if (isIosDevice() && !isEmailCompleteForLoginPreflight(normalized)) {
+      setNeedsProviderSetup(null);
+      setTesterBypass(false);
+      setSuggestedTenantSlug(null);
+      setGreetingName(null);
+      setPreflightLoading(false);
+      setLoginError((current) =>
+        current ===
+        "Could not verify mailbox setup right now. You can still sign in with the detected provider settings."
+          ? ""
+          : current,
+      );
+      if (isHostingerForcedEmailDomain(normalized)) {
+        providerOverrideRef.current = false;
+        setMailConfig(resolveHostingerForcedDomainMailConfig());
+      } else if (!providerOverrideRef.current) {
+        const resolved = resolveProviderPresetFromEmail(normalized);
+        if (resolved) {
+          setMailConfig(resolveMailConfigFromPreset(resolved));
+        } else {
+          setMailConfig(emptyMailConfig());
+        }
+      }
+      return;
+    }
+
     if (isHostingerForcedEmailDomain(normalized)) {
       providerOverrideRef.current = false;
       setMailConfig(resolveHostingerForcedDomainMailConfig());
@@ -131,9 +164,11 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
               setMailConfig(resolveMailConfigFromPreset(resolved));
             }
           }
-          setLoginError(
-            "Could not verify mailbox setup right now. You can still sign in with the detected provider settings.",
-          );
+          if (!(isIosDevice() && !isEmailCompleteForLoginPreflight(normalized))) {
+            setLoginError(
+              "Could not verify mailbox setup right now. You can still sign in with the detected provider settings.",
+            );
+          }
         }
       })
       .finally(() => {
