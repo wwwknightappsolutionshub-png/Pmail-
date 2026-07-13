@@ -515,21 +515,61 @@ export async function processAddonEducationDripEmails(): Promise<void> {
   });
 
   for (const state of states) {
-    const user = state.user;
-    if (!user?.isActive || user.tenant.addonEducationSuppressed) continue;
-    if (!(await hasWelcomeFinished(user.id))) continue;
-
-    const payload = {
-      userId: user.id,
-      tenantId: user.tenantId,
-      userEmail: user.email,
-      fullName: user.displayName?.trim() || user.email.split("@")[0] || "there",
-      businessVertical: user.businessVertical,
-    };
-
-    await processCampaignTrack({ ...payload, campaignType: "panel" });
-    await processCampaignTrack({ ...payload, campaignType: "vertical" });
+    await processEducationState(state);
   }
+}
+
+/**
+ * Process education drip for a single user (ops / one-shot). Does not change the batch job.
+ */
+export async function processAddonEducationDripForUser(userId: string): Promise<void> {
+  if (!(await hasWelcomeFinished(userId))) return;
+
+  const state = await prisma.userAddonEducationState.findUnique({
+    where: { userId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          tenantId: true,
+          email: true,
+          displayName: true,
+          businessVertical: true,
+          isActive: true,
+          tenant: { select: { addonEducationSuppressed: true } },
+        },
+      },
+    },
+  });
+  if (!state) return;
+  await processEducationState(state);
+}
+
+async function processEducationState(state: {
+  user: {
+    id: string;
+    tenantId: string;
+    email: string;
+    displayName: string | null;
+    businessVertical: string | null;
+    isActive: boolean;
+    tenant: { addonEducationSuppressed: boolean };
+  } | null;
+}): Promise<void> {
+  const user = state.user;
+  if (!user?.isActive || user.tenant.addonEducationSuppressed) return;
+  if (!(await hasWelcomeFinished(user.id))) return;
+
+  const payload = {
+    userId: user.id,
+    tenantId: user.tenantId,
+    userEmail: user.email,
+    fullName: user.displayName?.trim() || user.email.split("@")[0] || "there",
+    businessVertical: user.businessVertical,
+  };
+
+  await processCampaignTrack({ ...payload, campaignType: "panel" });
+  await processCampaignTrack({ ...payload, campaignType: "vertical" });
 }
 
 export async function setUserAddonEducationOptOut(userId: string, optOut: boolean): Promise<void> {

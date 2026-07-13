@@ -15,7 +15,8 @@
     "db:sqlite:setup": "npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts generate --schema prisma/schema.sqlite.prisma && npx dotenv-cli -e ../../.env -- tsx scripts/prisma-cli.ts db push --schema prisma/schema.sqlite.prisma && npx dotenv-cli -e ../../.env -- tsx prisma/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "ops:softwire-welcome": "npx dotenv-cli -e ../../.env -- tsx scripts/ops-softwire-welcome-education.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.3.1",
