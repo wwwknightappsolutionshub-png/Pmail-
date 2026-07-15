@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./LoginAuthToast.css";
 
 type LoginAuthToastProps = {
@@ -7,6 +8,7 @@ type LoginAuthToastProps = {
 };
 
 export function LoginAuthToast({ title, message, onDismiss }: LoginAuthToastProps) {
+  useToastAutoDismiss(onDismiss, true, "action");
   return (
     <div
       className="login-auth-toast-overlay"

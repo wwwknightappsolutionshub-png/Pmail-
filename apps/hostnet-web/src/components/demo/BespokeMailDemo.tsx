@@ -184,6 +184,8 @@ type Props = {
   } | null;
   /** Branded splash while demo workspace hydrates (production PMail+ shell). */
   renderLoading?: ReactNode;
+  /** Tenant UI policy: temporarily hide workspace tabs. */
+  hiddenWorkspaces?: ReadonlyArray<"messaging" | "contacts" | "crm">;
 };
 
 function htmlToComposeText(html: string): string {
@@ -526,10 +528,17 @@ export function BespokeMailDemo({
   renderTopbarBrand,
   workspaceTabCounts = null,
   renderLoading,
+  hiddenWorkspaces = [],
 }: Props) {
   const composeSeed = useMemo(() => getComposeSettings(demo.useCaseId), [demo.useCaseId]);
   const displayName = viewerName?.trim() || viewerEmail?.split("@")[0] || "there";
   const displayEmail = viewerEmail?.trim() || composeSeed.defaultSenderEmail;
+  const welcomeMailbox = displayEmail || "there";
+  const hiddenWorkspaceSet = useMemo(() => new Set(hiddenWorkspaces), [hiddenWorkspaces]);
+  const isWorkspaceHidden = useCallback(
+    (workspace: "messaging" | "contacts" | "crm") => hiddenWorkspaceSet.has(workspace),
+    [hiddenWorkspaceSet],
+  );
   const viewerInitials = useMemo(() => {
     const parts = displayName.split(/\s+/).filter(Boolean);
     if (parts.length >= 2) return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
@@ -1729,6 +1738,12 @@ export function BespokeMailDemo({
   }
 
   function openWorkspaceTool(nextWorkspace: Exclude<Workspace, "inbox" | "industry">, feature: string) {
+    if (
+      (nextWorkspace === "contacts" || nextWorkspace === "crm" || nextWorkspace === "messaging") &&
+      isWorkspaceHidden(nextWorkspace)
+    ) {
+      return;
+    }
     if (forcedWorkspace) {
       if (nextWorkspace !== forcedWorkspace) {
         onWorkspaceTabNavigate?.(nextWorkspace);
@@ -2354,7 +2369,7 @@ export function BespokeMailDemo({
             <div className="bespoke-demo-topbar-left">
               <div>
                 <p className="bespoke-demo-kicker">PMail+ Workspace</p>
-                <strong className="bespoke-demo-brand">Welcome back, {displayName}</strong>
+                <strong className="bespoke-demo-brand">Welcome back, {welcomeMailbox}</strong>
               </div>
             </div>
 
@@ -2422,6 +2437,7 @@ export function BespokeMailDemo({
           </svg>
           Workspace
         </button>
+        {!isWorkspaceHidden("contacts") ? (
         <button
           type="button"
           className={`bespoke-demo-workspace-tab${highlightedWorkspace === "contacts" ? " bespoke-demo-workspace-tab--active" : ""}`}
@@ -2430,6 +2446,8 @@ export function BespokeMailDemo({
           Contacts
           <span className="bespoke-demo-tab-count">{contactsTabCount}</span>
         </button>
+        ) : null}
+        {!isWorkspaceHidden("crm") ? (
         <button
           type="button"
           className={`bespoke-demo-workspace-tab${highlightedWorkspace === "crm" ? " bespoke-demo-workspace-tab--active" : ""}`}
@@ -2437,6 +2455,7 @@ export function BespokeMailDemo({
         >
           CRM
         </button>
+        ) : null}
         <button
           type="button"
           className={`bespoke-demo-workspace-tab${highlightedWorkspace === "reminders" ? " bespoke-demo-workspace-tab--active" : ""}`}
@@ -2453,6 +2472,7 @@ export function BespokeMailDemo({
           Calendar
           <span className="bespoke-demo-tab-count">{calendarTabCount}</span>
         </button>
+        {!isWorkspaceHidden("messaging") ? (
         <button
           type="button"
           className={`bespoke-demo-workspace-tab${activeWorkspace === "messaging" ? " bespoke-demo-workspace-tab--active" : ""}`}
@@ -2461,6 +2481,7 @@ export function BespokeMailDemo({
           Messaging
           <span className="bespoke-demo-tab-count">{messagingTabCount}</span>
         </button>
+        ) : null}
         <button
           type="button"
           className={`bespoke-demo-workspace-tab${activeWorkspace === "settings" ? " bespoke-demo-workspace-tab--active" : ""}`}

@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./JobHunterPromoToast.css";
 
 interface JobHunterPromoToastProps {
@@ -6,6 +7,7 @@ interface JobHunterPromoToastProps {
 }
 
 export function JobHunterPromoToast({ onExplore, onDismiss }: JobHunterPromoToastProps) {
+  useToastAutoDismiss(onDismiss, true, "action");
   return (
     <div className="job-hunter-promo-toast" role="status" aria-live="polite">
       <div>

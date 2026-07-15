@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./GmailAppPasswordGuideToast.css";
 
 type GmailAppPasswordGuideToastProps = {
@@ -6,6 +7,7 @@ type GmailAppPasswordGuideToastProps = {
 };
 
 export function GmailAppPasswordGuideToast({ onOpenGmail, onDismiss }: GmailAppPasswordGuideToastProps) {
+  useToastAutoDismiss(onDismiss, true, "action");
   return (
     <div className="gmail-app-password-guide-toast" role="status" aria-live="polite">
       <div className="gmail-app-password-guide-toast-copy">

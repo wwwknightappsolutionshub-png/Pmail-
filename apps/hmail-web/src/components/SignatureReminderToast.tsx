@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./SignatureReminderToast.css";
 
 type SignatureReminderToastProps = {
@@ -11,6 +12,7 @@ export function SignatureReminderToast({
   onDismiss,
   onDontAskAgain,
 }: SignatureReminderToastProps) {
+  useToastAutoDismiss(onDismiss, true, "action");
   return (
     <div className="signature-reminder-toast-overlay" role="dialog" aria-modal="true" aria-labelledby="signature-reminder-title">
       <div className="signature-reminder-toast">

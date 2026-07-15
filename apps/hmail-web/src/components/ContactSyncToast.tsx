@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./ContactSyncToast.css";
 
 type ContactSyncToastProps = {
@@ -7,6 +8,7 @@ type ContactSyncToastProps = {
 };
 
 export function ContactSyncToast({ addedCount, onViewContacts, onDismiss }: ContactSyncToastProps) {
+  useToastAutoDismiss(onDismiss, true, "action");
   return (
     <div className="contact-sync-toast-overlay" role="status" aria-live="polite">
       <div className="contact-sync-toast">

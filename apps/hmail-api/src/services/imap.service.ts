@@ -517,6 +517,7 @@ export async function getMessage(
   credentials: MailCredentials,
   folder: string,
   uid: number,
+  options?: { markSeen?: boolean },
 ): Promise<MailMessageDetail | null> {
   const { useLocalPmailFixture, localFixtureGetMessage } = await import("./local-pmail-fixture.service.js");
   if (useLocalPmailFixture(credentials)) {
@@ -541,8 +542,9 @@ export async function getMessage(
     const envelope = fetched.envelope;
     const fromAddr = envelope?.from?.[0];
     const toAddr = envelope?.to?.[0];
+    const seen = fetched.flags?.has("\\Seen") ?? false;
 
-    return {
+    const message: MailMessageDetail = {
       uid,
       folder,
       subject: parsed.subject ?? envelope?.subject ?? "(No subject)",
@@ -553,7 +555,7 @@ export async function getMessage(
       cc: formatAddressField(parsed.cc),
       bcc: formatAddressField(parsed.bcc),
       date: (parsed.date ?? envelope?.date ?? new Date()).toISOString(),
-      seen: fetched.flags?.has("\\Seen") ?? false,
+      seen,
       flagged: fetched.flags?.has("\\Flagged") ?? false,
       hasAttachments: (parsed.attachments?.length ?? 0) > 0,
       snippet: (parsed.text ?? "").slice(0, 160),
@@ -566,6 +568,13 @@ export async function getMessage(
         partId: String(index),
       })),
     };
+
+    if (options?.markSeen && !seen) {
+      await client.messageFlagsAdd(uid, ["\\Seen"], { uid: true });
+      message.seen = true;
+    }
+
+    return message;
   } finally {
     await client.logout().catch(() => undefined);
   }

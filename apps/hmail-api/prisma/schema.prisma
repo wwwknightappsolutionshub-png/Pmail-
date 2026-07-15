@@ -57,6 +57,7 @@ model Tenant {
   addonEducationSends AddonEducationEmailSend[]
   referExtendSends ReferExtendEmailSend[]
   growthWorkspace GrowthWorkspace?
+  uiPolicies TenantUiPolicy[]
   reContacts ReContact[]
   reListings ReListing[]
   reShowings ReShowing[]
@@ -107,6 +108,22 @@ model TenantBranding {
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
+/// Time-bounded tenant UI overrides (workspace hides, sidebar defaults).
+model TenantUiPolicy {
+  id        String   @id @default(uuid())
+  tenantId  String
+  policyKey String
+  startsAt  DateTime @default(now())
+  endsAt    DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, policyKey])
+  @@index([tenantId, endsAt])
+}
+
 model TenantMailConfig {
   id         String  @id @default(uuid())
   tenantId   String  @unique
@@ -129,7 +146,7 @@ model User {
   displayName String?
   businessVertical String?
   healthcareAccessRole String?
-  uiThemeVersion String @default("dark")
+  uiThemeVersion String @default("light")
   mailPushEnabled Boolean @default(true)
   isActive    Boolean  @default(true)
   lastLoginAt DateTime?

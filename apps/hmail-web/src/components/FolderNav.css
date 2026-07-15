@@ -167,9 +167,24 @@
   color: #fef3c7;
 }
 
-.folder-nav-icon--trash.is-active,
-.folder-nav-item--trash.is-active .folder-nav-icon {
-  color: #fecaca;
+.folder-nav-heading--collapsible {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.folder-nav-heading-chevron {
+  opacity: 0.75;
+  font-size: 0.85rem;
 }
 
 .folder-nav-icon--contacts.is-active,

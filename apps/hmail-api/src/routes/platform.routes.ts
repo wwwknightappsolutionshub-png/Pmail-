@@ -2,12 +2,19 @@ import { Router } from "express";
 import { z } from "zod";
 import { requireAuth } from "../middleware/auth.js";
 import { requireAddon } from "../middleware/requireAddon.js";
+import { blockWhenTenantUiFeatureHidden } from "../middleware/requireTenantUiFeature.js";
+import { TENANT_UI_POLICY_KEYS } from "../services/tenant-ui-policy.service.js";
 import { generateMailPdf, buildMailPdfFilename } from "../services/mail2pdf.service.js";
 import { getWhatsAppStatus, sendWhatsAppMessage, WhatsAppError } from "../services/whatsapp.service.js";
 
 export const platformRouter = Router();
 
 platformRouter.use(requireAuth);
+
+const blockWorkspaceMessaging = blockWhenTenantUiFeatureHidden(
+  TENANT_UI_POLICY_KEYS.HIDE_MESSAGING,
+  "Messaging is temporarily unavailable for this workspace.",
+);
 
 const whatsappSchema = z.object({
   toPhone: z.string().min(7),
@@ -25,11 +32,11 @@ const mailPdfSchema = z.object({
   attachments: z.array(z.string()).optional(),
 });
 
-platformRouter.get("/whatsapp/status", requireAddon("whatsapp-functionality"), (_req, res) => {
+platformRouter.get("/whatsapp/status", blockWorkspaceMessaging, requireAddon("whatsapp-functionality"), (_req, res) => {
   res.json(getWhatsAppStatus());
 });
 
-platformRouter.post("/whatsapp/send", requireAddon("whatsapp-functionality"), async (req, res, next) => {
+platformRouter.post("/whatsapp/send", blockWorkspaceMessaging, requireAddon("whatsapp-functionality"), async (req, res, next) => {
   try {
     const body = whatsappSchema.parse(req.body);
     const result = await sendWhatsAppMessage(body);

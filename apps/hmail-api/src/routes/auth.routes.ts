@@ -26,6 +26,8 @@ import { toClientError } from "../lib/client-error.js";
 import { MAIL_SESSION_TTL_MS } from "../lib/mail-session-ttl.js";
 import { requireAuth } from "../middleware/auth.js";
 import { touchSessionPresence } from "../services/user-presence.service.js";
+import { getActiveTenantUiPolicies, TENANT_UI_POLICY_KEYS } from "../services/tenant-ui-policy.service.js";
+import { blockWhenTenantUiFeatureHidden } from "../middleware/requireTenantUiFeature.js";
 import { isBusinessVertical, selectBusinessVertical } from "../services/business-vertical.service.js";
 import { attributeReferralSignup } from "../services/referral-lead.service.js";
 import {
@@ -269,11 +271,15 @@ authRouter.get("/me", async (req, res, next) => {
     }
     await ensurePrimaryMailAccount(context.user, context.mailPassword);
     const mailSummary = await getActiveMailAccountSummary(context.user.id, context.activeMailAccountId);
+    const tenantUi = await getActiveTenantUiPolicies(context.user.tenant.id);
     res.json({
-      user: sanitizeUser(context.user, {
-        activeMailAccount: mailSummary.activeMailAccount,
-        mailAccountCount: mailSummary.mailAccountCount,
-      }),
+      user: {
+        ...sanitizeUser(context.user, {
+          activeMailAccount: mailSummary.activeMailAccount,
+          mailAccountCount: mailSummary.mailAccountCount,
+        }),
+        tenantUi,
+      },
     });
   } catch (err) {
     next(err);
@@ -284,6 +290,15 @@ authRouter.post("/presence/heartbeat", requireAuth, async (req, res, next) => {
   try {
     const token = getSessionTokenFromRequest(req);
     const lastActiveAt = token ? await touchSessionPresence(token) : null;
+    if (token && req.cookies?.hmail_session) {
+      const env = getEnv();
+      res.cookie("hmail_session", token, {
+        httpOnly: true,
+        secure: env.COOKIE_SECURE,
+        sameSite: "lax",
+        maxAge: MAIL_SESSION_TTL_MS,
+      });
+    }
     res.json({
       ok: true,
       lastActiveAt: lastActiveAt ?? new Date().toISOString(),
@@ -293,7 +308,10 @@ authRouter.post("/presence/heartbeat", requireAuth, async (req, res, next) => {
   }
 });
 
-authRouter.get("/organization-users", requireAuth, async (req, res, next) => {
+authRouter.get("/organization-users", requireAuth, blockWhenTenantUiFeatureHidden(
+  TENANT_UI_POLICY_KEYS.HIDE_MESSAGING,
+  "Messaging is temporarily unavailable for this workspace.",
+), async (req, res, next) => {
   try {
     const users = await listTenantWorkspaceUsers(req.auth!.user.tenant.id);
     res.json({ users });

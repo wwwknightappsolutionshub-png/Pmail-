@@ -170,6 +170,11 @@ export async function resetTestDatabase(): Promise<void> {
   await prisma.mailContact.deleteMany();
   await prisma.userMailConfig.deleteMany();
   await prisma.user.deleteMany();
+  try {
+    await prisma.tenantUiPolicy.deleteMany();
+  } catch {
+    await prisma.$executeRawUnsafe('DELETE FROM "TenantUiPolicy"');
+  }
   await prisma.tenantBranding.deleteMany();
   await prisma.tenantMailConfig.deleteMany();
   await prisma.tenant.deleteMany();
@@ -233,8 +238,8 @@ export async function seedPmailTesterTenant() {
   const user = await prisma.user.findFirstOrThrow({
     where: { tenantId: tenant.id, email: "pmailtester@gmail.com" },
   });
-  const { ensurePmailTesterAccountingWorkspace } = await import("../src/services/pmail-tester-seed.service.js");
-  await ensurePmailTesterAccountingWorkspace(tenant.id, user.id);
+
+  return { tenant, user };
 }
 
 export async function seedTestTenant() {
@@ -246,17 +251,23 @@ export async function seedTestTenant() {
   await seedB2bTemplates();
   await seedHealthcareTemplates();
 
-  const tenant = await prisma.tenant.create({
-    data: {
+  const tenant = await prisma.tenant.upsert({
+    where: { slug: "test-firm" },
+    create: {
       slug: "test-firm",
       name: "Test Immigration Firm",
       branding: { create: { productName: "PMail+" } },
       mail: { create: { mailOnboardingComplete: true } },
     },
+    update: {
+      name: "Test Immigration Firm",
+      isActive: true,
+    },
   });
 
-  const user = await prisma.user.create({
-    data: {
+  const user = await prisma.user.upsert({
+    where: { tenantId_email: { tenantId: tenant.id, email: "lawyer@testfirm.ca" } },
+    create: {
       tenantId: tenant.id,
       email: "lawyer@testfirm.ca",
       displayName: "Test Lawyer",
@@ -271,6 +282,10 @@ export async function seedTestTenant() {
           smtpSecure: true,
         },
       },
+    },
+    update: {
+      displayName: "Test Lawyer",
+      isActive: true,
     },
   });
 
@@ -297,12 +312,13 @@ export async function createAuthenticatedAgent(app: Express): Promise<{
   });
 
   const agent = request.agent(app);
+  const sessionCookie = `hmail_session=${token}`;
   const withAuth = {
-    get: (path: string) => agent.get(path).set("Cookie", [`hmail_session=${token}`]),
-    post: (path: string) => agent.post(path).set("Cookie", [`hmail_session=${token}`]),
-    put: (path: string) => agent.put(path).set("Cookie", [`hmail_session=${token}`]),
-    patch: (path: string) => agent.patch(path).set("Cookie", [`hmail_session=${token}`]),
-    delete: (path: string) => agent.delete(path).set("Cookie", [`hmail_session=${token}`]),
+    get: (path: string) => agent.get(path).set("Cookie", sessionCookie),
+    post: (path: string) => agent.post(path).set("Cookie", sessionCookie),
+    put: (path: string) => agent.put(path).set("Cookie", sessionCookie),
+    patch: (path: string) => agent.patch(path).set("Cookie", sessionCookie),
+    delete: (path: string) => agent.delete(path).set("Cookie", sessionCookie),
   };
 
   return { agent: withAuth, tenant, user, token };
@@ -335,11 +351,12 @@ export async function createAdminAgent(app: Express): Promise<{
   });
 
   const baseAgent = request.agent(app);
+  const adminCookie = `hostnet_admin_session=${token}`;
   const withAuth = {
-    get: (path: string) => baseAgent.get(path).set("Cookie", [`hostnet_admin_session=${token}`]),
-    post: (path: string) => baseAgent.post(path).set("Cookie", [`hostnet_admin_session=${token}`]),
-    patch: (path: string) => baseAgent.patch(path).set("Cookie", [`hostnet_admin_session=${token}`]),
-    delete: (path: string) => baseAgent.delete(path).set("Cookie", [`hostnet_admin_session=${token}`]),
+    get: (path: string) => baseAgent.get(path).set("Cookie", adminCookie),
+    post: (path: string) => baseAgent.post(path).set("Cookie", adminCookie),
+    patch: (path: string) => baseAgent.patch(path).set("Cookie", adminCookie),
+    delete: (path: string) => baseAgent.delete(path).set("Cookie", adminCookie),
   };
 
   return { agent: withAuth, admin: { id: admin.id, email: admin.email }, email, password };
@@ -386,12 +403,13 @@ export async function createPanelAgent(app: Express): Promise<{
   });
 
   const baseAgent = request.agent(app);
+  const panelCookie = `hostnet_panel_session=${token}`;
   const withAuth = {
-    get: (path: string) => baseAgent.get(path).set("Cookie", [`hostnet_panel_session=${token}`]),
-    post: (path: string) => baseAgent.post(path).set("Cookie", [`hostnet_panel_session=${token}`]),
-    put: (path: string) => baseAgent.put(path).set("Cookie", [`hostnet_panel_session=${token}`]),
-    patch: (path: string) => baseAgent.patch(path).set("Cookie", [`hostnet_panel_session=${token}`]),
-    delete: (path: string) => baseAgent.delete(path).set("Cookie", [`hostnet_panel_session=${token}`]),
+    get: (path: string) => baseAgent.get(path).set("Cookie", panelCookie),
+    post: (path: string) => baseAgent.post(path).set("Cookie", panelCookie),
+    put: (path: string) => baseAgent.put(path).set("Cookie", panelCookie),
+    patch: (path: string) => baseAgent.patch(path).set("Cookie", panelCookie),
+    delete: (path: string) => baseAgent.delete(path).set("Cookie", panelCookie),
   };
 
   return {

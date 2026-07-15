@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./SecondaryMailboxToast.css";
 
 export type SecondaryMailboxNotice = {
@@ -14,6 +15,7 @@ type SecondaryMailboxToastProps = {
 };
 
 export function SecondaryMailboxToast({ notice, onSwitch, onDismiss }: SecondaryMailboxToastProps) {
+  useToastAutoDismiss(onDismiss, true, "action");
   const mailbox = notice.accountLabel?.trim() || notice.accountEmail;
   const countLabel =
     notice.newCount === 1 ? "1 new message" : `${notice.newCount} new messages`;

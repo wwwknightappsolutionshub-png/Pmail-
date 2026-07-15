@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./MultiInboxConnectToast.css";
 
 type MultiInboxConnectToastProps = {
@@ -7,6 +8,7 @@ type MultiInboxConnectToastProps = {
 };
 
 export function MultiInboxConnectToast({ onConnectMailbox, onDismiss, onDontAskAgain }: MultiInboxConnectToastProps) {
+  useToastAutoDismiss(onDismiss, true, "action");
   return (
     <div className="multi-inbox-toast-overlay" role="dialog" aria-modal="true" aria-labelledby="multi-inbox-toast-title">
       <div className="multi-inbox-toast">

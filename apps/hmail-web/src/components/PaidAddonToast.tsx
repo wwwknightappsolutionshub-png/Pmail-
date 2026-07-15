@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import { createPortal } from "react-dom";
 import type { PanelWorkspaceTrialStatus } from "../types/addon";
 import "./PaidAddonToast.css";
@@ -37,6 +38,7 @@ export function PaidAddonToast({
   onOpenMarketplace,
   onDismiss,
 }: PaidAddonToastProps) {
+  useToastAutoDismiss(onDismiss, true, "action");
   const overlay = (
     <div
       className="paid-addon-toast-overlay paid-addon-toast-overlay--portaled"

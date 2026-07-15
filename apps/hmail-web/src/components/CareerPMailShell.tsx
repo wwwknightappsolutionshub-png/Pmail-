@@ -38,7 +38,7 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const referFriendDeepLinkHandled = useRef(false);
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
-    (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
+    (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "light",
   );
   const [platformNotice, setPlatformNotice] = useState("");
   const [careerNavUnlocked, setCareerNavUnlocked] = useState(false);

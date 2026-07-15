@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./InboxConnectResultToast.css";
 
 type InboxConnectResultToastProps = {
@@ -6,6 +7,7 @@ type InboxConnectResultToastProps = {
 };
 
 export function InboxConnectResultToast({ kind, onDismiss }: InboxConnectResultToastProps) {
+  useToastAutoDismiss(onDismiss, true, "info");
   const isSuccess = kind === "success";
 
   return (

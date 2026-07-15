@@ -59,7 +59,7 @@ import { renderProductionVirtualView } from "../components/ProductionVirtualView
 import { SenderGroupedMessageList, senderLabel } from "../components/SenderGroupedMessageList";
 import { encodeSenderKey } from "../utils/senderAvatar";
 import { MessageTableHead } from "../components/MessageTableHead";
-import { SenderAvatar } from "../components/SenderAvatar";
+import { useMailListPaneResize } from "../hooks/useMailListPaneResize";
 import { extractEmailFromHeader } from "../utils/senderAvatar";
 import { MailBottomNavButton } from "../components/MailBottomNavButton";
 import {
@@ -366,8 +366,9 @@ export function MailPage({
   const [closeDrawerTooltip, setCloseDrawerTooltip] = useState<MobileDrawerTooltipState>(null);
   const [expandedSenderEmails, setExpandedSenderEmails] = useState<Set<string>>(() => new Set());
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
-    (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
+    (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "light",
   );
+  const messageLoadGenerationRef = useRef(0);
   const activeThemeVersion = embedded && shellThemeVersion ? shellThemeVersion : uiThemeVersion;
   const mobileDrawerMenuOpen = mobilePane === "menu";
   const closeDrawerTooltipProps = mobileDrawerMenuOpen
@@ -426,7 +427,7 @@ export function MailPage({
 
   useEffect(() => {
     if (!platformNotice) return;
-    const timer = window.setTimeout(() => setPlatformNotice(""), 5000);
+    const timer = window.setTimeout(() => setPlatformNotice(""), 2000);
     return () => window.clearTimeout(timer);
   }, [platformNotice]);
 
@@ -465,6 +466,8 @@ export function MailPage({
 
   const sortedFolders = useMemo(() => sortFolders(folders), [folders]);
   const isVirtual = isVirtualView(activeFolder);
+  const desktopSplitResizeEnabled = !embedded && !isVirtual;
+  const { listPaneWidth, isResizing, startResize } = useMailListPaneResize(desktopSplitResizeEnabled);
 
   const activeFolderMeta =
     sortedFolders.find((f) => f.path === activeFolder) ??
@@ -495,7 +498,8 @@ export function MailPage({
   const activeFolderLabel = getFolderTitle(activeFolder, activeFolderMeta);
   const listPaneTitle = mailFilter === "starred" ? "Starred" : activeFolderLabel;
   const activeMailboxEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
-  const listUserDisplayName = user?.displayName?.trim() || activeMailboxEmail.split("@")[0] || "User";
+  const listWelcomeMailbox = activeMailboxEmail || "User";
+  const contactsWorkspaceHidden = user?.tenantUi?.hiddenWorkspaces?.includes("contacts") ?? false;
   const showBulkBar = activeFolderKind ? folderSupportsBulkActions(activeFolderKind) : false;
   /** Match mobile footer: always expose mailboxes control (entitlement gated inside InboxSwitcher). */
   const showInboxSwitcher = !isVirtual;
@@ -709,6 +713,9 @@ export function MailPage({
       if (normalizedFolder === "inbox" || normalizedFolder === "sent") {
         refreshCareerNav();
       }
+      if (silent && targetPage === 1) {
+        void api.presenceHeartbeat().catch(() => undefined);
+      }
     } catch (err) {
       if (generation === fetchGenerationRef.current) {
         setListError(err instanceof Error ? err.message : "Failed to load messages");
@@ -770,7 +777,13 @@ export function MailPage({
 
   useEffect(() => {
     const inboxPath = folders.find((f) => resolveFolderKind(f) === "inbox")?.path;
-    if (isVirtualView(activeFolder) || !inboxPath || activeFolder !== inboxPath || messages.length === 0) {
+    if (
+      contactsWorkspaceHidden ||
+      isVirtualView(activeFolder) ||
+      !inboxPath ||
+      activeFolder !== inboxPath ||
+      messages.length === 0
+    ) {
       setContactSuggestions([]);
       return;
     }
@@ -779,21 +792,26 @@ export function MailPage({
       .suggestContacts(emails)
       .then((res) => setContactSuggestions(res.suggestions))
       .catch(() => setContactSuggestions([]));
-  }, [messages, activeFolder, folders]);
+  }, [messages, activeFolder, folders, contactsWorkspaceHidden]);
 
   const loadMessage = useCallback(
     async (uid: number) => {
+      const generation = ++messageLoadGenerationRef.current;
       setLoadingMessage(true);
       setMessageError("");
       setSelectedMessage((current) => (current?.uid === uid ? current : null));
       try {
         const { message } = await api.message(activeFolder, uid);
+        if (generation !== messageLoadGenerationRef.current) return;
         setSelectedMessage(message);
         setMessages((prev) => prev.map((m) => (m.uid === uid ? { ...m, seen: true } : m)));
       } catch (err) {
+        if (generation !== messageLoadGenerationRef.current) return;
         setMessageError(err instanceof Error ? err.message : "Failed to load message");
       } finally {
-        setLoadingMessage(false);
+        if (generation === messageLoadGenerationRef.current) {
+          setLoadingMessage(false);
+        }
       }
     },
     [activeFolder],
@@ -855,7 +873,6 @@ export function MailPage({
   }, [selectedUid, loadMessage, isVirtual]);
 
   const selectMessage = (uid: number) => {
-    clearMailSearch();
     setSelectedUid(uid);
     setSelectedMessage((current) => (current?.uid === uid ? current : null));
     setLoadingMessage(true);
@@ -1298,7 +1315,7 @@ export function MailPage({
 
         {statusMessage ? <div className="pane-status">{statusMessage}</div> : null}
 
-        {!embedded && visibleSuggestions.length > 0 ? (
+        {!embedded && !contactsWorkspaceHidden && visibleSuggestions.length > 0 ? (
           <div className="contact-suggest-banner">
             <span>Add new senders to contacts?</span>
             {visibleSuggestions.slice(0, 3).map((email) => (
@@ -1434,7 +1451,6 @@ export function MailPage({
                         ) : null}
                       </span>
                       <button type="button" className="message-table-cell message-table-cell--subject" onClick={() => selectMessage(msg.uid)}>
-                        <SenderAvatar from={msg.from} className="message-table-sender-avatar" size="sm" />
                         <span className="message-subject-text">
                           {selectedUid
                             ? msg.subject || "(No subject)"
@@ -1470,14 +1486,19 @@ export function MailPage({
       data-virtual-view={isVirtual ? "true" : "false"}
       data-content-pane={contentPane}
       data-sidebar-collapsed={sidebarCollapsed ? "true" : "false"}
-      style={
-        !embedded && branding
+      data-folder-kind={activeFolderKind ?? undefined}
+      data-list-pane-resizing={isResizing ? "true" : "false"}
+      style={{
+        ...( !embedded && branding
           ? ({
               "--brand-primary": branding.primaryColor,
               "--brand-accent": branding.accentColor,
             } as React.CSSProperties)
-          : undefined
-      }
+          : {}),
+        ...(desktopSplitResizeEnabled
+          ? ({ "--mail-list-pane-width": `${listPaneWidth}px` } as React.CSSProperties)
+          : {}),
+      }}
       onTouchStart={swipeBackHandlers.onTouchStart}
       onTouchEnd={swipeBackHandlers.onTouchEnd}
       onTouchCancel={swipeBackHandlers.onTouchCancel}
@@ -1524,7 +1545,7 @@ export function MailPage({
       <div className="mail-bespoke-chrome">
         <MailBespokeChrome
           productName={productName}
-          displayName={user?.displayName?.trim() || user?.email?.split("@")[0] || "User"}
+          displayName={user?.activeMailAccount?.email ?? user?.email ?? "User"}
           displayEmail={user?.activeMailAccount?.email ?? user?.email ?? ""}
           activeFolder={activeFolder}
           inboxPath={inboxPath || "INBOX"}
@@ -1637,6 +1658,7 @@ export function MailPage({
               tooltipTheme={activeThemeVersion}
               onPaidAddonGate={openPaidAddonGate}
               onOpenAddons={(highlightSlug) => openAddonMarketplace(highlightSlug)}
+              platformToolsDefaultCollapsed={user?.tenantUi?.platformToolsCollapsed ?? false}
             />
           </div>
 
@@ -1663,13 +1685,13 @@ export function MailPage({
 
         <section className="mail-list-pane">
           {embedded ? (
-            <p className="mail-list-breadcrumb" aria-label={`Welcome back, ${listUserDisplayName}. You are: ${activeFolderLabel} (${activeMailboxEmail})`}>
-              <span className="mail-list-breadcrumb-welcome">Welcome back, {listUserDisplayName}</span>
+            <p className="mail-list-breadcrumb" aria-label={`Welcome back, ${listWelcomeMailbox}. You are: ${activeFolderLabel}`}>
+              <span className="mail-list-breadcrumb-welcome">Welcome back, {listWelcomeMailbox}</span>
               <span className="mail-list-breadcrumb-sep" aria-hidden="true">
                 |
               </span>
               <span className="mail-list-breadcrumb-current">
-                You are: {listPaneTitle} · {activeMailboxEmail}
+                You are: {listPaneTitle}
               </span>
             </p>
           ) : null}
@@ -1706,6 +1728,20 @@ export function MailPage({
           </header>
           {renderMainContent()}
         </section>
+
+        {!isVirtual ? (
+          <div
+            className="mail-list-read-splitter"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize message list"
+            onMouseDown={(event) => startResize(event.clientX)}
+            onTouchStart={(event) => {
+              const touch = event.touches[0];
+              if (touch) startResize(touch.clientX);
+            }}
+          />
+        ) : null}
 
         {!isVirtual ? (
         <section className="mail-read-pane" ref={readPaneRef}>

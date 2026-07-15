@@ -15,6 +15,16 @@ export function usePresenceHeartbeat(enabled: boolean) {
 
     ping();
     const id = window.setInterval(ping, HEARTBEAT_INTERVAL_MS);
-    return () => window.clearInterval(id);
+    const onFocus = () => ping();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") ping();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [enabled]);
 }

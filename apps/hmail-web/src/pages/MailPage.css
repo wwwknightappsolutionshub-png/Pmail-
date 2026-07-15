@@ -2097,7 +2097,7 @@
 /* ─── Desktop: Bespoke folder + list + read panes ─── */
 @media (min-width: 1100px) {
   .mail-layout {
-    grid-template-columns: var(--mail-sidebar-rail-width) minmax(0, 1fr) minmax(0, 1.15fr);
+    grid-template-columns: var(--mail-sidebar-rail-width) var(--mail-list-pane-width, minmax(22rem, 0.9fr)) minmax(0, 1fr);
     min-height: 0;
     height: 100%;
   }
@@ -2107,7 +2107,26 @@
     grid-row: 1;
     min-width: 0;
     width: 100%;
-    border-right: 1px solid var(--border);
+    border-right: none;
+  }
+
+  .mail-list-read-splitter {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    width: 6px;
+    margin-right: -3px;
+    cursor: col-resize;
+    z-index: 3;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    touch-action: none;
+  }
+
+  .mail-list-read-splitter:hover,
+  .mail-app[data-list-pane-resizing="true"] .mail-list-read-splitter {
+    background: color-mix(in srgb, var(--brand-accent, #14b8a6) 35%, transparent);
   }
 
   .mail-read-pane {
@@ -2116,6 +2135,7 @@
     min-width: 0;
     width: 100%;
     border-right: none;
+    border-left: 1px solid var(--border);
   }
 
   .mail-app[data-virtual-view="true"] .mail-read-pane,
@@ -3216,4 +3236,68 @@
   .mail-app.mail-app--light .read-body-content .card {
     background: #fff;
   }
+}
+
+.mail-list-read-splitter {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .mail-list-read-splitter {
+    display: block;
+  }
+}
+
+.mail-app[data-folder-kind="inbox"] .folder-nav-item--inbox.is-active,
+.mail-app[data-folder-kind="inbox"] .message-table-row:hover,
+.mail-app[data-folder-kind="inbox"] .message-sender-group-head:hover {
+  background: color-mix(in srgb, #14b8a6 14%, transparent);
+}
+
+.mail-app[data-folder-kind="sent"] .folder-nav-item--sent.is-active,
+.mail-app[data-folder-kind="sent"] .message-table-row:hover,
+.mail-app[data-folder-kind="sent"] .message-sender-group-head:hover {
+  background: color-mix(in srgb, #3b82f6 14%, transparent);
+}
+
+.mail-app[data-folder-kind="drafts"] .folder-nav-item--drafts.is-active,
+.mail-app[data-folder-kind="drafts"] .message-table-row:hover,
+.mail-app[data-folder-kind="drafts"] .message-sender-group-head:hover {
+  background: color-mix(in srgb, #6366f1 14%, transparent);
+}
+
+.mail-app[data-folder-kind="junk"] .folder-nav-item--junk.is-active,
+.mail-app[data-folder-kind="junk"] .message-table-row:hover,
+.mail-app[data-folder-kind="junk"] .message-sender-group-head:hover {
+  background: color-mix(in srgb, #f59e0b 16%, transparent);
+}
+
+.mail-app[data-folder-kind="trash"] .folder-nav-item--trash.is-active,
+.mail-app[data-folder-kind="trash"] .message-table-row:hover,
+.mail-app[data-folder-kind="trash"] .message-sender-group-head:hover {
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+}
+
+.mail-app[data-folder-kind] .message-table-row.selected {
+  border-left: 3px solid var(--brand-accent, #14b8a6);
+}
+
+.mail-app.mail-app--light[data-folder-kind="inbox"] .message-table-row.selected {
+  background: color-mix(in srgb, #14b8a6 10%, #fff);
+}
+
+.mail-app.mail-app--light[data-folder-kind="sent"] .message-table-row.selected {
+  background: color-mix(in srgb, #3b82f6 10%, #fff);
+}
+
+.mail-app.mail-app--light[data-folder-kind="drafts"] .message-table-row.selected {
+  background: color-mix(in srgb, #6366f1 10%, #fff);
+}
+
+.mail-app.mail-app--light[data-folder-kind="junk"] .message-table-row.selected {
+  background: color-mix(in srgb, #f59e0b 12%, #fff);
+}
+
+.mail-app.mail-app--light[data-folder-kind="trash"] .message-table-row.selected {
+  background: color-mix(in srgb, #ef4444 10%, #fff);
 }

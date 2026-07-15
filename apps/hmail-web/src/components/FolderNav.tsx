@@ -215,6 +215,7 @@ interface FolderNavProps {
   hideIndustryTools?: boolean;
   iconOnlyRail?: boolean;
   tooltipTheme?: "light" | "dark";
+  platformToolsDefaultCollapsed?: boolean;
 }
 
 function renderSpecialItem(
@@ -290,9 +291,11 @@ export function FolderNav({
   hideIndustryTools = false,
   iconOnlyRail = false,
   tooltipTheme = "dark",
+  platformToolsDefaultCollapsed = false,
 }: FolderNavProps) {
   const [drawerTooltip, setDrawerTooltip] = useState<MobileDrawerTooltipState>(null);
   const [armedDrawerKey, setArmedDrawerKey] = useState<string | null>(null);
+  const [platformToolsCollapsed, setPlatformToolsCollapsed] = useState(platformToolsDefaultCollapsed);
   const sorted = sortFolders(folders);
   const primary = sorted.filter((f) => resolveFolderKind(f) !== "other");
   const other = sorted.filter((f) => resolveFolderKind(f) === "other");
@@ -440,10 +443,22 @@ export function FolderNav({
         {renderSpecialItem("documents", "Documents", VIEW_DOCUMENTS, activeFolder, onSelect, drawerItemOptions)}
       </div>
 
-      <p className="folder-nav-heading folder-nav-heading--secondary folder-nav-heading--platform-tools">Platform tools</p>
+      <button
+        type="button"
+        className="folder-nav-heading folder-nav-heading--secondary folder-nav-heading--platform-tools folder-nav-heading--collapsible"
+        aria-expanded={!platformToolsCollapsed}
+        onClick={() => setPlatformToolsCollapsed((current) => !current)}
+      >
+        Platform tools
+        <span className="folder-nav-heading-chevron" aria-hidden="true">
+          {platformToolsCollapsed ? "▸" : "▾"}
+        </span>
+      </button>
+      {!platformToolsCollapsed ? (
       <div className="folder-nav-group folder-nav-group--platform-tools">
         {workspaceNav.map((item) => renderTool(item.view, item.label, item.kind))}
       </div>
+      ) : null}
 
       {showLegalTools ? (
         <>

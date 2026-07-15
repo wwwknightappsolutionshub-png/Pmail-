@@ -46,7 +46,7 @@ export function SenderGroupedMessageList({
   selectedUids,
   onToggleSelectUid,
   onToggleSelectAll,
-  onToggleSelectSenderGroup,
+  onToggleSelectSenderGroup: _onToggleSelectSenderGroup,
   onDeleteSenderGroup,
   deletingSenderEmail = null,
   formatDate,
@@ -86,27 +86,11 @@ export function SenderGroupedMessageList({
       {groups.map((group) => {
         const expanded = expandedSenderEmails.has(group.email);
         const groupUids = group.messages.map((message) => message.uid);
-        const groupAllSelected =
-          groupUids.length > 0 && groupUids.every((uid) => selectedUids.includes(uid));
-        const groupSomeSelected = groupUids.some((uid) => selectedUids.includes(uid));
         const isDeleting = deletingSenderEmail === group.email;
 
         return (
           <div key={group.email} className="message-sender-group">
             <div className="message-sender-group-head">
-              {showBulkBar ? (
-                <span className="message-sender-group-check">
-                  <input
-                    type="checkbox"
-                    checked={groupAllSelected}
-                    ref={(input) => {
-                      if (input) input.indeterminate = !groupAllSelected && groupSomeSelected;
-                    }}
-                    onChange={() => onToggleSelectSenderGroup?.(groupUids)}
-                    aria-label={`Select all messages from ${group.label}`}
-                  />
-                </span>
-              ) : null}
               <button
                 type="button"
                 className="message-sender-toggle"
@@ -163,11 +147,6 @@ export function SenderGroupedMessageList({
                       className="message-table-cell message-table-cell--subject message-table-cell--grouped-subject"
                       onClick={() => onSelectMessage(msg.uid)}
                     >
-                      <SenderAvatar
-                        from={groupBy === "to" ? msg.to : msg.from}
-                        className="message-table-sender-avatar"
-                        size="sm"
-                      />
                       <span className="message-subject-text">{msg.subject || "(No subject)"}</span>
                       {msg.flagged ? (
                         <span className="message-star" aria-label="Starred">

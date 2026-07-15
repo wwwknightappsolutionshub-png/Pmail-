@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./SentMessageToast.css";
 
 type SentMessageToastProps = {
@@ -6,6 +7,7 @@ type SentMessageToastProps = {
 };
 
 export function SentMessageToast({ onOpenTracking, onDismiss }: SentMessageToastProps) {
+  useToastAutoDismiss(onDismiss, true, "info");
   return (
     <div className="sent-message-toast" role="status">
       <div className="sent-message-toast-copy">

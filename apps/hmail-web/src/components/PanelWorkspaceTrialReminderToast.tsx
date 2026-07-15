@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import type { PanelWorkspaceTrialReminderKind } from "../hooks/usePanelWorkspaceTrialReminder";
 import "./PaidAddonToast.css";
 
@@ -27,6 +28,7 @@ export function PanelWorkspaceTrialReminderToast({
   onOpenMarketplace,
   onDismiss,
 }: PanelWorkspaceTrialReminderToastProps) {
+  useToastAutoDismiss(onDismiss, true, "action");
   return (
     <div className="paid-addon-toast-overlay" role="dialog" aria-modal="true" aria-labelledby="panel-trial-reminder-title">
       <div className="paid-addon-toast">

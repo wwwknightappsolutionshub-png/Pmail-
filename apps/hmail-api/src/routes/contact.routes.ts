@@ -23,6 +23,8 @@ import {
 } from "../services/contact.service.js";
 import { syncInboxContactsForUser } from "../services/inbox-contact-sync.service.js";
 import { resolveRequestMailCredentials } from "../services/mail-account.service.js";
+import { blockWhenTenantUiFeatureHidden } from "../middleware/requireTenantUiFeature.js";
+import { TENANT_UI_POLICY_KEYS } from "../services/tenant-ui-policy.service.js";
 
 const contactSchema = z.object({
   email: z.string().email(),
@@ -49,6 +51,12 @@ const suggestSchema = z.object({
 export const contactRouter = Router();
 
 contactRouter.use(requireAuth);
+contactRouter.use(
+  blockWhenTenantUiFeatureHidden(
+    TENANT_UI_POLICY_KEYS.HIDE_CONTACTS,
+    "Contacts is temporarily unavailable for this workspace.",
+  ),
+);
 
 contactRouter.get("/", async (req, res, next) => {
   try {

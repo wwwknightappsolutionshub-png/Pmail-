@@ -227,15 +227,11 @@ mailRouter.get("/messages/:uid", async (req, res, next) => {
   try {
     const folder = String(req.query.folder ?? "INBOX");
     const uid = Number(req.params.uid);
-    const message = await getMessage(await mailCredentials(req), folder, uid);
+    const creds = await mailCredentials(req);
+    const message = await getMessage(creds, folder, uid, { markSeen: true });
     if (!message) {
       res.status(404).json({ error: "Message not found" });
       return;
-    }
-
-    if (!message.seen) {
-      await setMessageFlags(await mailCredentials(req), folder, uid, { seen: true });
-      message.seen = true;
     }
 
     res.json({ message });

@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./OpenTrackingOpenToast.css";
 
 type OpenTrackingOpenToastProps = {
@@ -13,6 +14,7 @@ export function OpenTrackingOpenToast({
   onOpenTracking,
   onDismiss,
 }: OpenTrackingOpenToastProps) {
+  useToastAutoDismiss(onDismiss, true, "info");
   return (
     <div className="open-tracking-open-toast" role="status">
       <div className="open-tracking-open-toast-copy">

@@ -1,3 +1,4 @@
+import { useToastAutoDismiss } from "../hooks/useToastAutoDismiss";
 import "./CvScannerToast.css";
 
 interface CvScannerToastProps {
@@ -8,6 +9,7 @@ interface CvScannerToastProps {
 }
 
 export function CvScannerToast({ fileName, onRate, onDismiss, onDontAskAgain }: CvScannerToastProps) {
+  useToastAutoDismiss(onDismiss, true, "action");
   return (
     <div className="cv-scanner-toast" role="status">
       <div>

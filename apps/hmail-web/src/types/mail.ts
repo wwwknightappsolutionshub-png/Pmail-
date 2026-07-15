@@ -36,6 +36,10 @@ export interface AuthUser {
   } | null;
   mailAccountCount?: number;
   mailPushEnabled?: boolean;
+  tenantUi?: {
+    hiddenWorkspaces: Array<"messaging" | "contacts" | "crm">;
+    platformToolsCollapsed: boolean;
+  };
 }
 
 export type BusinessVertical =

@@ -70,7 +70,7 @@ function BespokeMailShellContent() {
   const [searchParams, setSearchParams] = useSearchParams();
   const referFriendDeepLinkHandled = useRef(false);
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
-    (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark",
+    (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "light",
   );
   const [platformNotice, setPlatformNotice] = useState("");
   const [requestedWorkspace, setRequestedWorkspace] = useState<BespokeWorkspace | null>(null);
@@ -112,7 +112,7 @@ function BespokeMailShellContent() {
   );
 
   const displayEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
-  const displayName = user?.displayName?.trim() || displayEmail.split("@")[0] || "User";
+  const displayName = displayEmail || "User";
   const demoUseCaseId = VERTICAL_DEMO_IDS[user?.businessVertical ?? "standard"] ?? "platform";
 
   const workspaceTabCounts = useWorkspaceTabCounts(Boolean(user), demoUseCaseId);
@@ -236,7 +236,7 @@ function BespokeMailShellContent() {
 
   useEffect(() => {
     if (!platformNotice) return;
-    const timer = window.setTimeout(() => setPlatformNotice(""), 5000);
+    const timer = window.setTimeout(() => setPlatformNotice(""), 2000);
     return () => window.clearTimeout(timer);
   }, [platformNotice]);
 
@@ -269,7 +269,7 @@ function BespokeMailShellContent() {
     try {
       await api.updateTheme(theme);
     } catch {
-      setUiThemeVersion((user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark");
+      setUiThemeVersion((user?.uiThemeVersion as "dark" | "light" | undefined) ?? "light");
     }
   };
 
@@ -457,6 +457,7 @@ function BespokeMailShellContent() {
         onLeaveMailSearch={clearMailSearch}
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
+        hiddenWorkspaces={user?.tenantUi?.hiddenWorkspaces}
         renderMobileFooterNav={mobileFooterNav}
         onOpenAddons={openAddonsMarketplace}
         showCareerTab={careerNavUnlocked}

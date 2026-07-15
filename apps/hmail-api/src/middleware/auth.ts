@@ -19,14 +19,16 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       // Presence updates must not block authenticated requests.
     });
 
-    // Keep browser cookie lifetime aligned with the sliding DB session window.
-    const env = getEnv();
-    res.cookie("hmail_session", token, {
-      httpOnly: true,
-      secure: env.COOKIE_SECURE,
-      sameSite: "lax",
-      maxAge: MAIL_SESSION_TTL_MS,
-    });
+    // Sliding refresh for browser sessions only (skip Bearer-only API clients and supertest).
+    if (req.cookies?.hmail_session) {
+      const env = getEnv();
+      res.cookie("hmail_session", token, {
+        httpOnly: true,
+        secure: env.COOKIE_SECURE,
+        sameSite: "lax",
+        maxAge: MAIL_SESSION_TTL_MS,
+      });
+    }
   }
 
   next();

@@ -2,6 +2,8 @@ import { Router } from "express";
 import { getEnv } from "../config/env.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireAddon } from "../middleware/requireAddon.js";
+import { blockWhenTenantUiFeatureHidden } from "../middleware/requireTenantUiFeature.js";
+import { TENANT_UI_POLICY_KEYS } from "../services/tenant-ui-policy.service.js";
 import { listImmigrationTemplates } from "../services/templates.service.js";
 import {
   cancelScheduledMessage,
@@ -631,7 +633,12 @@ featuresRouter.post("/real-estate/deals/:id/notes", requireAddon("re-deal-room")
 registerIndustryVerticalRoutes(featuresRouter, ctx);
 
 // ── Bespoke Workspace: CRM, reminders, industry tools ───────────
-featuresRouter.get("/workspace/stages", requireAddon("bespoke-workspace"), async (req, res, next) => {
+const blockWorkspaceCrm = blockWhenTenantUiFeatureHidden(
+  TENANT_UI_POLICY_KEYS.HIDE_CRM,
+  "CRM is temporarily unavailable for this workspace.",
+);
+
+featuresRouter.get("/workspace/stages", blockWorkspaceCrm, requireAddon("bespoke-workspace"), async (req, res, next) => {
   try {
     const stages = await listPipelineStages(ctx(req).tenantId);
     res.json({ stages });
@@ -640,7 +647,7 @@ featuresRouter.get("/workspace/stages", requireAddon("bespoke-workspace"), async
   }
 });
 
-featuresRouter.get("/workspace/crm", requireAddon("bespoke-workspace"), async (req, res, next) => {
+featuresRouter.get("/workspace/crm", blockWorkspaceCrm, requireAddon("bespoke-workspace"), async (req, res, next) => {
   try {
     const { tenantId, userId } = ctx(req);
     const records = await listCrmRecords(tenantId, userId, req.query.search ? String(req.query.search) : undefined);
@@ -650,7 +657,7 @@ featuresRouter.get("/workspace/crm", requireAddon("bespoke-workspace"), async (r
   }
 });
 
-featuresRouter.post("/workspace/crm", requireAddon("bespoke-workspace"), async (req, res, next) => {
+featuresRouter.post("/workspace/crm", blockWorkspaceCrm, requireAddon("bespoke-workspace"), async (req, res, next) => {
   try {
     const { tenantId, userId } = ctx(req);
     const record = await createCrmRecord(tenantId, userId, {
@@ -671,7 +678,7 @@ featuresRouter.post("/workspace/crm", requireAddon("bespoke-workspace"), async (
   }
 });
 
-featuresRouter.patch("/workspace/crm/:id", requireAddon("bespoke-workspace"), async (req, res, next) => {
+featuresRouter.patch("/workspace/crm/:id", blockWorkspaceCrm, requireAddon("bespoke-workspace"), async (req, res, next) => {
   try {
     const { tenantId, userId } = ctx(req);
     const record = await updateCrmRecord(tenantId, userId, String(req.params.id), {
@@ -691,7 +698,7 @@ featuresRouter.patch("/workspace/crm/:id", requireAddon("bespoke-workspace"), as
   }
 });
 
-featuresRouter.delete("/workspace/crm/:id", requireAddon("bespoke-workspace"), async (req, res, next) => {
+featuresRouter.delete("/workspace/crm/:id", blockWorkspaceCrm, requireAddon("bespoke-workspace"), async (req, res, next) => {
   try {
     const { tenantId, userId } = ctx(req);
     await deleteCrmRecord(tenantId, userId, String(req.params.id));
