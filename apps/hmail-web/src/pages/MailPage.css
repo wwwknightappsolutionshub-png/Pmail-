@@ -2070,17 +2070,21 @@
   }
 }
 
+/* Reading-pane toggle: laptop/wide only (not phone) */
+.mail-reading-pane-toggle {
+  display: none;
+}
+
 /*
- * iOS tablet only (768–1099): mid layout hides .mail-read-pane with !important and never
- * re-enables it on data-mobile-pane="read". Restore single-pane detail navigation here
- * without changing phone (≤767), non-iOS tablet, or desktop (≥1100) behavior.
+ * Tablet (768–1099): Gmail-style single content column — list by default,
+ * full-width read when a message (or sender group) is opened.
  */
 @media (min-width: 768px) and (max-width: 1099px) {
-  .mail-app.mail-app--ios-tablet[data-mobile-pane="read"]:not([data-virtual-view="true"]) .mail-list-pane {
+  .mail-app[data-mobile-pane="read"]:not([data-virtual-view="true"]) .mail-list-pane {
     display: none !important;
   }
 
-  .mail-app.mail-app--ios-tablet[data-mobile-pane="read"]:not([data-virtual-view="true"]) .mail-read-pane {
+  .mail-app[data-mobile-pane="read"]:not([data-virtual-view="true"]) .mail-read-pane {
     display: flex !important;
     min-width: 0;
     width: 100%;
@@ -2088,18 +2092,23 @@
     min-height: 0;
   }
 
-  .mail-app.mail-app--ios-tablet[data-mobile-pane="read"]:not([data-virtual-view="true"]) .read-back-btn {
+  .mail-app[data-mobile-pane="read"]:not([data-virtual-view="true"]) .read-back-btn {
     display: inline-flex !important;
     margin-bottom: 0.65rem;
   }
 }
 
-/* ─── Desktop: Bespoke folder + list + read panes ─── */
+/* ─── Desktop: Bespoke folder + list + optional reading pane ─── */
 @media (min-width: 1100px) {
   .mail-layout {
     grid-template-columns: var(--mail-sidebar-rail-width) var(--mail-list-pane-width, minmax(22rem, 0.9fr)) minmax(0, 1fr);
     min-height: 0;
     height: 100%;
+  }
+
+  /* Gmail default: no right column — list uses remaining width */
+  .mail-app[data-reading-pane="off"] .mail-layout {
+    grid-template-columns: var(--mail-sidebar-rail-width) minmax(0, 1fr);
   }
 
   .mail-list-pane {
@@ -2129,6 +2138,10 @@
     background: color-mix(in srgb, var(--brand-accent, #14b8a6) 35%, transparent);
   }
 
+  .mail-app[data-reading-pane="off"] .mail-list-read-splitter {
+    display: none !important;
+  }
+
   .mail-read-pane {
     grid-column: 3;
     grid-row: 1;
@@ -2138,23 +2151,52 @@
     border-left: 1px solid var(--border);
   }
 
-  .mail-app[data-virtual-view="true"] .mail-read-pane,
-  .mail-app[data-content-pane="list"] .mail-read-pane {
+  .mail-app[data-virtual-view="true"] .mail-read-pane {
     display: none !important;
   }
 
   .mail-app[data-virtual-view="true"] .mail-list-pane {
-    grid-column: 2 / 4;
+    grid-column: 2 / -1;
   }
 
-  .mail-app[data-content-pane="read"] .mail-list-pane,
-  .mail-app[data-content-pane="list"] .mail-list-pane,
-  .mail-app[data-content-pane="read"] .mail-read-pane {
+  /* Reading pane off: full-width list, or full-width read after open */
+  .mail-app[data-reading-pane="off"][data-content-pane="list"] .mail-list-pane {
+    display: flex !important;
+    grid-column: 2;
+  }
+
+  .mail-app[data-reading-pane="off"][data-content-pane="list"] .mail-read-pane {
+    display: none !important;
+  }
+
+  .mail-app[data-reading-pane="off"][data-content-pane="read"]:not([data-virtual-view="true"]) .mail-list-pane {
+    display: none !important;
+  }
+
+  .mail-app[data-reading-pane="off"][data-content-pane="read"]:not([data-virtual-view="true"]) .mail-read-pane {
+    display: flex !important;
+    grid-column: 2;
+    border-left: none;
+  }
+
+  /* Reading pane on: classic list + preview (empty state when nothing selected) */
+  .mail-app[data-reading-pane="on"][data-content-pane="list"]:not([data-virtual-view="true"]) .mail-list-pane,
+  .mail-app[data-reading-pane="on"][data-content-pane="read"] .mail-list-pane {
     display: flex !important;
   }
 
-  .mail-app[data-content-pane="list"] .mail-list-pane {
+  .mail-app[data-reading-pane="on"]:not([data-virtual-view="true"]) .mail-read-pane {
     display: flex !important;
+  }
+
+  .mail-reading-pane-toggle {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .mail-reading-pane-toggle.is-active {
+    border-color: color-mix(in srgb, var(--brand-accent, #14b8a6) 55%, var(--border));
+    color: var(--brand-accent, #14b8a6);
   }
 
   .read-header {
@@ -2203,6 +2245,10 @@
 @media (min-width: 1400px) {
   .mail-layout {
     grid-template-columns: var(--mail-sidebar-rail-width) minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+
+  .mail-app[data-reading-pane="off"] .mail-layout {
+    grid-template-columns: var(--mail-sidebar-rail-width) minmax(0, 1fr);
   }
 
   .mail-app[data-sidebar-collapsed="false"] {
@@ -3266,7 +3312,7 @@
 }
 
 @media (min-width: 1100px) {
-  .mail-list-read-splitter {
+  .mail-app[data-reading-pane="on"] .mail-list-read-splitter {
     display: block;
   }
 }

@@ -61,7 +61,7 @@ import { SenderGroupedMessageList, senderLabel } from "../components/SenderGroup
 import { encodeSenderKey } from "../utils/senderAvatar";
 import { MessageTableHead } from "../components/MessageTableHead";
 import { useMailListPaneResize } from "../hooks/useMailListPaneResize";
-import { extractEmailFromHeader } from "../utils/senderAvatar";
+import { extractEmailFromHeader, extractPrimaryEmailFromHeader } from "../utils/senderAvatar";
 import { MailBottomNavButton } from "../components/MailBottomNavButton";
 import {
   MobileDrawerTooltip,
@@ -115,6 +115,8 @@ function mergeMessagePages(
   return merged;
 }
 const MAIL_SIDEBAR_COLLAPSED_KEY = "pmail-mail-sidebar-collapsed-v3";
+/** Desktop/tablet/laptop only: Gmail-style list without a permanent right reading pane. */
+const MAIL_READING_PANE_KEY = "pmail-mail-reading-pane-enabled-v1";
 
 function readSidebarCollapsedPreference(): boolean | null {
   try {
@@ -125,6 +127,14 @@ function readSidebarCollapsedPreference(): boolean | null {
     /* ignore */
   }
   return null;
+}
+
+function readReadingPaneEnabledPreference(): boolean {
+  try {
+    return localStorage.getItem(MAIL_READING_PANE_KEY) === "1";
+  } catch {
+    return false;
+  }
 }
 
 function defaultSidebarCollapsed(): boolean {
@@ -363,6 +373,8 @@ export function MailPage({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => readSidebarCollapsedPreference() ?? defaultSidebarCollapsed(),
   );
+  /** When false (default), desktop/tablet/laptop show Gmail-style full-width list until a message opens. */
+  const [readingPaneEnabled, setReadingPaneEnabled] = useState(readReadingPaneEnabledPreference);
   const [mobilePane, setMobilePane] = useState<MobilePane>("list");
   const [closeDrawerTooltip, setCloseDrawerTooltip] = useState<MobileDrawerTooltipState>(null);
   const [expandedSenderEmails, setExpandedSenderEmails] = useState<Set<string>>(() => new Set());
@@ -467,7 +479,7 @@ export function MailPage({
 
   const sortedFolders = useMemo(() => sortFolders(folders), [folders]);
   const isVirtual = isVirtualView(activeFolder);
-  const desktopSplitResizeEnabled = !embedded && !isVirtual;
+  const desktopSplitResizeEnabled = !embedded && !isVirtual && readingPaneEnabled;
   const { listPaneWidth, isResizing, startResize } = useMailListPaneResize(desktopSplitResizeEnabled);
 
   const activeFolderMeta =
@@ -568,6 +580,18 @@ export function MailPage({
     if (isMultiInboxPromptDismissed()) return;
     setMultiInboxPromptOpen(true);
   }, [showInboxSwitcher, hasMultiInboxAddon, mailAccountCount]);
+  const toggleReadingPane = useCallback(() => {
+    setReadingPaneEnabled((current) => {
+      const next = !current;
+      try {
+        localStorage.setItem(MAIL_READING_PANE_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
   const contentPane = isVirtual || !selectedUid ? "list" : "read";
   const isLoadingSelectedMessage = Boolean(
     selectedUid &&
@@ -1415,14 +1439,32 @@ export function MailPage({
                   messages={messages}
                   selectedUid={selectedUid}
                   expandedSenderEmails={expandedSenderEmails}
-                  onToggleSender={(email) =>
+                  onToggleSender={(email) => {
                     setExpandedSenderEmails((current) => {
                       const next = new Set(current);
-                      if (next.has(email)) next.delete(email);
-                      else next.add(email);
+                      const collapsing = next.has(email);
+                      if (collapsing) {
+                        next.delete(email);
+                        return next;
+                      }
+                      next.add(email);
                       return next;
-                    })
-                  }
+                    });
+                    const groupMessages = messages.filter((message) => {
+                      const header = senderGroupBy === "to" ? message.to : message.from;
+                      const key =
+                        senderGroupBy === "to"
+                          ? extractPrimaryEmailFromHeader(header)
+                          : extractEmailFromHeader(header);
+                      return key === email;
+                    });
+                    if (groupMessages.length === 0) return;
+                    const alreadyExpanded = expandedSenderEmails.has(email);
+                    if (alreadyExpanded) return;
+                    const target =
+                      groupMessages.find((message) => !message.seen) ?? groupMessages[0];
+                    if (target) selectMessage(target.uid);
+                  }}
                   onSelectMessage={selectMessage}
                   showBulkBar={showBulkBar}
                   selectedUids={selectedUids}
@@ -1495,6 +1537,7 @@ export function MailPage({
       data-mobile-pane={mobilePane}
       data-virtual-view={isVirtual ? "true" : "false"}
       data-content-pane={contentPane}
+      data-reading-pane={readingPaneEnabled ? "on" : "off"}
       data-sidebar-collapsed={sidebarCollapsed ? "true" : "false"}
       data-folder-kind={activeFolderKind ?? undefined}
       data-list-pane-resizing={isResizing ? "true" : "false"}
@@ -1726,6 +1769,19 @@ export function MailPage({
               </div>
             ) : null}
             <div className="list-header-actions">
+              <button
+                type="button"
+                className={`ghost-btn mail-reading-pane-toggle${readingPaneEnabled ? " is-active" : ""}`}
+                onClick={toggleReadingPane}
+                aria-pressed={readingPaneEnabled}
+                title={
+                  readingPaneEnabled
+                    ? "Hide reading pane (Gmail-style full-width list)"
+                    : "Show reading pane beside the list"
+                }
+              >
+                {readingPaneEnabled ? "Hide reading pane" : "Show reading pane"}
+              </button>
               <button type="button" className="free-addon-btn" onClick={() => navigate("/addons")}>
                 Free Addon
               </button>
@@ -1739,7 +1795,7 @@ export function MailPage({
           {renderMainContent()}
         </section>
 
-        {!isVirtual ? (
+        {!isVirtual && readingPaneEnabled ? (
           <div
             className="mail-list-read-splitter"
             role="separator"
