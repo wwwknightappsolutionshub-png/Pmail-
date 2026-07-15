@@ -50,7 +50,8 @@ import { resolveTenantUi } from "../utils/tenantUi";
 import { HMailLogo } from "../components/HMailLogo";
 import { PmailLoadingScreen } from "../components/PmailLoadingScreen";
 import { MailBulkActions } from "../components/MailBulkActions";
-import { MailOrderBar } from "../components/MailOrderBar";
+import { MailListSortControls } from "../components/MailListSortControls";
+import { sortMessagesByDate } from "../utils/mailMessageSort";
 import { MailListLoadMore } from "../components/MailListLoadMore";
 import { GmailMailSearch, isGmailStyleQuery } from "../components/GmailMailSearch";
 import { NewFolderModal } from "../components/NewFolderModal";
@@ -81,6 +82,7 @@ import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useForegroundRefresh } from "../hooks/useForegroundRefresh";
 import { toolAddonSlug } from "../constants/addonTools";
 import {
+  folderShowsRowDelete,
   folderSupportsBulkActions,
   folderUsesCollapsibleListHead,
   folderUsesSenderGrouping,
@@ -95,6 +97,7 @@ import {
   type MailStatusFilter,
 } from "../constants/mailViews";
 import type { MailFolder, MailMessageDetail, MailMessageSummary, MailSortField, MailSortOrder } from "../types/mail";
+import { MessageRowDeleteButton } from "../components/MessageRowDeleteButton";
 import "./MailPage.css";
 import "../components/ContactsPanel.css";
 
@@ -493,6 +496,14 @@ export function MailPage({
     } as MailFolder);
 
   const activeFolderKind = isVirtual ? null : resolveFolderKind(activeFolderMeta);
+  const displayedMessages = useMemo(() => {
+    if (sortBy === "date") {
+      return sortMessagesByDate(messages, sortOrder);
+    }
+    return messages;
+  }, [messages, sortBy, sortOrder]);
+  const listStatusFilter =
+    mailFilter === "unread" || mailFilter === "read" ? mailFilter : "all";
   const useSenderGrouping =
     !isVirtualView(activeFolder) && folderUsesSenderGrouping(activeFolderKind, mailFilter);
   const senderGroupBy = senderGroupByForList(activeFolderKind, mailFilter);
@@ -522,6 +533,17 @@ export function MailPage({
     setAppliedSearch(EMPTY_MAIL_SEARCH);
     messagePageRef.current = 1;
   }, [setAppliedSearch, setSearchDraft]);
+
+  const onListSortOrderChange = useCallback((nextSortOrder: MailSortOrder) => {
+    setSortBy("date");
+    setSortOrder(nextSortOrder);
+    messagePageRef.current = 1;
+  }, []);
+
+  const onListStatusFilterChange = useCallback((nextFilter: "all" | "unread" | "read") => {
+    setMailFilter(nextFilter);
+    messagePageRef.current = 1;
+  }, []);
 
   const selectFolder = useCallback(
     (path: string) => {
@@ -796,8 +818,8 @@ export function MailPage({
         filter: mailFilter,
         page: 1,
         pageSize: PAGE_SIZE,
-        sortBy,
-        sortOrder,
+        sortBy: "date",
+        sortOrder: "desc",
       });
       setMessages(result.messages);
       setMessageTotal(result.total);
@@ -806,7 +828,7 @@ export function MailPage({
     } finally {
       setLoadingMessages(false);
     }
-  }, [sortedFolders, loadFolders, mailFilter, sortBy, sortOrder]);
+  }, [sortedFolders, loadFolders, mailFilter]);
 
   useEffect(() => {
     const inboxPath = folders.find((f) => resolveFolderKind(f) === "inbox")?.path;
@@ -945,6 +967,7 @@ export function MailPage({
   };
 
   const [deletingSenderEmail, setDeletingSenderEmail] = useState<string | null>(null);
+  const [deletingUid, setDeletingUid] = useState<number | null>(null);
 
   const onDeleteSenderGroup = async (email: string, uids: number[], fromHeader: string) => {
     const label = senderLabel(fromHeader);
@@ -1044,6 +1067,10 @@ export function MailPage({
 
   const junkFolder = folders.find((f) => resolveFolderKind(f) === "junk");
   const isTrashFolder = activeFolderKind === "trash";
+  const isJunkFolder = activeFolderKind === "junk";
+  const showRowDelete = folderShowsRowDelete(activeFolderKind);
+  const rowDeleteLabel =
+    isTrashFolder || isJunkFolder ? "Delete forever" : "Delete";
 
   const runBulkAction = async (
     action: "markRead" | "markUnread" | "delete" | "move" | "reportSpam",
@@ -1092,6 +1119,36 @@ export function MailPage({
     setMobilePane("list");
     await loadMessages();
     await loadFolders();
+  };
+
+  const onDeleteListMessage = async (uid: number) => {
+    setListError("");
+    setDeletingUid(uid);
+    try {
+      const permanent = activeFolderKind === "trash" || activeFolderKind === "junk";
+      if (permanent) {
+        await api.deleteMessage(activeFolder, uid);
+      } else {
+        const trash = folders.find((f) => f.specialUse === "\\Trash");
+        if (!trash) {
+          await api.deleteMessage(activeFolder, uid);
+        } else {
+          await api.moveMessage(activeFolder, uid, trash.path);
+        }
+      }
+      setSelectedUids((current) => current.filter((selected) => selected !== uid));
+      if (selectedUid === uid) {
+        setSelectedUid(null);
+        setSelectedMessage(null);
+        setMobilePane("list");
+      }
+      await loadMessages();
+      await loadFolders();
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Could not delete message");
+    } finally {
+      setDeletingUid(null);
+    }
   };
 
   const openCompose = useCallback((initial?: ComposeInitial) => {
@@ -1334,18 +1391,6 @@ export function MailPage({
         </div>
         ) : null}
 
-        {!embedded ? (
-          <MailOrderBar
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onChange={(nextSortBy, nextSortOrder) => {
-              setSortBy(nextSortBy);
-              setSortOrder(nextSortOrder);
-              messagePageRef.current = 1;
-            }}
-          />
-        ) : null}
-
         {statusMessage ? <div className="pane-status">{statusMessage}</div> : null}
 
         {!embedded && !contactsWorkspaceHidden && visibleSuggestions.length > 0 ? (
@@ -1399,9 +1444,9 @@ export function MailPage({
               runBulkAction("reportSpam", junkFolder.path);
             }}
             onDelete={() => void runBulkAction("delete")}
-            deleteLabel={isTrashFolder ? "Delete permanently" : "Delete"}
+            deleteLabel={isTrashFolder || isJunkFolder ? "Delete permanently" : "Delete"}
             showMarkRead={!isTrashFolder}
-            showReportSpam={!isTrashFolder}
+            showReportSpam={!isTrashFolder && !isJunkFolder}
             onMove={(targetFolder) => runBulkAction("move", targetFolder)}
             onClearSelection={() => setSelectedUids([])}
           />
@@ -1427,15 +1472,15 @@ export function MailPage({
             ref={messageListRef}
             data-list-head-revealed={listHeadRevealed ? "true" : "false"}
           >
-          {loadingMessages && messages.length === 0 ? (
+          {loadingMessages && displayedMessages.length === 0 ? (
             <div className="muted pad">Loading messages…</div>
-          ) : messages.length === 0 ? (
+          ) : displayedMessages.length === 0 ? (
             <div className="muted pad">No messages in this folder.</div>
           ) : (
             <>
               {useSenderGrouping ? (
                 <SenderGroupedMessageList
-                  messages={messages}
+                  messages={displayedMessages}
                   selectedUid={selectedUid}
                   expandedSenderEmails={expandedSenderEmails}
                   onToggleSender={(email) => {
@@ -1453,25 +1498,34 @@ export function MailPage({
                   onToggleSelectAll={toggleSelectAll}
                   onToggleSelectSenderGroup={toggleSelectSenderGroup}
                   onDeleteSenderGroup={onDeleteSenderGroup}
+                  onDeleteMessage={(uid) => void onDeleteListMessage(uid)}
+                  showRowDelete={showRowDelete}
+                  rowDeleteLabel={rowDeleteLabel}
+                  deletingUid={deletingUid}
                   deletingSenderEmail={deletingSenderEmail}
                   formatDate={formatDate}
                   primaryColumnLabel={listPrimaryColumnLabel}
                   groupBy={senderGroupBy}
+                  sortOrder={sortOrder}
                   listHeadRevealed={listHeadRevealed}
                 />
               ) : (
                 <>
                   <MessageTableHead
                     showBulkBar={showBulkBar}
-                    allSelected={messages.length > 0 && selectedUids.length === messages.length}
+                    allSelected={
+                      displayedMessages.length > 0 && selectedUids.length === displayedMessages.length
+                    }
                     onToggleSelectAll={toggleSelectAll}
                     primaryColumnLabel={listPrimaryColumnLabel}
                     revealed={listHeadRevealed}
                   />
-                  {messages.map((msg) => (
+                  {displayedMessages.map((msg) => (
                     <div
                       key={msg.uid}
-                      className={`message-table-row ${selectedUid === msg.uid ? "selected" : ""} ${msg.seen ? "" : "unread"}`}
+                      className={`message-table-row${selectedUid === msg.uid ? " selected" : ""}${msg.seen ? "" : " unread"}${
+                        showRowDelete ? " message-table-row--has-delete" : ""
+                      }`}
                     >
                       <span className="message-table-cell message-table-cell--check">
                         {showBulkBar ? (
@@ -1494,9 +1548,22 @@ export function MailPage({
                       <button type="button" className="message-table-cell message-table-cell--snippet" onClick={() => selectMessage(msg.uid)}>
                         {msg.snippet || msg.from || "—"}
                       </button>
-                      <button type="button" className="message-table-cell message-table-cell--date" onClick={() => selectMessage(msg.uid)}>
-                        <time>{formatDate(msg.date)}</time>
-                      </button>
+                      <span className="message-table-cell message-table-cell--date">
+                        <button
+                          type="button"
+                          className="message-table-date-hit"
+                          onClick={() => selectMessage(msg.uid)}
+                        >
+                          <time className="message-table-date">{formatDate(msg.date)}</time>
+                        </button>
+                        {showRowDelete ? (
+                          <MessageRowDeleteButton
+                            label={rowDeleteLabel}
+                            disabled={deletingUid === msg.uid}
+                            onClick={() => void onDeleteListMessage(msg.uid)}
+                          />
+                        ) : null}
+                      </span>
                     </div>
                   ))}
                 </>
@@ -1754,6 +1821,15 @@ export function MailPage({
               </div>
             ) : null}
             <div className="list-header-actions">
+              {!isVirtual ? (
+                <MailListSortControls
+                  sortOrder={sortOrder}
+                  statusFilter={listStatusFilter}
+                  statusFilterDisabled={mailFilter === "starred"}
+                  onSortOrderChange={onListSortOrderChange}
+                  onStatusFilterChange={onListStatusFilterChange}
+                />
+              ) : null}
               <button
                 type="button"
                 className={`ghost-btn mail-reading-pane-toggle${readingPaneEnabled ? " is-active" : ""}`}

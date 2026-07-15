@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { Trash2 } from "lucide-react";
-import type { MailMessageSummary } from "../types/mail";
+import type { MailMessageSummary, MailSortOrder } from "../types/mail";
 import type { SenderGroupBy } from "../constants/mailViews";
 import { SenderAvatar } from "./SenderAvatar";
 import { MessageTableHead } from "./MessageTableHead";
+import { MessageRowDeleteButton } from "./MessageRowDeleteButton";
+import { compareMessagesByDate, messageTimestamp } from "../utils/mailMessageSort";
 import { extractEmailFromHeader, extractPrimaryEmailFromHeader, senderLabel } from "../utils/senderAvatar";
 
 export { senderLabel };
@@ -20,10 +22,15 @@ type Props = {
   onToggleSelectAll: () => void;
   onToggleSelectSenderGroup?: (uids: number[]) => void;
   onDeleteSenderGroup?: (email: string, uids: number[], fromHeader: string) => void;
+  onDeleteMessage?: (uid: number) => void;
+  showRowDelete?: boolean;
+  rowDeleteLabel?: string;
+  deletingUid?: number | null;
   deletingSenderEmail?: string | null;
   formatDate: (iso: string) => string;
   primaryColumnLabel?: string;
   groupBy?: SenderGroupBy;
+  sortOrder?: MailSortOrder;
   listHeadRevealed?: boolean;
 };
 
@@ -48,10 +55,15 @@ export function SenderGroupedMessageList({
   onToggleSelectAll,
   onToggleSelectSenderGroup: _onToggleSelectSenderGroup,
   onDeleteSenderGroup,
+  onDeleteMessage,
+  showRowDelete = false,
+  rowDeleteLabel = "Delete",
+  deletingUid = null,
   deletingSenderEmail = null,
   formatDate,
   primaryColumnLabel = "Sender",
   groupBy = "from",
+  sortOrder = "desc",
   listHeadRevealed = true,
 }: Props) {
   const groups = useMemo(() => {
@@ -62,17 +74,31 @@ export function SenderGroupedMessageList({
       bucket.push(message);
       map.set(email, bucket);
     }
-    return [...map.entries()].map(([email, items]) => {
-      const header = displayHeaderForMessage(items[0]!, groupBy);
-      return {
-        email,
-        label: senderLabel(header),
-        from: header,
-        messages: items,
-        unreadCount: items.filter((item) => !item.seen).length,
-      };
-    });
-  }, [groupBy, messages]);
+    return [...map.entries()]
+      .map(([email, items]) => {
+        const sortedItems = [...items].sort((a, b) => compareMessagesByDate(a, b, sortOrder));
+        const header = displayHeaderForMessage(sortedItems[0]!, groupBy);
+        return {
+          email,
+          label: senderLabel(header),
+          from: header,
+          messages: sortedItems,
+          unreadCount: sortedItems.filter((item) => !item.seen).length,
+          latestTimestamp: messageTimestamp(sortedItems[0]!),
+        };
+      })
+      .sort((a, b) => {
+        const delta = a.latestTimestamp - b.latestTimestamp;
+        if (delta !== 0) {
+          return sortOrder === "asc" ? delta : -delta;
+        }
+        const uidDelta = (a.messages[0]?.uid ?? 0) - (b.messages[0]?.uid ?? 0);
+        if (uidDelta !== 0) {
+          return sortOrder === "asc" ? uidDelta : -uidDelta;
+        }
+        return a.email.localeCompare(b.email);
+      });
+  }, [groupBy, messages, sortOrder]);
 
   return (
     <>
@@ -110,7 +136,7 @@ export function SenderGroupedMessageList({
                 {group.unreadCount > 0 ? (
                   <span className="message-sender-unread">{group.unreadCount} unread</span>
                 ) : null}
-                {showBulkBar && onDeleteSenderGroup ? (
+                {onDeleteSenderGroup ? (
                   <button
                     type="button"
                     className="message-sender-delete-btn"
@@ -130,7 +156,9 @@ export function SenderGroupedMessageList({
               ? group.messages.map((msg) => (
                   <div
                     key={msg.uid}
-                    className={`message-table-row ${selectedUid === msg.uid ? "selected" : ""} ${msg.seen ? "" : "unread"}`}
+                    className={`message-table-row${selectedUid === msg.uid ? " selected" : ""}${msg.seen ? "" : " unread"}${
+                      showRowDelete ? " message-table-row--has-delete" : ""
+                    }`}
                   >
                     <span className="message-table-cell message-table-cell--check">
                       {showBulkBar ? (
@@ -161,13 +189,22 @@ export function SenderGroupedMessageList({
                     >
                       {msg.snippet || (groupBy === "to" ? msg.to : msg.from) || "—"}
                     </button>
-                    <button
-                      type="button"
-                      className="message-table-cell message-table-cell--date"
-                      onClick={() => onSelectMessage(msg.uid)}
-                    >
-                      <time>{formatDate(msg.date)}</time>
-                    </button>
+                    <span className="message-table-cell message-table-cell--date">
+                      <button
+                        type="button"
+                        className="message-table-date-hit"
+                        onClick={() => onSelectMessage(msg.uid)}
+                      >
+                        <time className="message-table-date">{formatDate(msg.date)}</time>
+                      </button>
+                      {showRowDelete && onDeleteMessage ? (
+                        <MessageRowDeleteButton
+                          label={rowDeleteLabel}
+                          disabled={deletingUid === msg.uid}
+                          onClick={() => onDeleteMessage(msg.uid)}
+                        />
+                      ) : null}
+                    </span>
                   </div>
                 ))
               : null}

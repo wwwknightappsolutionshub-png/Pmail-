@@ -867,6 +867,9 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 .signout-btn {
@@ -1219,6 +1222,103 @@
   color: #64748b;
   font-size: 0.8rem;
   white-space: nowrap;
+}
+
+.message-table-cell--date {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  min-height: 1.75rem;
+}
+
+.message-table-date-hit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.message-table-row--has-delete .message-table-date {
+  transition: opacity 0.12s ease;
+}
+
+.message-row-delete-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.message-row-delete-btn-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.message-row-delete-btn:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.16);
+  color: #f87171;
+}
+
+.message-row-delete-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.message-table-row--has-delete:hover .message-table-date,
+.message-table-row--has-delete:focus-within .message-table-date {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.message-table-row--has-delete:hover .message-row-delete-btn,
+.message-table-row--has-delete:focus-within .message-row-delete-btn {
+  display: inline-flex;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.mail-app.mail-app--light .message-row-delete-btn {
+  color: #64748b;
+}
+
+.mail-app.mail-app--light .message-row-delete-btn:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .message-table-row--has-delete .message-table-date {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .message-table-row--has-delete .message-row-delete-btn {
+    display: inline-flex;
+    position: static;
+    transform: none;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
 }
 
 .pane-status {

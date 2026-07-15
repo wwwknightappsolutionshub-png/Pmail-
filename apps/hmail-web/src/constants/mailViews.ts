@@ -119,7 +119,32 @@ export function isVirtualView(path: string): boolean {
 }
 
 export function folderSupportsBulkActions(folderKind: string): boolean {
-  return folderKind === "inbox" || folderKind === "sent" || folderKind === "trash";
+  return (
+    folderKind === "inbox" ||
+    folderKind === "sent" ||
+    folderKind === "drafts" ||
+    folderKind === "junk" ||
+    folderKind === "trash"
+  );
+}
+
+/** Gmail-style hover/delete affordance on list rows for these mailboxes. */
+export function folderShowsRowDelete(folderKind: string | null): boolean {
+  return (
+    folderKind === "sent" ||
+    folderKind === "drafts" ||
+    folderKind === "junk" ||
+    folderKind === "trash"
+  );
+}
+
+export function folderRequiresLatestFirst(folderKind: string | null): boolean {
+  return (
+    folderKind === "inbox" ||
+    folderKind === "sent" ||
+    folderKind === "drafts" ||
+    folderKind === "junk"
+  );
 }
 
 export type SenderGroupBy = "from" | "to";

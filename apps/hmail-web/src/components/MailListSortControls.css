@@ -1,0 +1,69 @@
+.mail-list-sort-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.mail-list-sort-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+.mail-list-sort-control-label {
+  white-space: nowrap;
+}
+
+.mail-list-sort-control select {
+  min-height: 2rem;
+  max-width: 7.5rem;
+  border: 1px solid var(--list-chrome-btn-border, rgba(148, 163, 184, 0.35));
+  border-radius: 999px;
+  background: var(--list-chrome-btn-bg, rgba(15, 23, 42, 0.55));
+  color: var(--text, #e2e8f0);
+  padding: 0.2rem 0.55rem;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mail-list-sort-control select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mail-list-sort-control select:focus {
+  outline: 2px solid color-mix(in srgb, var(--brand-accent, #14b8a6) 45%, transparent);
+  outline-offset: 1px;
+}
+
+.mail-app.mail-app--light .mail-list-sort-control select {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+@media (max-width: 900px) {
+  .mail-list-sort-control-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .mail-list-sort-control select {
+    max-width: 6.75rem;
+    font-size: 0.68rem;
+  }
+}
