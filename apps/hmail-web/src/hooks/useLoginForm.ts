@@ -15,12 +15,19 @@ import {
   type MailProviderPresetKey,
 } from "../constants/mailProviders";
 import { formatUserFacingError } from "../utils/userFacingErrors";
-import { isIosDevice } from "../utils/pwaPlatform";
 import { clearReferralRef, persistReferralRef, readReferralRef } from "../utils/referralStorage";
+
+const LOGIN_PREFLIGHT_VERIFY_ERROR =
+  "Could not verify mailbox setup right now. You can still sign in with the detected provider settings.";
+const LOGIN_PREFLIGHT_DEBOUNCE_MS = 500;
 
 function isEmailCompleteForLoginPreflight(value: string): boolean {
   const normalized = value.trim().toLowerCase();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalized);
+}
+
+function clearMailboxVerifyError(setLoginError: (updater: (current: string) => string) => void) {
+  setLoginError((current) => (current === LOGIN_PREFLIGHT_VERIFY_ERROR ? "" : current));
 }
 
 export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: () => void }) {
@@ -72,42 +79,20 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
       return;
     }
 
+    // Always clear typing-time verify toasts when the address changes.
+    clearMailboxVerifyError(setLoginError);
+
     if (!normalized.includes("@")) {
       setNeedsProviderSetup(null);
       setTesterBypass(false);
       setSuggestedTenantSlug(null);
       setGreetingName(null);
+      setPreflightLoading(false);
       setMailConfig(emptyMailConfig());
       return;
     }
 
-    // iOS: do not preflight (or show verify errors) until the domain extension is present.
-    if (isIosDevice() && !isEmailCompleteForLoginPreflight(normalized)) {
-      setNeedsProviderSetup(null);
-      setTesterBypass(false);
-      setSuggestedTenantSlug(null);
-      setGreetingName(null);
-      setPreflightLoading(false);
-      setLoginError((current) =>
-        current ===
-        "Could not verify mailbox setup right now. You can still sign in with the detected provider settings."
-          ? ""
-          : current,
-      );
-      if (isHostingerForcedEmailDomain(normalized)) {
-        providerOverrideRef.current = false;
-        setMailConfig(resolveHostingerForcedDomainMailConfig());
-      } else if (!providerOverrideRef.current) {
-        const resolved = resolveProviderPresetFromEmail(normalized);
-        if (resolved) {
-          setMailConfig(resolveMailConfigFromPreset(resolved));
-        } else {
-          setMailConfig(emptyMailConfig());
-        }
-      }
-      return;
-    }
-
+    // Apply local provider hints immediately while typing.
     if (isHostingerForcedEmailDomain(normalized)) {
       providerOverrideRef.current = false;
       setMailConfig(resolveHostingerForcedDomainMailConfig());
@@ -115,45 +100,62 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
       const resolved = resolveProviderPresetFromEmail(normalized);
       if (resolved) {
         setMailConfig(resolveMailConfigFromPreset(resolved));
+      } else if (!isEmailCompleteForLoginPreflight(normalized)) {
+        setMailConfig(emptyMailConfig());
       }
     }
 
-    let cancelled = false;
-    setPreflightLoading(true);
-    api
-      .loginPreflight(tenantSlug, normalized)
-      .then((result) => {
-        if (cancelled) return;
-        setNeedsProviderSetup(result.needsProviderSetup);
-        setTesterBypass(Boolean(result.testerBypass));
-        setSuggestedTenantSlug(result.suggestedTenantSlug ?? null);
-        setGreetingName(result.displayName);
+    // Never call login-preflight (or show verify errors) until the email is complete.
+    // Incomplete addresses fail Zod email validation and previously popped a modal mid-typing.
+    if (!isEmailCompleteForLoginPreflight(normalized)) {
+      setNeedsProviderSetup(null);
+      setTesterBypass(false);
+      setSuggestedTenantSlug(null);
+      setGreetingName(null);
+      setPreflightLoading(false);
+      return;
+    }
 
-        if (!providerOverrideRef.current) {
-          if (isHostingerForcedEmailDomain(normalized)) {
-            setMailConfig(resolveHostingerForcedDomainMailConfig());
-          } else if (result.suggestedMailConfig?.providerPreset) {
-            setMailConfig(
-              applySuggestedMailConfig({
-                providerPreset: result.suggestedMailConfig.providerPreset as MailProviderPresetKey,
-                imapHost: result.suggestedMailConfig.imapHost,
-                imapPort: result.suggestedMailConfig.imapPort,
-                imapSecure: result.suggestedMailConfig.imapSecure,
-                smtpHost: result.suggestedMailConfig.smtpHost,
-                smtpPort: result.suggestedMailConfig.smtpPort,
-                smtpSecure: result.suggestedMailConfig.smtpSecure,
-              }),
-            );
-          } else {
-            const resolved = resolveProviderPresetFromEmail(normalized);
-            if (resolved) {
-              setMailConfig(resolveMailConfigFromPreset(resolved));
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      setPreflightLoading(true);
+      api
+        .loginPreflight(tenantSlug, normalized)
+        .then((result) => {
+          if (cancelled) return;
+          clearMailboxVerifyError(setLoginError);
+          setNeedsProviderSetup(result.needsProviderSetup);
+          setTesterBypass(Boolean(result.testerBypass));
+          setSuggestedTenantSlug(result.suggestedTenantSlug ?? null);
+          setGreetingName(result.displayName);
+
+          if (!providerOverrideRef.current) {
+            if (isHostingerForcedEmailDomain(normalized)) {
+              setMailConfig(resolveHostingerForcedDomainMailConfig());
+            } else if (result.suggestedMailConfig?.providerPreset) {
+              setMailConfig(
+                applySuggestedMailConfig({
+                  providerPreset: result.suggestedMailConfig.providerPreset as MailProviderPresetKey,
+                  imapHost: result.suggestedMailConfig.imapHost,
+                  imapPort: result.suggestedMailConfig.imapPort,
+                  imapSecure: result.suggestedMailConfig.imapSecure,
+                  smtpHost: result.suggestedMailConfig.smtpHost,
+                  smtpPort: result.suggestedMailConfig.smtpPort,
+                  smtpSecure: result.suggestedMailConfig.smtpSecure,
+                }),
+              );
+            } else {
+              const resolved = resolveProviderPresetFromEmail(normalized);
+              if (resolved) {
+                setMailConfig(resolveMailConfigFromPreset(resolved));
+              }
             }
           }
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
+        })
+        .catch(() => {
+          if (cancelled) return;
+          // Silent fallback: keep local provider defaults and allow sign-in without a modal.
           setNeedsProviderSetup(true);
           setTesterBypass(false);
           setSuggestedTenantSlug(null);
@@ -164,19 +166,15 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
               setMailConfig(resolveMailConfigFromPreset(resolved));
             }
           }
-          if (!(isIosDevice() && !isEmailCompleteForLoginPreflight(normalized))) {
-            setLoginError(
-              "Could not verify mailbox setup right now. You can still sign in with the detected provider settings.",
-            );
-          }
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setPreflightLoading(false);
-      });
+        })
+        .finally(() => {
+          if (!cancelled) setPreflightLoading(false);
+        });
+    }, LOGIN_PREFLIGHT_DEBOUNCE_MS);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, [email, tenantSlug, isTesterRoute]);
 
@@ -184,7 +182,7 @@ export function useLoginForm(tenantSlug: string, options?: { onLoginSuccess?: ()
     if (isTesterRoute) return;
 
     const normalized = email.trim().toLowerCase();
-    if (!normalized.includes("@")) return;
+    if (!isEmailCompleteForLoginPreflight(normalized)) return;
 
     const detected = resolveProviderPresetFromEmail(normalized);
     if (detected !== "google") return;
