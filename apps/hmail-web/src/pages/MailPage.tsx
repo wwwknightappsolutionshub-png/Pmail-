@@ -40,7 +40,8 @@ import {
 } from "../components/ReadActionButton";
 import { MessageAttachmentsSection } from "../components/MessageAttachmentsSection";
 import {
-  isMultiInboxPromptDismissed,
+  canShowMultiInboxPrompt,
+  recordMultiInboxPromptShown,
   setMultiInboxPromptDismissed,
 } from "../lib/multiInboxPromptPrefs";
 import { resolveInboxPath } from "../components/DocumentsPanel";
@@ -399,7 +400,9 @@ export function MailPage({
   const [inboxConnectToast, setInboxConnectToast] = useState<"success" | "error" | null>(null);
   const [inboxSwitchToast, setInboxSwitchToast] = useState<MailAccountSummary | null>(null);
   const [mailAccountCount, setMailAccountCount] = useState<number | null>(null);
-  const inboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
+  const headerInboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
+  const bottomNavInboxSwitcherRef = useRef<InboxSwitcherHandle>(null);
+  const multiInboxPromptRecordedRef = useRef(false);
   const messageListRef = useRef<HTMLDivElement>(null);
   const readPaneRef = useRef<HTMLElement>(null);
   const readBodyContentRef = useRef<HTMLDivElement>(null);
@@ -545,6 +548,16 @@ export function MailPage({
     messagePageRef.current = 1;
   }, []);
 
+  const listSortControls = !isVirtual ? (
+    <MailListSortControls
+      sortOrder={sortOrder}
+      statusFilter={listStatusFilter}
+      statusFilterDisabled={mailFilter === "starred"}
+      onSortOrderChange={onListSortOrderChange}
+      onStatusFilterChange={onListStatusFilterChange}
+    />
+  ) : null;
+
   const selectFolder = useCallback(
     (path: string) => {
       messagePageRef.current = 1;
@@ -598,7 +611,10 @@ export function MailPage({
   useEffect(() => {
     if (!showInboxSwitcher || !hasMultiInboxAddon) return;
     if (mailAccountCount === null || mailAccountCount > 1) return;
-    if (isMultiInboxPromptDismissed()) return;
+    if (!canShowMultiInboxPrompt()) return;
+    if (multiInboxPromptRecordedRef.current) return;
+    multiInboxPromptRecordedRef.current = true;
+    recordMultiInboxPromptShown();
     setMultiInboxPromptOpen(true);
   }, [showInboxSwitcher, hasMultiInboxAddon, mailAccountCount]);
   const toggleReadingPane = useCallback(() => {
@@ -1050,6 +1066,25 @@ export function MailPage({
   }, [activateEmbeddedShell, inboxPath, selectFolder]);
 
   const footerNavBridge = useOptionalMailFooterNavBridge();
+
+  const openAddMailboxForm = useCallback(() => {
+    setMultiInboxPromptOpen(false);
+    // Defer so the prompt overlay unmounts before the connect panel opens.
+    window.setTimeout(() => {
+      if (embedded && footerNavBridge) {
+        footerNavBridge.openInboxAddForm();
+        return;
+      }
+      // Phone: bottom-nav switcher is the visible control.
+      // Tablet/laptop/desktop: header switcher is visible; bottom nav is CSS-hidden.
+      if (mobileMailViewport) {
+        bottomNavInboxSwitcherRef.current?.openWithAddForm();
+        return;
+      }
+      headerInboxSwitcherRef.current?.openWithAddForm();
+    }, 0);
+  }, [embedded, footerNavBridge, mobileMailViewport]);
+
   const footerNavHandlers = useMemo(
     () => ({
       openFolders: openMobileFolders,
@@ -1508,6 +1543,7 @@ export function MailPage({
                   groupBy={senderGroupBy}
                   sortOrder={sortOrder}
                   listHeadRevealed={listHeadRevealed}
+                  sortControls={listSortControls}
                 />
               ) : (
                 <>
@@ -1519,6 +1555,7 @@ export function MailPage({
                     onToggleSelectAll={toggleSelectAll}
                     primaryColumnLabel={listPrimaryColumnLabel}
                     revealed={listHeadRevealed}
+                    trailing={listSortControls}
                   />
                   {displayedMessages.map((msg) => (
                     <div
@@ -1807,7 +1844,7 @@ export function MailPage({
             {showInboxSwitcher ? (
               <div className="list-header-switcher">
                 <InboxSwitcher
-                  ref={inboxSwitcherRef}
+                  ref={headerInboxSwitcherRef}
                   variant="header"
                   themeVersion={activeThemeVersion}
                   activeAccount={user?.activeMailAccount ?? null}
@@ -1821,14 +1858,8 @@ export function MailPage({
               </div>
             ) : null}
             <div className="list-header-actions">
-              {!isVirtual ? (
-                <MailListSortControls
-                  sortOrder={sortOrder}
-                  statusFilter={listStatusFilter}
-                  statusFilterDisabled={mailFilter === "starred"}
-                  onSortOrderChange={onListSortOrderChange}
-                  onStatusFilterChange={onListStatusFilterChange}
-                />
+              {listSortControls ? (
+                <div className="mail-list-sort-controls-desktop">{listSortControls}</div>
               ) : null}
               <button
                 type="button"
@@ -1998,7 +2029,7 @@ export function MailPage({
           onClick={openMobileMessages}
         />
         <InboxSwitcher
-          ref={inboxSwitcherRef}
+          ref={bottomNavInboxSwitcherRef}
           variant="bottom-nav"
           themeVersion={activeThemeVersion}
           activeAccount={user?.activeMailAccount ?? null}
@@ -2118,14 +2149,7 @@ export function MailPage({
 
       {multiInboxPromptOpen ? (
         <MultiInboxConnectToast
-          onConnectMailbox={() => {
-            setMultiInboxPromptOpen(false);
-            if (embedded && footerNavBridge) {
-              footerNavBridge.openInboxAddForm();
-              return;
-            }
-            inboxSwitcherRef.current?.openWithAddForm();
-          }}
+          onConnectMailbox={openAddMailboxForm}
           onDismiss={() => setMultiInboxPromptOpen(false)}
           onDontAskAgain={() => {
             setMultiInboxPromptDismissed();

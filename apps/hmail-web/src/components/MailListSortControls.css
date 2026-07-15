@@ -67,3 +67,9 @@
     font-size: 0.68rem;
   }
 }
+
+@media (max-width: 1024px) {
+  .mail-list-sort-controls-desktop {
+    display: none !important;
+  }
+}

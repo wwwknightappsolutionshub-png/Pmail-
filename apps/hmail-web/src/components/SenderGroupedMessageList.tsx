@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Trash2 } from "lucide-react";
 import type { MailMessageSummary, MailSortOrder } from "../types/mail";
 import type { SenderGroupBy } from "../constants/mailViews";
@@ -32,6 +32,7 @@ type Props = {
   groupBy?: SenderGroupBy;
   sortOrder?: MailSortOrder;
   listHeadRevealed?: boolean;
+  sortControls?: ReactNode;
 };
 
 function groupKeyForMessage(message: MailMessageSummary, groupBy: SenderGroupBy): string {
@@ -65,6 +66,7 @@ export function SenderGroupedMessageList({
   groupBy = "from",
   sortOrder = "desc",
   listHeadRevealed = true,
+  sortControls = null,
 }: Props) {
   const groups = useMemo(() => {
     const map = new Map<string, MailMessageSummary[]>();
@@ -108,6 +110,7 @@ export function SenderGroupedMessageList({
         onToggleSelectAll={onToggleSelectAll}
         primaryColumnLabel={primaryColumnLabel}
         revealed={listHeadRevealed}
+        trailing={sortControls}
       />
       {groups.map((group) => {
         const expanded = expandedSenderEmails.has(group.email);

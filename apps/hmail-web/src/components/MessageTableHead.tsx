@@ -1,9 +1,13 @@
+import type { ReactNode } from "react";
+
 type MessageTableHeadProps = {
   showBulkBar: boolean;
   allSelected: boolean;
   onToggleSelectAll: () => void;
   primaryColumnLabel: string;
   revealed?: boolean;
+  /** Mobile/tablet only: rendered to the right of "Received". */
+  trailing?: ReactNode;
 };
 
 export function MessageTableHead({
@@ -12,10 +16,13 @@ export function MessageTableHead({
   onToggleSelectAll,
   primaryColumnLabel,
   revealed = true,
+  trailing = null,
 }: MessageTableHeadProps) {
   return (
     <div
-      className={`message-table-head${revealed ? "" : " message-table-head--hidden"}`}
+      className={`message-table-head${revealed ? "" : " message-table-head--hidden"}${
+        trailing ? " message-table-head--with-sort" : ""
+      }`}
       aria-hidden={revealed ? undefined : true}
     >
       <span>
@@ -30,7 +37,10 @@ export function MessageTableHead({
       </span>
       <span>{primaryColumnLabel}</span>
       <span>Excerpt</span>
-      <span>Received</span>
+      <span className="message-table-head-end">
+        <span className="message-table-head-received-label">Received</span>
+        {trailing ? <span className="message-table-head-sort">{trailing}</span> : null}
+      </span>
     </div>
   );
 }

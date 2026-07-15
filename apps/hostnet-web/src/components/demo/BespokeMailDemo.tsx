@@ -203,6 +203,11 @@ function newId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}`;
 }
 
+function WorkspaceTabCountBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return <span className="bespoke-demo-tab-count">{count}</span>;
+}
+
 function emptySignatureDraft(): SignatureDraft {
   return {
     name: "",
@@ -1110,13 +1115,12 @@ export function BespokeMailDemo({
   });
 
   const pendingReminderCount = reminders.filter((reminder) => reminder.status === "pending").length;
-  const useLiveTabCounts = Boolean(renderInboxWorkspace && workspaceTabCounts);
-  const contactsTabCount = useLiveTabCounts ? workspaceTabCounts!.contacts : crmContacts.length;
-  const remindersTabCount = useLiveTabCounts ? workspaceTabCounts!.reminders : pendingReminderCount;
-  const calendarTabCount = useLiveTabCounts ? workspaceTabCounts!.calendar : calendarEvents.length;
-  const messagingDirectoryCount = 1 + organizationChatUsers.length + whatsappContacts.length;
-  const messagingTabCount = renderInboxWorkspace
-    ? workspaceTabCounts?.messaging ?? messagingDirectoryCount
+  const useLiveTabCounts = Boolean(renderInboxWorkspace);
+  const contactsTabCount = useLiveTabCounts ? (workspaceTabCounts?.contacts ?? 0) : crmContacts.length;
+  const remindersTabCount = useLiveTabCounts ? (workspaceTabCounts?.reminders ?? 0) : pendingReminderCount;
+  const calendarTabCount = useLiveTabCounts ? (workspaceTabCounts?.calendar ?? 0) : calendarEvents.length;
+  const messagingTabCount = useLiveTabCounts
+    ? (workspaceTabCounts?.messaging ?? 0)
     : messagingThreads.length;
   // Keep forward More mounted whenever tabs overflow so width stays stable.
   // Back is absolutely positioned (CSS) so it can mount only when needed.
@@ -2447,7 +2451,7 @@ export function BespokeMailDemo({
           onClick={() => openWorkspaceTool("contacts", "Contacts")}
         >
           Contacts
-          <span className="bespoke-demo-tab-count">{contactsTabCount}</span>
+          <WorkspaceTabCountBadge count={contactsTabCount} />
         </button>
         ) : null}
         {!isWorkspaceHidden("crm") ? (
@@ -2465,7 +2469,7 @@ export function BespokeMailDemo({
           onClick={() => openWorkspaceTool("reminders", "Reminders")}
         >
           Reminders
-          <span className="bespoke-demo-tab-count">{remindersTabCount}</span>
+          <WorkspaceTabCountBadge count={remindersTabCount} />
         </button>
         <button
           type="button"
@@ -2473,7 +2477,7 @@ export function BespokeMailDemo({
           onClick={() => openWorkspaceTool("calendar", "Calendar")}
         >
           Calendar
-          <span className="bespoke-demo-tab-count">{calendarTabCount}</span>
+          <WorkspaceTabCountBadge count={calendarTabCount} />
         </button>
         {!isWorkspaceHidden("messaging") ? (
         <button
@@ -2482,7 +2486,7 @@ export function BespokeMailDemo({
           onClick={() => openWorkspaceTool("messaging", "Messaging")}
         >
           Messaging
-          <span className="bespoke-demo-tab-count">{messagingTabCount}</span>
+          <WorkspaceTabCountBadge count={messagingTabCount} />
         </button>
         ) : null}
         <button

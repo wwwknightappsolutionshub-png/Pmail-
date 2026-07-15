@@ -12,8 +12,15 @@ export type WorkspaceTabCounts = {
 const REFRESH_INTERVAL_MS = 30_000;
 const WORKSPACE_STORAGE_PREFIX = "bespoke-demo-workspace:";
 
+const EMPTY_COUNTS: WorkspaceTabCounts = {
+  contacts: 0,
+  reminders: 0,
+  calendar: 0,
+  messaging: 0,
+};
+
 export function useWorkspaceTabCounts(enabled: boolean, demoUseCaseId = "platform") {
-  const [counts, setCounts] = useState<WorkspaceTabCounts | null>(null);
+  const [counts, setCounts] = useState<WorkspaceTabCounts | null>(enabled ? EMPTY_COUNTS : null);
 
   const load = useCallback(async () => {
     if (!enabled) {
@@ -21,22 +28,21 @@ export function useWorkspaceTabCounts(enabled: boolean, demoUseCaseId = "platfor
       return;
     }
 
-    try {
-      const [contactsRes, remindersRes, calendarRes] = await Promise.all([
-        api.contacts(),
-        api.workspaceReminders("pending"),
-        api.workspaceCalendar(),
-      ]);
+    const [contactsRes, remindersRes, calendarRes] = await Promise.allSettled([
+      api.contacts(),
+      api.workspaceReminders("pending"),
+      api.workspaceCalendar(),
+    ]);
 
-      setCounts({
-        contacts: contactsRes.contacts.length,
-        reminders: remindersRes.reminders.length,
-        calendar: calendarRes.events.length,
-        messaging: readWorkspaceMessagingThreadCount(demoUseCaseId),
-      });
-    } catch {
-      setCounts(null);
-    }
+    setCounts({
+      contacts:
+        contactsRes.status === "fulfilled" ? contactsRes.value.contacts.length : 0,
+      reminders:
+        remindersRes.status === "fulfilled" ? remindersRes.value.reminders.length : 0,
+      calendar:
+        calendarRes.status === "fulfilled" ? calendarRes.value.events.length : 0,
+      messaging: readWorkspaceMessagingThreadCount(demoUseCaseId),
+    });
   }, [demoUseCaseId, enabled]);
 
   useEffect(() => {
@@ -45,6 +51,7 @@ export function useWorkspaceTabCounts(enabled: boolean, demoUseCaseId = "platfor
       return;
     }
 
+    setCounts(EMPTY_COUNTS);
     void load();
     const timer = window.setInterval(() => void load(), REFRESH_INTERVAL_MS);
     const messagingTimer = window.setInterval(() => {

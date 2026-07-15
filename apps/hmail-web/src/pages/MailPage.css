@@ -598,6 +598,10 @@
     box-sizing: border-box;
   }
 
+  .message-table-head.message-table-head--with-sort {
+    grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  }
+
   .message-table-cell--check input[type="checkbox"],
   .message-table-head input[type="checkbox"] {
     width: 1.15rem;
@@ -1224,6 +1228,67 @@
   white-space: nowrap;
 }
 
+.message-table-head-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.message-table-head-received-label {
+  flex-shrink: 0;
+}
+
+/* Mobile/tablet: sort lives in the table head (right of Received). Desktop keeps header actions. */
+.message-table-head-sort {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .mail-list-sort-controls-desktop {
+    display: none !important;
+  }
+
+  .message-table-head-sort {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .message-table-head--with-sort .message-table-head-end {
+    justify-content: flex-end;
+    gap: 0.35rem;
+  }
+
+  .message-table-head-sort .mail-list-sort-controls {
+    gap: 0.25rem;
+  }
+
+  .message-table-head-sort .mail-list-sort-control select {
+    min-height: 1.85rem;
+    max-width: 5.75rem;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .message-table-head--with-sort,
+  .message-table-head--with-sort.message-table-head {
+    grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  }
+
+  .message-table-head--with-sort .message-table-head-received-label {
+    display: none;
+  }
+
+  .message-table-head--with-sort .message-table-head-end {
+    grid-column: 3;
+    justify-self: end;
+  }
+}
+
 .message-table-cell--date {
   position: relative;
   display: flex;
@@ -1337,6 +1402,10 @@
     grid-template-columns: 2.25rem minmax(8rem, 1fr) minmax(7rem, 1.2fr) 6.5rem;
     gap: 0.5rem;
     padding: 0.75rem 0.85rem;
+  }
+
+  .message-table-head.message-table-head--with-sort {
+    grid-template-columns: 2.25rem minmax(6rem, 1fr) minmax(5rem, 1fr) auto;
   }
 }
 
