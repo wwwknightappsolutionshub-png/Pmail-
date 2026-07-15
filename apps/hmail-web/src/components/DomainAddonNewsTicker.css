@@ -1,0 +1,61 @@
+/* Laptop / wide only — empty right side of workspace tabs */
+.domain-addon-news-ticker {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .domain-addon-news-ticker {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1 1 auto;
+    min-width: 12rem;
+    max-width: min(34rem, 42vw);
+    margin-left: auto;
+    padding: 0 1rem 0 0.75rem;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .domain-addon-news-ticker-slide {
+    width: 100%;
+    opacity: 0;
+    transform: translateY(0.35rem);
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease;
+    text-align: right;
+    pointer-events: none;
+  }
+
+  .domain-addon-news-ticker-slide.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .domain-addon-news-ticker-link,
+  .domain-addon-news-ticker-slide span {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    color: color-mix(in srgb, var(--brand-accent, #0d9488) 72%, #0f172a);
+    text-decoration: none;
+  }
+
+  .domain-addon-news-ticker-link:hover {
+    text-decoration: underline;
+    color: var(--brand-accent, #0d9488);
+  }
+
+  .pmail-demo-shell:not(.pmail-demo-shell--light) .domain-addon-news-ticker-link,
+  .pmail-demo-shell:not(.pmail-demo-shell--light) .domain-addon-news-ticker-slide span {
+    color: color-mix(in srgb, var(--brand-accent, #14b8a6) 55%, #f8fafc);
+  }
+}

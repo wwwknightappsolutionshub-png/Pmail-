@@ -34,6 +34,7 @@ import {
 import { MailPage } from "./MailPage";
 import { VerticalBespokeMailDemoPage } from "./VerticalBespokeMailDemoPage";
 import { shouldHideVerticalIndustryRibbon } from "../utils/verticalIndustryRibbon";
+import { DomainAddonNewsTicker } from "../components/DomainAddonNewsTicker";
 import { resolveTenantUi } from "../utils/tenantUi";
 import type { BusinessVertical } from "../types/mail";
 
@@ -466,6 +467,7 @@ function BespokeMailShellContent() {
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
         hiddenWorkspaces={tenantUi.hiddenWorkspaces}
+        renderWorkspaceTabsTrailing={<DomainAddonNewsTicker email={displayEmail} />}
         renderMobileFooterNav={mobileFooterNav}
         onOpenAddons={openAddonsMarketplace}
         showCareerTab={careerNavUnlocked}

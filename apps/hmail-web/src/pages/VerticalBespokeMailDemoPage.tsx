@@ -102,6 +102,7 @@ type VerticalBespokeMailDemoPageProps = {
   renderMobileFooterNav?: ReactNode;
   onOpenAddons?: () => void;
   hiddenWorkspaces?: ReadonlyArray<"messaging" | "contacts" | "crm">;
+  renderWorkspaceTabsTrailing?: ReactNode;
 };
 
 export function VerticalBespokeMailDemoPage({
@@ -147,6 +148,7 @@ export function VerticalBespokeMailDemoPage({
   renderMobileFooterNav,
   onOpenAddons,
   hiddenWorkspaces,
+  renderWorkspaceTabsTrailing,
 }: VerticalBespokeMailDemoPageProps) {
   const { hasAddon } = useAddons();
   const resolvedHideIndustryTools =
@@ -224,6 +226,7 @@ export function VerticalBespokeMailDemoPage({
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
         hiddenWorkspaces={hiddenWorkspaces}
+        renderWorkspaceTabsTrailing={renderWorkspaceTabsTrailing}
         renderLoading={<PmailLoadingScreen subtitle="Loading your workspace…" />}
         renderIndustryTool={({ demo: currentDemo, toolId, applyComposeTemplate }) => (
           <LazyIndustryToolPanel

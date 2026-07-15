@@ -186,6 +186,8 @@ type Props = {
   renderLoading?: ReactNode;
   /** Tenant UI policy: temporarily hide workspace tabs. */
   hiddenWorkspaces?: ReadonlyArray<"messaging" | "contacts" | "crm">;
+  /** Optional trailing content in the workspace tabs row (e.g. domain news ticker). */
+  renderWorkspaceTabsTrailing?: ReactNode;
 };
 
 function htmlToComposeText(html: string): string {
@@ -529,6 +531,7 @@ export function BespokeMailDemo({
   workspaceTabCounts = null,
   renderLoading,
   hiddenWorkspaces = [],
+  renderWorkspaceTabsTrailing,
 }: Props) {
   const composeSeed = useMemo(() => getComposeSettings(demo.useCaseId), [demo.useCaseId]);
   const displayName = viewerName?.trim() || viewerEmail?.split("@")[0] || "there";
@@ -2547,6 +2550,9 @@ export function BespokeMailDemo({
               More
             </span>
           </button>
+        ) : null}
+        {renderWorkspaceTabsTrailing ? (
+          <div className="bespoke-demo-workspace-tabs-trailing">{renderWorkspaceTabsTrailing}</div>
         ) : null}
       </div>
 

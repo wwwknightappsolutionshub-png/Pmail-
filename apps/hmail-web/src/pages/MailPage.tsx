@@ -68,7 +68,7 @@ import {
   mobileDrawerTooltipHandlers,
   type MobileDrawerTooltipState,
 } from "../components/MobileDrawerTooltip";
-import { Folder, Inbox, SquarePen, X } from "lucide-react";
+import { Folder, Inbox, PanelRight, SquarePen, X } from "lucide-react";
 import { isIosTabletMailLayout, isMobileScreen } from "../utils/pwaPlatform";
 import { useMailListChromeViewport } from "../hooks/useMailListChromeViewport";
 import { useMessageListAtEnd } from "../hooks/useMessageListAtEnd";
@@ -496,8 +496,7 @@ export function MailPage({
   const useSenderGrouping =
     !isVirtualView(activeFolder) && folderUsesSenderGrouping(activeFolderKind, mailFilter);
   const senderGroupBy = senderGroupByForList(activeFolderKind, mailFilter);
-  const listHeadRevealEnabled =
-    mailListChromeViewport && folderUsesCollapsibleListHead(activeFolderKind, mailFilter);
+  const listHeadRevealEnabled = folderUsesCollapsibleListHead(activeFolderKind, mailFilter);
   const listHeadResetKey = `${activeFolder}:${mailFilter}`;
   const listHeadRevealed = useMessageListHeadReveal(messageListRef, listHeadRevealEnabled, listHeadResetKey);
   const readHeadResetKey = `${activeFolder}:${selectedUid ?? "none"}`;
@@ -1748,7 +1747,11 @@ export function MailPage({
               </span>
             </p>
           ) : null}
-          <header className={`list-header ${isVirtual ? "list-header--virtual" : ""}`}>
+          <header
+            className={`list-header ${isVirtual ? "list-header--virtual" : ""}${
+              !isVirtual && listHeadRevealEnabled && !listHeadRevealed ? " list-header--hidden" : ""
+            }`}
+          >
             <div className="list-header-main">
               <h2>{listPaneTitle}</h2>
             </div>
@@ -1774,13 +1777,18 @@ export function MailPage({
                 className={`ghost-btn mail-reading-pane-toggle${readingPaneEnabled ? " is-active" : ""}`}
                 onClick={toggleReadingPane}
                 aria-pressed={readingPaneEnabled}
+                aria-label={
+                  readingPaneEnabled
+                    ? "Hide reading pane"
+                    : "Show reading pane beside the list"
+                }
                 title={
                   readingPaneEnabled
                     ? "Hide reading pane (Gmail-style full-width list)"
                     : "Show reading pane beside the list"
                 }
               >
-                {readingPaneEnabled ? "Hide reading pane" : "Show reading pane"}
+                <PanelRight className="mail-reading-pane-toggle-icon" strokeWidth={2.25} aria-hidden="true" />
               </button>
               <button type="button" className="free-addon-btn" onClick={() => navigate("/addons")}>
                 Free Addon

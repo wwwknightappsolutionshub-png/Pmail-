@@ -16,7 +16,19 @@
   max-width: min(18rem, 42vw);
   padding: 0.35rem 0.65rem;
   border-radius: 999px;
-  border-color: rgba(148, 163, 184, 0.28);
+  border: 1px solid color-mix(in srgb, var(--brand-accent, #0d9488) 45%, rgba(148, 163, 184, 0.28));
+  background: color-mix(in srgb, var(--brand-accent, #0d9488) 14%, rgba(255, 255, 255, 0.92));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-accent, #0d9488) 12%, transparent);
+}
+
+.inbox-switcher-trigger--header .inbox-switcher-header-label {
+  color: var(--brand-accent, #0d9488);
+  opacity: 1;
+}
+
+.inbox-switcher-trigger--header:hover {
+  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 65%, transparent);
+  background: color-mix(in srgb, var(--brand-accent, #0d9488) 20%, #ffffff);
 }
 
 .inbox-switcher-header-label {
@@ -438,9 +450,18 @@
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
 }
 
-.mail-app--light .inbox-switcher-trigger:not(.inbox-switcher-trigger--bottom-nav) {
+.mail-app--light .inbox-switcher-trigger:not(.inbox-switcher-trigger--bottom-nav):not(.inbox-switcher-trigger--header) {
   background: rgba(15, 23, 42, 0.03);
   border-color: rgba(15, 23, 42, 0.12);
+}
+
+.mail-app--light .inbox-switcher-trigger--header {
+  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 48%, rgba(15, 23, 42, 0.12));
+  background: color-mix(in srgb, var(--brand-accent, #0d9488) 14%, #ffffff);
+}
+
+.mail-app--light .inbox-switcher-trigger--header .inbox-switcher-header-label {
+  color: var(--brand-accent, #0d9488);
 }
 
 .mail-app--light .mail-bottom-nav .inbox-switcher-trigger.inbox-switcher-trigger--bottom-nav,
