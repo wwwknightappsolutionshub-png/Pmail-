@@ -291,7 +291,7 @@ export function FolderNav({
   hideIndustryTools = false,
   iconOnlyRail = false,
   tooltipTheme = "dark",
-  platformToolsDefaultCollapsed = false,
+  platformToolsDefaultCollapsed = true,
 }: FolderNavProps) {
   const [drawerTooltip, setDrawerTooltip] = useState<MobileDrawerTooltipState>(null);
   const [armedDrawerKey, setArmedDrawerKey] = useState<string | null>(null);
@@ -304,6 +304,10 @@ export function FolderNav({
   const workspaceNav = platformToolsSidebarNav(
     hideIndustryTools ? WORKSPACE_NAV.filter((item) => item.view !== VIEW_INDUSTRY_TOOLS) : WORKSPACE_NAV,
   );
+
+  useEffect(() => {
+    setPlatformToolsCollapsed(platformToolsDefaultCollapsed);
+  }, [platformToolsDefaultCollapsed]);
 
   useEffect(() => {
     if (!iconOnlyRail) {
@@ -344,7 +348,7 @@ export function FolderNav({
 
   const renderItem = (folder: MailFolder) => {
     const kind = resolveFolderKind(folder);
-    const isActive = activeFolder === folder.path;
+    const isActive = activeFolder === folder.path && mailFilter !== "starred";
     const count = folder.unseen ?? 0;
 
     return (

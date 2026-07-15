@@ -12,7 +12,8 @@ export function blockWhenTenantUiFeatureHidden(policyKey: TenantUiPolicyKey, mes
       return;
     }
 
-    if (await isTenantUiFeatureHidden(tenantId, policyKey)) {
+    const userEmail = req.auth?.user.email;
+    if (await isTenantUiFeatureHidden(tenantId, policyKey, userEmail)) {
       res.status(403).json({ error: message });
       return;
     }

@@ -2356,29 +2356,52 @@
 
 .mail-app.mail-app--light .folder-nav-item:hover {
   background: #f1f5f9;
-  border-color: var(--border-subtle);
 }
 
 .mail-app.mail-app--light .folder-nav-item.is-active {
-  background: #ecf8f6;
+  background: #e8f5f3;
   color: #0f766e;
 }
 
 .mail-app.mail-app--light .folder-nav-icon {
-  color: var(--sidebar-muted);
-  background: #f1f5f9;
-  border-color: var(--border-subtle);
+  color: #64748b;
+  background: transparent;
+  border: 0;
 }
 
 .mail-app.mail-app--light .folder-nav-item.is-active .folder-nav-icon {
-  color: #ffffff;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
-  border-color: color-mix(in srgb, #0d9488 40%, transparent);
+  color: #0d9488;
+  background: transparent;
+  border: 0;
+}
+
+.mail-app.mail-app--light .folder-nav-item--inbox.is-active .folder-nav-icon {
+  color: #0d9488;
+}
+
+.mail-app.mail-app--light .folder-nav-item--starred.is-active .folder-nav-icon {
+  color: #d97706;
+}
+
+.mail-app.mail-app--light .folder-nav-item--sent.is-active .folder-nav-icon {
+  color: #2563eb;
+}
+
+.mail-app.mail-app--light .folder-nav-item--drafts.is-active .folder-nav-icon {
+  color: #4f46e5;
+}
+
+.mail-app.mail-app--light .folder-nav-item--junk.is-active .folder-nav-icon {
+  color: #d97706;
+}
+
+.mail-app.mail-app--light .folder-nav-item--trash.is-active .folder-nav-icon {
+  color: #dc2626;
 }
 
 .mail-app.mail-app--light .folder-nav-item--compose {
   background: #ecf8f6;
-  border-color: color-mix(in srgb, #0d9488 28%, transparent);
+  border-radius: 999px;
 }
 
 .mail-app.mail-app--light .folder-nav-item--compose:hover {

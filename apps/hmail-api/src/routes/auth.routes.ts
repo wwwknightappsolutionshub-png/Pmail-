@@ -178,7 +178,10 @@ authRouter.post("/tester/login", async (req, res, next) => {
 
     res.json({
       token,
-      user: sanitizeUser(user),
+      user: {
+        ...sanitizeUser(user),
+        tenantUi: await getActiveTenantUiPolicies(user.tenant.id, user.email),
+      },
     });
   } catch (err) {
     if (err instanceof AuthError) {
@@ -227,7 +230,10 @@ authRouter.post("/login", async (req, res, next) => {
 
     res.json({
       token,
-      user: sanitizeUser(user),
+      user: {
+        ...sanitizeUser(user),
+        tenantUi: await getActiveTenantUiPolicies(user.tenant.id, user.email),
+      },
     });
   } catch (err) {
     if (err instanceof AuthError) {
@@ -271,7 +277,7 @@ authRouter.get("/me", async (req, res, next) => {
     }
     await ensurePrimaryMailAccount(context.user, context.mailPassword);
     const mailSummary = await getActiveMailAccountSummary(context.user.id, context.activeMailAccountId);
-    const tenantUi = await getActiveTenantUiPolicies(context.user.tenant.id);
+    const tenantUi = await getActiveTenantUiPolicies(context.user.tenant.id, context.user.email);
     res.json({
       user: {
         ...sanitizeUser(context.user, {

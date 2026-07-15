@@ -46,6 +46,7 @@ import {
 import { resolveInboxPath } from "../components/DocumentsPanel";
 import { FolderNav, folderDisplayLabel, resolveFolderKind, sortFolders } from "../components/FolderNav";
 import { MailBespokeChrome } from "../components/MailBespokeChrome";
+import { resolveTenantUi } from "../utils/tenantUi";
 import { HMailLogo } from "../components/HMailLogo";
 import { PmailLoadingScreen } from "../components/PmailLoadingScreen";
 import { MailBulkActions } from "../components/MailBulkActions";
@@ -499,7 +500,8 @@ export function MailPage({
   const listPaneTitle = mailFilter === "starred" ? "Starred" : activeFolderLabel;
   const activeMailboxEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
   const listWelcomeMailbox = activeMailboxEmail || "User";
-  const contactsWorkspaceHidden = user?.tenantUi?.hiddenWorkspaces?.includes("contacts") ?? false;
+  const tenantUi = resolveTenantUi(user);
+  const contactsWorkspaceHidden = tenantUi.hiddenWorkspaces.includes("contacts");
   const showBulkBar = activeFolderKind ? folderSupportsBulkActions(activeFolderKind) : false;
   /** Match mobile footer: always expose mailboxes control (entitlement gated inside InboxSwitcher). */
   const showInboxSwitcher = !isVirtual;
@@ -513,6 +515,7 @@ export function MailPage({
   const selectFolder = useCallback(
     (path: string) => {
       messagePageRef.current = 1;
+      setMailFilter("all");
       setActiveFolder(path);
       setSelectedUid(null);
       setSelectedMessage(null);
@@ -526,12 +529,19 @@ export function MailPage({
   const openStarredView = useCallback(() => {
     if (embedded) onEmbeddedShellActivate?.();
     messagePageRef.current = 1;
+    const inbox =
+      folders.find((folder) => resolveFolderKind(folder) === "inbox")?.path ??
+      sortedFolders.find((folder) => resolveFolderKind(folder) === "inbox")?.path ??
+      "INBOX";
+    // Starred is a filter over Inbox so Trash ↔ Starred never shares incompatible state.
+    setActiveFolder(inbox);
     setMailFilter("starred");
     setSelectedUid(null);
     setSelectedMessage(null);
     setSelectedUids([]);
+    clearMailSearch();
     setMobilePane("list");
-  }, [embedded, onEmbeddedShellActivate]);
+  }, [clearMailSearch, embedded, folders, onEmbeddedShellActivate, sortedFolders]);
 
   useEffect(() => {
     if (requestedFolder === undefined) return;
@@ -673,6 +683,10 @@ export function MailPage({
     const silent = options?.silent === true;
     const isPaging = append || options?.page != null;
 
+    // Reset all list-loading flags so a superseded request cannot leave a spinner stuck.
+    setLoadingMessages(false);
+    setPagingMessages(false);
+    setListRefreshing(false);
     if (isPaging) {
       setPagingMessages(true);
     } else if (silent) {
@@ -722,13 +736,9 @@ export function MailPage({
       }
     } finally {
       if (generation === fetchGenerationRef.current) {
-        if (isPaging) {
-          setPagingMessages(false);
-        } else if (silent) {
-          setListRefreshing(false);
-        } else {
-          setLoadingMessages(false);
-        }
+        setLoadingMessages(false);
+        setPagingMessages(false);
+        setListRefreshing(false);
       }
     }
   }, [activeFolder, appliedSearch, mailFilter, sortBy, sortOrder, refreshCareerNav]);
@@ -1658,7 +1668,7 @@ export function MailPage({
               tooltipTheme={activeThemeVersion}
               onPaidAddonGate={openPaidAddonGate}
               onOpenAddons={(highlightSlug) => openAddonMarketplace(highlightSlug)}
-              platformToolsDefaultCollapsed={user?.tenantUi?.platformToolsCollapsed ?? false}
+              platformToolsDefaultCollapsed={tenantUi.platformToolsCollapsed}
             />
           </div>
 

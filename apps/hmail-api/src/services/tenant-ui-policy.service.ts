@@ -14,13 +14,40 @@ export type TenantUiPolicySnapshot = {
   platformToolsCollapsed: boolean;
 };
 
+export const SOFTWIRE_ACCOUNTANT_EMAIL_DOMAIN = "softwire-accountant.ae";
+
 const WORKSPACE_KEY_MAP: Record<string, "messaging" | "contacts" | "crm"> = {
   [TENANT_UI_POLICY_KEYS.HIDE_MESSAGING]: "messaging",
   [TENANT_UI_POLICY_KEYS.HIDE_CONTACTS]: "contacts",
   [TENANT_UI_POLICY_KEYS.HIDE_CRM]: "crm",
 };
 
-export async function getActiveTenantUiPolicies(tenantId: string): Promise<TenantUiPolicySnapshot> {
+const SOFTWIRE_HIDDEN_WORKSPACES: Array<"messaging" | "contacts" | "crm"> = [
+  "messaging",
+  "contacts",
+  "crm",
+];
+
+export function isSoftwireAccountantEmail(email: string | null | undefined): boolean {
+  const normalized = email?.trim().toLowerCase() ?? "";
+  return normalized.endsWith(`@${SOFTWIRE_ACCOUNTANT_EMAIL_DOMAIN}`);
+}
+
+function mergeHiddenWorkspaces(
+  base: Array<"messaging" | "contacts" | "crm">,
+  extra: Array<"messaging" | "contacts" | "crm">,
+): Array<"messaging" | "contacts" | "crm"> {
+  const merged = [...base];
+  for (const workspace of extra) {
+    if (!merged.includes(workspace)) merged.push(workspace);
+  }
+  return merged;
+}
+
+export async function getActiveTenantUiPolicies(
+  tenantId: string,
+  userEmail?: string | null,
+): Promise<TenantUiPolicySnapshot> {
   const now = new Date();
   const policies = await prisma.tenantUiPolicy.findMany({
     where: {
@@ -31,11 +58,9 @@ export async function getActiveTenantUiPolicies(tenantId: string): Promise<Tenan
   });
 
   const hiddenWorkspaces: Array<"messaging" | "contacts" | "crm"> = [];
-  let platformToolsCollapsed = false;
 
   for (const policy of policies) {
     if (policy.policyKey === TENANT_UI_POLICY_KEYS.PLATFORM_TOOLS_COLLAPSED) {
-      platformToolsCollapsed = true;
       continue;
     }
     const workspace = WORKSPACE_KEY_MAP[policy.policyKey];
@@ -44,10 +69,36 @@ export async function getActiveTenantUiPolicies(tenantId: string): Promise<Tenan
     }
   }
 
-  return { hiddenWorkspaces, platformToolsCollapsed };
+  // Durable Softwire rule: any mailbox on this domain hides Contacts / Messaging / CRM.
+  if (isSoftwireAccountantEmail(userEmail)) {
+    return {
+      hiddenWorkspaces: mergeHiddenWorkspaces(hiddenWorkspaces, SOFTWIRE_HIDDEN_WORKSPACES),
+      // Platform tools collapse globally for every tenant.
+      platformToolsCollapsed: true,
+    };
+  }
+
+  return {
+    hiddenWorkspaces,
+    // Global product default: Platform tools starts collapsed for all users.
+    platformToolsCollapsed: true,
+  };
 }
 
-export async function isTenantUiFeatureHidden(tenantId: string, policyKey: TenantUiPolicyKey): Promise<boolean> {
+export async function isTenantUiFeatureHidden(
+  tenantId: string,
+  policyKey: TenantUiPolicyKey,
+  userEmail?: string | null,
+): Promise<boolean> {
+  if (
+    isSoftwireAccountantEmail(userEmail) &&
+    (policyKey === TENANT_UI_POLICY_KEYS.HIDE_MESSAGING ||
+      policyKey === TENANT_UI_POLICY_KEYS.HIDE_CONTACTS ||
+      policyKey === TENANT_UI_POLICY_KEYS.HIDE_CRM)
+  ) {
+    return true;
+  }
+
   const now = new Date();
   const policy = await prisma.tenantUiPolicy.findFirst({
     where: {

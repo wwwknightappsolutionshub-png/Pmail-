@@ -34,6 +34,7 @@ import {
 import { MailPage } from "./MailPage";
 import { VerticalBespokeMailDemoPage } from "./VerticalBespokeMailDemoPage";
 import { shouldHideVerticalIndustryRibbon } from "../utils/verticalIndustryRibbon";
+import { resolveTenantUi } from "../utils/tenantUi";
 import type { BusinessVertical } from "../types/mail";
 
 const VERTICAL_DEMO_IDS: Record<BusinessVertical, string> = {
@@ -114,6 +115,7 @@ function BespokeMailShellContent() {
   const displayEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
   const displayName = displayEmail || "User";
   const demoUseCaseId = VERTICAL_DEMO_IDS[user?.businessVertical ?? "standard"] ?? "platform";
+  const tenantUi = resolveTenantUi(user);
 
   const workspaceTabCounts = useWorkspaceTabCounts(Boolean(user), demoUseCaseId);
   const panelTrialReminder = usePanelWorkspaceTrialReminder(user?.id, panelWorkspaceTrial);
@@ -138,7 +140,7 @@ function BespokeMailShellContent() {
   });
 
   useInboxContactSync({
-    enabled: Boolean(user),
+    enabled: Boolean(user) && !tenantUi.hiddenWorkspaces.includes("contacts"),
     onNewContacts: (addedCount) => setContactSyncNotice(addedCount),
   });
 
@@ -148,11 +150,17 @@ function BespokeMailShellContent() {
 
   const navigateMailWorkspaceView = useCallback(
     (view: string | null) => {
+      if (
+        (view === VIEW_CONTACTS && tenantUi.hiddenWorkspaces.includes("contacts")) ||
+        (view === VIEW_WORKSPACE_CRM && tenantUi.hiddenWorkspaces.includes("crm"))
+      ) {
+        return;
+      }
       clearMailSearch();
       setMailWorkspaceView(view);
       setMailFolderRequest(view);
     },
-    [clearMailSearch],
+    [clearMailSearch, tenantUi.hiddenWorkspaces],
   );
 
   const resetToInboxHome = useCallback(() => {
@@ -457,7 +465,7 @@ function BespokeMailShellContent() {
         onLeaveMailSearch={clearMailSearch}
         mobileTopbarSearchCollapsed={mobileTopbarSearchCollapsed}
         workspaceTabCounts={workspaceTabCounts}
-        hiddenWorkspaces={user?.tenantUi?.hiddenWorkspaces}
+        hiddenWorkspaces={tenantUi.hiddenWorkspaces}
         renderMobileFooterNav={mobileFooterNav}
         onOpenAddons={openAddonsMarketplace}
         showCareerTab={careerNavUnlocked}
@@ -481,7 +489,7 @@ function BespokeMailShellContent() {
           onDismiss={panelTrialReminder.dismiss}
         />
       ) : null}
-      {contactSyncNotice ? (
+      {contactSyncNotice && !tenantUi.hiddenWorkspaces.includes("contacts") ? (
         <ContactSyncToast
           addedCount={contactSyncNotice}
           onViewContacts={() => {

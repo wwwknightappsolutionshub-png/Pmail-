@@ -74,37 +74,35 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.55rem;
   width: 100%;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  min-height: 3rem;
-  padding: 0.62rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.7rem 0.35rem 0.55rem;
   background: transparent;
   color: var(--sidebar-text, #e2e8f0);
   text-align: left;
   cursor: pointer;
   transition:
     background 0.15s ease,
-    border-color 0.15s ease,
     color 0.15s ease;
 }
 
 .folder-nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .folder-nav-item.is-active {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 35%, transparent);
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 600;
 }
 
 .folder-nav-item-accent {
   position: absolute;
   left: 0;
-  top: 0.45rem;
-  bottom: 0.45rem;
+  top: 0.35rem;
+  bottom: 0.35rem;
   width: 3px;
   border-radius: 0 4px 4px 0;
   background: transparent;
@@ -116,55 +114,57 @@
 }
 
 .folder-nav-icon {
-  width: 34px;
-  height: 34px;
+  width: 22px;
+  height: 22px;
   display: grid;
   place-items: center;
-  border-radius: 9px;
+  border-radius: 6px;
   flex-shrink: 0;
   color: var(--sidebar-muted, #94a3b8);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition:
-    color 0.15s ease,
-    background 0.15s ease,
-    border-color 0.15s ease;
+  background: transparent;
+  border: 0;
+  transition: color 0.15s ease;
 }
 
 .folder-nav-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .folder-nav-item.is-active .folder-nav-icon {
-  color: #fff;
-  background: color-mix(in srgb, var(--brand-primary, #0d4f6c) 55%, transparent);
-  border-color: color-mix(in srgb, var(--brand-accent, #0d9488) 40%, transparent);
+  color: var(--brand-accent, #0d9488);
+  background: transparent;
+  border-color: transparent;
 }
 
 .folder-nav-icon--inbox.is-active,
 .folder-nav-item--inbox.is-active .folder-nav-icon {
-  color: #ccfbf1;
+  color: #2dd4bf;
 }
 
 .folder-nav-icon--starred.is-active,
 .folder-nav-item--starred.is-active .folder-nav-icon {
-  color: #fde68a;
+  color: #fbbf24;
 }
 
 .folder-nav-icon--sent.is-active,
 .folder-nav-item--sent.is-active .folder-nav-icon {
-  color: #dbeafe;
+  color: #60a5fa;
 }
 
 .folder-nav-icon--drafts.is-active,
 .folder-nav-item--drafts.is-active .folder-nav-icon {
-  color: #e0e7ff;
+  color: #818cf8;
 }
 
 .folder-nav-icon--junk.is-active,
 .folder-nav-item--junk.is-active .folder-nav-icon {
-  color: #fef3c7;
+  color: #f59e0b;
+}
+
+.folder-nav-icon--trash.is-active,
+.folder-nav-item--trash.is-active .folder-nav-icon {
+  color: #f87171;
 }
 
 .folder-nav-heading--collapsible {
