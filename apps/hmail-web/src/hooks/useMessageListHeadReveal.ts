@@ -1,35 +1,17 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import {
+  applyRevealFromScroll,
   isScrollableSurface,
   resolveActiveMailListScroller,
 } from "../utils/mailScrollSurfaces";
 
-const SCROLL_DELTA_THRESHOLD = 6;
-const TOP_REVEAL_THRESHOLD = 8;
+/** Ignore scroll deltas while chrome height/transform settles (prevents endless flicker). */
+const REVEAL_LOCK_MS = 400;
 
 type ScrollSurfaceState = {
   lastTop: number;
   revealed: boolean;
 };
-
-function applyRevealFromScroll(
-  scrollTop: number,
-  lastTop: number,
-  currentRevealed: boolean,
-): { revealed: boolean; lastTop: number } {
-  const delta = scrollTop - lastTop;
-
-  if (scrollTop <= TOP_REVEAL_THRESHOLD) {
-    return { revealed: true, lastTop: scrollTop };
-  }
-  if (delta > SCROLL_DELTA_THRESHOLD) {
-    return { revealed: false, lastTop: scrollTop };
-  }
-  if (delta < -SCROLL_DELTA_THRESHOLD) {
-    return { revealed: true, lastTop: scrollTop };
-  }
-  return { revealed: currentRevealed, lastTop: scrollTop };
-}
 
 /**
  * Hide the sticky column header while scrolling down; reveal when scrolling up.
@@ -43,15 +25,18 @@ export function useMessageListHeadReveal(
 ): boolean {
   const [revealed, setRevealed] = useState(true);
   const revealedRef = useRef(true);
+  const lockUntilRef = useRef(0);
 
   useEffect(() => {
     revealedRef.current = true;
+    lockUntilRef.current = 0;
     setRevealed(true);
   }, [resetKey, enabled]);
 
   useEffect(() => {
     if (!enabled) {
       revealedRef.current = true;
+      lockUntilRef.current = 0;
       setRevealed(true);
       return;
     }
@@ -61,6 +46,7 @@ export function useMessageListHeadReveal(
     const syncRevealed = (next: boolean) => {
       if (revealedRef.current === next) return;
       revealedRef.current = next;
+      lockUntilRef.current = performance.now() + REVEAL_LOCK_MS;
       setRevealed(next);
     };
 
@@ -82,6 +68,13 @@ export function useMessageListHeadReveal(
         surfaceState.set(scroller, state);
       }
 
+      // Layout shifts from collapsing chrome look like reverse scroll — ignore briefly.
+      if (performance.now() < lockUntilRef.current) {
+        state.lastTop = scroller.scrollTop;
+        state.revealed = revealedRef.current;
+        return;
+      }
+
       const result = applyRevealFromScroll(scroller.scrollTop, state.lastTop, state.revealed);
       state.lastTop = result.lastTop;
       state.revealed = result.revealed;
@@ -92,6 +85,7 @@ export function useMessageListHeadReveal(
     return () => {
       document.removeEventListener("scroll", onScroll, { capture: true });
       revealedRef.current = true;
+      lockUntilRef.current = 0;
       setRevealed(true);
     };
   }, [enabled, scrollRef, resetKey]);

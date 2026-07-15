@@ -792,28 +792,25 @@
   justify-content: space-between;
   gap: 0.65rem;
   background: #fff;
-  overflow: visible;
+  overflow: hidden;
   position: relative;
   z-index: 40;
+  flex-shrink: 0;
+  max-height: 5rem;
   transition:
-    transform 0.22s ease,
-    opacity 0.22s ease,
     max-height 0.22s ease,
+    opacity 0.22s ease,
     padding 0.22s ease,
     border-bottom-width 0.22s ease;
-  max-height: 5rem;
 }
 
 .list-header.list-header--hidden {
-  transform: translateY(-100%);
+  max-height: 0;
   opacity: 0;
   pointer-events: none;
-  max-height: 0;
-  min-height: 0;
   padding-top: 0;
   padding-bottom: 0;
   border-bottom-width: 0;
-  overflow: hidden;
 }
 
 .mail-app .list-header {
@@ -917,22 +914,17 @@
   transition:
     transform 0.22s ease,
     opacity 0.22s ease,
-    height 0.22s ease,
-    padding 0.22s ease,
-    border-bottom-width 0.22s ease;
+    margin-bottom 0.22s ease;
   will-change: transform;
 }
 
 .message-table-head--hidden {
+  /* Slide away without zeroing height (height:0 inside the scroller causes flicker). */
   transform: translateY(-100%);
   opacity: 0;
   pointer-events: none;
-  height: 0;
-  min-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  border-bottom-width: 0;
-  overflow: hidden;
+  margin-bottom: -3.25rem;
+  border-bottom-color: transparent;
 }
 
 .mail-app .message-table-head {

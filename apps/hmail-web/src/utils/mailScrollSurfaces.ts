@@ -1,7 +1,7 @@
 import type { RefObject } from "react";
 
-const SCROLL_DELTA_THRESHOLD = 6;
-const TOP_REVEAL_THRESHOLD = 8;
+const SCROLL_DELTA_THRESHOLD = 14;
+const TOP_REVEAL_THRESHOLD = 24;
 
 /** Primary message table scroller inside a mail list pane. */
 export const MAIL_MESSAGE_LIST_SCROLL_SELECTOR = ".message-list";

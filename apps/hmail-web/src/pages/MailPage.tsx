@@ -61,7 +61,7 @@ import { SenderGroupedMessageList, senderLabel } from "../components/SenderGroup
 import { encodeSenderKey } from "../utils/senderAvatar";
 import { MessageTableHead } from "../components/MessageTableHead";
 import { useMailListPaneResize } from "../hooks/useMailListPaneResize";
-import { extractEmailFromHeader, extractPrimaryEmailFromHeader } from "../utils/senderAvatar";
+import { extractEmailFromHeader } from "../utils/senderAvatar";
 import { MailBottomNavButton } from "../components/MailBottomNavButton";
 import {
   MobileDrawerTooltip,
@@ -1441,28 +1441,10 @@ export function MailPage({
                   onToggleSender={(email) => {
                     setExpandedSenderEmails((current) => {
                       const next = new Set(current);
-                      const collapsing = next.has(email);
-                      if (collapsing) {
-                        next.delete(email);
-                        return next;
-                      }
-                      next.add(email);
+                      if (next.has(email)) next.delete(email);
+                      else next.add(email);
                       return next;
                     });
-                    const groupMessages = messages.filter((message) => {
-                      const header = senderGroupBy === "to" ? message.to : message.from;
-                      const key =
-                        senderGroupBy === "to"
-                          ? extractPrimaryEmailFromHeader(header)
-                          : extractEmailFromHeader(header);
-                      return key === email;
-                    });
-                    if (groupMessages.length === 0) return;
-                    const alreadyExpanded = expandedSenderEmails.has(email);
-                    if (alreadyExpanded) return;
-                    const target =
-                      groupMessages.find((message) => !message.seen) ?? groupMessages[0];
-                    if (target) selectMessage(target.uid);
                   }}
                   onSelectMessage={selectMessage}
                   showBulkBar={showBulkBar}

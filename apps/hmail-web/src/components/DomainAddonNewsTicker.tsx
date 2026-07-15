@@ -63,9 +63,12 @@ const MARKETPLACE_ITEM: TickerItem = {
   href: "/addons",
 };
 
-const WAIT_MS = 5000;
-const SHOW_MS = 3000;
-const FADE_MS = 400;
+/** Visible hold after fade-in completes. */
+const SHOW_MS = 120_000;
+/** Fade-in and fade-out duration (must match CSS transition). */
+const FADE_MS = 10_000;
+/** Brief pause after fade-out before the next item. */
+const GAP_MS = 1_000;
 
 function isOnoseImmigrationEmail(email: string | null | undefined): boolean {
   const normalized = email?.trim().toLowerCase() ?? "";
@@ -125,15 +128,17 @@ export function DomainAddonNewsTicker({ email }: DomainAddonNewsTickerProps) {
       if (queueRef.current.length === 0) refillQueue();
       const next = queueRef.current.shift() ?? MARKETPLACE_ITEM;
       setItem(next);
-      setVisible(true);
-      schedule(() => {
-        setVisible(false);
-        schedule(showNext, WAIT_MS);
-      }, SHOW_MS + FADE_MS);
+      setVisible(false);
+      // Start fade-in on the next frame so the CSS transition runs from opacity 0.
+      schedule(() => setVisible(true), 50);
+      // Hold fully visible for SHOW_MS after fade-in completes, then fade out.
+      schedule(() => setVisible(false), 50 + FADE_MS + SHOW_MS);
+      // After fade-out, pause briefly and show the next item.
+      schedule(showNext, 50 + FADE_MS + SHOW_MS + FADE_MS + GAP_MS);
     };
 
     refillQueue();
-    schedule(showNext, WAIT_MS);
+    schedule(showNext, GAP_MS);
 
     return () => {
       cancelled = true;
@@ -145,10 +150,7 @@ export function DomainAddonNewsTicker({ email }: DomainAddonNewsTickerProps) {
 
   return (
     <div className="domain-addon-news-ticker" aria-live="polite">
-      <div
-        className={`domain-addon-news-ticker-slide${visible ? " is-visible" : ""}`}
-        key={item.id}
-      >
+      <div className={`domain-addon-news-ticker-slide${visible ? " is-visible" : ""}`}>
         {item.href ? (
           <Link to={item.href} className="domain-addon-news-ticker-link">
             {item.text}
