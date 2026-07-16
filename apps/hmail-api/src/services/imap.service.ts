@@ -179,6 +179,29 @@ export async function verifyImapLogin(credentials: MailCredentials): Promise<voi
   }
 }
 
+/** Only STATUS folders that show badges — STATUS on every label is a multi-second switch tax. */
+function shouldFetchFolderUnseen(box: { path: string; specialUse?: string | null }): boolean {
+  if (box.specialUse) return true;
+  const path = box.path.replace(/\\/g, "/").toUpperCase();
+  return path === "INBOX" || path.endsWith("/INBOX") || path.endsWith(".INBOX");
+}
+
+export async function getInboxUnseenCount(credentials: MailCredentials): Promise<number> {
+  const { useLocalPmailFixture } = await import("./local-pmail-fixture.service.js");
+  if (useLocalPmailFixture(credentials)) {
+    return 0;
+  }
+
+  const client = buildImapClient(credentials);
+  try {
+    await client.connect();
+    const status = await client.status("INBOX", { unseen: true });
+    return status.unseen ?? 0;
+  } finally {
+    await client.logout().catch(() => undefined);
+  }
+}
+
 export async function listFolders(credentials: MailCredentials): Promise<MailFolder[]> {
   const { useLocalPmailFixture, localFixtureListFolders } = await import("./local-pmail-fixture.service.js");
   if (useLocalPmailFixture(credentials)) {
@@ -193,11 +216,13 @@ export async function listFolders(credentials: MailCredentials): Promise<MailFol
 
     for (const box of mailboxes) {
       let unseen: number | undefined;
-      try {
-        const status = await client.status(box.path, { unseen: true });
-        unseen = status.unseen ?? 0;
-      } catch {
-        unseen = undefined;
+      if (shouldFetchFolderUnseen(box)) {
+        try {
+          const status = await client.status(box.path, { unseen: true });
+          unseen = status.unseen ?? 0;
+        } catch {
+          unseen = undefined;
+        }
       }
 
       folders.push({

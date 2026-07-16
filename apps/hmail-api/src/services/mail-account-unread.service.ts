@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma.js";
-import { listMessages } from "./imap.service.js";
+import { getInboxUnseenCount } from "./imap.service.js";
 import { getMailCredentialsForAccount } from "./mail-account.service.js";
 
 export type MailAccountUnreadRow = {
@@ -25,33 +25,28 @@ export async function getMailAccountsUnreadSummary(
       ? activeMailAccountId
       : accounts.find((account) => account.isPrimary)?.id ?? accounts[0]?.id ?? null;
 
-  const rows: MailAccountUnreadRow[] = [];
-
-  for (const account of accounts) {
-    let unread = 0;
-    const credentials = await getMailCredentialsForAccount(userId, account.id);
-    if (credentials) {
-      try {
-        const inbox = await listMessages(credentials, "INBOX", {
-          filter: "unread",
-          page: 1,
-          pageSize: 1,
-        });
-        unread = inbox.total;
-      } catch {
-        unread = 0;
+  const rows = await Promise.all(
+    accounts.map(async (account) => {
+      let unread = 0;
+      const credentials = await getMailCredentialsForAccount(userId, account.id);
+      if (credentials) {
+        try {
+          unread = await getInboxUnseenCount(credentials);
+        } catch {
+          unread = 0;
+        }
       }
-    }
 
-    rows.push({
-      id: account.id,
-      email: account.email,
-      label: account.label,
-      unread,
-      isActive: account.id === activeId,
-      isPrimary: account.isPrimary,
-    });
-  }
+      return {
+        id: account.id,
+        email: account.email,
+        label: account.label,
+        unread,
+        isActive: account.id === activeId,
+        isPrimary: account.isPrimary,
+      };
+    }),
+  );
 
   return { accounts: rows, activeMailAccountId: activeId };
 }

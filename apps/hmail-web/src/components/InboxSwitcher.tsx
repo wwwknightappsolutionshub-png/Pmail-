@@ -254,6 +254,12 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
       const active =
         result.accounts.find((account) => account.id === result.activeMailAccountId) ??
         targetAccount;
+      setAccounts(
+        result.accounts.map((account) => ({
+          ...account,
+          isActive: account.id === result.activeMailAccountId,
+        })),
+      );
       if (user) {
         setUser({
           ...user,
@@ -261,16 +267,17 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
           mailAccountCount: result.accounts.length,
         });
       }
-      switchedAccount = targetAccount;
+      switchedAccount = { ...active, isActive: true };
       setOpen(false);
+      // Drop the blocking overlay as soon as the session is switched; MailPage loads inbox next.
+      setSwitchingId(null);
       void onSwitched();
+      onAccountSwitched?.(switchedAccount);
+      return;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to switch mailbox");
     } finally {
       setSwitchingId(null);
-      if (switchedAccount) {
-        onAccountSwitched?.(switchedAccount);
-      }
     }
   };
 

@@ -714,19 +714,29 @@ export function MailPage({
       });
   }, [onCareerNavUnlockedChange]);
 
+  const activeMailAccountId = user?.activeMailAccount?.id ?? null;
+  const previousMailAccountIdRef = useRef<string | null>(activeMailAccountId);
+
   const handleMailboxSwitch = useCallback(() => {
+    // Drop mailbox A content immediately so we never leave stale rows under mailbox B.
+    fetchGenerationRef.current += 1;
+    messageLoadGenerationRef.current += 1;
     setActiveFolder("INBOX");
     setSelectedUid(null);
     setSelectedMessage(null);
     setSelectedUids([]);
+    setMessages([]);
+    setMessageTotal(0);
+    setLoadingMessages(true);
+    setLoadingFolders(true);
+    setListError("");
+    setMessageError("");
+    setMobilePane("list");
     resetMessagePage();
     setAppliedSearch({ field: "subject", query: "", scope: "all" });
     setSearchDraft({ field: "subject", query: "", scope: "all" });
     setMailFilter("all");
   }, [resetMessagePage, setAppliedSearch, setSearchDraft]);
-
-  const activeMailAccountId = user?.activeMailAccount?.id ?? null;
-  const previousMailAccountIdRef = useRef<string | null>(activeMailAccountId);
 
   useEffect(() => {
     const previousId = previousMailAccountIdRef.current;
@@ -809,6 +819,7 @@ export function MailPage({
   const listQueryRevision = useMemo(
     () =>
       [
+        activeMailAccountId ?? "",
         activeFolder,
         appliedSearch.field,
         appliedSearch.query,
@@ -817,7 +828,7 @@ export function MailPage({
         sortBy,
         sortOrder,
       ].join("|"),
-    [activeFolder, appliedSearch, mailFilter, sortBy, sortOrder],
+    [activeMailAccountId, activeFolder, appliedSearch, mailFilter, sortBy, sortOrder],
   );
 
   const refreshInboxAfterSend = useCallback(async () => {
