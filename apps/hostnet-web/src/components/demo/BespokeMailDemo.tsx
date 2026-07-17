@@ -24,7 +24,6 @@ import {
   senderDisplayName,
 } from "../../data/demoMailUtils";
 import {
-  buildDefaultAvatarDataUrl,
   buildDefaultSignatureAvatarDataUrl,
   readImageFileAsDataUrl,
   resolveSignatureAvatarUrl,
@@ -494,7 +493,6 @@ export function BespokeMailDemo({
   demo,
   viewerName,
   viewerEmail,
-  viewerAvatarUrl,
   addonsHref = "/#register",
   onOpenAddons,
   calendarEnterpriseEnabled = false,
@@ -504,7 +502,7 @@ export function BespokeMailDemo({
   liveComposeSettings,
   onAutoReplySettingsPersist,
   onAutoReplyTemplateSave,
-  uiThemeVersion = "dark",
+  uiThemeVersion = "light",
   onThemeChange,
   hideIndustryTools = false,
   workspaceToolsGated = false,
@@ -547,13 +545,6 @@ export function BespokeMailDemo({
     (workspace: "messaging" | "contacts" | "crm") => hiddenWorkspaceSet.has(workspace),
     [hiddenWorkspaceSet],
   );
-  const viewerInitials = useMemo(() => {
-    const parts = displayName.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
-    return (parts[0]?.slice(0, 2) ?? "U").toUpperCase();
-  }, [displayName]);
-  const topbarAvatarUrl = viewerAvatarUrl?.trim() || buildDefaultAvatarDataUrl(displayName);
-
   const openAddonsMarketplace = () => {
     if (onOpenAddons) {
       onOpenAddons();
@@ -2341,10 +2332,6 @@ export function BespokeMailDemo({
       {renderAddonsButton("collapsed")}
       {!isPhoneOrTabletChrome ? themeToggleButton : null}
       {!isPhoneOrTabletChrome ? signOutButton : null}
-      <div className="bespoke-demo-topbar-avatar" title={`${displayName} <${displayEmail}>`} aria-hidden="true">
-        <span className="bespoke-demo-topbar-avatar-initials">{viewerInitials}</span>
-        <img className="bespoke-demo-topbar-avatar-image" src={topbarAvatarUrl} alt="" decoding="async" />
-      </div>
     </>
   );
 

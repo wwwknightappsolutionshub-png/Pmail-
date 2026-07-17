@@ -109,7 +109,7 @@ export function ComposeModal({
   initial,
   onCvAttachmentAdded,
   jobHunterEnabled,
-  themeVersion = "dark",
+  themeVersion = "light",
 }: ComposeModalProps) {
   const { user } = useAuth();
   const { hasAddon } = useAddons();

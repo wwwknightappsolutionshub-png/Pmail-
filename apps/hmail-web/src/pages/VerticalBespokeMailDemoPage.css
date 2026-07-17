@@ -3895,7 +3895,6 @@ html:has(.pmail-demo-shell--light) body {
     flex-wrap: nowrap;
   }
 
-  .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-avatar,
   .pmail-demo-shell .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-actions .bespoke-demo-topbar-btn {
     flex-shrink: 0;
   }
@@ -3934,6 +3933,9 @@ html:has(.pmail-demo-shell--light) body {
     max-width: 100%;
     padding: 0.4rem 0.9rem !important;
     border-radius: 999px !important;
+    background: #ffffff !important;
+    border-color: #dbe3ec !important;
+    color: #64748b !important;
   }
 
   .pmail-demo-shell .bespoke-demo-workspace-tabs-account {

@@ -55,7 +55,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
     activeAccount,
     onSwitched,
     variant = "sidebar",
-    themeVersion = "dark",
+    themeVersion = "light",
     onPaidAddonGate,
     onAccountCountChange,
     onAccountConnected,

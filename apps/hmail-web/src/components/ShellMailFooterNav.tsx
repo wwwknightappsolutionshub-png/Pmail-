@@ -23,7 +23,7 @@ type ShellMailFooterNavProps = {
 };
 
 export function ShellMailFooterNav({
-  uiThemeVersion = "dark",
+  uiThemeVersion = "light",
   onActivateInbox,
   onResetInboxHome,
   onClearMailSearch,

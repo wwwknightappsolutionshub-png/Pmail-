@@ -132,7 +132,7 @@ async function seedPmailTesterTenant() {
       email: "pmailtester@gmail.com",
       displayName: "PMail Tester",
       businessVertical: "accounting",
-      uiThemeVersion: "dark",
+      uiThemeVersion: "light",
       mailConfig: {
         create: {
           providerPreset: "custom",

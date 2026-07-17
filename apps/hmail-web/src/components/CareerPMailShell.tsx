@@ -48,6 +48,11 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
     [],
   );
 
+  useEffect(() => {
+    const next = user?.uiThemeVersion;
+    setUiThemeVersion(next === "dark" || next === "light" ? next : "light");
+  }, [user?.uiThemeVersion]);
+
   const displayName = user?.displayName?.trim() || user?.email?.split("@")[0] || "User";
   const displayEmail = user?.activeMailAccount?.email ?? user?.email ?? "";
 
@@ -143,7 +148,7 @@ export function CareerPMailShell({ children }: CareerPMailShellProps) {
         try {
           await api.updateTheme(theme);
         } catch {
-          setUiThemeVersion((user?.uiThemeVersion as "dark" | "light" | undefined) ?? "dark");
+          setUiThemeVersion((user?.uiThemeVersion as "dark" | "light" | undefined) ?? "light");
         }
       }}
       workspaceToolsGated={false}

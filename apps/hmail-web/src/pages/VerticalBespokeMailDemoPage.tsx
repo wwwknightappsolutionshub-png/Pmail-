@@ -165,7 +165,7 @@ export function VerticalBespokeMailDemoPage({
   }
 
   return (
-    <div className={`pmail-demo-shell ${uiThemeVersion === "light" ? "pmail-demo-shell--light" : ""}`}>
+    <div className={`pmail-demo-shell${uiThemeVersion === "dark" ? "" : " pmail-demo-shell--light"}`}>
       <BespokeMailDemo
         demo={demo}
         viewerName={userName}

@@ -75,6 +75,11 @@ function BespokeMailShellContent() {
     (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "light",
   );
   const [platformNotice, setPlatformNotice] = useState("");
+
+  useEffect(() => {
+    const next = user?.uiThemeVersion;
+    setUiThemeVersion(next === "dark" || next === "light" ? next : "light");
+  }, [user?.uiThemeVersion]);
   const [requestedWorkspace, setRequestedWorkspace] = useState<BespokeWorkspace | null>(null);
   const [searchDraft, setSearchDraft] = useState<MailSearchState>(EMPTY_MAIL_SEARCH);
   const [appliedSearch, setAppliedSearch] = useState<MailSearchState>(EMPTY_MAIL_SEARCH);

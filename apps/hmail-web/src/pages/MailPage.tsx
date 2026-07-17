@@ -415,6 +415,11 @@ export function MailPage({
   const hasMultiInboxAddon = hasAddon("multi-inbox-functionality");
 
   useEffect(() => {
+    const next = user?.uiThemeVersion;
+    setUiThemeVersion(next === "dark" || next === "light" ? next : "light");
+  }, [user?.uiThemeVersion]);
+
+  useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
     const sync = () => setMobileMailViewport(mq.matches);
     sync();

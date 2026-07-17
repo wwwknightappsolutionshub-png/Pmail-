@@ -247,7 +247,7 @@ export async function provisionPmailProspectDemo(prospectId: string): Promise<Pr
       email,
       displayName: prospect.fullName,
       businessVertical: "accounting",
-      uiThemeVersion: "dark",
+      uiThemeVersion: "light",
       prospectDemoExpiresAt: expiresAt,
       prospectDemoPasswordHash: passwordHash,
       prospectDemoUpsellEmailSent: false,
