@@ -418,7 +418,7 @@ export function FolderNav({
         </button>
       </div>
 
-      <p className="folder-nav-heading">Mailboxes</p>
+      <p className="folder-nav-heading folder-nav-heading--mailboxes">Mailboxes</p>
       <div className="folder-nav-group">
         {primary.map(renderItem)}
         {onSelectStarred ? (

@@ -352,7 +352,11 @@
     display: none !important;
   }
 
-  .mail-app[data-mobile-pane="menu"] .folder-nav-heading {
+  .mail-app[data-mobile-pane="menu"] .folder-nav-heading--mailboxes {
+    display: none !important;
+  }
+
+  .mail-app[data-mobile-pane="menu"] .folder-nav-heading:not(.folder-nav-heading--mailboxes) {
     display: block;
     padding: 0.85rem 0.85rem 0.35rem;
     margin: 0;

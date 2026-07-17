@@ -65,12 +65,7 @@ import { MessageTableHead } from "../components/MessageTableHead";
 import { useMailListPaneResize } from "../hooks/useMailListPaneResize";
 import { extractEmailFromHeader } from "../utils/senderAvatar";
 import { MailBottomNavButton } from "../components/MailBottomNavButton";
-import {
-  MobileDrawerTooltip,
-  mobileDrawerTooltipHandlers,
-  type MobileDrawerTooltipState,
-} from "../components/MobileDrawerTooltip";
-import { Folder, Inbox, PanelRight, SquarePen, X } from "lucide-react";
+import { Folder, Inbox, PanelRight, SquarePen } from "lucide-react";
 import { isIosTabletMailLayout, isMobileScreen } from "../utils/pwaPlatform";
 import { useMailListChromeViewport } from "../hooks/useMailListChromeViewport";
 import { useMessageListAtEnd } from "../hooks/useMessageListAtEnd";
@@ -380,17 +375,12 @@ export function MailPage({
   /** When false (default), desktop/tablet/laptop show Gmail-style full-width list until a message opens. */
   const [readingPaneEnabled, setReadingPaneEnabled] = useState(readReadingPaneEnabledPreference);
   const [mobilePane, setMobilePane] = useState<MobilePane>("list");
-  const [closeDrawerTooltip, setCloseDrawerTooltip] = useState<MobileDrawerTooltipState>(null);
   const [expandedSenderEmails, setExpandedSenderEmails] = useState<Set<string>>(() => new Set());
   const [uiThemeVersion, setUiThemeVersion] = useState<"dark" | "light">(
     (user?.uiThemeVersion as "dark" | "light" | undefined) ?? "light",
   );
   const messageLoadGenerationRef = useRef(0);
   const activeThemeVersion = embedded && shellThemeVersion ? shellThemeVersion : uiThemeVersion;
-  const mobileDrawerMenuOpen = mobilePane === "menu";
-  const closeDrawerTooltipProps = mobileDrawerMenuOpen
-    ? mobileDrawerTooltipHandlers("Close", setCloseDrawerTooltip)
-    : {};
   const [platformNotice, setPlatformNotice] = useState("");
   const [careerNavUnlocked, setCareerNavUnlocked] = useState(false);
   const [showJobHunterPromoToast, setShowJobHunterPromoToast] = useState(false);
@@ -442,12 +432,6 @@ export function MailPage({
       setPaidAddonGate(null);
     }
   }, [paidAddonGate, panelWorkspaceTrial?.active]);
-
-  useEffect(() => {
-    if (mobilePane !== "menu") {
-      setCloseDrawerTooltip(null);
-    }
-  }, [mobilePane]);
 
   useEffect(() => {
     if (!platformNotice) return;
@@ -1070,7 +1054,6 @@ export function MailPage({
     setNewFolderOpen(false);
     setCvScannerToastFile(null);
     setCareerScannerPreload(null);
-    setCloseDrawerTooltip(null);
     setMessageError("");
     setMailFilter("all");
     const targetInbox = inboxPath || "INBOX";
@@ -1772,26 +1755,10 @@ export function MailPage({
             {!embedded ? (
               <div className="mail-sidebar-head">
                 <HMailLogo size="sm" showWordmark subtitle={tenantName} productName={productName} className="mail-brand-logo" />
-                <button
-                  type="button"
-                  className="mail-sidebar-close"
-                  onClick={() => setMobilePane("list")}
-                  aria-label="Close"
-                  {...(mobileDrawerMenuOpen ? closeDrawerTooltipProps : { "data-tooltip": "Close" })}
-                >
-                  <X className="mail-sidebar-close-icon" aria-hidden="true" />
-                </button>
+                <p className="mail-sidebar-drawer-title">Mailboxes</p>
               </div>
             ) : (
-              <button
-                type="button"
-                className="mail-sidebar-close mail-sidebar-close--embedded"
-                onClick={() => setMobilePane("list")}
-                aria-label="Close"
-                {...(mobileDrawerMenuOpen ? closeDrawerTooltipProps : { "data-tooltip": "Close" })}
-              >
-                <X className="mail-sidebar-close-icon" aria-hidden="true" />
-              </button>
+              <p className="mail-sidebar-drawer-title mail-sidebar-drawer-title--embedded">Mailboxes</p>
             )}
           </div>
 
@@ -2186,9 +2153,6 @@ export function MailPage({
         />
       ) : null}
 
-      {mobileDrawerMenuOpen ? (
-        <MobileDrawerTooltip state={closeDrawerTooltip} theme={activeThemeVersion} />
-      ) : null}
       <NewFolderModal
         open={newFolderOpen}
         onClose={() => setNewFolderOpen(false)}
