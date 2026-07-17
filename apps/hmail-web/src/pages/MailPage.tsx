@@ -2034,7 +2034,7 @@ export function MailPage({
           onClick={openMobileFolders}
         />
         <MailBottomNavButton
-          label="Messages"
+          label="Inbox"
           icon={Inbox}
           active={mobilePane === "list"}
           onClick={openMobileMessages}
@@ -2052,7 +2052,7 @@ export function MailPage({
           onAccountSwitched={(account) => setInboxSwitchToast(account)}
         />
         <MailBottomNavButton
-          label="New mail"
+          label="New Mail"
           icon={SquarePen}
           onClick={() => openCompose({ mode: "new" })}
         />

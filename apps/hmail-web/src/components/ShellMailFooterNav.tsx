@@ -106,7 +106,7 @@ export function ShellMailFooterNav({
             onClick={handleFolders}
           />
           <MailBottomNavButton
-            label="Messages"
+            label="Inbox"
             icon={Inbox}
             active={footerNav.state.mobilePane === "list"}
             onClick={handleMessages}
@@ -122,7 +122,7 @@ export function ShellMailFooterNav({
             onAccountConnectFailed={() => setInboxConnectToast("error")}
             onAccountSwitched={(account) => setInboxSwitchToast(account)}
           />
-          <MailBottomNavButton label="New mail" icon={SquarePen} onClick={handleNewMail} />
+          <MailBottomNavButton label="New Mail" icon={SquarePen} onClick={handleNewMail} />
         </nav>
       </div>
 

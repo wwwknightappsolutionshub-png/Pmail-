@@ -3242,6 +3242,14 @@ html:has(.pmail-demo-shell--light) body {
     opacity: 1 !important;
     pointer-events: auto !important;
     z-index: calc(var(--mail-drawer-layer, 100) - 1);
+    top: var(--pmail-bespoke-drawer-top, 0px);
+  }
+
+  .pmail-demo-shell .mail-app--embedded-in-bespoke[data-mobile-pane="menu"] .mail-sidebar,
+  .pmail-demo-shell .mail-app[data-mobile-pane="menu"] .mail-sidebar {
+    top: var(--pmail-bespoke-drawer-top, 0px) !important;
+    padding-top: 0.85rem;
+    bottom: calc(var(--mail-bottom-nav-h, 3.35rem) + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .pmail-demo-shell .mail-app[data-mobile-pane="menu"] .mail-list-pane,
@@ -3669,7 +3677,7 @@ html:has(.pmail-demo-shell--light) body {
     --pmail-bespoke-topbar-h: calc(3.55rem + env(safe-area-inset-top));
     --pmail-bespoke-tabs-h: 2.65rem;
     --pmail-bespoke-drawer-top: calc(var(--pmail-bespoke-topbar-h) + var(--pmail-bespoke-tabs-h));
-    --mail-bottom-nav-h: 2.75rem;
+    --mail-bottom-nav-h: 3.35rem;
   }
 
   .pmail-demo-shell:has(.bespoke-demo-topbar--compact-chrome) {
@@ -3677,12 +3685,12 @@ html:has(.pmail-demo-shell--light) body {
   }
 
   .pmail-demo-shell .bespoke-demo-production-workspace:not(.bespoke-demo-production-workspace--settings) {
-    padding-bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--mail-bottom-nav-h, 3.35rem) + env(safe-area-inset-bottom));
     box-sizing: border-box;
   }
 
   .pmail-demo-shell .bespoke-demo-production-workspace--settings .bespoke-production-settings-stack {
-    padding-bottom: calc(1.5rem + var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(1.5rem + var(--mail-bottom-nav-h, 3.35rem) + env(safe-area-inset-bottom, 0px));
   }
 
   /* Messaging clears the fixed footer via inner scroll padding only.
@@ -3694,7 +3702,7 @@ html:has(.pmail-demo-shell--light) body {
   }
 
   .pmail-shell-mobile-footer {
-    --mail-bottom-nav-h: 2.75rem;
+    --mail-bottom-nav-h: 3.35rem;
     display: block;
     position: fixed;
     left: 0;
@@ -3707,7 +3715,7 @@ html:has(.pmail-demo-shell--light) body {
   .pmail-shell-mobile-footer .mail-shell-footer-host,
   .pmail-shell-mobile-footer .mail-app--shell-footer {
     pointer-events: auto;
-    --mail-bottom-nav-h: 2.75rem;
+    --mail-bottom-nav-h: 3.35rem;
     /* Avoid inheriting mail-app full-viewport sizing in the body portal */
     min-height: 0;
     height: auto;
@@ -3723,8 +3731,8 @@ html:has(.pmail-demo-shell--light) body {
     justify-items: center;
     width: 100%;
     min-height: var(--mail-bottom-nav-h);
-    padding: 0.15rem 0.35rem;
-    padding-bottom: max(0.15rem, env(safe-area-inset-bottom));
+    padding: 0.2rem 0.35rem;
+    padding-bottom: max(0.2rem, env(safe-area-inset-bottom));
     border-top: 1px solid var(--border, rgba(148, 163, 184, 0.22));
     background: rgba(8, 14, 26, 0.96);
     box-sizing: border-box;
@@ -3733,11 +3741,12 @@ html:has(.pmail-demo-shell--light) body {
   .pmail-shell-mobile-footer .mail-bottom-nav .mail-bottom-nav-btn,
   .pmail-shell-mobile-footer .mail-bottom-nav .inbox-switcher--bottom-nav {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
     min-width: 0;
-    min-height: 2.35rem;
+    min-height: 2.85rem;
   }
 
   .pmail-shell-mobile-footer .mail-bottom-nav .inbox-switcher--bottom-nav {
@@ -3792,7 +3801,7 @@ html:has(.pmail-demo-shell--light) body {
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
-    padding-bottom: calc(var(--mail-bottom-nav-h, 2.75rem) + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--mail-bottom-nav-h, 3.35rem) + env(safe-area-inset-bottom));
     box-sizing: border-box;
   }
 

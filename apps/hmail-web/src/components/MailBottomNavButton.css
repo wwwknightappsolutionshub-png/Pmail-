@@ -1,8 +1,10 @@
 .mail-bottom-nav-btn {
   position: relative;
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.12rem;
   flex: 0 0 auto;
   width: auto;
   min-width: 0;
@@ -23,6 +25,36 @@
   height: 1.3rem;
   flex-shrink: 0;
   display: block;
+}
+
+.mail-bottom-nav-label {
+  display: none;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.58rem;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 1024px) {
+  .mail-bottom-nav .mail-bottom-nav-label,
+  .mail-bottom-nav .inbox-switcher-trigger--bottom-nav .mail-bottom-nav-label {
+    display: block;
+  }
+
+  .mail-bottom-nav-btn[data-tooltip]::after,
+  .inbox-switcher-trigger--bottom-nav[data-tooltip]::after {
+    display: none;
+  }
+
+  /* Labels replace the under-dot as the active affordance. */
+  .mail-bottom-nav-btn.is-active::before,
+  .inbox-switcher-trigger--bottom-nav[aria-expanded="true"]::before {
+    display: none;
+  }
 }
 
 .mail-bottom-nav-btn.is-active .mail-bottom-nav-icon {

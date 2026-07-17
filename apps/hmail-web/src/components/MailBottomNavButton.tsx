@@ -22,6 +22,7 @@ export function MailBottomNavButton({ label, icon: Icon, active = false, onClick
       data-tooltip={label}
     >
       <Icon className="mail-bottom-nav-icon" strokeWidth={2} aria-hidden />
+      <span className="mail-bottom-nav-label">{label}</span>
     </button>
   );
 }

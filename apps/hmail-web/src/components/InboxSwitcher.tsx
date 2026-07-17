@@ -338,7 +338,7 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
     return null;
   }
 
-  const mailboxTooltip = isBottomNav ? `Mailboxes: ${displayEmail}` : undefined;
+  const mailboxTooltip = isBottomNav ? `Switcher: ${displayEmail}` : undefined;
 
   return (
     <>
@@ -354,11 +354,12 @@ export const InboxSwitcher = forwardRef<InboxSwitcherHandle, InboxSwitcherProps>
         aria-haspopup="dialog"
         aria-label={isBottomNav ? mailboxTooltip : undefined}
         title={mailboxTooltip}
-        data-tooltip={isBottomNav ? "Mailboxes" : undefined}
+        data-tooltip={isBottomNav ? "Switcher" : undefined}
       >
         {isBottomNav ? (
           <>
             <Mails className="mail-bottom-nav-icon" strokeWidth={2} aria-hidden />
+            <span className="mail-bottom-nav-label">Switcher</span>
             {inactiveUnreadTotal > 0 ? (
               <span className="inbox-switcher-unread-badge" aria-label={`${inactiveUnreadTotal} unread in other mailboxes`}>
                 {inactiveUnreadTotal > 99 ? "99+" : inactiveUnreadTotal}
