@@ -230,18 +230,110 @@
   min-width: 0;
 }
 
-/* Phone + tablet: keep icon search beside right-side actions; desktop (≥1025) expands search. */
+/* Phone + tablet: Gmail-style search pill expands; Refer/Addons stay compact on the right. */
 @media (max-width: 1024px) {
   .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-trailing {
-    flex: 0 0 auto;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-search-slot {
-    flex: 0 0 auto;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .bespoke-demo-topbar--compact-chrome .bespoke-demo-topbar-compact-actions {
     flex: 0 0 auto;
+  }
+
+  .bespoke-mail-search--icon-trigger {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .bespoke-demo-topbar-btn--search-pill {
+    width: 100%;
+    max-width: 100%;
+    min-height: 2.35rem;
+    justify-content: flex-start;
+    gap: 0.55rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    border-color: color-mix(in srgb, var(--border) 88%, var(--accent-2));
+    background: color-mix(in srgb, var(--surface-card) 82%, transparent);
+    color: var(--muted);
+  }
+
+  .bespoke-demo-topbar-btn--search-pill:hover:not(:disabled),
+  .bespoke-demo-topbar-btn--search-pill:focus-visible {
+    color: var(--text);
+    border-color: color-mix(in srgb, var(--accent-2) 35%, var(--border));
+    background: color-mix(in srgb, var(--surface-card) 92%, transparent);
+  }
+
+  .bespoke-mail-search--icon-trigger.bespoke-mail-search--active .bespoke-demo-topbar-btn--search-pill {
+    color: var(--text);
+    border-color: color-mix(in srgb, var(--accent-2) 40%, var(--border));
+    background: color-mix(in srgb, var(--accent-2) 10%, var(--surface-card));
+  }
+
+  .bespoke-mail-search-pill-label {
+    display: block;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-align: left;
+    line-height: 1.2;
+  }
+
+  .bespoke-mail-search--icon-trigger .bespoke-mail-search-active-dot {
+    position: static;
+    flex: 0 0 auto;
+    margin-left: 0.15rem;
+  }
+
+  .bespoke-demo-workspace-tabs-account {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-self: stretch;
+    gap: 0.25rem;
+    padding: 0 0.55rem 0 0.35rem;
+    margin-left: auto;
+    border-left: 1px solid var(--border);
+    background: var(--surface-tabs);
+    position: relative;
+    z-index: 2;
+  }
+
+  .bespoke-demo-workspace-tabs-account .bespoke-demo-topbar-btn {
+    min-width: 2.35rem;
+    min-height: 2.35rem;
+    padding: 0.4rem;
+  }
+
+  .bespoke-demo-workspace-tabs-account .bespoke-demo-topbar-btn span:not(.bespoke-demo-topbar-btn-icon) {
+    display: none;
+  }
+
+  .bespoke-demo-workspace-tabs-shell--overflow-end:has(.bespoke-demo-workspace-tabs-account)::before {
+    right: 5.75rem;
+  }
+
+  .bespoke-demo-workspace-tabs-shell--overflow-end:has(.bespoke-demo-workspace-tabs-more):has(
+      .bespoke-demo-workspace-tabs-account
+    )::before {
+    right: 10.25rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .bespoke-demo-workspace-tabs-account {
+    display: none;
   }
 }
 
@@ -265,7 +357,13 @@
 }
 
 .bespoke-mail-search--icon-trigger {
-  width: auto;
+  max-width: 100%;
+}
+
+@media (min-width: 1025px) {
+  .bespoke-mail-search--icon-trigger {
+    width: auto;
+  }
 }
 
 .bespoke-mail-search--icon-trigger .bespoke-demo-topbar-btn--search {
@@ -311,11 +409,51 @@ body.pmail-search-overlay-open {
 
 .bespoke-mail-search-icon-sheet {
   position: fixed;
-  top: calc(env(safe-area-inset-top, 0px) + 0.55rem);
-  left: max(0.75rem, env(safe-area-inset-left, 0px));
-  right: max(0.75rem, env(safe-area-inset-right, 0px));
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1;
   pointer-events: auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 0.45rem) max(0.75rem, env(safe-area-inset-right, 0px))
+    0.65rem max(0.75rem, env(safe-area-inset-left, 0px));
+  background: color-mix(in srgb, var(--surface-chrome) 94%, transparent);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.bespoke-mail-search-icon-sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.bespoke-mail-search-icon-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.bespoke-mail-search-icon-back:hover,
+.bespoke-mail-search-icon-back:focus-visible {
+  background: color-mix(in srgb, var(--accent-2) 12%, transparent);
+  outline: none;
+}
+
+.bespoke-mail-search-icon-back svg {
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
 .bespoke-mail-search-overlay-root .bespoke-mail-search-portal {
@@ -325,19 +463,44 @@ body.pmail-search-overlay-open {
 
 .bespoke-mail-search-icon-sheet .bespoke-mail-search {
   width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .bespoke-mail-search-icon-sheet .bespoke-mail-search-bar {
   min-height: 2.75rem;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  box-shadow: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (max-width: 1024px) {
+  .bespoke-mail-search-icon-sheet {
+    left: max(0.75rem, env(safe-area-inset-left, 0px));
+    right: max(0.75rem, env(safe-area-inset-right, 0px));
+    top: calc(env(safe-area-inset-top, 0px) + 0.55rem);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+}
+
+@media (min-width: 1025px) {
   .bespoke-mail-search-icon-sheet {
     top: calc(env(safe-area-inset-top, 0px) + 4.25rem);
     left: auto;
     right: max(1.25rem, env(safe-area-inset-right, 0px));
     width: min(28rem, calc(100vw - 2.5rem));
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-bottom: none;
+    box-shadow: none;
+  }
+
+  .bespoke-mail-search-icon-back {
+    display: none;
+  }
+
+  .bespoke-mail-search-icon-sheet .bespoke-mail-search-bar {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
   }
 }
 
@@ -953,6 +1116,10 @@ body.pmail-search-overlay-open {
   min-width: 0;
   align-items: center;
   justify-content: flex-end;
+}
+
+.bespoke-demo-workspace-tabs-account {
+  display: none;
 }
 
 @media (min-width: 1100px) {
@@ -4017,8 +4184,12 @@ body.pmail-search-overlay-open {
     display: none;
   }
 
-  .bespoke-demo-topbar-btn--search span:not(.bespoke-demo-topbar-btn-icon) {
+  .bespoke-demo-topbar-btn--search span:not(.bespoke-demo-topbar-btn-icon):not(.bespoke-mail-search-pill-label) {
     display: none;
+  }
+
+  .bespoke-mail-search-pill-label {
+    display: block;
   }
 
   .bespoke-mail-search-advanced-row,

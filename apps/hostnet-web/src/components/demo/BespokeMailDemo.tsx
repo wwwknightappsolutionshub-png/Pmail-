@@ -764,6 +764,8 @@ export function BespokeMailDemo({
   const [workspaceTabsCanScrollForward, setWorkspaceTabsCanScrollForward] = useState(false);
   const [workspaceTabsCanScrollBackward, setWorkspaceTabsCanScrollBackward] = useState(false);
   const [isMobileWorkspaceTabs, setIsMobileWorkspaceTabs] = useState(false);
+  /** Phone + tablet chrome (≤1024): Theme/Sign out on tabs row; Gmail search pill in topbar. */
+  const [isPhoneOrTabletChrome, setIsPhoneOrTabletChrome] = useState(false);
 
   const updateWorkspaceTabsScroll = useCallback(() => {
     const el = workspaceTabsRef.current;
@@ -814,6 +816,14 @@ export function BespokeMailDemo({
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
     const sync = () => setIsMobileWorkspaceTabs(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1024px)");
+    const sync = () => setIsPhoneOrTabletChrome(mq.matches);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
@@ -2283,54 +2293,68 @@ export function BespokeMailDemo({
       />
     );
 
+  const themeToggleButton = onThemeChange ? (
+    <button
+      type="button"
+      className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--theme"
+      onClick={() => void onThemeChange(uiThemeVersion === "light" ? "dark" : "light")}
+      aria-label={uiThemeVersion === "light" ? "Switch to dark UI" : "Switch to light UI"}
+      title={uiThemeVersion === "light" ? "Dark UI" : "Light UI"}
+    >
+      <TopbarIcon>
+        {uiThemeVersion === "light" ? (
+          <path
+            fill="currentColor"
+            d="M21 12.8A7.5 7.5 0 0 1 11.2 3a6.5 6.5 0 1 0 9.8 9.8z"
+          />
+        ) : (
+          <path
+            fill="currentColor"
+            d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0 4a1 1 0 0 1-1-1v-1.1a1 1 0 1 1 2 0V21a1 1 0 0 1-1 1zm0-17.9a1 1 0 0 1-1-1V2a1 1 0 1 1 2 0v1.1a1 1 0 0 1-1 1zm10 8.9h-1.1a1 1 0 1 1 0-2H22a1 1 0 1 1 0 2h-1zm-17.9 0H2a1 1 0 1 1 0-2h1.1a1 1 0 1 1 0 2zm14.7 6.7a1 1 0 0 1-1.4 0l-.8-.8a1 1 0 1 1 1.4-1.4l.8.8a1 1 0 0 1 0 1.4zm-11.3-11.3a1 1 0 0 1-1.4 0l-.8-.8a1 1 0 1 1 1.4-1.4l.8.8a1 1 0 0 1 0 1.4zm11.3-2.7a1 1 0 0 1 0 1.4l-.8.8a1 1 0 1 1-1.4-1.4l.8-.8a1 1 0 0 1 1.4 0zM7.8 16.2a1 1 0 0 1 0 1.4l-.8.8a1 1 0 1 1-1.4-1.4l.8-.8a1 1 0 0 1 1.4 0z"
+          />
+        )}
+      </TopbarIcon>
+      <span>{uiThemeVersion === "light" ? "Dark UI" : "Light UI"}</span>
+    </button>
+  ) : null;
+
+  const signOutButton = onLogout ? (
+    <button
+      type="button"
+      className="bespoke-demo-topbar-btn bespoke-demo-topbar-signout"
+      onClick={onLogout}
+      aria-label="Sign out"
+      title="Sign out"
+    >
+      <TopbarIcon>
+        <path
+          fill="currentColor"
+          d="M10.09 15.59 11.5 17l5-5-5-5-1.41 1.41L12.17 11H3v2h9.17l-2.08 2.59zM19 3H9c-1.1 0-2 .9-2 2v4h2V5h10v14H9v-4H7v4c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+        />
+      </TopbarIcon>
+      <span>Sign out</span>
+    </button>
+  ) : null;
+
   const topbarAccountActions = (
     <>
       {renderAddonsButton("collapsed")}
-      {onThemeChange ? (
-        <button
-          type="button"
-          className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--theme"
-          onClick={() => void onThemeChange(uiThemeVersion === "light" ? "dark" : "light")}
-          aria-label={uiThemeVersion === "light" ? "Switch to dark UI" : "Switch to light UI"}
-        >
-          <TopbarIcon>
-            {uiThemeVersion === "light" ? (
-              <path
-                fill="currentColor"
-                d="M21 12.8A7.5 7.5 0 0 1 11.2 3a6.5 6.5 0 1 0 9.8 9.8z"
-              />
-            ) : (
-              <path
-                fill="currentColor"
-                d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0 4a1 1 0 0 1-1-1v-1.1a1 1 0 1 1 2 0V21a1 1 0 0 1-1 1zm0-17.9a1 1 0 0 1-1-1V2a1 1 0 1 1 2 0v1.1a1 1 0 0 1-1 1zm10 8.9h-1.1a1 1 0 1 1 0-2H22a1 1 0 1 1 0 2h-1zm-17.9 0H2a1 1 0 1 1 0-2h1.1a1 1 0 1 1 0 2zm14.7 6.7a1 1 0 0 1-1.4 0l-.8-.8a1 1 0 1 1 1.4-1.4l.8.8a1 1 0 0 1 0 1.4zm-11.3-11.3a1 1 0 0 1-1.4 0l-.8-.8a1 1 0 1 1 1.4-1.4l.8.8a1 1 0 0 1 0 1.4zm11.3-2.7a1 1 0 0 1 0 1.4l-.8.8a1 1 0 1 1-1.4-1.4l.8-.8a1 1 0 0 1 1.4 0zM7.8 16.2a1 1 0 0 1 0 1.4l-.8.8a1 1 0 1 1-1.4-1.4l.8-.8a1 1 0 0 1 1.4 0z"
-              />
-            )}
-          </TopbarIcon>
-          <span>{uiThemeVersion === "light" ? "Dark UI" : "Light UI"}</span>
-        </button>
-      ) : null}
-      {onLogout ? (
-        <button
-          type="button"
-          className="bespoke-demo-topbar-btn bespoke-demo-topbar-signout"
-          onClick={onLogout}
-          aria-label="Sign out"
-        >
-          <TopbarIcon>
-            <path
-              fill="currentColor"
-              d="M10.09 15.59 11.5 17l5-5-5-5-1.41 1.41L12.17 11H3v2h9.17l-2.08 2.59zM19 3H9c-1.1 0-2 .9-2 2v4h2V5h10v14H9v-4H7v4c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-            />
-          </TopbarIcon>
-          <span>Sign out</span>
-        </button>
-      ) : null}
+      {!isPhoneOrTabletChrome ? themeToggleButton : null}
+      {!isPhoneOrTabletChrome ? signOutButton : null}
       <div className="bespoke-demo-topbar-avatar" title={`${displayName} <${displayEmail}>`} aria-hidden="true">
         <span className="bespoke-demo-topbar-avatar-initials">{viewerInitials}</span>
         <img className="bespoke-demo-topbar-avatar-image" src={topbarAvatarUrl} alt="" decoding="async" />
       </div>
     </>
   );
+
+  const workspaceTabsAccountActions =
+    isPhoneOrTabletChrome && (themeToggleButton || signOutButton) ? (
+      <div className="bespoke-demo-workspace-tabs-account" aria-label="Account actions">
+        {themeToggleButton}
+        {signOutButton}
+      </div>
+    ) : null;
 
   const topbarReferButton = (
     <button
@@ -2555,6 +2579,7 @@ export function BespokeMailDemo({
             </span>
           </button>
         ) : null}
+        {workspaceTabsAccountActions}
         {renderWorkspaceTabsTrailing ? (
           <div className="bespoke-demo-workspace-tabs-trailing">{renderWorkspaceTabsTrailing}</div>
         ) : null}

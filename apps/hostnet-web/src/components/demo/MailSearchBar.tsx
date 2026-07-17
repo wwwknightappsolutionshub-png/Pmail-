@@ -39,7 +39,7 @@ type MailSearchBarProps = {
   onClear: () => void;
   /** Fired when the search overlay closes without submitting a search. */
   onDismiss?: () => void;
-  /** Icon-only trigger for compact production topbars. */
+  /** Icon/pill trigger for compact production topbars (≤1024). Opens full-screen search overlay. */
   variant?: "bar" | "icon";
 };
 
@@ -450,8 +450,8 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
         type="search"
         className="bespoke-mail-search-input"
         value={query}
-        placeholder="Search mail"
-        aria-label="Search mail"
+        placeholder="Search in mail"
+        aria-label="Search in mail"
         aria-expanded={showPanel}
         aria-controls={showPanel ? "pmail-mail-search-panel" : undefined}
         onFocus={() => setFocused(true)}
@@ -506,6 +506,7 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
   );
 
   if (isIconVariant) {
+    const pillLabel = active && query.trim() ? query.trim() : "Search in mail";
     return (
       <>
         <div
@@ -516,8 +517,8 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
         >
           <button
             type="button"
-            className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--search"
-            aria-label={active && query.trim() ? `Search mail: ${query.trim()}` : "Search mail"}
+            className="bespoke-demo-topbar-btn bespoke-demo-topbar-btn--search bespoke-demo-topbar-btn--search-pill"
+            aria-label={active && query.trim() ? `Search mail: ${query.trim()}` : "Search in mail"}
             aria-expanded={sheetOpen || showPanel}
             onClick={() => {
               if (sheetOpen) inputRef.current?.focus();
@@ -530,6 +531,7 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
                 d="M10 2a8 8 0 1 0 4.9 14.3l4.4 4.4 1.4-1.4-4.4-4.4A8 8 0 0 0 10 2Zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z"
               />
             </svg>
+            <span className="bespoke-mail-search-pill-label">{pillLabel}</span>
             {active ? <span className="bespoke-mail-search-active-dot" aria-hidden="true" /> : null}
           </button>
         </div>
@@ -547,14 +549,29 @@ export const MailSearchBar = forwardRef<MailSearchBarHandle, MailSearchBarProps>
                   }}
                 />
                 <div ref={sheetRef} className="bespoke-mail-search-icon-sheet" role="dialog" aria-label="Search mail">
-                  <div
-                    className={`bespoke-mail-search bespoke-mail-search--sheet${
-                      focused ? " bespoke-mail-search--focused" : ""
-                    }${active ? " bespoke-mail-search--active" : ""}${
-                      advancedOpen ? " bespoke-mail-search--advanced" : ""
-                    }`}
-                  >
-                    {searchBar}
+                  <div className="bespoke-mail-search-icon-sheet-row">
+                    <button
+                      type="button"
+                      className="bespoke-mail-search-icon-back"
+                      aria-label="Close search"
+                      onClick={() => closeSearchOverlay()}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path
+                          fill="currentColor"
+                          d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                        />
+                      </svg>
+                    </button>
+                    <div
+                      className={`bespoke-mail-search bespoke-mail-search--sheet${
+                        focused ? " bespoke-mail-search--focused" : ""
+                      }${active ? " bespoke-mail-search--active" : ""}${
+                        advancedOpen ? " bespoke-mail-search--advanced" : ""
+                      }`}
+                    >
+                      {searchBar}
+                    </div>
                   </div>
                 </div>
                 {renderSearchPanel()}

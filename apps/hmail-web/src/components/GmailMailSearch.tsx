@@ -9,6 +9,7 @@ type GmailMailSearchProps = {
   onClear: () => void;
   onDismiss?: () => void;
   contacts?: MailSearchContactSuggestion[];
+  /** Icon/pill trigger for compact production topbars (≤1024). Opens full-screen search overlay. */
   variant?: "bar" | "icon";
 };
 
