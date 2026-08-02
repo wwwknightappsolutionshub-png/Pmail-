@@ -119,8 +119,7 @@ export function PanelDashboardPage() {
           <h1>Panel unavailable</h1>
           <p className="muted">{authError}</p>
           <p className="panel-login-hint">
-            Ensure the API is running, then sign in at <Link to="/panel/login">/panel/login</Link> with{" "}
-            <code>demo</code> @ <code>hostnet.local</code> / <code>panel123</code>.
+            Ensure the API is running, then sign in at <Link to="/panel/login">/panel/login</Link>.
           </p>
           <Link to="/" className="btn btn-secondary">
             Back to marketing site

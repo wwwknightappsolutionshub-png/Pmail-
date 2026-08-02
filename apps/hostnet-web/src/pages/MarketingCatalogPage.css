@@ -29,15 +29,22 @@
 }
 
 .marketing-catalog-card {
-  background: var(--card, rgba(15, 23, 42, 0.55));
-  border: 1px solid var(--border, rgba(148, 163, 184, 0.2));
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1.25rem;
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .marketing-catalog-card h2 {
   margin: 0.35rem 0 0.75rem;
   font-size: 1.25rem;
+  color: var(--text);
+}
+
+.marketing-catalog-card .muted {
+  color: var(--muted);
 }
 
 .marketing-catalog-card ul {
@@ -49,6 +56,7 @@
   font-size: 1.35rem;
   font-weight: 700;
   margin: 0 0 1rem;
+  color: var(--text);
 }
 
 .marketing-catalog-badge {
@@ -57,9 +65,17 @@
   font-weight: 600;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: rgba(13, 148, 136, 0.18);
-  color: #5eead4;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
   margin-bottom: 0.5rem;
+}
+
+html:not([data-marketing-theme="light"]) .marketing-catalog-badge {
+  color: var(--accent-light);
+}
+
+.marketing-catalog-card .btn {
+  width: 100%;
 }
 
 .marketing-catalog-back {
@@ -130,10 +146,11 @@
 }
 
 .marketing-blog-faq-item {
-  border: 1px solid var(--border, #e2e8f0);
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
-  background: var(--surface, #fff);
+  background: var(--bg-card);
+  color: var(--text);
 }
 
 .marketing-blog-faq-item summary {

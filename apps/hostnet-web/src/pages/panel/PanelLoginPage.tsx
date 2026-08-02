@@ -7,9 +7,9 @@ export function PanelLoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get("return") ?? "/panel";
-  const [username, setUsername] = useState("demo");
-  const [domain, setDomain] = useState("hostnet.local");
-  const [password, setPassword] = useState("panel123");
+  const [username, setUsername] = useState("");
+  const [domain, setDomain] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -50,9 +50,6 @@ export function PanelLoginPage() {
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
-        <div className="panel-login-hint">
-          Demo: <code>demo</code> @ <code>hostnet.local</code> / <code>panel123</code>
-        </div>
         <p style={{ marginTop: "1rem" }}>
           <Link to="/">← Back to Prohost Cloud</Link>
         </p>
