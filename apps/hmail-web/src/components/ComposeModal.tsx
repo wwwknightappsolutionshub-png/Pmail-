@@ -7,6 +7,7 @@ import { htmlToPlainText, RichTextEditor } from "./RichTextEditor";
 import type { PendingUndoSend } from "./UndoSendToast";
 import { isCvLikeAttachment } from "../lib/cvAttachmentDetect";
 import { isMobileScreen } from "../utils/pwaPlatform";
+import { ensureSignatureAvatarInHtml } from "../utils/signatureBuilder";
 import "@hostnet-demo/components/demo/BespokeMailDemo.css";
 import { RecipientTypeahead } from "./RecipientTypeahead";
 import "./ComposeModal.css";
@@ -223,7 +224,8 @@ export function ComposeModal({
         if (nextMode === "new") {
           const activeSig = settings.signatures.find((s) => s.id === settings.activeSignatureId);
           if (activeSig?.body) {
-            setBodyHtml(withComposeSignature(initialHtml, activeSig.body));
+            const signatureHtml = ensureSignatureAvatarInHtml(activeSig.body, activeSig.avatarUrl);
+            setBodyHtml(withComposeSignature(initialHtml, signatureHtml));
             return;
           }
           if (settings.defaultBrandedSignature?.html) {

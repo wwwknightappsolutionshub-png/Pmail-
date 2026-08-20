@@ -125,7 +125,8 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
 
   const saveSignature = async () => {
     const signatureName = sigForm.name.trim() || sigFields.fullName.trim() || "Default signature";
-    const body = buildSignatureHtml(sigFields);
+    const avatarUrl = sigForm.avatarUrl || PMail_LOGO_DATA_URL;
+    const body = buildSignatureHtml(sigFields, avatarUrl);
     if (!sigFields.fullName.trim()) {
       setSigError("Name is required for your signature.");
       return;
@@ -142,7 +143,7 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
       const payload = {
         name: signatureName,
         body,
-        avatarUrl: sigForm.avatarUrl || PMail_LOGO_DATA_URL,
+        avatarUrl,
         isDefault: sigForm.isDefault,
       };
       const wasEdit = Boolean(sigForm.id);
@@ -166,7 +167,7 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
     }
   };
 
-  const signaturePreviewHtml = buildSignatureHtml(sigFields);
+  const signaturePreviewHtml = buildSignatureHtml(sigFields, sigForm.avatarUrl || PMail_LOGO_DATA_URL);
 
   const resetAutoReplyForm = () => setReplyForm({ id: "", name: "", subject: "", body: "", enabled: true });
 
@@ -419,17 +420,6 @@ export function ComposeSettingsPanel({ onMessage }: { onMessage?: (message: stri
           <aside className="brand-settings-preview" aria-label="Signature preview">
             <span className="brand-settings-preview-label">Live preview</span>
             <div className="brand-settings-preview-body">
-              {sigForm.avatarUrl ? (
-                <img
-                  src={sigForm.avatarUrl}
-                  alt=""
-                  className={
-                    sigForm.avatarUrl === PMail_LOGO_DATA_URL ? "brand-settings-avatar-logo" : undefined
-                  }
-                />
-              ) : (
-                <img src={PMail_LOGO_DATA_URL} alt="" className="brand-settings-avatar-logo" />
-              )}
               <iframe title="Signature preview" sandbox="" srcDoc={signaturePreviewHtml || "<p>Your signature preview appears here.</p>"} />
             </div>
           </aside>

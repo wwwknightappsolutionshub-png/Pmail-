@@ -22,6 +22,17 @@ export const emptySignatureFields = (): SignatureFieldValues => ({
 
 const IMAGE_EXTENSIONS = /\.(jpe?g|png|gif|webp|bmp|svg|heic|heif)$/i;
 
+/** Marker used so outbound send can CID-embed the custom signature avatar. */
+export const PMAIL_SIGNATURE_AVATAR_ATTR = 'data-pmail-signature-avatar="1"';
+
+function escapeHtmlAttr(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function socialIconLink(label: string, url: string, glyph: string): string {
   const href = url.trim();
   if (!href) return "";
@@ -29,7 +40,7 @@ function socialIconLink(label: string, url: string, glyph: string): string {
   return `<a href="${safeHref}" style="display:inline-block;margin-right:6px;text-decoration:none;" title="${label}">${glyph}</a>`;
 }
 
-export function buildSignatureHtml(fields: SignatureFieldValues): string {
+function buildSignatureTextLines(fields: SignatureFieldValues): string {
   const parts = [fields.fullName.trim(), fields.position.trim()].filter(Boolean);
   const lineOne = parts.join(" | ");
   const contactParts = [fields.email.trim(), fields.phone.trim()].filter(Boolean);
@@ -44,8 +55,23 @@ export function buildSignatureHtml(fields: SignatureFieldValues): string {
     .filter(Boolean)
     .join("");
 
-  const lines = [lineOne, lineTwo, social].filter(Boolean);
-  return lines.join("<br>");
+  return [lineOne, lineTwo, social].filter(Boolean).join("<br>");
+}
+
+/** Wrap signature text with an inline avatar image when an avatar URL is provided. */
+export function ensureSignatureAvatarInHtml(bodyHtml: string, avatarUrl?: string | null): string {
+  const body = bodyHtml.trim();
+  if (!body) return body;
+  const src = avatarUrl?.trim();
+  if (!src) return body;
+  if (body.includes("data-pmail-signature-avatar")) return body;
+
+  const safeSrc = escapeHtmlAttr(src);
+  return `<table cellpadding="0" cellspacing="0" role="presentation" data-pmail-signature="custom"><tr><td style="padding-right:12px;vertical-align:top"><img ${PMAIL_SIGNATURE_AVATAR_ATTR} src="${safeSrc}" alt="" width="64" height="64" style="display:block;border-radius:8px;object-fit:cover" /></td><td style="vertical-align:middle">${body}</td></tr></table>`;
+}
+
+export function buildSignatureHtml(fields: SignatureFieldValues, avatarUrl?: string | null): string {
+  return ensureSignatureAvatarInHtml(buildSignatureTextLines(fields), avatarUrl);
 }
 
 export function buildSignaturePlainText(fields: SignatureFieldValues): string {

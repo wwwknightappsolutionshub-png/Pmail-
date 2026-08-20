@@ -11,7 +11,7 @@ import { JOB_HUNTER_ADDON_SLUG } from "./job-hunter-settings.service.js";
 import { appendToSentFolder, type MailCredentials } from "./imap.service.js";
 import { markEmailSlaThreadResponded } from "./email-sla.service.js";
 import { getComposeSettingsByUserId } from "./compose-settings.service.js";
-import { appendOutboundSignature, embedBrandedSignatureLogoInline, normalizeOutboundBrandedSignature } from "./default-signature.service.js";
+import { appendOutboundSignature, embedBrandedSignatureLogoInline, embedCustomSignatureAvatarInline, hydrateOutboundCustomSignatureAvatar, normalizeOutboundBrandedSignature } from "./default-signature.service.js";
 import {
   ensureOpenTrackingOnFirstSend,
   hasOpenTrackingAccess,
@@ -110,11 +110,17 @@ export async function executeOutgoingMailSend(input: {
 
   let signatureLogoAttachment: Awaited<ReturnType<typeof embedBrandedSignatureLogoInline>>["inlineAttachment"] =
     null;
+  let signatureAvatarAttachment: Awaited<ReturnType<typeof embedCustomSignatureAvatarInline>>["inlineAttachment"] =
+    null;
   if (htmlBody) {
     htmlBody = normalizeOutboundBrandedSignature(htmlBody);
+    htmlBody = await hydrateOutboundCustomSignatureAvatar(input.userId, htmlBody);
     const embedded = await embedBrandedSignatureLogoInline(htmlBody);
     htmlBody = embedded.html;
     signatureLogoAttachment = embedded.inlineAttachment;
+    const avatarEmbedded = await embedCustomSignatureAvatarInline(htmlBody);
+    htmlBody = avatarEmbedded.html;
+    signatureAvatarAttachment = avatarEmbedded.inlineAttachment;
   }
 
   if (trackingEnabled && trackingRecord && htmlBody) {
@@ -144,6 +150,18 @@ export async function executeOutgoingMailSend(input: {
         content: signatureLogoAttachment.content.toString("base64"),
         contentType: signatureLogoAttachment.contentType,
         cid: signatureLogoAttachment.cid,
+      },
+    ];
+  }
+
+  if (signatureAvatarAttachment) {
+    mergedAttachments = [
+      ...mergedAttachments,
+      {
+        filename: signatureAvatarAttachment.filename,
+        content: signatureAvatarAttachment.content.toString("base64"),
+        contentType: signatureAvatarAttachment.contentType,
+        cid: signatureAvatarAttachment.cid,
       },
     ];
   }

@@ -12,6 +12,9 @@ const SIGNATURE_MARKER = 'data-pmail-signature="branded"';
 export const PMail_SIGNATURE_MARKER = SIGNATURE_MARKER;
 export const PMail_SIGNATURE_LOGO_CID = "pmail-signature-logo@pmail";
 export const PMail_SIGNATURE_EXPLORE_ATTR = 'data-pmail-explore="1"';
+export const PMail_CUSTOM_SIGNATURE_AVATAR_ATTR = 'data-pmail-signature-avatar="1"';
+export const PMail_CUSTOM_SIGNATURE_AVATAR_CID = "pmail-signature-avatar@pmail";
+export const PMail_CUSTOM_SIGNATURE_MARKER = 'data-pmail-signature="custom"';
 
 const BRANDED_SIGNATURE_BLOCK_RE =
   /(<div[^>]*data-pmail-signature="branded"[^>]*>[\s\S]*?<\/table>\s*<\/div>)/i;
@@ -91,6 +94,30 @@ export function resolveActiveSignatureBody(settings: {
   const active = settings.signatures.find((signature) => signature.id === activeId);
   const body = active?.body?.trim();
   return body || null;
+}
+
+export function resolveActiveSignature(settings: {
+  activeSignatureId: string | null;
+  signatures: Array<{ id: string; body: string; avatarUrl?: string | null }>;
+}): { body: string; avatarUrl: string | null } | null {
+  const activeId = settings.activeSignatureId ?? settings.signatures[0]?.id ?? null;
+  if (!activeId) return null;
+  const active = settings.signatures.find((signature) => signature.id === activeId);
+  const body = active?.body?.trim();
+  if (!body) return null;
+  return { body, avatarUrl: active?.avatarUrl?.trim() || null };
+}
+
+/** Embed avatarUrl into custom signature HTML when the body does not already include it. */
+export function ensureCustomSignatureAvatarHtml(body: string, avatarUrl?: string | null): string {
+  const trimmed = body.trim();
+  if (!trimmed) return trimmed;
+  const src = avatarUrl?.trim();
+  if (!src) return trimmed;
+  if (trimmed.includes("data-pmail-signature-avatar")) return trimmed;
+
+  const safeSrc = escapeHtml(src);
+  return `<table cellpadding="0" cellspacing="0" role="presentation" ${PMail_CUSTOM_SIGNATURE_MARKER}><tr><td style="padding-right:12px;vertical-align:top"><img ${PMail_CUSTOM_SIGNATURE_AVATAR_ATTR} src="${safeSrc}" alt="" width="64" height="64" style="display:block;border-radius:8px;object-fit:cover" /></td><td style="vertical-align:middle">${trimmed}</td></tr></table>`;
 }
 
 export function resolveDefaultBrandedSignatureExploreUrl(): string {
@@ -306,6 +333,104 @@ export async function embedBrandedSignatureLogoInline(html: string): Promise<{
   };
 }
 
+function extensionForContentType(contentType: string): string {
+  const lower = contentType.toLowerCase();
+  if (lower.includes("jpeg") || lower.includes("jpg")) return "jpg";
+  if (lower.includes("gif")) return "gif";
+  if (lower.includes("webp")) return "webp";
+  return "png";
+}
+
+async function loadCustomAvatarBuffer(src: string): Promise<{ buffer: Buffer; contentType: string } | null> {
+  if (src.startsWith("data:")) {
+    const match = src.match(/^data:([^;,]+)?(?:;charset=[^;,]+)?;base64,(.+)$/i);
+    if (!match?.[2]) return null;
+    return {
+      buffer: Buffer.from(match[2], "base64"),
+      contentType: match[1]?.trim() || "image/png",
+    };
+  }
+
+  if (/^https?:\/\//i.test(src)) {
+    try {
+      const response = await fetch(src);
+      if (!response.ok) return null;
+      return {
+        buffer: Buffer.from(await response.arrayBuffer()),
+        contentType: response.headers.get("content-type")?.split(";")[0]?.trim() || "image/png",
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+/** Replace custom signature avatar data/http URLs with CID so images render in Gmail/Outlook. */
+export async function embedCustomSignatureAvatarInline(html: string): Promise<{
+  html: string;
+  inlineAttachment: InlineSignatureLogoAttachment | null;
+}> {
+  if (!html.includes("data-pmail-signature-avatar")) {
+    return { html, inlineAttachment: null };
+  }
+
+  const patterns = [
+    /(<img\b[^>]*\bdata-pmail-signature-avatar="1"[^>]*\bsrc=")([^"]+)(")/i,
+    /(<img\b[^>]*\bsrc=")([^"]+)("[^>]*\bdata-pmail-signature-avatar="1")/i,
+  ];
+
+  let src: string | null = null;
+  let matchedPattern: RegExp | null = null;
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match?.[2]) {
+      src = match[2];
+      matchedPattern = pattern;
+      break;
+    }
+  }
+
+  if (!src || !matchedPattern || src.startsWith("cid:")) {
+    return { html, inlineAttachment: null };
+  }
+
+  const loaded = await loadCustomAvatarBuffer(src);
+  if (!loaded) {
+    return { html, inlineAttachment: null };
+  }
+
+  const cid = PMail_CUSTOM_SIGNATURE_AVATAR_CID;
+  const updated = html.replace(matchedPattern, `$1cid:${cid}$3`);
+  const ext = extensionForContentType(loaded.contentType);
+
+  return {
+    html: updated,
+    inlineAttachment: {
+      filename: `pmail-signature-avatar.${ext}`,
+      content: loaded.buffer,
+      contentType: loaded.contentType,
+      cid,
+    },
+  };
+}
+
+/** Ensure outbound HTML includes the active custom signature avatar when only text was composed. */
+export async function hydrateOutboundCustomSignatureAvatar(userId: string, html: string): Promise<string> {
+  if (!html || html.includes("data-pmail-signature-avatar")) return html;
+
+  const composeSettings = await getComposeSettingsByUserId(userId);
+  const active = resolveActiveSignature(composeSettings);
+  if (!active?.avatarUrl) return html;
+
+  const withAvatar = ensureCustomSignatureAvatarHtml(active.body, active.avatarUrl);
+  if (html.includes(active.body)) {
+    return html.replace(active.body, withAvatar);
+  }
+  return html;
+}
+
 export function splitBrandedSignatureBlocks(html: string): {
   prefix: string;
   signature: string | null;
@@ -342,15 +467,31 @@ export async function appendOutboundSignature(input: {
   }
 
   const composeSettings = await getComposeSettingsByUserId(input.userId);
-  const customBody = resolveActiveSignatureBody(composeSettings);
+  const active = resolveActiveSignature(composeSettings);
+  const customBody = active
+    ? ensureCustomSignatureAvatarHtml(active.body, active.avatarUrl)
+    : null;
 
   if (customBody) {
-    if (input.html?.includes(customBody) || input.text?.includes(customBody.replace(/<[^>]+>/g, ""))) {
+    if (
+      input.html?.includes("data-pmail-signature-avatar") ||
+      input.html?.includes(customBody) ||
+      input.html?.includes(active!.body) ||
+      input.text?.includes(active!.body.replace(/<[^>]+>/g, ""))
+    ) {
+      if (input.html?.includes(active!.body) && !input.html.includes("data-pmail-signature-avatar")) {
+        return {
+          html: input.html.replace(active!.body, customBody),
+          text: input.text,
+        };
+      }
       return { html: input.html, text: input.text };
     }
     return {
       html: input.html ? `${input.html}<br><br>${customBody}` : customBody,
-      text: input.text ? `${input.text}\n\n${customBody.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "")}` : customBody.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, ""),
+      text: input.text
+        ? `${input.text}\n\n${customBody.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "")}`
+        : customBody.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, ""),
     };
   }
 

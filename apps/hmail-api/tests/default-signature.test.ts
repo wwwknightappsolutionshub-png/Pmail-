@@ -4,6 +4,8 @@ import {
   PMail_SIGNATURE_EXPLORE_ATTR,
   buildDefaultBrandedSignatureHtml,
   embedBrandedSignatureLogoInline,
+  embedCustomSignatureAvatarInline,
+  ensureCustomSignatureAvatarHtml,
   normalizeOutboundBrandedSignature,
   pickPublicWebOrigin,
   userHasCustomSignature,
@@ -64,5 +66,26 @@ describe("default branded signature", () => {
         signatures: [{ id: "sig-1", body: "   " }],
       }),
     ).toBe(false);
+  });
+
+  it("embeds custom signature avatar into HTML", () => {
+    const dataUrl = "data:image/png;base64,iVBORw0KGgo=";
+    const html = ensureCustomSignatureAvatarHtml("Jane Doe | CEO", dataUrl);
+    expect(html).toContain('data-pmail-signature="custom"');
+    expect(html).toContain('data-pmail-signature-avatar="1"');
+    expect(html).toContain(dataUrl);
+    expect(html).toContain("Jane Doe | CEO");
+    expect(ensureCustomSignatureAvatarHtml(html, dataUrl)).toBe(html);
+  });
+
+  it("embeds inline CID for custom signature avatar data URLs", async () => {
+    const dataUrl =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+    const html = ensureCustomSignatureAvatarHtml("Jane Doe | CEO", dataUrl);
+    const embedded = await embedCustomSignatureAvatarInline(html);
+    expect(embedded.inlineAttachment).not.toBeNull();
+    expect(embedded.inlineAttachment?.cid).toBe("pmail-signature-avatar@pmail");
+    expect(embedded.html).toContain('src="cid:pmail-signature-avatar@pmail"');
+    expect(embedded.html).not.toContain("data:image/png;base64");
   });
 });
