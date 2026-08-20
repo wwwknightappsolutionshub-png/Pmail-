@@ -67,7 +67,7 @@ export function ensureSignatureAvatarInHtml(bodyHtml: string, avatarUrl?: string
   if (body.includes("data-pmail-signature-avatar")) return body;
 
   const safeSrc = escapeHtmlAttr(src);
-  return `<table cellpadding="0" cellspacing="0" role="presentation" data-pmail-signature="custom"><tr><td style="padding-right:12px;vertical-align:top"><img ${PMAIL_SIGNATURE_AVATAR_ATTR} src="${safeSrc}" alt="" width="64" height="64" style="display:block;border-radius:8px;object-fit:cover" /></td><td style="vertical-align:middle">${body}</td></tr></table>`;
+  return `<table cellpadding="0" cellspacing="0" role="presentation" data-pmail-signature="custom"><tr><td style="padding-right:12px;vertical-align:top"><img ${PMAIL_SIGNATURE_AVATAR_ATTR} src="${safeSrc}" alt="" width="75" height="75" style="display:block;border-radius:8px;object-fit:cover;max-width:75px;max-height:75px" /></td><td style="vertical-align:middle">${body}</td></tr></table>`;
 }
 
 export function buildSignatureHtml(fields: SignatureFieldValues, avatarUrl?: string | null): string {
@@ -117,18 +117,26 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-async function compressImageDataUrl(dataUrl: string, maxBytes: number): Promise<string> {
+/** Max square edge for signature avatars — never larger; smaller sources stay smaller. */
+export const SIGNATURE_AVATAR_MAX_SIDE = 75;
+
+/**
+ * Center-crop to a square, then downscale so neither side exceeds maxSide.
+ * Does not upscale images that are already smaller than maxSide.
+ */
+async function fitSquareAvatarDataUrl(dataUrl: string, maxBytes: number, maxSide = SIGNATURE_AVATAR_MAX_SIDE): Promise<string> {
   const image = await loadImage(dataUrl);
-  const maxSide = 256;
-  const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
-  const width = Math.max(1, Math.round(image.width * scale));
-  const height = Math.max(1, Math.round(image.height * scale));
+  const cropSide = Math.max(1, Math.min(image.width, image.height));
+  const sx = Math.floor((image.width - cropSide) / 2);
+  const sy = Math.floor((image.height - cropSide) / 2);
+  const outSide = Math.max(1, Math.min(cropSide, maxSide));
+
   const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = outSide;
+  canvas.height = outSide;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not process image.");
-  ctx.drawImage(image, 0, 0, width, height);
+  ctx.drawImage(image, sx, sy, cropSide, cropSide, 0, 0, outSide, outSide);
 
   let quality = 0.92;
   let output = canvas.toDataURL("image/jpeg", quality);
@@ -156,8 +164,7 @@ export async function readSignatureAvatarFile(file: File, maxBytes = 400_000): P
   }
 
   const dataUrl = await readFileAsDataUrl(file);
-  if (dataUrl.length <= maxBytes * 1.37) return dataUrl;
-  return compressImageDataUrl(dataUrl, maxBytes);
+  return fitSquareAvatarDataUrl(dataUrl, maxBytes, SIGNATURE_AVATAR_MAX_SIDE);
 }
 
 export type ComposeSignatureSettings = {

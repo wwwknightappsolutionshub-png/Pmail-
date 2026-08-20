@@ -117,7 +117,7 @@ export function ensureCustomSignatureAvatarHtml(body: string, avatarUrl?: string
   if (trimmed.includes("data-pmail-signature-avatar")) return trimmed;
 
   const safeSrc = escapeHtml(src);
-  return `<table cellpadding="0" cellspacing="0" role="presentation" ${PMail_CUSTOM_SIGNATURE_MARKER}><tr><td style="padding-right:12px;vertical-align:top"><img ${PMail_CUSTOM_SIGNATURE_AVATAR_ATTR} src="${safeSrc}" alt="" width="64" height="64" style="display:block;border-radius:8px;object-fit:cover" /></td><td style="vertical-align:middle">${trimmed}</td></tr></table>`;
+  return `<table cellpadding="0" cellspacing="0" role="presentation" ${PMail_CUSTOM_SIGNATURE_MARKER}><tr><td style="padding-right:12px;vertical-align:top"><img ${PMail_CUSTOM_SIGNATURE_AVATAR_ATTR} src="${safeSrc}" alt="" width="75" height="75" style="display:block;border-radius:8px;object-fit:cover;max-width:75px;max-height:75px" /></td><td style="vertical-align:middle">${trimmed}</td></tr></table>`;
 }
 
 export function resolveDefaultBrandedSignatureExploreUrl(): string {
