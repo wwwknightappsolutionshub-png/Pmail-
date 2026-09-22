@@ -89,7 +89,8 @@ export async function syncInboxContactsForDueUsers(): Promise<void> {
         select: { id: true },
       },
     },
-    take: 40,
+    // Keep this small — each sync opens IMAP and was starving live folder/message loads.
+    take: 8,
   });
 
   for (const user of users) {
@@ -101,6 +102,14 @@ export async function syncInboxContactsForDueUsers(): Promise<void> {
       await syncInboxContactsForUser(user.id, credentials, { force: false });
     } catch (err) {
       console.error(`[inbox-contact-sync] user ${user.id}`, err);
+      // Back off on failure so timeouts/DNS blips don't re-queue every tick.
+      await prisma.user
+        .update({
+          where: { id: user.id },
+          data: { inboxContactsSyncedAt: new Date() },
+        })
+        .catch(() => undefined);
     }
+    await new Promise((resolve) => setTimeout(resolve, 1_500));
   }
 }

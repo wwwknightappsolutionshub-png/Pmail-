@@ -10,6 +10,7 @@ function assertSessionKey(sessionKey: string): void {
 
 function assertUseCaseId(useCaseId: string): void {
   const allowed = new Set([
+    "platform",
     "legal",
     "real-estate",
     "accounting",

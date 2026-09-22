@@ -13,7 +13,9 @@ function isTlsError(message: string): boolean {
 }
 
 function isNetworkError(message: string): boolean {
-  return /ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EHOSTUNREACH|ECONNRESET|ETIMEOUT|timeout|getaddrinfo/i.test(message);
+  return /ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|EHOSTUNREACH|ECONNRESET|ETIMEOUT|timeout|getaddrinfo|Failed to establish connection|connection in required time/i.test(
+    message,
+  );
 }
 
 function isAuthRejected(message: string): boolean {

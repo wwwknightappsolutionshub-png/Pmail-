@@ -42,6 +42,7 @@ import {
   loadDemoWorkspaceLocal,
   queueDemoWorkspaceSave,
   resolveDemoAutoReplyEntitlement,
+  saveDemoWorkspaceLocal,
   type DemoCalendarEvent,
   type DemoCalendarEnterpriseState,
   type DemoMessagingThread,
@@ -942,6 +943,33 @@ export function BespokeMailDemo({
 
   useEffect(() => {
     if (!workspaceReady) return;
+    // Production PMail+ mounts live IMAP via renderInboxWorkspace — never remote-sync
+    // demo CRM/messaging state (that path rejects useCaseId "platform" and floods 500s).
+    if (renderInboxWorkspace) {
+      saveDemoWorkspaceLocal(
+        demo.useCaseId,
+        buildPersistedState({
+          messages,
+          crmContacts,
+          reminders,
+          calendarEvents,
+          calendarEnterprise,
+          messagingThreads,
+          drafts,
+          outbox,
+          scheduled,
+          trash,
+          senderName,
+          autoReplyComplimentaryStartedAt: autoReplyComplimentaryStartedAt ?? new Date().toISOString(),
+          autoReplyOn,
+          activeAutoReplyId,
+          activeSignatureId,
+          autoReplies,
+          signatures,
+        }),
+      );
+      return;
+    }
     queueDemoWorkspaceSave(
       demo.useCaseId,
       buildPersistedState({
@@ -966,6 +994,7 @@ export function BespokeMailDemo({
     );
   }, [
     workspaceReady,
+    renderInboxWorkspace,
     demo.useCaseId,
     messages,
     crmContacts,
