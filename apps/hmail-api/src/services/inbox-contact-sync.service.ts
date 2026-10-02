@@ -90,7 +90,7 @@ export async function syncInboxContactsForDueUsers(): Promise<void> {
       },
     },
     // Keep this small — each sync opens IMAP and was starving live folder/message loads.
-    take: 8,
+    take: 4,
   });
 
   for (const user of users) {
@@ -110,6 +110,6 @@ export async function syncInboxContactsForDueUsers(): Promise<void> {
         })
         .catch(() => undefined);
     }
-    await new Promise((resolve) => setTimeout(resolve, 1_500));
+    await new Promise((resolve) => setTimeout(resolve, 2_500));
   }
 }

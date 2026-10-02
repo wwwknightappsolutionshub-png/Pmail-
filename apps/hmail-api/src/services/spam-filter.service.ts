@@ -167,10 +167,13 @@ export async function processBotSpamFilterForAllUsers(): Promise<{ users: number
     return { users: 0, removed: 0 };
   }
 
+  // Cap per tick so background IMAP scans cannot starve live folder/message loads.
   const sessions = await prisma.session.findMany({
     where: { expiresAt: { gt: new Date() } },
-    select: { userId: true },
+    select: { userId: true, lastActiveAt: true },
     distinct: ["userId"],
+    take: 6,
+    orderBy: { lastActiveAt: "desc" },
   });
 
   let removed = 0;
@@ -186,6 +189,7 @@ export async function processBotSpamFilterForAllUsers(): Promise<{ users: number
     } catch (err) {
       console.warn("[bot-spam-filter] scan failed", session.userId, err instanceof Error ? err.message : err);
     }
+    await new Promise((resolve) => setTimeout(resolve, 1_500));
   }
 
   if (removed > 0) {

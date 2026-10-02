@@ -16,7 +16,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
-    "ops:softwire-welcome": "npx dotenv-cli -e ../../.env -- tsx scripts/ops-softwire-welcome-education.ts"
+    "ops:softwire-welcome": "npx dotenv-cli -e ../../.env -- tsx scripts/ops-softwire-welcome-education.ts",
+    "ops:extend-trials-60d": "npx dotenv-cli -e ../../.env -- tsx scripts/ops-extend-trials-60d.ts",
+    "ops:notify-trial-extension": "npx dotenv-cli -e ../../.env -- tsx scripts/ops-notify-trial-extension.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.3.1",

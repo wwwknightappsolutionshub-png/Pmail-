@@ -2,7 +2,8 @@ import { dispatchScheduledOutreachCampaigns } from "../services/recruitment-outr
 import { syncMailForPwaUsers } from "../services/pwa-mail-sync.service.js";
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
-const TWO_MINUTES_MS = 2 * 60 * 1000;
+/** Was 2 minutes — too aggressive; each tick opens IMAP for every push-subscribed mailbox. */
+const PWA_MAIL_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
 export function startRecruitmentOutreachJob(): void {
   const run = async () => {
@@ -27,5 +28,5 @@ export function startPwaMailSyncJob(): void {
   };
 
   void run();
-  setInterval(run, TWO_MINUTES_MS);
+  setInterval(run, PWA_MAIL_SYNC_INTERVAL_MS);
 }

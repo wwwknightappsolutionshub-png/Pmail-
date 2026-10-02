@@ -66,6 +66,7 @@ export async function syncMailForPwaUsers(): Promise<number> {
       } catch {
         // skip accounts with IMAP errors
       }
+      await new Promise((resolve) => setTimeout(resolve, 400));
     }
   }
 

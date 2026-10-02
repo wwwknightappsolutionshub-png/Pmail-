@@ -66,8 +66,10 @@ function buildImapClient(credentials: MailCredentials): ImapFlow {
     secure: mailConfig.imapSecure,
     auth: { user: email, pass: password },
     logger: false,
-    connectionTimeout: 20_000,
-    greetingTimeout: 20_000,
+    // Fail faster so hung IMAP hosts don't block the Node event loop for interactive requests.
+    connectionTimeout: 12_000,
+    greetingTimeout: 12_000,
+    socketTimeout: 45_000,
     tls: { rejectUnauthorized: process.env.NODE_ENV === "production" },
   });
 }
